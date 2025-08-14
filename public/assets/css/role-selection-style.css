@@ -1,0 +1,475 @@
+/* Role Selection Page Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+/* Header */
+.header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo-image {
+    height: 40px;
+    width: auto;
+}
+
+.header-breadcrumb .breadcrumb-link {
+    color: #666;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.header-breadcrumb .breadcrumb-link:hover {
+    color: #4A5BCC;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    max-width: 800px;
+    margin: 2rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 2rem;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    color: white;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.progress-step.completed .step-number {
+    background: #28a745;
+    color: white;
+}
+
+.progress-step.active .step-number {
+    background: #FF6B35;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.3);
+}
+
+.progress-step span {
+    font-size: 0.9rem;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.progress-step.active span,
+.progress-step.completed span {
+    opacity: 1;
+    font-weight: 500;
+}
+
+.progress-line {
+    width: 100px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    margin: 0 1rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.role-selection-container {
+    color: white;
+}
+
+/* Selection Header */
+.selection-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.selection-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.selection-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Category Cards */
+.category-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.category-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    color: #333;
+}
+
+.category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.card-icon.university {
+    background: linear-gradient(135deg, #4A5BCC, #6B73FF);
+    box-shadow: 0 8px 24px rgba(74, 91, 204, 0.3);
+}
+
+.card-icon.public {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+}
+
+.card-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.card-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+/* Card Content */
+.card-content p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.card-benefits h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.card-benefits ul {
+    list-style: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-benefits li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.card-benefits li i {
+    color: #28a745;
+    margin-right: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.verification-note {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.verification-note i {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.verification-note span {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Category Buttons */
+.category-btn {
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.university-btn {
+    background: linear-gradient(135deg, #4A5BCC, #6B73FF);
+    color: white;
+}
+
+.university-btn:hover {
+    background: linear-gradient(135deg, #3d4db8, #5a63e6);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(74, 91, 204, 0.3);
+}
+
+.public-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.public-btn:hover {
+    background: linear-gradient(135deg, #218838, #1ca085);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+}
+
+.category-btn i {
+    transition: transform 0.3s ease;
+}
+
+.category-btn:hover i {
+    transform: translateX(4px);
+}
+
+/* Help Section */
+.help-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.help-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 2rem;
+    color: white;
+}
+
+.help-card h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.help-card p {
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.help-card ul {
+    list-style: none;
+    margin-bottom: 1rem;
+}
+
+.help-card li {
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.help-card strong {
+    color: #FFD700;
+}
+
+.help-card a {
+    color: #FFD700;
+    text-decoration: none;
+}
+
+.help-card a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    margin-top: 4rem;
+    padding: 2rem 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+    color: white;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+}
+
+.footer-copyright {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .progress-indicator {
+        padding: 0 1rem;
+    }
+
+    .progress-line {
+        width: 60px;
+    }
+
+    .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+
+    .progress-step span {
+        font-size: 0.8rem;
+    }
+
+    .main-content {
+        padding: 1.5rem 1rem;
+    }
+
+    .selection-header h1 {
+        font-size: 2rem;
+    }
+
+    .selection-header p {
+        font-size: 1rem;
+    }
+
+    .category-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .category-card {
+        padding: 2rem;
+    }
+
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .card-icon {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+
+    .help-card {
+        padding: 1.5rem;
+    }
+
+    .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-indicator {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .progress-line {
+        width: 2px;
+        height: 40px;
+        margin: 0;
+    }
+
+    .category-card {
+        padding: 1.5rem;
+    }
+
+    .help-card {
+        padding: 1rem;
+    }
+}
