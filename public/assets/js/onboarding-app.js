@@ -41,7 +41,7 @@ function selectRole(role) {
         
         setTimeout(() => {
             // Navigate to role selection page
-            window.location.href = `/onboarding/role_selection?role=${role}`;
+            window.location.href = `/index.php?url=onboarding/role_selection&role=${role}`;
         }, 200);
     }, 100);
 }

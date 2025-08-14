@@ -17,7 +17,7 @@
                 </a>
             </div>
             <div class="header-breadcrumb">
-                <a href="/onboarding" class="breadcrumb-link">
+                <a href="/index.php?url=onboarding" class="breadcrumb-link">
                     <i class="fas fa-arrow-left"></i>
                     Back to Role Selection
                 </a>
@@ -157,9 +157,9 @@
             
             // Navigate to appropriate registration flow
             if (category === 'university') {
-                window.location.href = `/onboarding/university_registration?role=${selectedRole}`;
+                window.location.href = `/index.php?url=onboarding/university_registration&role=${selectedRole}`;
             } else {
-                window.location.href = `/onboarding/public_registration?role=${selectedRole}`;
+                window.location.href = `/index.php?url=onboarding/public_registration&role=${selectedRole}`;
             }
         }
 

@@ -20,8 +20,8 @@
                     <a href="#features" class="unp-nav-link">Features</a>
                     <a href="#users" class="unp-nav-link">Users</a>
                     <a href="#events" class="unp-nav-link">Events</a>
-                    <a href="/unipulse/public/signin" class="unp-nav-link">LogIn</a>
-                    <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
+                    <a href="/index.php?url=signin" class="unp-nav-link">LogIn</a>
+                    <button onclick="location.href='/index.php?url=onboarding'" class="get-started-btn">Join Now</button>
                 </div>
             <div class="hamburger">
                 <span></span>

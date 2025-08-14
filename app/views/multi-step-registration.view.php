@@ -17,7 +17,7 @@
                 </a>
             </div>
             <div class="header-breadcrumb">
-                <a href="/onboarding/role_selection" class="breadcrumb-link">
+                <a href="/index.php?url=onboarding/role_selection" class="breadcrumb-link">
                     <i class="fas fa-arrow-left"></i>
                     Back to Category Selection
                 </a>
