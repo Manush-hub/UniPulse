@@ -1,0 +1,565 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles - matches homepage */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    z-index: 100;
+    height: 80px; /* Match homepage header height */
+    display: flex;
+    align-items: center;
+}
+
+.header-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+
+/* Logo Area */
+.logo {
+    display: flex;
+    align-items: center;
+    height: 80px;          /* Match header height */
+    padding-right: 1rem;
+}
+
+.unp-logo {
+    max-width: 120px;      /* Logo size as in homepage */
+    height: 48px;
+    display: block;
+    object-fit: contain;
+}
+
+/* Nav Area (example classes if you have nav links/buttons) */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+}
+
+.nav-links a {
+    font-size: 1.45rem;
+    color: #222;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: #FF6B35;
+}
+
+.nav-btn {
+    background: #FF6B35;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.65em 1.3em;
+    font-size: 1.13rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 1.5rem;
+    transition: background 0.2s;
+}
+
+.nav-btn:hover {
+    background: #E55A2B;
+}
+
+/* Main Content */
+.main-content {
+    margin-top: 88px; /* Exactly match header height */
+    min-height: calc(100vh - 88px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+/* User Avatar */
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #4A5BCC 0%, #FF6B35 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.7rem;
+    box-shadow: 0 10px 30px rgba(74, 91, 204, 0.3);
+}
+
+.user-avatar i {
+    font-size: 1.1rem;
+    color: white;
+}
+
+/* Welcome Section */
+.welcome-section {
+    margin-bottom: 0.5rem;
+}
+
+.welcome-section h1 {
+    font-size: 1.6rem;
+    color: #333;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+
+.welcome-section p {
+    font-size: 0.97rem;
+    color: #666;
+    max-width: 400px;
+    margin: 0 auto 0.2rem;
+}
+
+/* Sign In Form Container */
+.signin-container {
+    max-width: 350px;
+    width: 100%;
+    text-align: center;
+}
+
+.signin-form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 1.1rem 0.6rem;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.form-header {
+    margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.form-header h2 {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 0.2rem;
+}
+
+.form-header p {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 0.9rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-container i {
+    position: absolute;
+    left: 1rem;
+    color: #999;
+    font-size: 0.9rem;
+    z-index: 1;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.2rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.input-container input:focus {
+    outline: none;
+    border-color: #4A5BCC;
+    box-shadow: 0 0 0 3px rgba(74, 91, 204, 0.1);
+}
+
+.input-container input::placeholder {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+/* Password Toggle */
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #4A5BCC;
+}
+
+/* Error Messages */
+.error-message {
+    display: block;
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.18rem;
+    min-height: 1rem;
+}
+
+/* Forgot Password */
+.forgot-password {
+    text-align: right;
+    margin-bottom: 0.7rem;
+}
+
+.forgot-password a {
+    color: #FF6B35;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #E55A2B;
+    text-decoration: underline;
+}
+
+/* Sign In Button */
+.signin-btn {
+    width: 100%;
+    background: #FF6B35;
+    color: white;
+    border: none;
+    padding: 0.7rem 1.1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-bottom: 0.7rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.signin-btn:hover:not(:disabled) {
+    background: #E55A2B;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+}
+
+.signin-btn:active {
+    transform: translateY(0);
+}
+
+.signin-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-text {
+    transition: opacity 0.3s ease;
+}
+
+.loading-spinner {
+    display: none;
+    position: absolute;
+}
+
+.signin-btn.loading .btn-text {
+    opacity: 0;
+}
+
+.signin-btn.loading .loading-spinner {
+    display: block;
+}
+
+/* Create Account Link */
+.create-account {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.create-account a {
+    color: #FF6B35;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.create-account a:hover {
+    color: #E55A2B;
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    background: white;
+    border-top: 1px solid #e1e5e9;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #4A5BCC;
+}
+
+.footer-copyright {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding: 1rem 1.5rem;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 1000;
+    max-width: 400px;
+    border-left: 4px solid;
+}
+
+.toast.success {
+    border-left-color: #28a745;
+}
+
+.toast.error {
+    border-left-color: #dc3545;
+}
+
+.toast.show {
+    display: flex;
+    animation: slideInRight 0.3s ease;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.toast-icon {
+    font-size: 1.2rem;
+}
+
+.toast.success .toast-icon {
+    color: #28a745;
+}
+
+.toast.error .toast-icon {
+    color: #dc3545;
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.8rem;
+    transition: color 0.3s ease;
+}
+
+.toast-close:hover {
+    color: #333;
+}
+
+/* Animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Form Validation States */
+.form-group.error input {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-group.success input {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .header-container {
+        padding: 0 1rem;
+    }
+    .main-content {
+        padding: 0.5rem;
+        margin-top: 74px;
+        min-height: calc(100vh - 74px);
+    }
+    .signin-form-container {
+        padding: 0.7rem 0.2rem;
+    }
+    .welcome-section h1 {
+        font-size: 1.3rem;
+    }
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-links {
+        justify-content: center;
+    }
+    .toast {
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .header {
+        height: 60px;
+    }
+    .main-content {
+        margin-top: 60px;
+        min-height: calc(100vh - 60px);
+    }
+    .unp-logo {
+        max-width: 50px;
+        height: 36px;
+    }
+    .logo {
+        height: 60px;
+    }
+    .signin-form-container {
+        padding: 0.5rem 0.1rem;
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 0.5rem;
+    }
+    .user-avatar i {
+        font-size: 0.8rem;
+    }
+    .welcome-section {
+        margin-bottom: 0.3rem;
+    }
+    .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 0 0.2rem;
+    }
+    .signin-form-container {
+        padding: 0.2rem 0.1rem;
+    }
+    .welcome-section h1 {
+        font-size: 1rem;
+    }
+    .welcome-section p {
+        font-size: 0.88rem;
+    }
+    .user-avatar {
+        width: 24px;
+        height: 24px;
+    }
+    .user-avatar i {
+        font-size: 0.6rem;
+    }
+}
+
+/* Focus visible for accessibility */
+.signin-btn:focus-visible,
+.password-toggle:focus-visible,
+input:focus-visible,
+a:focus-visible {
+    outline: 2px solid #4A5BCC;
+    outline-offset: 2px;
+}
