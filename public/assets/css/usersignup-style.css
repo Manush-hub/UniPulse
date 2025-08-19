@@ -1,0 +1,247 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    min-height: calc(100vh - 140px);
+}
+
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+.signup-section {
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 38px;
+    flex: 1;
+}
+
+.signup-title {
+    color: #23387f;
+    font-size: 2.1em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.signup-subtitle {
+    color: #444;
+    font-size: 1.13em;
+    margin-bottom: 32px;
+}
+
+.progress-bar-group {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto 38px auto;
+}
+
+.progress-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+.progress-label-left,
+.progress-label-right {
+    color: #49516c;
+    font-size: 1.05em;
+    font-weight: 500;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 14px;
+    background: transparent;
+    border-radius: 7px;
+    position: relative;
+    display: flex;
+    overflow: visible;
+    min-width: 220px;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 7px;
+    position: absolute;
+    top: 0;
+    transition: width 0.3s;
+}
+
+.progress-bar-left {
+    background: #23387f;
+    left: 0;
+    width: 50%;
+    z-index: 1;
+    border-top-left-radius: 7px;
+    border-bottom-left-radius: 7px;
+}
+
+.progress-bar-right {
+    background: #e87c2b;
+    left: 50%;
+    width: 50%;
+    z-index: 1;
+    border-top-right-radius: 7px;
+    border-bottom-right-radius: 7px;
+}
+
+.card-grid {
+    display: flex;
+    justify-content: center;
+    gap: 64px;
+    margin-top: 40px;
+}
+
+.user-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 12px rgba(60,80,180,0.07);
+    padding: 36px 34px 32px 34px;
+    max-width: 350px;
+    min-width: 270px;
+    cursor: pointer;
+    border: 2.5px solid #eaf0fb;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-card.university {
+    border-color: #23387f;
+}
+
+.user-card.public {
+    border-color: #f57c2a;
+}
+
+.user-card:hover {
+    box-shadow: 0 4px 18px rgba(60,80,180,0.13);
+    border-color: #1c285c;
+}
+
+.card-icon {
+    margin-bottom: 16px;
+}
+
+.card-title {
+    font-size: 1.23em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.university-title {
+    color: #23387f;
+}
+
+.public-title {
+    color: #f57c2a;
+}
+
+.card-desc {
+    color: #444;
+    font-size: 1.03em;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+/* Footer */
+.footer {
+    background: white;
+    border-top: 1px solid #e1e5e9;
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #4A5BCC;
+}
+
+.footer-copyright {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+    .progress-bar-container {
+        width: 170px;
+    }
+    .card-grid {
+        flex-direction: column;
+        gap: 28px;
+        align-items: center;
+    }
+    .header {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+    .main-container {
+        width: 98vw;
+    }
+}
