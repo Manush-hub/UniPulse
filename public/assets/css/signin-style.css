@@ -93,8 +93,8 @@ body {
 
 /* Main Content */
 .main-content {
-    margin-top: 88px; /* Exactly match header height */
-    min-height: calc(100vh - 88px);
+    /* margin-top: 50px; Exactly match header height */
+    min-height: fit-content;
     display: flex;
     align-items: center;
     justify-content: center;

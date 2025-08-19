@@ -334,6 +334,6 @@
         </div>
     </footer>
 
-    <script src="/unipulse/public/assets/js/app.js"></script>
+    <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
 </html>
