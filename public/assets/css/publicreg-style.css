@@ -1,0 +1,385 @@
+/* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Remove default link styles */
+a {
+    color: inherit;
+    text-decoration: none;
+    background: transparent;
+}
+
+/* Remove default form element styles */
+input, select, button, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+}
+
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+    height: 80px;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.header .logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Main container */
+.main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3rem 2rem;
+    background: #1E3A8A;
+    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
+    min-height: calc(100vh - 140px);
+}
+
+.intro {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.intro h1 {
+    color: #1E3A8A;
+    font-size: 2.5em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.intro span {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    color: #666;
+    font-size: 0.9em;
+    width: 100%;
+    max-width: 800px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: transparent;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    overflow: visible;
+    max-width: 800px;
+    margin-bottom: 3rem;
+}
+
+.progress-bar-left {
+    background: #F97316;
+    width: 50%;
+    height: 100%;
+    border-radius: 4px 0 0 4px;
+}
+
+.progress-bar-right {
+    background: #1E3A8A;
+    width: 50%;
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+}
+
+.content-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+    max-width: 800px;
+    width: 100%;
+}
+
+.form-header {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+.form-header h2 {
+    color: #1E3A8A;
+    font-size: 1.8em;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.form-header span {
+    color: #666;
+    font-size: 0.95em;
+}
+
+.section-header {
+    color: #1E3A8A;
+    font-size: 1.2em;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+    text-align: left;
+}
+
+.section-header:first-of-type {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+    background-color: #fafafa;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #1E3A8A;
+    background-color: white;
+}
+
+.field {
+    display: flex;
+    gap: 8px;
+}
+
+.field select {
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.field input {
+    flex: 1;
+}
+
+/* Checkbox grid for interests */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    accent-color: #1E3A8A;
+}
+
+.checkbox-item label {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #333;
+    cursor: pointer;
+}
+
+.terms {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.terms input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    margin-top: 2px;
+    accent-color: #1E3A8A;
+}
+
+.terms label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+}
+
+.terms a {
+    color: #F97316;
+    text-decoration: none;
+}
+
+.terms a:hover {
+    text-decoration: underline;
+}
+
+.button {
+    width: 100%;
+    background: #F97316;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.button:hover {
+    background: #ea580c;
+}
+
+.toggle-form {
+    text-align: center;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.toggle-form a {
+    color: #F97316;
+    text-decoration: none;
+}
+
+.toggle-form a:hover {
+    text-decoration: underline;
+}
+
+/* Footer */
+.footer {
+    background: white;
+    border-top: 1px solid #e1e5e9;
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.footer-links a {
+    color: #666;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #1E3A8A;
+}
+
+.footer-copyright {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 900px) {
+    .main-container {
+        padding: 2rem 1rem;
+    }
+    
+    .content-wrapper {
+        padding: 2rem 1.5rem;
+    }
+    
+    .header-container {
+        padding: 0 1rem;
+    }
+    
+    .footer-container {
+        padding: 0 1rem;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .footer-links {
+        justify-content: center;
+    }
+
+    .intro h1 {
+        font-size: 2em;
+    }
+
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .field {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .field select {
+        width: 100%;
+    }
+}

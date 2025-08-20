@@ -47,7 +47,7 @@
                         </p>
                     </a>
                     <!-- Event Organizers Card -->
-                    <div class="user-type-card" data-type="organizer">
+                    <a href="/unipulse/public/publisherreg" class="user-type-card" data-type="organizer">
                         <div class="card-icon">
                             <!-- Calendar SVG -->
                             <svg width="78" height="78" viewBox="0 0 64 64" fill="none">
@@ -57,13 +57,13 @@
                                 <path d="M42 16V24" stroke="#E87C2B" stroke-width="3" stroke-linecap="round"/>
                             </svg>
                         </div>
-                        <h3 class="user-type-title">Event Organizers</h3>
+                        <h3 class="user-type-title">Organizers</h3>
                         <p class="user-type-desc">
                             University clubs and organizations that create, manage, and promote events to engage the student community.
                         </p>
-                    </div>
+                    </a>
                     <!-- Sponsors Card -->
-                    <div class="user-type-card" data-type="sponsor">
+                    <a href="/unipulse/public/sponsorreg" class="user-type-card" data-type="sponsor">
                         <div class="card-icon">
                             <!-- Briefcase SVG -->
                             <svg width="78" height="78" viewBox="0 0 64 64" fill="none">
@@ -75,7 +75,7 @@
                         <p class="user-type-desc">
                             Individuals or companies looking to support and gain visibility by sponsoring university events
                         </p>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>
