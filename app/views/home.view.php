@@ -268,13 +268,13 @@
             <h2>Ready to Transform Your University Event Experience?</h2>
             <p>Join thousands of students, organizers, and sponsors who are already using UniPulse to discover and create amazing university events.</p>
             <div class="cta-buttons">
-                <button class="btn btn-cta">
+                <a href="/unipulse/public/usersignup" class="btn btn-cta">
                     <i class="fas fa-user-graduate"></i>
                     <div>
-                        <span class="btn-title">Students</span>
+                        <span class="btn-title">Users</span>
                         <span class="btn-subtitle">Discover Events</span>
                     </div>
-                </button>
+                </a>
                 <button class="btn btn-cta">
                     <i class="fas fa-users-cog"></i>
                     <div>
@@ -282,13 +282,13 @@
                         <span class="btn-subtitle">Create Events</span>
                     </div>
                 </button>
-                <button class="btn btn-cta">
+                <a href="/unipulse/public/sponsorreg" class="btn btn-cta">
                     <i class="fas fa-building"></i>
                     <div>
                         <span class="btn-title">Sponsors</span>
                         <span class="btn-subtitle">Partner with Us</span>
                     </div>
-                </button>
+                </a>
             </div>
         </div>
     </section>

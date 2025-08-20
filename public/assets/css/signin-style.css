@@ -9,7 +9,8 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: #f8f9fa;
+    background: #1E3A8A;
+    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -191,6 +192,7 @@ body {
     align-items: center;
 }
 
+
 .input-container i {
     position: absolute;
     left: 1rem;
@@ -198,6 +200,7 @@ body {
     font-size: 0.9rem;
     z-index: 1;
 }
+
 
 .input-container input {
     width: 100%;
@@ -215,6 +218,7 @@ body {
     box-shadow: 0 0 0 3px rgba(74, 91, 204, 0.1);
 }
 
+
 .input-container input::placeholder {
     color: #aaa;
     font-size: 0.9rem;
@@ -223,7 +227,9 @@ body {
 /* Password Toggle */
 .password-toggle {
     position: absolute;
-    right: 1rem;
+    right: 3rem;
+    top: 0.9rem;
+    transform: translateY(-50%);
     background: none;
     border: none;
     color: #999;
@@ -236,6 +242,8 @@ body {
 .password-toggle:hover {
     color: #4A5BCC;
 }
+
+
 
 /* Error Messages */
 .error-message {

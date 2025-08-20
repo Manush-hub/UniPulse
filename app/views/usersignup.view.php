@@ -22,14 +22,14 @@
                 <div class="signup-subtitle">
                     Discover and participate in university events across Sri Lanka
                 </div>
-                <div class="progress-bar-group">
-                    <div class="progress-label-row">
-                        <span class="progress-label-left">Step 1 of 2</span>
-                        <span class="progress-label-right">Select User Type</span>
+                 <div class="progress-section">
+                    <div class="progress">
+                        <span>Step 1 of 2</span>
+                        <span>Complete Registration</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar progress-bar-left"></div>
-                        <div class="progress-bar progress-bar-right"></div>
+                        <div class="progress-bar-left"></div>
+                        <div class="progress-bar-right"></div>
                     </div>
                 </div>
                 <div class="card-grid">
@@ -43,7 +43,7 @@
                             Access to all events including internal university events and exclusive academic programs
                         </div>
                     </div>
-                    <div class="user-card public" id="publicCard">
+                    <a href="/unipulse/public/publicreg" class="user-card public" id="publicCard">
                         <div class="card-icon">
                             <!-- Public User Icon SVG -->
                             <svg height="64" width="64" fill="#f57c2a" viewBox="0 0 24 24"><path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/></svg>
@@ -52,7 +52,7 @@
                         <div class="card-desc">
                             Access to public events open to everyone and community programs across universities
                         </div>
-                    </div>
+                    </a>
                 </div>
             </section>
         </div>
@@ -69,15 +69,5 @@
             </div>
         </div>
     </footer>
-    <script>
-        document.getElementById('universityCard').onclick = function() {
-            alert('University Students/Staff selected!'); // replace with navigation logic
-            // window.location.href = "university-signup.html";
-        };
-        document.getElementById('publicCard').onclick = function() {
-            alert('Public User selected!'); // replace with navigation logic
-            // window.location.href = "public-signup.html";
-        };
-    </script>
 </body>
 </html>

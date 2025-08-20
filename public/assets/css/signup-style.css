@@ -15,6 +15,12 @@ body {
     flex-direction: column;
 }
 
+a:any-link {
+    color: none;
+    text-decoration-line:none;
+    cursor: auto;
+}
+
 /* Header Styles */
 .header {
     background: white;
@@ -42,6 +48,8 @@ body {
 
 /* Main Content */
 .main-content {
+    background: #1E3A8A;
+    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
     flex: 1;
     display: flex;
     align-items: center;
