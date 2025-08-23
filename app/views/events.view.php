@@ -10,35 +10,10 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/userlanding" >Home</a>
-                <a href="/unipulse/public/events" class="active">All Events</a>
-                <a href="/unipulse/public/userdashboard">Dashboard</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                        <span class="notification-badge" id="notificationBadge">3</span>
-                    </button>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/default-avatar.png" alt="User Avatar" class="avatar">
-                    <span class="username">Manush-hub</span>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'events'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -133,45 +108,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="logo">
-                       <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </div>
-                    <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#events">Find Events</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#help">Help Center</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact Info</h4>
-                    <p><i class="fas fa-envelope"></i> info@unipulse.lk</p>
-                    <p><i class="fas fa-phone"></i> +94 11 234 5678</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Colombo, Sri Lanka</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 UniPulse. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/components/footer.php'; ?>
 
     <script src="/unipulse/public/assets/js/events-app.js"></script>
 </body>

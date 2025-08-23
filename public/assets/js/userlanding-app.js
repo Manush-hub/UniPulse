@@ -545,8 +545,3 @@ function loadMoreEvents() {
             observer.observe(el);
         });
     }
-
-    // Dummy notification toggle
-    function toggleNotifications() {
-        alert('Notifications feature coming soon!');
-    }

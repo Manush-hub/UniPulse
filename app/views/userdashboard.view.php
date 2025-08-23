@@ -10,59 +10,10 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/userlanding" >Home</a>
-                <a href="/unipulse/public/events" >All Events</a>
-                <a href="/unipulse/public/userdashboard" class="active">Dashboard</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                        <span class="notification-badge" id="notificationBadge">3</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/default-avatar.png" alt="User Avatar" class="avatar">
-                    <div class="user-info">
-                        <span class="username" id="username">Manush-hub</span>
-                        <span class="user-role" id="userRole">Student</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html">Profile Settings</a>
-                        <a href="preferences.html">Preferences</a>
-                        <a href="help.html">Help & Support</a>
-                        <hr>
-                        <a href="logout.php" class="logout">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -73,33 +24,6 @@
                     <div class="welcome-text">
                         <h1>Welcome back, <span id="welcomeUsername">Manush</span>! 👋</h1>
                         <p>Ready to discover amazing events and connect with your university community?</p>
-                        <div class="quick-stats">
-                            <div class="stat-item">
-                                <span class="stat-number" id="totalEvents">12</span>
-                                <span class="stat-label">Events Joined</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="upcomingEvents">3</span>
-                                <span class="stat-label">Upcoming</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="eventsCreated">2</span>
-                                <span class="stat-label">Events Created</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='create-event.html'">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                            Create Event
-                        </button>
-                        <button class="btn btn-outline" onclick="window.location.href='all-events.html'">
-                            Browse Events
-                        </button>
                     </div>
                 </div>
             </div>
@@ -110,7 +34,7 @@
             <div class="container">
                 <h2>Quick Actions</h2>
                 <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='all-events.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/events'">
                         <div class="action-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -131,18 +55,6 @@
                         </div>
                         <h3>My Events</h3>
                         <p>View your registered events</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='communities.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </div>
-                        <h3>Communities</h3>
-                        <p>Join university societies</p>
                     </div>
                     <div class="action-card" onclick="window.location.href='achievements.html'">
                         <div class="action-icon">
@@ -247,19 +159,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-                <a href="#about">About UniPulse</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/components/footer.php'; ?>
 
     <script src="/unipulse/public/assets/js/userdashboard-app.js"></script>
 </body>
