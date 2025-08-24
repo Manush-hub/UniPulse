@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>User Profile - Event Marketing</title>
-  <link rel="stylesheet" href="profile-style.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/userprofile-style.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.css">
 </head>
@@ -123,6 +123,6 @@
     </aside>
   </div>
   <script src="https://unpkg.com/feather-icons"></script>
-  <script src="profile-app.js"></script>
+  <script src="/unipulse/public/assets/js/userprofile-app.js"></script>
 </body>
 </html>
