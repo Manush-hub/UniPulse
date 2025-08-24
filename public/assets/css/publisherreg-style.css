@@ -34,42 +34,17 @@ body {
     background-color: #f5f5f5;
 }
 
-/* Header Styles */
-.header {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 1rem 0;
-    height: 80px;
-}
-
-.header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-}
-
-.header .logo {
-    display: flex;
-    align-items: center;
-}
-
-.logo-image {
-    height: 48px;
-    width: auto;
-    object-fit: contain;
-}
-
 /* Main container */
 .main-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 3rem 2rem;
+    justify-content: center;
+    padding: 5rem;
     background: #1E3A8A;
     background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
-    min-height: calc(100vh - 140px);
+    min-height: fit-content;
 }
 
 .intro {
@@ -407,47 +382,6 @@ body {
     text-decoration: underline;
 }
 
-/* Footer */
-.footer {
-    background: white;
-    border-top: 1px solid #e1e5e9;
-    padding: 1.5rem 0;
-    margin-top: auto;
-}
-
-.footer-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.footer-links {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.footer-links a {
-    color: #666;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s ease;
-}
-
-.footer-links a:hover {
-    color: #1E3A8A;
-}
-
-.footer-copyright {
-    color: #999;
-    font-size: 0.85rem;
-}
-
 /* Mobile responsiveness for tooltip */
 @media (max-width: 900px) {
     .main-container {
@@ -456,20 +390,6 @@ body {
     
     .content-wrapper {
         padding: 2rem 1.5rem;
-    }
-    
-    .header-container {
-        padding: 0 1rem;
-    }
-    
-    .footer-container {
-        padding: 0 1rem;
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .footer-links {
-        justify-content: center;
     }
 
     .intro h1 {

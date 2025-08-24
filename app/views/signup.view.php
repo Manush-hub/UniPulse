@@ -9,15 +9,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php include 'header.php'; ?>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -82,29 +74,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Toast Notifications -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <i class="toast-icon"></i>
-            <span class="toast-message"></span>
-        </div>
-        <button class="toast-close" id="toastClose">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
+    <?php include 'footer.php'; ?>
 
     <script src="/unipulse/public/assets/js/signup-app.js"></script>
 </body>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Public User Registration</title>
+    <title>UniPulse - University Student/Staff Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/userreg-style.css">
 </head>
 
@@ -32,7 +32,7 @@
         <div class="content-wrapper">
             <div class="form-header">
                 <h2>Create Your Account</h2>
-                <span>Complete your registration to start discovering public events</span>
+                <span>Discover and participate in university events across Sri Lanka</span>
             </div>
 
             <!--Registration Form-->
@@ -70,6 +70,62 @@
                 <div class="form-group">
                     <label for="confirm-password">Confirm Password</label>
                     <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+                </div>
+
+                <h3 class="section-header">University Information</h3>
+
+                <div class="form-group">
+                    <label for="university">University</label>
+                    <select id="university" name="university" required>
+                        <option value="">Select your university</option>
+                        <option value="university-of-colombo">University of Colombo</option>
+                        <option value="university-of-peradeniya">University of Peradeniya</option>
+                        <option value="university-of-kelaniya">University of Kelaniya</option>
+                        <option value="university-of-moratuwa">University of Moratuwa</option>
+                        <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
+                        <option value="university-of-ruhuna">University of Ruhuna</option>
+                        <option value="eastern-university">Eastern University</option>
+                        <option value="university-of-jaffna">University of Jaffna</option>
+                        <option value="sabaragamuwa-university">Sabaragamuwa University</option>
+                        <option value="wayamba-university">Wayamba University</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="faculty">Faculty/Department</label>
+                    <select id="faculty" name="faculty" required>
+                        <option value="">Select your faculty/department</option>
+                        <option value="faculty-of-arts">Faculty of Arts</option>
+                        <option value="faculty-of-science">Faculty of Science</option>
+                        <option value="faculty-of-engineering">Faculty of Engineering</option>
+                        <option value="faculty-of-medicine">Faculty of Medicine</option>
+                        <option value="faculty-of-law">Faculty of Law</option>
+                        <option value="faculty-of-management">Faculty of Management</option>
+                        <option value="faculty-of-education">Faculty of Education</option>
+                        <option value="faculty-of-agriculture">Faculty of Agriculture</option>
+                        <option value="faculty-of-applied-sciences">Faculty of Applied Sciences</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="student-staff-id">Student/Staff ID</label>
+                    <input type="text" id="student-staff-id" name="student-staff-id" placeholder="Enter your student or staff id" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="academic-year">Academic Year</label>
+                    <select id="academic-year" name="academic-year" required>
+                        <option value="">Select your academic year</option>
+                        <option value="1st-year">1st Year</option>
+                        <option value="2nd-year">2nd Year</option>
+                        <option value="3rd-year">3rd Year</option>
+                        <option value="4th-year">4th Year</option>
+                        <option value="5th-year">5th Year</option>
+                        <option value="postgraduate">Postgraduate</option>
+                        <option value="phd">PhD</option>
+                        <option value="staff">Staff Member</option>
+                        <option value="faculty">Faculty Member</option>
+                    </select>
                 </div>
 
                 <h3 class="section-header">Additional Information</h3>
@@ -131,6 +187,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <!-- <script src="public-user-registration.js"></script> -->
+    <script src="university-student-registration.js"></script>
 </body>
 </html>
