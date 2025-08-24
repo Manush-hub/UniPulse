@@ -122,5 +122,16 @@ Trait Model{
 
         $this->query($query,$data);
         
-    }   
+    } 
+    
+    // Add this method to your existing Model trait
+    public function getTableByRole($baseTable, $role = null) {
+        $userRole = $role ?? $_SESSION['user_role'] ?? 'User';
+        
+        // Option 1: Role-specific table names
+        return strtolower($userRole) . '_' . $baseTable;
+        
+        // Option 2: Same table with role column filtering
+        // return $baseTable; // and add role filtering in queries
+}
 }
