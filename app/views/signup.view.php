@@ -5,21 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Account - UniPulse</title>
-    <link rel="stylesheet" href="/assets/css/signup-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/signup-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php include 'header.php'; ?>
 
     <!-- Main Content -->
     <main class="main-content">
