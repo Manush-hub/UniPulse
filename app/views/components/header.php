@@ -51,7 +51,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <a href="preferences.html">Preferences</a>
                         <a href="help.html">Help & Support</a>
                         <hr>
-                        <a href="logout.php" class="logout">Logout</a>
+                        <a href="index.php" class="logout">Logout</a>
                     </div>
                 </div>
             </div>
