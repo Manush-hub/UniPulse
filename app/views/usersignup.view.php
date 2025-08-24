@@ -7,15 +7,9 @@
 </head>
 <body>    
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php include 'header.php'; ?>
+
+    <!-- Main Content -->
     <div class="main-container">
             <section class="signup-section">
                 <h1 class="signup-title">Join UniPulse Community</h1>
@@ -56,18 +50,8 @@
                 </div>
             </section>
         </div>
-     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <!-- Footer -->
+    <?php include 'footer.php'; ?>
+
 </body>
 </html>

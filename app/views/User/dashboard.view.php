@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Dashboard</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/userdashboard-style.css">
+    <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
 </head>
 
 <body>
@@ -161,6 +161,6 @@
     <!-- Footer -->
     <?php include __DIR__ . '/components/footer.php'; ?>
 
-    <script src="/unipulse/public/assets/js/userdashboard-app.js"></script>
+    <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
 </html>

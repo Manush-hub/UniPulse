@@ -3,7 +3,7 @@ $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/user/components/header-style.css">
 
 <header class="header">
         <div class="header-container">
@@ -13,9 +13,9 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 </a>
             </div>
             <nav class="nav">
-                <a href="/unipulse/public/userlanding" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
-                <a href="/unipulse/public/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
-                <a href="/unipulse/public/userdashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+                <a href="/unipulse/public/user/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
+                <a href="/unipulse/public/user/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
+                <a href="/unipulse/public/user/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
             </nav>
             <div class="header-actions">
                 <div class="notifications">
@@ -51,10 +51,10 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <a href="preferences.html">Preferences</a>
                         <a href="help.html">Help & Support</a>
                         <hr>
-                        <a href="index.php" class="logout">Logout</a>
+                        <a href="/unipulse/public/" class="logout">Logout</a>
                     </div>
                 </div>
             </div>
         </div>
 </header>
-<script src="/unipulse/public/assets/js/header-app.js"></script>
+<script src="/unipulse/public/assets/js/user/header-app.js"></script>

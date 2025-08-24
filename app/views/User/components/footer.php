@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/unipulse/public/assets/css/components/footer-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/user/components/footer-style.css">
 <footer class="footer">
     <div class="container">
             <div class="footer-content">

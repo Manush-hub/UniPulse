@@ -17,9 +17,6 @@
                 </div>
             </div>
                 <div class="unp-nav-group">
-                    <a href="#features" class="unp-nav-link">Features</a>
-                    <a href="#users" class="unp-nav-link">Users</a>
-                    <a href="/unipulse/public/signin" class="unp-nav-link">Events</a>
                     <button onclick="location.href='/unipulse/public/signin'" class="login-btn">LogIn</button>
                     <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
                 </div>

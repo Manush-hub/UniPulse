@@ -5,20 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Public User Registration</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/publicreg-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/userreg-style.css">
 </head>
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php include 'header.php'; ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -137,19 +129,8 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include 'footer.php'; ?>
 
-    <script src="public-user-registration.js"></script>
+    <!-- <script src="public-user-registration.js"></script> -->
 </body>
 </html>
