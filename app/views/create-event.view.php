@@ -436,7 +436,7 @@
                 </div>
                 <div class="section-content">
                     <p style="color: #666; margin-bottom: 15px;">
-                        Add custom fields to collect additional information from attendees
+                        Add custom fields to collect additional information
                     </p>
 
                     <div class="custom-field-builder">
