@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YourEvent - Create an event</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -45,8 +44,8 @@
             <h3>EVENT INFORMATION</h3>
             <div class="sidebar-item" data-target="upload-cover">Upload cover</div>
             <div class="sidebar-item" data-target="general-info">General information</div>
-            <div class="sidebar-item active" data-target="album-upload">Album upload</div>
             <div class="sidebar-item" data-target="location-time">Location and time</div>
+            <div class="sidebar-item" data-target="audience">Audience</div>
             <div class="sidebar-item" data-target="ticket">Ticket</div>
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
         </aside>
@@ -124,49 +123,6 @@
                 </div>
             </section>
 
-            <!-- ALBUM UPLOAD SECTION - UPDATED -->
-            <section class="section" id="album-upload">
-                <div class="section-header">
-                    <div class="section-icon"></div>
-                    <h3>Album</h3>
-                    <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                </div>
-                <div class="section-content">
-                    <p style="color: #666; margin-bottom: 15px;">Upload photos showcasing your event</p>
-
-                    <div class="album-upload-compact">
-                        <div class="upload-section-compact" id="uploadAreaCompact">
-                            <div class="upload-icon-compact">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-                            <div class="upload-text-compact">
-                                <h3>Drag & Drop</h3>
-                                <p>Upload your event photos or click browse</p>
-                            </div>
-                            <input type="file" id="fileInputCompact" class="file-input" multiple accept="image/*">
-                            <label for="fileInputCompact" class="browse-btn-compact">Browse Files</label>
-                            <p class="file-info-compact">Supported formats: JPG, PNG, GIF</p>
-                        </div>
-
-                        <div class="preview-section-compact">
-                            <div class="preview-title-compact">
-                                <span>Selected Photos</span>
-                            </div>
-                            <div class="preview-grid-compact" id="previewGridCompact">
-                                <div class="empty-state-compact">
-                                    <i class="fas fa-images"></i>
-                                    <p>No photos selected yet</p>
-                                </div>
-                            </div>
-
-                            <button class="upload-btn-compact" id="uploadBtnCompact" disabled>
-                                <i class="fas fa-upload"></i> Upload Album
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <section class="section" id="location-time">
                 <div class="section-header">
                     <div class="section-icon"></div>
@@ -175,36 +131,100 @@
                 </div>
                 <div class="section-content">
                     <div class="form-group">
-                        <label class="form-label">Location</label>
-                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Tell attendees where your event is
-                            happening</p>
+                        <label class="form-label">Event Location Type</label>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Select where your event will be
+                            held</p>
 
-                        <div class="location-inputs">
-                            <div>
-                                <label
-                                    style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Address</label>
-                                <input type="text" class="form-input" placeholder="Enter address">
+                        <div class="location-type-options" style="display: flex; gap: 20px; margin-bottom: 20px;">
+                            <div class="location-type-option">
+                                <input type="radio" id="inside-university" name="location-type"
+                                    value="inside-university" checked>
+                                <label for="inside-university"
+                                    style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <i class="fas fa-university" style="color: #4A5BCC;"></i>
+                                    Inside University
+                                </label>
                             </div>
-                            <div>
-                                <label
-                                    style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">City</label>
-                                <input type="text" class="form-input" placeholder="Enter city">
+                            <div class="location-type-option">
+                                <input type="radio" id="outside-university" name="location-type"
+                                    value="outside-university">
+                                <label for="outside-university"
+                                    style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <i class="fas fa-map-marker-alt" style="color: #FF6B35;"></i>
+                                    Outside University
+                                </label>
                             </div>
-                            <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">State /
-                                    Province</label>
-                                <input type="text" class="form-input" placeholder="Enter state">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Location Details</label>
+
+                        <!-- Inside University Location Fields -->
+                        <div id="insideUniversityLocation" class="location-fields">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Specify the university
+                                location details</p>
+
+                            <div class="university-location-inputs"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">University</label>
+                                    <select class="form-select">
+                                        <option value="">Select University</option>
+                                        <option value="university-of-colombo">University of Colombo</option>
+                                        <option value="university-of-moratuwa">University of Moratuwa</option>
+                                        <option value="university-of-peradeniya">University of Peradeniya</option>
+                                        <option value="university-of-sri-jayewardenepura">University of Sri
+                                            Jayewardenepura</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Faculty/Department</label>
+                                    <input type="text" class="form-input"
+                                        placeholder="e.g., Faculty of Engineering, Department of Computer Science">
+                                </div>
                             </div>
+
                             <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Country
-                                    / Region</label>
-                                <input type="text" class="form-input" placeholder="Enter country">
+                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Exact
+                                    Location</label>
+                                <input type="text" class="form-input"
+                                    placeholder="e.g., Main Auditorium, Lecture Hall A, Sports Complex">
                             </div>
-                        </div><br>
-                        <div class="map-container" id="mapPreview">
-                            <div class="map-placeholder">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <p>Map will appear when location is entered</p>
+                        </div>
+
+                        <!-- Outside University Location Fields -->
+                        <div id="outsideUniversityLocation" class="location-fields hidden">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Provide the complete address
+                                details</p>
+
+                            <div class="external-location-inputs"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Venue
+                                        Name</label>
+                                    <input type="text" class="form-input" placeholder="e.g., Colombo Convention Center">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Street
+                                        Address</label>
+                                    <input type="text" class="form-input" placeholder="Enter street address">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">City</label>
+                                    <input type="text" class="form-input" placeholder="Enter city">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">District/Province</label>
+                                    <input type="text" class="form-input" placeholder="Enter district or province">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -216,11 +236,6 @@
 
                         <div class="time-inputs">
                             <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                    Date</label>
-                                <input type="date" class="form-input" value="2023-06-10">
-                            </div>
-                            <div>
                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Event
                                     Date</label>
                                 <input type="date" class="form-input" value="2023-06-10">
@@ -230,16 +245,57 @@
                                     Time</label>
                                 <input type="time" class="form-input" value="19:00">
                             </div>
-                            <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                    Time</label>
-                                <input type="time" class="form-input" value="23:00">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section" id="audience">
+                <div class="section-header">
+                    <div class="section-icon"></div>
+                    <h3>Audience</h3>
+                    <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                </div>
+                <div class="section-content">
+                    <p style="color: #666; margin-bottom: 15px;">
+                        Select who can view and attend your event
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Audience</label>
+                        <div class="audience-options">
+                            <div class="audience-option">
+                                <input type="radio" id="university-students" name="audience" value="university-students"
+                                    checked>
+                                <label for="university-students">
+                                    <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
+                                    University Students
+                                </label>
+                            </div>
+                            <div class="audience-option">
+                                <input type="radio" id="public-users" name="audience" value="public-users">
+                                <label for="public-users">
+                                    <i class="fas fa-users" style="color: #FF6B35; font-size: 18px;"></i>
+                                    Public Users
+                                </label>
+                            </div>
+                            <div class="audience-option">
+                                <input type="radio" id="both-audiences" name="audience" value="both">
+                                <label for="both-audiences">
+                                    <i class="fas fa-globe" style="color: #10B981; font-size: 18px;"></i>
+                                    Both
+                                </label>
                             </div>
                         </div>
+                    </div>
 
-                        <button
-                            style="background: #FF6B35; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 15px; cursor: pointer; font-size: 12px;">Add
-                            agenda</button>
+                    <div class="form-group">
+                        <label class="form-label">Additional Requirements</label>
+                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Any specific requirements for
+                            attendees (optional)</p>
+                        <textarea class="form-textarea"
+                            placeholder="e.g., Age restrictions, dress code, required documents, etc."
+                            style="min-height: 80px;"></textarea>
                     </div>
                 </div>
             </section>
@@ -251,53 +307,119 @@
                     <div class="toggle-icon" style="margin-left: auto;">▼</div>
                 </div>
                 <div class="section-content">
-                    <div class="ticket-options">
-                        <div class="ticket-option">
-                            <input type="radio" name="ticket-type" id="paid" checked>
-                            <label for="paid">Paid</label>
-                        </div>
-                        <div class="ticket-option">
-                            <input type="radio" name="ticket-type" id="free">
-                            <label for="free">Free</label>
-                        </div>
-                    </div>
-
-                    <div class="ticket-details">
-                        <div>
-                            <label class="form-label">Quantity</label>
-                            <input type="number" class="form-input" value="300" placeholder="Enter quantity">
-                        </div>
-                        <div>
-                            <label class="form-label">Price</label>
-                            <input type="number" class="form-input" value="10" placeholder="Enter price">
-                        </div>
-                    </div>
-
                     <div class="form-group">
-                        <label class="form-label">Sale date</label>
-                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set the sale date when your
-                            audiences is able to purchase the tickets</p>
+                        <label class="form-label">Ticket Type</label>
+                        <div class="ticket-options">
+                            <div class="ticket-option">
+                                <input type="radio" name="ticket-type" id="paid" value="paid" checked>
+                                <label for="paid">
+                                    <i class="fas fa-credit-card" style="margin-right: 5px; color: #FF6B35;"></i>
+                                    Paid
+                                </label>
+                            </div>
+                            <div class="ticket-option">
+                                <input type="radio" name="ticket-type" id="free" value="free">
+                                <label for="free">
+                                    <i class="fas fa-gift" style="margin-right: 5px; color: #10B981;"></i>
+                                    Free
+                                </label>
+                            </div>
+                        </div>
+                    </div>
 
-                        <div class="sale-dates">
+                    <div class="ticket-details" id="paidTicketDetails">
+                        <div class="info-note">
+                            <i class="fas fa-ticket-alt"></i>
+                            Configure your paid ticket details below
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                             <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                    Date</label>
-                                <input type="date" class="form-input" value="2023-06-05">
+                                <label class="form-label">Quantity Available</label>
+                                <input type="number" class="form-input" value="300" placeholder="Enter quantity"
+                                    min="1">
                             </div>
                             <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                    Time</label>
-                                <input type="time" class="form-input" value="09:00">
+                                <label class="form-label">Price (USD)</label>
+                                <input type="number" class="form-input" value="10" placeholder="Enter price" min="0"
+                                    step="0.01">
                             </div>
-                            <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                    Date</label>
-                                <input type="date" class="form-input" value="2023-06-09">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Sale Period</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be
+                                available for purchase</p>
+
+                            <div class="sale-dates">
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
+                                        Date</label>
+                                    <input type="date" class="form-input" value="2023-06-05">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
+                                        Time</label>
+                                    <input type="time" class="form-input" value="09:00">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
+                                        Date</label>
+                                    <input type="date" class="form-input" value="2023-06-09">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
+                                        Time</label>
+                                    <input type="time" class="form-input" value="18:00">
+                                </div>
                             </div>
-                            <div>
-                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                    Time</label>
-                                <input type="time" class="form-input" value="18:00">
+                        </div>
+                    </div>
+
+                    <div class="ticket-details hidden" id="freeTicketDetails">
+                        <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
+                            <i class="fas fa-gift"></i>
+                            This is a free event. Attendees can register without payment.
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Registration Limit (Optional)</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of
+                                registrations if needed</p>
+                            <input type="number" class="form-input"
+                                placeholder="Leave empty for unlimited registrations" min="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Registration Period</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and
+                                closes</p>
+
+                            <div class="sale-dates">
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
+                                        Date</label>
+                                    <input type="date" class="form-input" value="2023-06-05">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
+                                        Time</label>
+                                    <input type="time" class="form-input" value="09:00">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
+                                        Date</label>
+                                    <input type="date" class="form-input" value="2023-06-09">
+                                </div>
+                                <div>
+                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
+                                        Time</label>
+                                    <input type="time" class="form-input" value="18:00">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -312,17 +434,79 @@
                 </div>
                 <div class="section-content">
                     <p style="color: #666; margin-bottom: 15px;">
-                        Need volunteers for your event’s success? Let us know.
+                        Need volunteers for your event's success? Let us know.
                     </p>
 
-                    <label for="volunteerToggle" style="display: block; margin-bottom: 8px; color: #333;">
-                        Do you want volunteers?
-                    </label>
+                    <div class="form-group">
+                        <label for="volunteerToggle" style="display: block; margin-bottom: 8px; color: #333;">
+                            Do you want volunteers?
+                        </label>
 
-                    <label class="switch">
-                        <input type="checkbox" id="volunteerToggle" name="volunteerToggle" checked>
-                        <span class="slider"></span>
-                    </label>
+                        <label class="switch">
+                            <input type="checkbox" id="volunteerToggle" name="volunteerToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div id="volunteerDetails" class="volunteer-details hidden" style="margin-top: 20px;">
+                        <div class="info-note">
+                            <i class="fas fa-hands-helping"></i>
+                            Select where you'd like to recruit volunteers from
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Volunteer Source</label>
+                            <div class="volunteer-source-options">
+                                <div class="volunteer-source-option">
+                                    <input type="radio" id="faculty-volunteers" name="volunteer-source" value="faculty"
+                                        checked>
+                                    <label for="faculty-volunteers">
+                                        <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
+                                        From My Faculty
+                                    </label>
+                                </div>
+                                <div class="volunteer-source-option">
+                                    <input type="radio" id="university-volunteers" name="volunteer-source"
+                                        value="university">
+                                    <label for="university-volunteers">
+                                        <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
+                                        From My University
+                                    </label>
+                                </div>
+                                <div class="volunteer-source-option">
+                                    <input type="radio" id="public-volunteers" name="volunteer-source" value="public">
+                                    <label for="public-volunteers">
+                                        <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
+                                        Public Users
+                                    </label>
+                                </div>
+                                <div class="volunteer-source-option">
+                                    <input type="radio" id="anyone-volunteers" name="volunteer-source" value="anyone">
+                                    <label for="anyone-volunteers">
+                                        <i class="fas fa-globe" style="color: #9C27B0; font-size: 18px;"></i>
+                                        Anyone
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Number of Volunteers Needed</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you
+                                need?</p>
+                            <input type="number" class="form-input" placeholder="e.g., 5" min="1"
+                                style="max-width: 200px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Volunteer Requirements</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Describe what volunteers will
+                                do and any requirements</p>
+                            <textarea class="form-textarea"
+                                placeholder="e.g., Help with registration, crowd management, technical support. Must be available full day."
+                                style="min-height: 80px;"></textarea>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -335,10 +519,7 @@
             </div>
         </main>
     </div>
-
-    <?php include 'footer.php' ?>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/unipulse/public/assets/js/create-event-app.js"></script>
+    <script src="script.js"></script>
 
 </body>
 
