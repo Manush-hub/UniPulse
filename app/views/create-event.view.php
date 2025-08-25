@@ -7,6 +7,7 @@
     <title>YourEvent - Create an event</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
+
 </head>
 
 <body>
@@ -47,6 +48,7 @@
             <div class="sidebar-item" data-target="location-time">Location and time</div>
             <div class="sidebar-item" data-target="audience">Audience</div>
             <div class="sidebar-item" data-target="ticket">Ticket</div>
+            <div class="sidebar-item" data-target="custom-fields">Custom Fields</div>
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
         </aside>
 
@@ -426,6 +428,66 @@
                 </div>
             </section>
 
+            <section class="section" id="custom-fields">
+                <div class="section-header">
+                    <div class="section-icon"></div>
+                    <h3>Custom Fields</h3>
+                    <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                </div>
+                <div class="section-content">
+                    <p style="color: #666; margin-bottom: 15px;">
+                        Add custom fields to collect additional information from attendees
+                    </p>
+
+                    <div class="custom-field-builder">
+                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                            <i class="fas fa-plus-circle" style="color: #4A5BCC; margin-right: 8px;"></i>
+                            Add Custom Field
+                        </h4>
+
+                        <div class="custom-field-inputs">
+                            <div>
+                                <label class="form-label">Field Label</label>
+                                <input type="text" id="fieldLabel" class="form-input"
+                                    placeholder="e.g., T-shirt Size, Dietary Requirements">
+                            </div>
+                            <div>
+                                <label class="form-label">Field Type</label>
+                                <select id="fieldType" class="form-select">
+                                    <option value="text">Text Input</option>
+                                    <option value="number">Number</option>
+                                    <option value="email">Email</option>
+                                    <option value="select">Dropdown</option>
+                                    <option value="textarea">Text Area</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Options (for dropdown only)</label>
+                            <input type="text" id="fieldOptions" class="form-input"
+                                placeholder="Enter options separated by commas (e.g., Small, Medium, Large, XL)">
+                        </div>
+
+                        <button type="button" class="add-field-btn" onclick="addCustomField()">
+                            <i class="fas fa-plus"></i> Add Field
+                        </button>
+                    </div>
+
+                    <div class="custom-fields-preview" id="customFieldsPreview">
+                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                            <i class="fas fa-eye" style="color: #FF6B35; margin-right: 8px;"></i>
+                            Custom Fields Preview
+                        </h4>
+                        <div id="dynamicFields">
+                            <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">
+                                No custom fields added yet. Add fields above to see them here.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="section" id="Request-Volunteer">
                 <div class="section-header">
                     <div class="section-icon"></div>
@@ -520,7 +582,6 @@
         </main>
     </div>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
-
 </body>
 
 </html>

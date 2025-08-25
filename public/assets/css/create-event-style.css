@@ -540,6 +540,78 @@ input:checked+.slider:before {
     color: #0f172a;
 }
 
+/* Custom Fields Styles */
+.custom-field-builder {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.custom-field-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.add-field-btn {
+    background: #4A5BCC;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.add-field-btn:hover {
+    background: #3d4db7;
+    transform: translateY(-1px);
+}
+
+.field-item {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    position: relative;
+}
+
+.field-item .form-label {
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.remove-field-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-field-btn:hover {
+    background: #c82333;
+}
+
+.custom-fields-preview {
+    margin-top: 20px;
+}
+
 @media (max-width: 768px) {
     .main-container {
         flex-direction: column;
@@ -556,7 +628,8 @@ input:checked+.slider:before {
     .ticket-details,
     .sale-dates,
     .university-location-inputs,
-    .external-location-inputs {
+    .external-location-inputs,
+    .custom-field-inputs {
         grid-template-columns: 1fr;
     }
 
