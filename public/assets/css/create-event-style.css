@@ -542,7 +542,7 @@ input:checked+.slider:before {
 
 /* Custom Fields Styles */
 .custom-field-builder {
-    background: #f8f9fa;
+    background: #fff6f0;
     border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 20px;
@@ -557,7 +557,7 @@ input:checked+.slider:before {
 }
 
 .add-field-btn {
-    background: #4A5BCC;
+    background: #FF6B35;
     color: white;
     border: none;
     padding: 10px 20px;

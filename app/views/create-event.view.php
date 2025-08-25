@@ -581,6 +581,7 @@
             </div>
         </main>
     </div>
+    <?php include 'footer.php' ?>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
 </body>
 
