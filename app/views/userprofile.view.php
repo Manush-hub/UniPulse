@@ -20,6 +20,7 @@
                         Change Cover Photo
                     </div>
                 </div>
+                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCover(event)">
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
