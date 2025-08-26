@@ -11,36 +11,33 @@
     <div class="container">
         <!-- Profile Header -->
         <header class="profile-header">
-            <div class="profile-banner">
-                <div class="profile-avatar">
-                    <img src="https://avatars.githubusercontent.com/u/vinujawakishta?v=4" alt="Profile Picture" id="profileImage">
-                    <button class="avatar-edit-btn" onclick="uploadImage()">
+            <!-- Cover Photo Section -->
+            <div class="cover-photo-section">
+                <div class="cover-photo">
+                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=cover&w=1200&q=80" alt="Cover Photo">
+                    <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
-                    </button>
-                </div>
-                <div class="profile-info">
-                    <h1 id="profileName">Vinuja Wakishta</h1>
-                    <p id="profileBio">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</p>
-                    <div class="profile-stats">
-                        <div class="stat">
-                            <span class="stat-number" id="eventsAttended">8</span>
-                            <span class="stat-label">Events Attended</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number" id="eventsOrganized">3</span>
-                            <span class="stat-label">Events Organized</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number" id="connections">42</span>
-                            <span class="stat-label">Connections</span>
-                        </div>
+                        Change Cover Photo
                     </div>
                 </div>
+                
+                <!-- Profile Avatar positioned to overlap -->
+                <div class="profile-avatar profile-avatar-overlap">
+                    <img src="https://avatars.githubusercontent.com/u/vinujawakishta?v=4" alt="Profile Picture" id="profileImage">
+                    <div class="avatar-overlay" onclick="uploadProfileImage()">
+                        <i class="fas fa-camera"></i>
+                        Change Photo
+                    </div>
+                </div>
+                <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
+            </div>
+            
+            <div class="profile-banner">
+                <div class="profile-info profile-info-shifted">
+                    <h1 id="profileName">Vinuja Wakishta</h1>
+                    <p id="profileBio">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</p>
+                </div>
                 <div class="profile-actions">
-                    <button class="btn btn-secondary" onclick="editProfile()">
-                        <i class="fas fa-edit"></i>
-                        Edit Profile
-                    </button>
                     <button class="btn btn-primary" onclick="toggleMode()" id="modeToggle">
                         <i class="fas fa-eye" id="modeIcon"></i>
                         <span id="modeText">Public View</span>
@@ -77,14 +74,10 @@
                         </button>
                     </div>
                     <form id="personal-form" class="form">
-                        <!-- First Row: First Name and Last Name -->
-                        <div class="form-group">
-                            <label for="firstName">First Name</label>
-                            <input type="text" id="firstName" value="Vinuja" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name</label>
-                            <input type="text" id="lastName" value="Wakishta" readonly>
+                        <!-- First Row: Full Name -->
+                        <div class="form-group full-width">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" value="Vinuja Wakishta" readonly>
                         </div>
                         
                         <!-- Second Row: University and Faculty -->
@@ -97,15 +90,59 @@
                             <input type="text" id="faculty" value="Faculty of Engineering" readonly>
                         </div>
                         
-                        <!-- Third Row: Email, Phone, and Role -->
+                        <!-- Third Row: Email and Phone -->
                         <div class="form-group">
-                            <label for="email">Email</label>
+                            <label for="email">Email
+                                <span class="privacy-toggle">
+                                    <label class="toggle-small">
+                                        <input type="checkbox" checked id="emailPrivacy">
+                                        <span class="slider-small"></span>
+                                    </label>
+                                    <small>Public</small>
+                                </span>
+                            </label>
                             <input type="email" id="email" value="vinuja@unipulse.com" readonly>
                         </div>
                         <div class="form-group">
-                            <label for="phone">Phone</label>
+                            <label for="phone">Phone Number
+                                <span class="privacy-toggle">
+                                    <label class="toggle-small">
+                                        <input type="checkbox" id="phonePrivacy">
+                                        <span class="slider-small"></span>
+                                    </label>
+                                    <small>Private</small>
+                                </span>
+                            </label>
                             <input type="tel" id="phone" value="+1 (555) 123-4567" readonly>
                         </div>
+                        
+                        <!-- Fourth Row: Current Town/City and Home Town -->
+                        <div class="form-group">
+                            <label for="currentCity">Current Town/City
+                                <span class="privacy-toggle">
+                                    <label class="toggle-small">
+                                        <input type="checkbox" checked id="currentCityPrivacy">
+                                        <span class="slider-small"></span>
+                                    </label>
+                                    <small>Public</small>
+                                </span>
+                            </label>
+                            <input type="text" id="currentCity" value="San Francisco, CA" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="homeTown">Home Town
+                                <span class="privacy-toggle">
+                                    <label class="toggle-small">
+                                        <input type="checkbox" id="homeTownPrivacy">
+                                        <span class="slider-small"></span>
+                                    </label>
+                                    <small>Private</small>
+                                </span>
+                            </label>
+                            <input type="text" id="homeTown" value="Los Angeles, CA" readonly>
+                        </div>
+                        
+                        <!-- Fifth Row: Role -->
                         <div class="form-group">
                             <label for="role">Role</label>
                             <div class="role-buttons">
@@ -119,10 +156,6 @@
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
                             <textarea id="bio" rows="4" readonly>Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="location">Location</label>
-                            <input type="text" id="location" value="San Francisco, CA" readonly>
                         </div>
                         <div class="form-actions" style="display: none;">
                             <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">Save Changes</button>
@@ -184,40 +217,6 @@
 
             <!-- Preferences Tab -->
             <div id="preferences" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Event Preferences</h3>
-                    </div>
-                    <div class="preferences-section">
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Preferred Event Types</h4>
-                                <p>Select the types of events you're most interested in</p>
-                            </div>
-                        </div>
-                        <div class="event-preferences">
-                            <label class="checkbox-item">
-                                <input type="checkbox" checked> Tech Conferences
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" checked> Networking Events
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Workshops
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" checked> Meetups
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Social Events
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox"> Career Fairs
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="card">
                     <div class="card-header">
                         <h3>Notification Preferences</h3>
@@ -294,49 +293,40 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Contact Information</h4>
-                                <p>Allow others to see your contact details</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="showContact">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header">
-                        <h3>Account Settings</h3>
+                        <h3>Login & Recovery</h3>
+                        <button class="btn btn-small" onclick="toggleEdit('security-form')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
                     </div>
-                    <form class="form">
+                    <form id="security-form" class="form">
                         <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username" value="vinujawakishta" required>
+                            <label for="username"><i class="fas fa-user"></i> Username</label>
+                            <input type="text" id="username" value="vinujawakishta" readonly>
                             <small>This is how others will find you on UniPulse</small>
                         </div>
                         <div class="form-group">
-                            <label for="timezone">Timezone</label>
-                            <select id="timezone">
-                                <option value="PST" selected>Pacific Standard Time (PST)</option>
-                                <option value="EST">Eastern Standard Time (EST)</option>
-                                <option value="CST">Central Standard Time (CST)</option>
-                                <option value="MST">Mountain Standard Time (MST)</option>
-                            </select>
+                            <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
+                            <input type="password" id="currentPassword" placeholder="Enter current password" readonly>
+                            <small>Required to change your password</small>
                         </div>
                         <div class="form-group">
-                            <label for="language">Language</label>
-                            <select id="language">
-                                <option value="en" selected>English</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                                <option value="de">German</option>
-                            </select>
+                            <label for="newPassword"><i class="fas fa-key"></i> New Password</label>
+                            <input type="password" id="newPassword" placeholder="Enter new password" readonly>
+                            <small>Must be at least 8 characters long</small>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        <div class="form-group">
+                            <label for="confirmPassword"><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                            <input type="password" id="confirmPassword" placeholder="Confirm new password" readonly>
+                            <small>Must match your new password</small>
+                        </div>
+                        <div class="form-actions" style="display: none;">
+                            <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelEdit('security-form')">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -351,14 +341,14 @@
                                 <h4>Deactivate Account</h4>
                                 <p>Temporarily disable your account</p>
                             </div>
-                            <button class="btn btn-danger-outline" onclick="deactivateAccount()">Deactivate</button>
+                            <button class="btn btn-danger" onclick="deactivateAccount()">Deactivate</button>
                         </div>
                         <div class="danger-item">
                             <div>
                                 <h4>Delete Account</h4>
                                 <p>Permanently delete your account and all data</p>
                             </div>
-                            <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+                            <button class="btn btn-danger" onclick="deleteAccount()">Delete</button>
                         </div>
                     </div>
                 </div>

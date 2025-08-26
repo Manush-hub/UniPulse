@@ -58,6 +58,61 @@ class UniPulseProfile {
         this.loadUserData();
         this.setupAnimations();
         this.categorizeEvents();
+        this.setupImageUploads();
+    }
+
+    setupImageUploads() {
+        // Setup cover photo upload
+        this.setupCoverPhotoUpload();
+        // Setup profile photo upload
+        this.setupProfilePhotoUpload();
+    }
+
+    setupCoverPhotoUpload() {
+        const coverOverlay = document.querySelector('.cover-overlay');
+        const coverInput = document.getElementById('coverInput');
+
+        if (coverOverlay && coverInput) {
+            coverOverlay.addEventListener('click', () => {
+                coverInput.click();
+            });
+
+            coverInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const coverImg = document.getElementById('coverPhoto');
+                        if (coverImg) {
+                            coverImg.src = e.target.result;
+                            this.showNotification('Cover photo updated successfully!', 'success');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    setupProfilePhotoUpload() {
+        const avatarEditBtn = document.querySelector('.avatar-edit-btn');
+        const fileInput = document.getElementById('fileInput');
+
+        // Create file input if it doesn't exist
+        if (!fileInput) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'fileInput';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+        }
+
+        if (avatarEditBtn) {
+            avatarEditBtn.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
+            });
+        }
     }
 
     categorizeEvents() {
@@ -735,6 +790,46 @@ function deleteAccount() {
     profileManager.deleteAccount();
 }
 
+// Cover photo upload functions
+function uploadCover() {
+    document.getElementById('coverInput').click();
+}
+
+function changeCover(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const coverImg = document.getElementById('coverPhoto');
+            if (coverImg) {
+                coverImg.src = e.target.result;
+                profileManager.showNotification('Cover photo updated successfully!', 'success');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Profile photo upload functions
+function uploadProfileImage() {
+    document.getElementById('profileInput').click();
+}
+
+function changeProfileImage(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const profileImg = document.getElementById('profileImage');
+            if (profileImg) {
+                profileImg.src = e.target.result;
+                profileManager.showNotification('Profile photo updated successfully!', 'success');
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 // Initialize the profile manager when DOM is loaded
 let profileManager;
 document.addEventListener('DOMContentLoaded', () => {
@@ -778,6 +873,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+    });
+});
+
+// Privacy Toggle Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize privacy toggles
+    const privacyToggles = [
+        { toggleId: 'emailPrivacy', labelId: 'email' },
+        { toggleId: 'phonePrivacy', labelId: 'phone' },
+        { toggleId: 'currentCityPrivacy', labelId: 'currentCity' },
+        { toggleId: 'homeTownPrivacy', labelId: 'homeTown' }
+    ];
+
+    privacyToggles.forEach(({ toggleId, labelId }) => {
+        const toggle = document.getElementById(toggleId);
+        const label = document.querySelector(`label[for="${labelId}"]`);
+        
+        if (toggle && label) {
+            const statusText = label.querySelector('small');
+            
+            // Update status text on toggle change
+            toggle.addEventListener('change', function() {
+                if (statusText) {
+                    statusText.textContent = this.checked ? 'Public' : 'Private';
+                    statusText.style.color = this.checked ? '#4A5BCC' : '#666';
+                }
+            });
+            
+            // Initialize status text color
+            if (statusText) {
+                statusText.style.color = toggle.checked ? '#4A5BCC' : '#666';
+            }
+        }
     });
 });
 
