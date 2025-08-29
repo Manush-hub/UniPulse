@@ -131,8 +131,8 @@
                 <h3 class="section-header">Additional Information</h3>
 
                 <div class="form-group">
-                    <label for="date-of-birth">Date of Birth</label>
-                    <input type="text" id="date-of-birth" name="date-of-birth" placeholder="mm / dd / yyyy" required>
+                    <label for="nic">NIC</label>
+                    <input type="text" id="nic" name="nic" placeholder="Enter your NIC" required>
                 </div>
 
                 <div class="form-group">
