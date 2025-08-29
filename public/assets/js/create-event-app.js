@@ -100,150 +100,176 @@ function handleCoverFiles(files) {
     }
 }
 
-// NEW COMPACT ALBUM UPLOAD FUNCTIONALITY
-const uploadAreaCompact = document.getElementById('uploadAreaCompact');
-const fileInputCompact = document.getElementById('fileInputCompact');
-const previewGridCompact = document.getElementById('previewGridCompact');
-const uploadBtnCompact = document.getElementById('uploadBtnCompact');
-let filesCompact = [];
+// LOCATION TYPE TOGGLE FUNCTIONALITY
+const locationTypeRadios = document.querySelectorAll('input[name="location-type"]');
+const insideUniversityLocation = document.getElementById('insideUniversityLocation');
+const outsideUniversityLocation = document.getElementById('outsideUniversityLocation');
 
-// Handle drag and drop events
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    uploadAreaCompact.addEventListener(eventName, preventDefaults, false);
-});
+function toggleLocationFields() {
+    const selectedType = document.querySelector('input[name="location-type"]:checked').value;
 
-['dragenter', 'dragover'].forEach(eventName => {
-    uploadAreaCompact.addEventListener(eventName, highlightCompact, false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-    uploadAreaCompact.addEventListener(eventName, unhighlightCompact, false);
-});
-
-function highlightCompact() {
-    uploadAreaCompact.classList.add('active');
+    if (selectedType === 'inside-university') {
+        insideUniversityLocation.classList.remove('hidden');
+        outsideUniversityLocation.classList.add('hidden');
+    } else {
+        insideUniversityLocation.classList.add('hidden');
+        outsideUniversityLocation.classList.remove('hidden');
+    }
 }
 
-function unhighlightCompact() {
-    uploadAreaCompact.classList.remove('active');
-}
-
-// Handle file drop
-uploadAreaCompact.addEventListener('drop', handleDropCompact, false);
-
-function handleDropCompact(e) {
-    const dt = e.dataTransfer;
-    const newFiles = dt.files;
-    handleFilesCompact(newFiles);
-}
-
-// Handle file input change
-fileInputCompact.addEventListener('change', function () {
-    handleFilesCompact(this.files);
+// Add event listeners to location type radio buttons
+locationTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleLocationFields);
 });
 
-// Process the uploaded files
-function handleFilesCompact(newFiles) {
-    if (newFiles.length > 0) {
-        // Remove empty state if it exists
-        const emptyState = previewGridCompact.querySelector('.empty-state-compact');
-        if (emptyState) {
-            emptyState.remove();
-        }
+// Initialize with current selection
+toggleLocationFields();
 
-        Array.from(newFiles).forEach(file => {
-            if (file.type.match('image.*')) {
-                filesCompact.push(file);
+// VOLUNTEER TOGGLE FUNCTIONALITY
+const volunteerToggle = document.getElementById('volunteerToggle');
+const volunteerDetails = document.getElementById('volunteerDetails');
 
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item-compact';
+function toggleVolunteerDetails() {
+    if (volunteerToggle.checked) {
+        volunteerDetails.classList.remove('hidden');
+    } else {
+        volunteerDetails.classList.add('hidden');
+    }
+}
 
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'preview-img-compact';
-                    img.alt = 'Preview';
+// Add event listener to volunteer toggle
+volunteerToggle.addEventListener('change', toggleVolunteerDetails);
 
-                    const removeBtn = document.createElement('div');
-                    removeBtn.className = 'remove-btn-compact';
-                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                    removeBtn.addEventListener('click', function () {
-                        const index = filesCompact.indexOf(file);
-                        if (index > -1) {
-                            filesCompact.splice(index, 1);
-                        }
-                        previewItem.remove();
+// Initialize volunteer details visibility
+toggleVolunteerDetails();
 
-                        // Show empty state if no files left
-                        if (filesCompact.length === 0) {
-                            showEmptyStateCompact();
-                            uploadBtnCompact.disabled = true;
-                        }
-                    });
+// TICKET TYPE TOGGLE FUNCTIONALITY
+const ticketTypeRadios = document.querySelectorAll('input[name="ticket-type"]');
+const paidTicketDetails = document.getElementById('paidTicketDetails');
+const freeTicketDetails = document.getElementById('freeTicketDetails');
 
-                    previewItem.appendChild(img);
-                    previewItem.appendChild(removeBtn);
-                    previewGridCompact.appendChild(previewItem);
-                    uploadBtnCompact.disabled = false;
-                };
-                reader.readAsDataURL(file);
-            }
+function toggleTicketDetails() {
+    const selectedType = document.querySelector('input[name="ticket-type"]:checked').value;
+
+    if (selectedType === 'paid') {
+        paidTicketDetails.classList.remove('hidden');
+        freeTicketDetails.classList.add('hidden');
+    } else {
+        paidTicketDetails.classList.add('hidden');
+        freeTicketDetails.classList.remove('hidden');
+    }
+}
+
+// Add event listeners to ticket type radio buttons
+ticketTypeRadios.forEach(radio => {
+    radio.addEventListener('change', toggleTicketDetails);
+});
+
+// Initialize with current selection
+toggleTicketDetails();
+
+// CUSTOM FIELDS FUNCTIONALITY
+const dynamicFields = document.getElementById("dynamicFields");
+let fieldCounter = 0;
+
+function addCustomField() {
+    const label = document.getElementById("fieldLabel").value.trim();
+    const type = document.getElementById("fieldType").value;
+    const options = document.getElementById("fieldOptions").value.trim();
+
+    if (!label) {
+        alert("Please enter a field label!");
+        return;
+    }
+
+    if (type === 'select' && !options) {
+        alert("Please enter options for the dropdown field!");
+        return;
+    }
+
+    // Remove the "no fields" message if it exists
+    const noFieldsMessage = dynamicFields.querySelector('p');
+    if (noFieldsMessage) {
+        noFieldsMessage.remove();
+    }
+
+    fieldCounter++;
+    const fieldWrapper = document.createElement("div");
+    fieldWrapper.classList.add("field-item");
+    fieldWrapper.setAttribute('data-field-id', fieldCounter);
+
+    const fieldLabel = document.createElement("label");
+    fieldLabel.classList.add("form-label");
+    fieldLabel.textContent = label;
+
+    let input;
+    if (type === "select") {
+        input = document.createElement("select");
+        input.classList.add("form-select");
+
+        // Add default option
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = `Select ${label}`;
+        input.appendChild(defaultOption);
+
+        // Add user-defined options
+        options.split(",").forEach(opt => {
+            const optionElement = document.createElement("option");
+            optionElement.value = opt.trim();
+            optionElement.textContent = opt.trim();
+            input.appendChild(optionElement);
         });
+    } else if (type === "textarea") {
+        input = document.createElement("textarea");
+        input.classList.add("form-textarea");
+        input.placeholder = `Enter ${label}`;
+    } else {
+        input = document.createElement("input");
+        input.type = type;
+        input.classList.add("form-input");
+        input.placeholder = `Enter ${label}`;
     }
+    input.name = `custom_${fieldCounter}`;
+
+    // Create remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.classList.add("remove-field-btn");
+    removeBtn.innerHTML = "×";
+    removeBtn.title = "Remove field";
+    removeBtn.onclick = function () {
+        fieldWrapper.remove();
+        // Show "no fields" message if no fields remain
+        if (dynamicFields.children.length === 0) {
+            const noFieldsMsg = document.createElement('p');
+            noFieldsMsg.style.cssText = 'color: #999; font-style: italic; text-align: center; padding: 20px;';
+            noFieldsMsg.textContent = 'No custom fields added yet. Add fields above to see them here.';
+            dynamicFields.appendChild(noFieldsMsg);
+        }
+    };
+
+    fieldWrapper.appendChild(removeBtn);
+    fieldWrapper.appendChild(fieldLabel);
+    fieldWrapper.appendChild(input);
+    dynamicFields.appendChild(fieldWrapper);
+
+    // Clear the form inputs
+    document.getElementById("fieldLabel").value = "";
+    document.getElementById("fieldOptions").value = "";
+    document.getElementById("fieldType").value = "text";
 }
 
-function showEmptyStateCompact() {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'empty-state-compact';
-    emptyState.innerHTML = '<i class="fas fa-images"></i><p>No photos selected yet</p>';
-    previewGridCompact.appendChild(emptyState);
-}
-
-// Upload button functionality
-uploadBtnCompact.addEventListener('click', function () {
-    if (filesCompact.length > 0) {
-        // Simulate upload process
-        const originalText = uploadBtnCompact.innerHTML;
-        uploadBtnCompact.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-        uploadBtnCompact.disabled = true;
-
-        setTimeout(() => {
-            alert('Album uploaded successfully!');
-            uploadBtnCompact.innerHTML = originalText;
-            uploadBtnCompact.disabled = false;
-        }, 2000);
+// Show/hide options field based on field type
+document.getElementById("fieldType").addEventListener('change', function () {
+    const optionsField = document.getElementById("fieldOptions").parentElement;
+    if (this.value === 'select') {
+        optionsField.style.display = 'block';
+    } else {
+        optionsField.style.display = 'none';
+        document.getElementById("fieldOptions").value = '';
     }
 });
 
-// Initialize map
-function initMap() {
-    const mapContainer = document.getElementById('mapPreview');
-    const mapPlaceholder = mapContainer.querySelector('.map-placeholder');
-
-    // Create a simple map with a marker
-    const map = L.map('mapPreview').setView([6.9271, 79.8612], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    // Add a marker
-    L.marker([6.9271, 79.8612]).addTo(map)
-        .bindPopup('Event Location')
-        .openPopup();
-
-    // Hide the placeholder
-    mapPlaceholder.style.display = 'none';
-}
-
-// Initialize map when location section is in view
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            initMap();
-            observer.disconnect();
-        }
-    });
-}, { threshold: 0.5 });
-
-observer.observe(document.getElementById('location-time'));
+// Initialize options field visibility
+document.getElementById("fieldType").dispatchEvent(new Event('change'));
