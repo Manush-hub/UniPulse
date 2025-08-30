@@ -33,23 +33,15 @@
             </div>
             
             <div class="profile-banner">
-                <div class="profile-info profile-info-shifted">
-                    <h1 id="profileName">Vinuja Wakishta</h1>
-                    <p id="profileBio">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</p>
-                </div>
-                <div class="profile-actions">
-                    <button class="btn btn-primary" onclick="toggleMode()" id="modeToggle">
-                        <i class="fas fa-eye" id="modeIcon"></i>
-                        <span id="modeText">Public View</span>
-                    </button>
-                </div>
+                <!-- Empty banner section for spacing and design -->
             </div>
+        </header>
         </header>
 
         <!-- Navigation Tabs -->
         <nav class="profile-nav">
             <button class="nav-item active" data-tab="personal">
-                <i class="fas fa-user"></i> Personal Info
+                <i class="fas fa-user"></i> Personal Information
             </button>
             <button class="nav-item" data-tab="events">
                 <i class="fas fa-calendar"></i> Registered Events
@@ -68,81 +60,64 @@
             <div id="personal" class="tab-content active">
                 <div class="card">
                     <div class="card-header">
-                        <h3>Personal Information</h3>
-                        <button class="btn btn-small" onclick="toggleEdit('personal-form')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+                        <h3>Basic Information</h3>
                     </div>
                     <form id="personal-form" class="form">
                         <!-- First Row: Full Name -->
-                        <div class="form-group full-width">
-                            <label for="fullName">Full Name</label>
-                            <input type="text" id="fullName" value="Vinuja Wakishta" readonly>
+                        <div class="form-group">
+                            <label for="firstname">First Name</label>
+                            <input type="text" id="firstname" value="Vinuja">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastname">Last Name</label>
+                            <input type="text" id="lastname" value="Wakishta">
                         </div>
                         
                         <!-- Second Row: University and Faculty -->
                         <div class="form-group">
                             <label for="university">University</label>
-                            <input type="text" id="university" value="University of Example" readonly>
+                            <input type="text" id="university" value="University of Example">
                         </div>
                         <div class="form-group">
                             <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" value="Faculty of Engineering" readonly>
+                            <input type="text" id="faculty" value="Faculty of Engineering">
                         </div>
                         
-                        <!-- Third Row: Email and Phone -->
+                        <!-- Third Row: Date of Birth and Gender -->
                         <div class="form-group">
-                            <label for="email">Email
-                                <span class="privacy-toggle">
-                                    <label class="toggle-small">
-                                        <input type="checkbox" checked id="emailPrivacy">
-                                        <span class="slider-small"></span>
-                                    </label>
-                                    <small>Public</small>
-                                </span>
-                            </label>
-                            <input type="email" id="email" value="vinuja@unipulse.com" readonly>
+                            <label for="dob">Date of Birth</label>
+                            <input type="date" id="dob" value="1995-06-15">
                         </div>
                         <div class="form-group">
-                            <label for="phone">Phone Number
-                                <span class="privacy-toggle">
-                                    <label class="toggle-small">
-                                        <input type="checkbox" id="phonePrivacy">
-                                        <span class="slider-small"></span>
-                                    </label>
-                                    <small>Private</small>
-                                </span>
-                            </label>
-                            <input type="tel" id="phone" value="+1 (555) 123-4567" readonly>
+                            <label for="gender">Gender</label>
+                            <div class="gender-buttons">
+                                <button type="button" class="gender-btn active" data-gender="male">Male</button>
+                                <button type="button" class="gender-btn" data-gender="female">Female</button>
+                            </div>
+                            <input type="hidden" id="gender" value="male">
                         </div>
                         
-                        <!-- Fourth Row: Current Town/City and Home Town -->
+                        <!-- Fourth Row: Email and Phone -->
                         <div class="form-group">
-                            <label for="currentCity">Current Town/City
-                                <span class="privacy-toggle">
-                                    <label class="toggle-small">
-                                        <input type="checkbox" checked id="currentCityPrivacy">
-                                        <span class="slider-small"></span>
-                                    </label>
-                                    <small>Public</small>
-                                </span>
-                            </label>
-                            <input type="text" id="currentCity" value="San Francisco, CA" readonly>
+                            <label for="email">Email</label>
+                            <input type="email" id="email" value="vinuja@unipulse.com">
                         </div>
                         <div class="form-group">
-                            <label for="homeTown">Home Town
-                                <span class="privacy-toggle">
-                                    <label class="toggle-small">
-                                        <input type="checkbox" id="homeTownPrivacy">
-                                        <span class="slider-small"></span>
-                                    </label>
-                                    <small>Private</small>
-                                </span>
-                            </label>
-                            <input type="text" id="homeTown" value="Los Angeles, CA" readonly>
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" value="+1 (555) 123-4567">
                         </div>
                         
-                        <!-- Fifth Row: Role -->
+                        <!-- Fifth Row: Current Town/City and Home Town -->
+                        <div class="form-group">
+                            <label for="currentCity">Current Town/City</label>
+                            <input type="text" id="currentCity" value="San Francisco, CA">
+                        </div>
+                        <div class="form-group">
+                            <label for="homeTown">Home Town</label>
+                            <input type="text" id="homeTown" value="Los Angeles, CA">
+                        </div>
+                        
+                        <!-- Sixth Row: Role -->
                         <div class="form-group">
                             <label for="role">Role</label>
                             <div class="role-buttons">
@@ -153,13 +128,23 @@
                         </div>
                         
                         <!-- Bio and Location -->
+                         <div class="form-group full-width">
+                            <label for="headline">Headline</label>
+                            <textarea id="headline" rows="1">Uni Student</textarea>
+                        </div>
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
-                            <textarea id="bio" rows="4" readonly>Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</textarea>
+                            <textarea id="bio" rows="4">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</textarea>
                         </div>
-                        <div class="form-actions" style="display: none;">
-                            <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">Save Changes</button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit('personal-form')">Cancel</button>
+                        
+                        <!-- Save Changes Button -->
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="cancelPersonalInfo()">
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -179,30 +164,189 @@
                     </div>
                 </div>
 
+                <!-- Gallery Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Photo Gallery</h3>
+                        <div class="gallery-actions">
+                            <button type="button" class="btn btn-small" onclick="addGalleryPhoto()">
+                                <i class="fas fa-plus"></i> Add Photo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="gallery-section">
+                        <div class="gallery-upload-info">
+                            <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 5 photos each. Each gallery entry should include a title and description.</p>
+                        </div>
+                        <div class="gallery-grid" id="galleryGrid">
+                            <!-- Existing Gallery Items -->
+                            <div class="gallery-item editable" data-gallery-id="1">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Gallery Photo 1-1">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 1-2">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 1-3">
+                                        </div>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
+                                    </div>
+                                    <div class="gallery-actions-overlay">
+                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(1)" title="Remove">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4 class="gallery-title">Hackathon Victory</h4>
+                                    <p class="gallery-description">Celebrating 2nd place win at Berkeley Hackathon 2024</p>
+                                </div>
+                            </div>
+
+                            <div class="gallery-item editable" data-gallery-id="2">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 2-1">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop" alt="Gallery Photo 2-2">
+                                        </div>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
+                                    </div>
+                                    <div class="gallery-actions-overlay">
+                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(2)" title="Remove">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4 class="gallery-title">Research Presentation</h4>
+                                    <p class="gallery-description">Presenting climate prediction research at symposium</p>
+                                </div>
+                            </div>
+
+                            <div class="gallery-item editable" data-gallery-id="3">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 3-1">
+                                        </div>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
+                                    </div>
+                                    <div class="gallery-actions-overlay">
+                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(3)" title="Remove">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4 class="gallery-title">Team Collaboration</h4>
+                                    <p class="gallery-description">Working with fellow students on group projects</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Social Links -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Social Links</h3>
-                        <button class="btn btn-small" onclick="toggleEdit('social-form')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
+                        <h3>Connect With Me</h3>
                     </div>
                     <form id="social-form" class="form">
                         <div class="form-group">
-                            <label for="instagram"><i class="fab fa-instagram"></i> Instagram</label>
-                            <input type="url" id="instagram" value="https://instagram.com/vinujawakishta" readonly>
+                            <label for="personal-website">
+                                <i class="fas fa-globe"></i> Personal Website
+                            </label>
+                            <input type="url" id="personal-website" value="" placeholder="https://yourwebsite.com">
                         </div>
                         <div class="form-group">
-                            <label for="facebook"><i class="fab fa-facebook"></i> Facebook</label>
-                            <input type="url" id="facebook" value="https://facebook.com/vinujawakishta" readonly>
+                            <label for="facebook">
+                                <i class="fab fa-facebook"></i> Facebook
+                            </label>
+                            <input type="url" id="facebook" value="https://facebook.com/vinujawakishta" placeholder="https://facebook.com/username">
                         </div>
                         <div class="form-group">
-                            <label for="linkedin"><i class="fab fa-linkedin"></i> LinkedIn</label>
-                            <input type="url" id="linkedin" value="https://linkedin.com/in/vinujawakishta" readonly>
+                            <label for="instagram">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </label>
+                            <input type="url" id="instagram" value="https://instagram.com/vinujawakishta" placeholder="https://instagram.com/username">
                         </div>
-                        <div class="form-actions" style="display: none;">
-                            <button type="button" class="btn btn-primary" onclick="saveSocialLinks()">Save Changes</button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit('social-form')">Cancel</button>
+                        <div class="form-group">
+                            <label for="telegram">
+                                <i class="fab fa-telegram"></i> Telegram
+                            </label>
+                            <input type="url" id="telegram" value="" placeholder="https://t.me/username">
+                        </div>
+                        <div class="form-group">
+                            <label for="linkedin">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </label>
+                            <input type="url" id="linkedin" value="https://linkedin.com/in/vinujawakishta" placeholder="https://linkedin.com/in/username">
+                        </div>
+                        <div class="form-group">
+                            <label for="github">
+                                <i class="fab fa-github"></i> GitHub
+                            </label>
+                            <input type="url" id="github" value="" placeholder="https://github.com/username">
+                        </div>
+                        <div class="form-group">
+                            <label for="x-twitter">
+                                <i class="fab fa-x-twitter"></i> X (Twitter)
+                            </label>
+                            <input type="url" id="x-twitter" value="" placeholder="https://x.com/username">
+                        </div>
+                        <div class="form-group">
+                            <label for="discord">
+                                <i class="fab fa-discord"></i> Discord
+                            </label>
+                            <input type="text" id="discord" value="" placeholder="username#1234">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveSocialLinks()">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="cancelSocialLinks()">
+                                Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -354,15 +498,6 @@
                 </div>
             </div>
         </main>
-
-        <!-- Public View Overlay -->
-        <div id="publicViewOverlay" class="public-overlay">
-            <div class="public-indicator">
-                <i class="fas fa-eye"></i>
-                <span>Public View Mode</span>
-                <button onclick="toggleMode()" class="close-public">×</button>
-            </div>
-        </div>
     </div>
 
     <!-- Modals -->
@@ -379,6 +514,110 @@
                     <small>PNG, JPG up to 5MB</small>
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Gallery Photo Modal -->
+    <div id="galleryPhotoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="galleryModalTitle">Add Photo to Gallery</h3>
+                <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="galleryPhotoForm" class="form">
+                    <div class="form-group full-width">
+                        <label for="galleryTitle">Photo Title</label>
+                        <input type="text" id="galleryTitle" placeholder="Enter a title for your photo" maxlength="50" required>
+                        <small>Maximum 50 characters</small>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="galleryDescription">Description</label>
+                        <textarea id="galleryDescription" rows="3" placeholder="Write a brief description of your photo" maxlength="150" required></textarea>
+                        <small>Maximum 150 characters</small>
+                    </div>
+                    
+                    <div class="form-group full-width" id="galleryImageUpload">
+                        <label>Photo Upload (Up to 5 photos)</label>
+                        <div class="multi-photo-upload">
+                            <div class="photo-upload-item">
+                                <label for="galleryFile1" class="photo-upload-label">Photo 1 (Required)</label>
+                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile1').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click to upload</p>
+                                        <small>PNG, JPG up to 5MB</small>
+                                    </div>
+                                    <img id="galleryPreview1" class="gallery-preview" style="display: none;" alt="Preview 1">
+                                </div>
+                                <input type="file" id="galleryFile1" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 1)" required>
+                            </div>
+                            
+                            <div class="photo-upload-item">
+                                <label for="galleryFile2" class="photo-upload-label">Photo 2 (Optional)</label>
+                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile2').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click to upload</p>
+                                        <small>PNG, JPG up to 5MB</small>
+                                    </div>
+                                    <img id="galleryPreview2" class="gallery-preview" style="display: none;" alt="Preview 2">
+                                </div>
+                                <input type="file" id="galleryFile2" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 2)">
+                            </div>
+                            
+                            <div class="photo-upload-item">
+                                <label for="galleryFile3" class="photo-upload-label">Photo 3 (Optional)</label>
+                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile3').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click to upload</p>
+                                        <small>PNG, JPG up to 5MB</small>
+                                    </div>
+                                    <img id="galleryPreview3" class="gallery-preview" style="display: none;" alt="Preview 3">
+                                </div>
+                                <input type="file" id="galleryFile3" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 3)">
+                            </div>
+                            
+                            <div class="photo-upload-item">
+                                <label for="galleryFile4" class="photo-upload-label">Photo 4 (Optional)</label>
+                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile4').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click to upload</p>
+                                        <small>PNG, JPG up to 5MB</small>
+                                    </div>
+                                    <img id="galleryPreview4" class="gallery-preview" style="display: none;" alt="Preview 4">
+                                </div>
+                                <input type="file" id="galleryFile4" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 4)">
+                            </div>
+                            
+                            <div class="photo-upload-item">
+                                <label for="galleryFile5" class="photo-upload-label">Photo 5 (Optional)</label>
+                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile5').click()">
+                                    <div class="upload-content">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Click to upload</p>
+                                        <small>PNG, JPG up to 5MB</small>
+                                    </div>
+                                    <img id="galleryPreview5" class="gallery-preview" style="display: none;" alt="Preview 5">
+                                </div>
+                                <input type="file" id="galleryFile5" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 5)">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-primary" onclick="saveGalleryPhoto()">
+                            Save Gallery
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeGalleryModal()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

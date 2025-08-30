@@ -1,7 +1,7 @@
 class UserPublicProfile {
     constructor() {
         this.userData = {
-            name: 'John Smith',
+            name: 'Lakmal',
             studentId: 'CS2024-001',
             university: 'University of California, Berkeley',
             college: 'College of Engineering',
@@ -327,11 +327,11 @@ class UserPublicProfile {
         document.title = `${this.userData.name} - UniPulse`;
         
         // Update user info in DOM
-        const userName = document.getElementById('userName');
-        const userDescription = document.getElementById('userDescription');
+        // const userName = document.getElementById('userName');
+        // const userDescription = document.getElementById('userDescription');
         
-        if (userName) userName.textContent = this.userData.name;
-        if (userDescription) userDescription.textContent = this.userData.description;
+        // if (userName) userName.textContent = this.userData.name;
+        // if (userDescription) userDescription.textContent = this.userData.description;
     }
 
     categorizeEvents() {
@@ -594,6 +594,29 @@ class UserPublicProfile {
         });
     }
 
+    loadGallery() {
+        const container = document.getElementById('galleryContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+        
+        this.galleryItems.forEach(item => {
+            const galleryItem = document.createElement('div');
+            galleryItem.className = 'gallery-item';
+            galleryItem.onclick = () => this.openGalleryModal(item);
+            
+            galleryItem.innerHTML = `
+                <img src="${item.image}" alt="${item.title}" loading="lazy">
+                <div class="gallery-overlay">
+                    <h4>${item.title}</h4>
+                    <p>${item.description}</p>
+                </div>
+            `;
+            
+            container.appendChild(galleryItem);
+        });
+    }
+
     openGalleryModal(item) {
         this.showNotification(`Opening ${item.title}`, 'info');
         // Implement gallery modal functionality
@@ -825,6 +848,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log('User Public Profile initialized successfully!');
 });
+
+// Carousel functionality for gallery items
+function changeCarouselImage(galleryId, direction) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
+    
+    // Remove active class from current image and indicator
+    images[currentIndex].classList.remove('active');
+    indicators[currentIndex].classList.remove('active');
+    
+    // Calculate new index
+    currentIndex += direction;
+    if (currentIndex >= images.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = images.length - 1;
+    
+    // Add active class to new image and indicator
+    images[currentIndex].classList.add('active');
+    indicators[currentIndex].classList.add('active');
+}
+
+function setCarouselImage(galleryId, index) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    
+    // Remove active class from all
+    images.forEach(img => img.classList.remove('active'));
+    indicators.forEach(ind => ind.classList.remove('active'));
+    
+    // Add active class to selected
+    if (images[index]) images[index].classList.add('active');
+    if (indicators[index]) indicators[index].classList.add('active');
+}
 
 // Add slideOutRight animation
 const slideOutStyle = document.createElement('style');

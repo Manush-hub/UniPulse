@@ -1,16 +1,32 @@
 class UniPulseProfile {
     constructor() {
         this.currentTab = 'personal';
-        this.isPublicView = false;
         this.userData = {
             firstName: 'Vinuja',
             lastName: 'Wakishta',
             email: 'vinuja@unipulse.com',
             phone: '+1 (555) 123-4567',
+            university: 'University of Example',
+            faculty: 'Faculty of Engineering',
+            dob: '1995-06-15',
+            gender: 'male',
+            currentCity: 'San Francisco, CA',
+            homeTown: 'Los Angeles, CA',
+            role: 'student',
+            headline: 'Uni Student',
             bio: 'Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.',
             location: 'San Francisco, CA',
             website: 'https://vinuja.dev',
-            avatar: 'https://avatars.githubusercontent.com/u/vinujawakishta?v=4'
+            avatar: 'https://avatars.githubusercontent.com/u/vinujawakishta?v=4',
+            // Social Links
+            personalWebsite: '',
+            facebook: 'https://facebook.com/vinujawakishta',
+            instagram: 'https://instagram.com/vinujawakishta',
+            telegram: '',
+            linkedin: 'https://linkedin.com/in/vinujawakishta',
+            github: '',
+            xTwitter: '',
+            discord: ''
         };
         
         this.events = [
@@ -153,6 +169,13 @@ class UniPulseProfile {
         document.querySelectorAll('.role-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.selectRole(e.target.dataset.role);
+            });
+        });
+
+        // Gender button selection
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                this.selectGender(e.target.dataset.gender);
             });
         });
 
@@ -316,6 +339,21 @@ class UniPulseProfile {
         this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
     }
 
+    selectGender(gender) {
+        // Remove active class from all gender buttons
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // Add active class to selected button
+        document.querySelector(`[data-gender="${gender}"]`).classList.add('active');
+
+        // Update hidden input value
+        document.getElementById('gender').value = gender;
+
+        this.showNotification(`Gender set to ${gender.charAt(0).toUpperCase() + gender.slice(1)}`, 'info');
+    }
+
     showTab(tabName) {
         // Update active tab
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -422,50 +460,6 @@ class UniPulseProfile {
         return date.toLocaleDateString('en-US', options);
     }
 
-    toggleMode() {
-        this.isPublicView = !this.isPublicView;
-        const overlay = document.getElementById('publicViewOverlay');
-        const modeIcon = document.getElementById('modeIcon');
-        const modeText = document.getElementById('modeText');
-
-        if (this.isPublicView) {
-            overlay.classList.add('active');
-            modeIcon.className = 'fas fa-user-edit';
-            modeText.textContent = 'Edit Mode';
-            this.enablePublicView();
-        } else {
-            overlay.classList.remove('active');
-            modeIcon.className = 'fas fa-eye';
-            modeText.textContent = 'Public View';
-            this.disablePublicView();
-        }
-    }
-
-    enablePublicView() {
-        document.querySelectorAll('.btn:not(.btn-primary):not(.filter-btn):not(.nav-item)').forEach(btn => {
-            if (!btn.closest('.profile-actions') && !btn.closest('.event-actions')) {
-                btn.style.display = 'none';
-            }
-        });
-
-        const settingsTab = document.querySelector('[data-tab="settings"]');
-        const preferencesTab = document.querySelector('[data-tab="preferences"]');
-        if (settingsTab) settingsTab.style.display = 'none';
-        if (preferencesTab) preferencesTab.style.display = 'none';
-
-        if (this.currentTab === 'settings' || this.currentTab === 'preferences') {
-            this.showTab('personal');
-        }
-
-        this.applyPrivacySettings();
-    }
-
-    disablePublicView() {
-        document.querySelectorAll('[style*="display: none"]').forEach(el => {
-            el.style.display = '';
-        });
-    }
-
     applyPrivacySettings() {
         const showContact = document.getElementById('showContact')?.checked;
         const showEventHistory = document.getElementById('showEventHistory')?.checked;
@@ -524,15 +518,78 @@ class UniPulseProfile {
         this.toggleEdit('personal-form');
     }
 
+    cancelPersonalInfo() {
+        // Restore original values from userData
+        const fields = [
+            { id: 'firstname', key: 'firstName' },
+            { id: 'lastname', key: 'lastName' },
+            { id: 'email', key: 'email' },
+            { id: 'phone', key: 'phone' },
+            { id: 'university', key: 'university' },
+            { id: 'faculty', key: 'faculty' },
+            { id: 'dob', key: 'dob' },
+            { id: 'currentCity', key: 'currentCity' },
+            { id: 'homeTown', key: 'homeTown' },
+            { id: 'headline', key: 'headline' },
+            { id: 'bio', key: 'bio' }
+        ];
+
+        fields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (element && this.userData[field.key] !== undefined) {
+                element.value = this.userData[field.key];
+            }
+        });
+
+        // Reset gender selection
+        const defaultGender = this.userData.gender || 'male';
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-gender="${defaultGender}"]`)?.classList.add('active');
+        document.getElementById('gender').value = defaultGender;
+
+        // Reset role selection
+        const defaultRole = this.userData.role || 'student';
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-role="${defaultRole}"]`)?.classList.add('active');
+        document.getElementById('role').value = defaultRole;
+
+        this.showNotification('Changes cancelled, form restored to original values', 'info');
+    }
+
     saveSocialLinks() {
         const socialData = {
-            instagram: document.getElementById('instagram').value,
-            facebook: document.getElementById('facebook').value,
-            linkedin: document.getElementById('linkedin').value
+            personalWebsite: document.getElementById('personal-website')?.value || '',
+            facebook: document.getElementById('facebook')?.value || '',
+            instagram: document.getElementById('instagram')?.value || '',
+            telegram: document.getElementById('telegram')?.value || '',
+            linkedin: document.getElementById('linkedin')?.value || '',
+            github: document.getElementById('github')?.value || '',
+            xTwitter: document.getElementById('x-twitter')?.value || '',
+            discord: document.getElementById('discord')?.value || ''
         };
 
+        // Update userData
+        Object.assign(this.userData, socialData);
+
         this.showNotification('Social links updated successfully!', 'success');
-        this.toggleEdit('social-form');
+    }
+
+    cancelSocialLinks() {
+        // Restore original values from userData
+        document.getElementById('personal-website').value = this.userData.personalWebsite || '';
+        document.getElementById('facebook').value = this.userData.facebook || '';
+        document.getElementById('instagram').value = this.userData.instagram || '';
+        document.getElementById('telegram').value = this.userData.telegram || '';
+        document.getElementById('linkedin').value = this.userData.linkedin || '';
+        document.getElementById('github').value = this.userData.github || '';
+        document.getElementById('x-twitter').value = this.userData.xTwitter || '';
+        document.getElementById('discord').value = this.userData.discord || '';
+
+        this.showNotification('Changes cancelled, social links restored to original values', 'info');
     }
 
     saveSettings() {
@@ -746,10 +803,6 @@ class UniPulseProfile {
 }
 
 // Global functions for onclick handlers
-function toggleMode() {
-    profileManager.toggleMode();
-}
-
 function uploadImage() {
     profileManager.uploadImage();
 }
@@ -766,8 +819,16 @@ function savePersonalInfo() {
     profileManager.savePersonalInfo();
 }
 
+function cancelPersonalInfo() {
+    profileManager.cancelPersonalInfo();
+}
+
 function saveSocialLinks() {
     profileManager.saveSocialLinks();
+}
+
+function cancelSocialLinks() {
+    profileManager.cancelSocialLinks();
 }
 
 function cancelEdit(formId) {
@@ -927,3 +988,375 @@ loadingStyle.textContent = `
     }
 `;
 document.head.appendChild(loadingStyle);
+
+// Gallery Functionality
+let galleryPhotos = [
+    {
+        id: 1,
+        title: 'Hackathon Victory',
+        description: 'Celebrating 2nd place win at Berkeley Hackathon 2024',
+        images: [
+            'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop'
+        ]
+    },
+    {
+        id: 2,
+        title: 'Research Presentation',
+        description: 'Presenting climate prediction research at symposium',
+        images: [
+            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop'
+        ]
+    },
+    {
+        id: 3,
+        title: 'Team Collaboration',
+        description: 'Working with fellow students on group projects',
+        images: [
+            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop'
+        ]
+    }
+];
+
+let currentEditingGalleryId = null;
+const MAX_GALLERY_ENTRIES = 5;
+const MAX_PHOTOS_PER_ENTRY = 5;
+
+// Add Gallery Photo
+function addGalleryPhoto() {
+    if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
+        showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+        return;
+    }
+    
+    currentEditingGalleryId = null;
+    document.getElementById('galleryModalTitle').textContent = 'Add Photo Gallery';
+    document.getElementById('galleryTitle').value = '';
+    document.getElementById('galleryDescription').value = '';
+    
+    // Reset all file inputs and previews
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        const uploadContent = document.querySelector(`#galleryFile${i}`).parentElement.querySelector('.upload-content');
+        
+        if (fileInput) fileInput.value = '';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        if (uploadContent) uploadContent.style.display = 'flex';
+    }
+    
+    // Show modal
+    document.getElementById('galleryPhotoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Edit Gallery Item
+function editGalleryItem(galleryId) {
+    const photo = galleryPhotos.find(p => p.id === galleryId);
+    if (!photo) return;
+    
+    currentEditingGalleryId = galleryId;
+    document.getElementById('galleryModalTitle').textContent = 'Edit Photo';
+    document.getElementById('galleryTitle').value = photo.title;
+    document.getElementById('galleryDescription').value = photo.description;
+    
+    // Show current image in preview
+    const preview = document.getElementById('galleryPreview');
+    const uploadContent = document.querySelector('.upload-content');
+    preview.src = photo.image;
+    preview.style.display = 'block';
+    uploadContent.style.display = 'none';
+    
+    // Hide file upload section for editing
+    document.getElementById('galleryImageUpload').style.display = 'none';
+    
+    // Show modal
+    document.getElementById('galleryPhotoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Delete Gallery Item
+function deleteGalleryItem(galleryId) {
+    if (confirm('Are you sure you want to delete this photo?')) {
+        galleryPhotos = galleryPhotos.filter(p => p.id !== galleryId);
+        renderGallery();
+        showNotification('Photo deleted successfully!', 'success');
+    }
+}
+
+// Preview Gallery Image
+function previewGalleryImage(event, photoIndex) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('File size must be less than 5MB', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showNotification('Please select a valid image file', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById(`galleryPreview${photoIndex}`);
+        const uploadContent = event.target.parentElement.querySelector('.upload-content');
+        
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        uploadContent.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Save Gallery Photo
+function saveGalleryPhoto() {
+    const title = document.getElementById('galleryTitle').value.trim();
+    const description = document.getElementById('galleryDescription').value.trim();
+    
+    // Validation
+    if (!title) {
+        showNotification('Please enter a title for the gallery', 'error');
+        return;
+    }
+    
+    if (!description) {
+        showNotification('Please enter a description for the gallery', 'error');
+        return;
+    }
+    
+    if (title.length > 50) {
+        showNotification('Title must be 50 characters or less', 'error');
+        return;
+    }
+    
+    if (description.length > 150) {
+        showNotification('Description must be 150 characters or less', 'error');
+        return;
+    }
+    
+    // Collect uploaded images
+    const images = [];
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        
+        if (fileInput && fileInput.files[0] && preview && preview.src) {
+            images.push(preview.src);
+        }
+    }
+    
+    if (images.length === 0) {
+        showNotification('Please upload at least one image', 'error');
+        return;
+    }
+    
+    if (currentEditingGalleryId) {
+        // Update existing gallery entry
+        const photoIndex = galleryPhotos.findIndex(p => p.id === currentEditingGalleryId);
+        if (photoIndex !== -1) {
+            galleryPhotos[photoIndex].title = title;
+            galleryPhotos[photoIndex].description = description;
+            // Note: In a real app, you'd handle image updates differently
+        }
+        showNotification('Gallery updated successfully!', 'success');
+    } else {
+        // Add new gallery entry
+        if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
+            showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+            return;
+        }
+        
+        const newGallery = {
+            id: Date.now(),
+            title: title,
+            description: description,
+            images: images
+        };
+        
+        galleryPhotos.push(newGallery);
+        showNotification('Gallery added successfully!', 'success');
+    }
+    
+    renderGallery();
+    closeGalleryModal();
+}
+
+// Close Gallery Modal
+function closeGalleryModal() {
+    document.getElementById('galleryPhotoModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Reset form
+    document.getElementById('galleryTitle').value = '';
+    document.getElementById('galleryDescription').value = '';
+    document.getElementById('galleryFileInput').value = '';
+    
+    // Reset preview
+    const preview = document.getElementById('galleryPreview');
+    const uploadContent = document.querySelector('.upload-content');
+    preview.style.display = 'none';
+    uploadContent.style.display = 'flex';
+    
+    // Show file upload section again
+    document.getElementById('galleryImageUpload').style.display = 'block';
+    
+    currentEditingGalleryId = null;
+}
+
+// Render Gallery
+function renderGallery() {
+    const galleryGrid = document.getElementById('galleryGrid');
+    
+    if (galleryPhotos.length === 0) {
+        galleryGrid.innerHTML = `
+            <div class="gallery-empty">
+                <i class="fas fa-images"></i>
+                <h4>No Photos Yet</h4>
+                <p>Add some photos to showcase your experiences and memories!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    galleryGrid.innerHTML = galleryPhotos.map(photo => `
+        <div class="gallery-item editable" data-gallery-id="${photo.id}">
+            <div class="gallery-image">
+                <img src="${photo.image}" alt="${photo.title}">
+                <div class="gallery-actions-overlay">
+                    <button type="button" class="gallery-action-btn edit" onclick="editGalleryItem(${photo.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(${photo.id})" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="gallery-content">
+                <h4 class="gallery-title">${escapeHtml(photo.title)}</h4>
+                <p class="gallery-description">${escapeHtml(photo.description)}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Character counters for gallery inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('galleryTitle');
+    const descriptionInput = document.getElementById('galleryDescription');
+    
+    if (titleInput) {
+        titleInput.addEventListener('input', function() {
+            updateCharacterCounter(this, 50);
+        });
+    }
+    
+    if (descriptionInput) {
+        descriptionInput.addEventListener('input', function() {
+            updateCharacterCounter(this, 150);
+        });
+    }
+});
+
+function updateCharacterCounter(input, maxLength) {
+    const currentLength = input.value.length;
+    const remainingChars = maxLength - currentLength;
+    
+    // Find or create counter element
+    let counter = input.parentElement.querySelector('.character-counter');
+    if (!counter) {
+        counter = document.createElement('div');
+        counter.className = 'character-counter';
+        input.parentElement.appendChild(counter);
+    }
+    
+    counter.textContent = `${currentLength}/${maxLength} characters`;
+    
+    // Add warning/danger classes
+    counter.classList.remove('warning', 'danger');
+    if (remainingChars <= 10 && remainingChars > 0) {
+        counter.classList.add('warning');
+    } else if (remainingChars <= 0) {
+        counter.classList.add('danger');
+    }
+}
+
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+// Close gallery modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('galleryPhotoModal');
+    if (event.target === modal) {
+        closeGalleryModal();
+    }
+});
+
+// Close gallery modal with escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('galleryPhotoModal');
+        if (modal.style.display === 'flex') {
+            closeGalleryModal();
+        }
+    }
+});
+
+// Carousel functionality for gallery items
+function changeCarouselImage(galleryId, direction) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
+    
+    // Remove active class from current image and indicator
+    images[currentIndex].classList.remove('active');
+    indicators[currentIndex].classList.remove('active');
+    
+    // Calculate new index
+    currentIndex += direction;
+    if (currentIndex >= images.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = images.length - 1;
+    
+    // Add active class to new image and indicator
+    images[currentIndex].classList.add('active');
+    indicators[currentIndex].classList.add('active');
+}
+
+function setCarouselImage(galleryId, index) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    
+    // Remove active class from all
+    images.forEach(img => img.classList.remove('active'));
+    indicators.forEach(ind => ind.classList.remove('active'));
+    
+    // Add active class to selected
+    if (images[index]) images[index].classList.add('active');
+    if (indicators[index]) indicators[index].classList.add('active');
+}

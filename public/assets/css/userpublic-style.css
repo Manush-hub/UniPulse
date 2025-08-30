@@ -118,16 +118,16 @@ body {
 /* User Avatar */
 .user-avatar {
     position: absolute;
-    bottom: -60px;
-    left: 40px;
+    top: 100px;
+    left: 30px;
     z-index: 10;
-    width: 160px;
-    height: 160px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     border: 6px solid white;
     overflow: hidden;
     background: white;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
 }
 
 .user-avatar img {
@@ -162,10 +162,16 @@ body {
     position: relative;
 }
 
-.user-main-info {
+.user-title-container {
     max-width: 900px;
     margin: 0 auto;
     text-align: center;
+}
+
+.user-main-info {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: left;
 }
 
 /* Professional Title Container */
@@ -242,6 +248,7 @@ body {
     align-items: center;
     gap: 15px;
     padding: 15px 20px;
+    height: 100%;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-radius: 12px;
     border: 1px solid #e2e8f0;
@@ -250,7 +257,7 @@ body {
     overflow: hidden;
 }
 
-.meta-item::before {
+/* .meta-item::before {
     content: '';
     position: absolute;
     top: 0;
@@ -259,7 +266,7 @@ body {
     height: 100%;
     background: linear-gradient(135deg, #4A5BCC 0%, #FF6B35 100%);
     transition: width 0.3s ease;
-}
+} */
 
 .meta-item:hover {
     transform: translateY(-2px);
@@ -544,41 +551,33 @@ body {
     border-radius: 12px;
     text-decoration: none;
     transition: all 0.3s ease;
-    border: 2px solid #e2e8f0;
-    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .social-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #4A5BCC;
+    background: #4A5BCC;
+    color: white;
 }
-
-.social-link.website { border-color: #4A5BCC; }
-.social-link.website:hover { background: #4A5BCC; color: white; }
-
-.social-link.github { border-color: #333; }
-.social-link.github:hover { background: #333; color: white; }
-
-.social-link.linkedin { border-color: #0A66C2; }
-.social-link.linkedin:hover { background: #0A66C2; color: white; }
-
-.social-link.twitter { border-color: #1DA1F2; }
-.social-link.twitter:hover { background: #1DA1F2; color: white; }
-
-.social-link.instagram { border-color: #E4405F; }
-.social-link.instagram:hover { background: #E4405F; color: white; }
-
-.social-link.email { border-color: #FF6B35; }
-.social-link.email:hover { background: #FF6B35; color: white; }
 
 .social-link i {
     font-size: 1.3em;
     width: 25px;
     text-align: center;
+    color: #4A5BCC;
 }
 
 .social-link span {
     font-weight: 500;
+    color: #1e293b;
+}
+
+.social-link:hover i,
+.social-link:hover span {
+    color: white;
 }
 
 /* Events Filter */
@@ -777,7 +776,7 @@ body {
 }
 
 .event-badge.attending {
-    background: rgba(74, 91, 204, 0.9);
+    background: rgba(76, 175, 80, 0.9);
     color: white;
 }
 
@@ -972,30 +971,76 @@ body {
 /* Gallery Grid */
 .gallery-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    width: 100%;
+}
+
+/* Gallery Carousel Container */
+.gallery-carousel-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 30px;
+    padding: 30px 30px 30px 30px;
+    justify-items: center;
 }
 
 .gallery-item {
     position: relative;
     border-radius: 15px;
     overflow: hidden;
-    aspect-ratio: 4/3;
-    cursor: pointer;
+    background: transparent;
+    box-shadow: none;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0px;
 }
 
 .gallery-item:hover {
-    transform: scale(1.02);
+    transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
-.gallery-item img {
+/* Carousel Styles for Gallery */
+.gallery-images-container {
+    position: relative;
+    width: 340px;
+    height: 300px;
+    overflow: hidden;
+    border-radius: 15px;
+    margin: 0 auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-image-carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.carousel-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.carousel-image.active {
+    opacity: 1;
+}
+
+.carousel-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
+/* Hover Overlay for Gallery Images */
 .gallery-overlay {
     position: absolute;
     bottom: 0;
@@ -1006,37 +1051,182 @@ body {
     padding: 20px;
     transform: translateY(100%);
     transition: transform 0.3s ease;
+    z-index: 10;
 }
 
 .gallery-item:hover .gallery-overlay {
     transform: translateY(0);
 }
 
+.gallery-overlay h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: white;
+}
+
+.gallery-overlay p {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.4;
+}
+
+.carousel-controls {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    pointer-events: none;
+    z-index: 15;
+}
+
+.carousel-btn {
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    pointer-events: all;
+    font-size: 12px;
+}
+
+.carousel-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.carousel-indicators {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 5px;
+    z-index: 15;
+}
+
+.indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.indicator.active {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Gallery Content - Hidden to show only photos */
+.gallery-content {
+    display: none;
+}
+
+/* Hide carousel controls when only one image */
+.gallery-images-container[data-image-count="1"] .carousel-controls,
+.gallery-images-container[data-image-count="1"] .carousel-indicators {
+    display: none;
+}
+
+/* Gallery Item Color Themes */
+.gallery-item.photo { 
+    border-color: #4A5BCC; 
+}
+
+.gallery-item.photo:hover { 
+    background: #4A5BCC; 
+    color: white; 
+}
+
+.gallery-item.video { 
+    border-color: #FF6B35; 
+}
+
+.gallery-item.video:hover { 
+    background: #FF6B35; 
+    color: white; 
+}
+
+.gallery-item.project { 
+    border-color: #28a745; 
+}
+
+.gallery-item.project:hover { 
+    background: #28a745; 
+    color: white; 
+}
+
+.gallery-item i {
+    font-size: 1.3em;
+    width: 25px;
+    text-align: center;
+}
+
+.gallery-item span {
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.gallery-item:hover span {
+    color: white;
+}
+
+/* Gallery Content - Updated for simple display */
+.gallery-content {
+    padding: 10px 20px;
+}
+
+.gallery-content h4 {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.gallery-content p {
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.4;
+}
+
 /* Contact Grid */
 .contact-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 30px;
+    width: 100%;
 }
 
 /* Contact Links */
 .contact-links {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 15px;
     padding: 25px 30px;
+    width: 100%;
 }
 
 .contact-link {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 15px 20px;
+    padding: 20px 25px;
     border-radius: 12px;
     text-decoration: none;
     transition: all 0.3s ease;
     border: 2px solid #e2e8f0;
     background: #f8fafc;
+    width: 100%;
+    min-height: 60px;
 }
 
 .contact-link:hover {
@@ -1075,6 +1265,250 @@ body {
 
 .contact-link:hover span {
     color: white;
+}
+
+/* Gallery Modal Styles */
+.gallery-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.gallery-modal-content {
+    background: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.gallery-modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.gallery-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.gallery-modal-close:hover {
+    background: #e2e8f0;
+    color: #333;
+}
+
+.gallery-modal-body {
+    padding: 30px;
+    max-height: calc(90vh - 100px);
+    overflow-y: auto;
+}
+
+.gallery-photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.gallery-photo-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8fafc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.gallery-photo-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-photo-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    padding: 15px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.gallery-photo-item:hover .gallery-photo-overlay {
+    transform: translateY(0);
+}
+
+.gallery-photo-overlay h5 {
+    margin: 0 0 5px 0;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.gallery-photo-overlay p {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+/* Photo Viewer Modal */
+.photo-viewer-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 1100;
+    overflow: hidden;
+}
+
+.photo-viewer-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1110;
+}
+
+.photo-viewer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.photo-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1110;
+}
+
+.photo-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.photo-prev {
+    left: 20px;
+}
+
+.photo-next {
+    right: 20px;
+}
+
+.photo-viewer-image {
+    max-width: 90%;
+    max-height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-viewer-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.photo-viewer-info {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: white;
+    max-width: 80%;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px 25px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.photo-viewer-info h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.photo-viewer-info p {
+    margin: 0;
+    font-size: 0.9em;
+    opacity: 0.9;
 }
 
 /* Buttons */
@@ -1170,6 +1604,50 @@ body {
 
     .contact-grid {
         grid-template-columns: 1fr;
+    }
+
+    .contact-links {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-carousel-container {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .gallery-images-container {
+        width: 280px;
+        height: 280px;
+    }
+
+    .gallery-photos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .gallery-modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+
+    .photo-viewer-info {
+        max-width: 90%;
+        padding: 10px 15px;
+    }
+
+    .photo-nav-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+
+    .photo-viewer-close {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2em;
     }
 
     .user-meta-professional {
