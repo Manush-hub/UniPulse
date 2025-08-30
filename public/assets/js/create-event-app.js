@@ -273,3 +273,29 @@ document.getElementById("fieldType").addEventListener('change', function () {
 
 // Initialize options field visibility
 document.getElementById("fieldType").dispatchEvent(new Event('change'));
+
+// Handle adding new volunteer positions
+const addPositionBtn = document.getElementById('addPositionBtn');
+const newOptionInput = document.getElementById('newOption');
+
+if (addPositionBtn && newOptionInput) {
+    addPositionBtn.addEventListener('click', function () {
+        const newValue = newOptionInput.value.trim();
+
+        if (newValue !== "") {
+            // Get existing options from localStorage or empty array
+            let options = JSON.parse(localStorage.getItem('customOptions')) || [];
+
+            // Add new value
+            options.push(newValue);
+
+            // Save back to localStorage
+            localStorage.setItem('customOptions', JSON.stringify(options));
+
+            alert('Position "' + newValue + '" added successfully!');
+            newOptionInput.value = "";
+        } else {
+            alert('Please enter a position name.');
+        }
+    });
+}

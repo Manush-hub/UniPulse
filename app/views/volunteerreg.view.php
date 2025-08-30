@@ -32,93 +32,14 @@
         <div class="content-wrapper">
 
             <!--Registration Form-->
-            <form method="POST" action="">
-                <h3 class="section-header">Personal Information</h3>
-
-                <div class="form-group">
-                    <label for="full-name">Full Name</label>
-                    <input type="text" id="full-name" name="full-name" placeholder="Enter your full name" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email address" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="phone-number">Phone Number</label>
-                    <div class="field">
-                        <select id="country-code" name="country-code" required>
-                            <option value="+94">LK +94</option>
-                            <option value="+91">IN +91</option>
-                            <option value="+44">UK +44</option>
-                            <option value="+1">US +1</option>
-                        </select>
-                        <input type="tel" id="phone-number" name="phone" placeholder="Enter your phone number" required>
-                    </div>
-                </div>
-
-                <h3 class="section-header">University Information</h3>
-
-                <div class="form-group">
-                    <label for="university">University</label>
-                    <select id="university" name="university" required>
-                        <option value="">Select your university</option>
-                        <option value="university-of-colombo">University of Colombo</option>
-                        <option value="university-of-peradeniya">University of Peradeniya</option>
-                        <option value="university-of-kelaniya">University of Kelaniya</option>
-                        <option value="university-of-moratuwa">University of Moratuwa</option>
-                        <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
-                        <option value="university-of-ruhuna">University of Ruhuna</option>
-                        <option value="eastern-university">Eastern University</option>
-                        <option value="university-of-jaffna">University of Jaffna</option>
-                        <option value="sabaragamuwa-university">Sabaragamuwa University</option>
-                        <option value="wayamba-university">Wayamba University</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="faculty">Faculty/Department</label>
-                    <select id="faculty" name="faculty" required>
-                        <option value="">Select your faculty/department</option>
-                        <option value="faculty-of-arts">Faculty of Arts</option>
-                        <option value="faculty-of-science">Faculty of Science</option>
-                        <option value="faculty-of-engineering">Faculty of Engineering</option>
-                        <option value="faculty-of-medicine">Faculty of Medicine</option>
-                        <option value="faculty-of-law">Faculty of Law</option>
-                        <option value="faculty-of-management">Faculty of Management</option>
-                        <option value="faculty-of-education">Faculty of Education</option>
-                        <option value="faculty-of-agriculture">Faculty of Agriculture</option>
-                        <option value="faculty-of-applied-sciences">Faculty of Applied Sciences</option>
-                    </select>
-                </div>
-
-                <h3 class="section-header">Additional Information</h3>
-                <div class="form-group">
-                    <label for="gender">Gender (Optional)</label>
-                    <select id="gender" name="gender">
-                        <option value="">Select your gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                        <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                </div>
-
+            <form method="POST" action="" id="volunteerreg">
 
                 <h3 class="section-header">Volunteering Information</h3>
-
                 <div class="form-group">
-                    <label for="position">Prefered Position</label>
-                    <select id="position" name="position" required>
-                        <option value="">Select Position</option>
-                        <option value="reg">Registration & check-in</option>
-                        <option value="logistic">Event Logistic</option>
-                        <option value="technical">Technical Support</option>
-                        <option value="guest-services">Guest Services</option>
-                        <option value="marketing">Marketing & Social Meadia</option>
-                        <option value="setup">Setup & Breakdown</option>
-                        <option value="any">Any Position Needed</option>
+                    <label for="optionsSelect">Choose a position:</label>
+                    <select id="optionsSelect" name="volunteerPosition" required>
+                        <option value="">-- Select a position --</option>
+                        <!-- Options will be populated by JavaScript -->
                     </select>
                 </div>
 
@@ -182,6 +103,56 @@
     <?php include 'footer.php'; ?>
 
     <script src="university-student-registration.js"></script>
+    <script>
+        // Function to populate the dropdown with options from localStorage
+        function populateDropdown() {
+            const optionsSelect = document.getElementById('optionsSelect');
+
+            // Clear existing options except the first one
+            while (optionsSelect.options.length > 1) {
+                optionsSelect.remove(1);
+            }
+
+            // Load options from localStorage
+            const savedOptions = JSON.parse(localStorage.getItem('customOptions')) || [];
+
+            // Add options from localStorage
+            savedOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                optionsSelect.appendChild(optionElement);
+            });
+
+            // If no options are available, show a message
+            if (savedOptions.length === 0) {
+                const noOption = document.createElement('option');
+                noOption.value = "";
+                noOption.textContent = "No positions available yet - Please add positions in the event creation page";
+                noOption.disabled = true;
+                noOption.selected = true;
+                optionsSelect.appendChild(noOption);
+            }
+        }
+
+        // Run when the document is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate the dropdown
+            populateDropdown();
+
+            // Add event listener for the Clear Positions button (if you add it)
+            const clearPositionsBtn = document.getElementById('clearPositions');
+            if (clearPositionsBtn) {
+                clearPositionsBtn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to clear all positions?')) {
+                        localStorage.removeItem('customOptions');
+                        populateDropdown(); // Refresh the dropdown
+                        alert('All positions have been cleared.');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
