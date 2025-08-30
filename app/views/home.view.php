@@ -18,13 +18,10 @@
                     <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
                 </div>
             </div>
-            <div class="unp-nav-group">
-                <a href="#features" class="unp-nav-link">Features</a>
-                <a href="#users" class="unp-nav-link">Users</a>
-                <a href="#events" class="unp-nav-link">Events</a>
-                <a href="/unipulse/public/signin" class="unp-nav-link">LogIn</a>
-                <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
-            </div>
+                <div class="unp-nav-group">
+                    <button onclick="location.href='/unipulse/public/signin'" class="login-btn">LogIn</button>
+                    <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
+                </div>
             <div class="hamburger">
                 <span></span>
                 <span></span>
