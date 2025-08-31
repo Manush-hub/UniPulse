@@ -50,6 +50,8 @@
             <div class="sidebar-item" data-target="ticket">Ticket</div>
             <div class="sidebar-item" data-target="custom-fields">Custom Fields</div>
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
+            <div class="sidebar-item" data-target="donation">Donations</div>
+
         </aside>
         <form action="" id="create-event">
             <main class="content">
@@ -313,29 +315,35 @@
                             <div class="ticket-container">
                                 <h4>Ticket Booking Options:</h4>
 
-                                <div class="options">
-                                    <label>
-                                        <input type="checkbox" id="freeUni" name="ticketOption">
-                                        <i class="fas fa-graduation-cap ticket-icon" style="color: #4A5BCC;"></i>
-                                        Free for University Students
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="freeOutside" name="ticketOption">
-                                        <i class="fas fa-gift ticket-icon" style="color: #10B981;"></i>
-                                        Free for Outside Users
-                                    </label>
-                                    <label>
-                                        <input type="checkbox" id="paid" name="ticketOption">
-                                        <i class="fas fa-credit-card ticket-icon" style="color: #F59E0B;"></i>
-                                        Paid
-                                    </label>
+                                <div class="ticket-type-options">
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="free-all" name="ticketType" value="free-all">
+                                        <label for="free-all">
+                                            <i class="fas fa-gift ticket-icon" style="color: #10B981;"></i>
+                                            Free for All
+                                        </label>
+                                    </div>
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="paid-all" name="ticketType" value="paid-all">
+                                        <label for="paid-all">
+                                            <i class="fas fa-credit-card ticket-icon" style="color: #F59E0B;"></i>
+                                            Paid for All
+                                        </label>
+                                    </div>
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="mixed" name="ticketType" value="mixed" checked>
+                                        <label for="mixed">
+                                            <i class="fas fa-university ticket-icon" style="color: #4A5BCC;"></i>
+                                            Free for Uni Students + Paid for Others
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <!-- Free University Students Details -->
-                                <div id="freeUniDetails" class="ticket-details hidden">
-                                    <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
+                                <!-- Free for All Details -->
+                                <div id="freeAllDetails" class="ticket-details hidden">
+                                    <div class="info-note" style="background: #f0fdf4; border-color: #10B981;">
                                         <i class="fas fa-gift"></i>
-                                        Free registration for university students.
+                                        Free registration for all attendees.
                                     </div>
 
                                     <div class="form-group">
@@ -369,81 +377,79 @@
                                     </div>
                                 </div>
 
-                                <!-- Free Outside Users Details -->
-                                <div id="freeOutsideDetails" class="ticket-details hidden">
-                                    <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
-                                        <i class="fas fa-gift"></i>
-                                        Free registration for outside users.
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Registration Limit (Optional)</label>
-                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
-                                        <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label">Registration Period</label>
-                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
-
-                                        <div class="sale-dates">
-                                            <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
-                                                <input type="date" class="form-input" value="2023-06-05">
-                                            </div>
-                                            <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
-                                                <input type="time" class="form-input" value="09:00">
-                                            </div>
-                                            <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
-                                                <input type="date" class="form-input" value="2023-06-09">
-                                            </div>
-                                            <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
-                                                <input type="time" class="form-input" value="18:00">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Paid Ticket Details -->
-                                <div id="paidDetails" class="ticket-details hidden">
+                                <!-- Paid for All Details -->
+                                <div id="paidAllDetails" class="ticket-details hidden">
                                     <div class="info-note">
                                         <i class="fas fa-ticket-alt"></i>
                                         Configure your paid ticket details below
                                     </div>
 
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                                        <div>
-                                            <label class="form-label">Quantity Available</label>
-                                            <input type="number" class="form-input" value="300" placeholder="Enter quantity" min="1">
-                                        </div>
-                                        <div>
-                                            <label class="form-label">Price (USD)</label>
-                                            <input type="number" class="form-input" value="10" placeholder="Enter price" min="0" step="0.01">
-                                        </div>
-                                    </div>
+                                    <!-- Ticket Types Container -->
+                                    <div class="ticket-types-container">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                            Ticket Types
+                                        </h4>
 
-                                    <div class="toggle-container">
-                                        <span>University Student Discount?</span>
-                                        <label class="switch">
-                                            <input type="checkbox" id="discountToggle">
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
+                                        <div id="ticketTypesList">
+                                            <!-- Default ticket type -->
+                                            <div class="ticket-type-item" data-ticket-id="1">
+                                                <div class="ticket-type-header">
+                                                    <input type="text" class="form-input ticket-type-name" value="General Admission" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                    <button type="button" class="remove-ticket-type-btn">×</button>
+                                                </div>
+                                                <div class="ticket-type-details">
+                                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                        <div>
+                                                            <label class="form-label">Quantity Available</label>
+                                                            <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
+                                                        </div>
+                                                        <div>
+                                                            <label class="form-label">Price (LKR)</label>
+                                                            <input type="number" class="form-input ticket-price" value="10" placeholder="Enter price" min="0" step="0.01">
+                                                        </div>
+                                                    </div>
 
-                                    <div id="discountDetails" class="hidden">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                                            <div>
-                                                <label class="form-label">Discount Percentage</label>
-                                                <input type="number" class="form-input" id="discountPercent" placeholder="Enter discount %" min="0" max="100">
-                                            </div>
-                                            <div>
-                                                <label class="form-label">Discounted Price</label>
-                                                <input type="number" class="form-input" id="discountPrice" placeholder="Calculated price" readonly>
+                                                    <!-- Discount Section for Ticket Type -->
+                                                    <div class="ticket-discount-section">
+                                                        <div class="toggle-container">
+                                                            <span><i class="fas fa-tag" style="color: #FF6B35; margin-right: 8px;"></i> Discount for University Students?</span>
+                                                            <label class="switch">
+                                                                <input type="checkbox" class="discount-toggle">
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="discount-details hidden">
+                                                            <div class="info-note" style="background: #f0f9ff; border-color: #0ea5e9; margin-bottom: 15px;">
+                                                                <i class="fas fa-info-circle"></i>
+                                                                Discount will be applied to university students only
+                                                            </div>
+
+                                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                                <div>
+                                                                    <label class="form-label">Discount Percentage</label>
+                                                                    <input type="number" class="form-input discount-percent" placeholder="Enter discount %" min="0" max="100">
+                                                                </div>
+                                                                <div>
+                                                                    <label class="form-label">Discounted Price</label>
+                                                                    <input type="number" class="form-input discounted-price" placeholder="Calculated price" readonly>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="form-label">Description (Optional)</label>
+                                                        <textarea class="form-textarea" placeholder="Describe this ticket type" style="min-height: 60px;"></textarea>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
+
+                                        <button type="button" class="add-ticket-type-btn" id="addTicketTypeBtn">
+                                            <i class="fas fa-plus"></i> Add Another Ticket Type
+                                        </button>
                                     </div>
 
                                     <div class="form-group">
@@ -466,6 +472,152 @@
                                             <div>
                                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
                                                 <input type="time" class="form-input" value="18:00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mixed (Free for Uni + Paid for Others) Details -->
+                                <div id="mixedDetails" class="ticket-details">
+                                    <div class="info-note" style="background: #eff6ff; border-color: #4A5BCC;">
+                                        <i class="fas fa-university"></i>
+                                        Free for university students, paid for outside users.
+                                    </div>
+
+                                    <!-- Free for University Students Section -->
+                                    <div class="form-group">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                            Free Registration for University Students
+                                        </h4>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Registration Limit (Optional)</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
+                                            <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Registration Period</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
+
+                                            <div class="sale-dates">
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                    <input type="date" class="form-input" value="2023-06-05">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                    <input type="time" class="form-input" value="09:00">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                    <input type="date" class="form-input" value="2023-06-09">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                    <input type="time" class="form-input" value="18:00">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Paid for Outside Users Section -->
+                                    <div class="form-group">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-users" style="color: #FF6B35; margin-right: 8px;"></i>
+                                            Paid Tickets for Outside Users
+                                        </h4>
+
+                                        <!-- Ticket Types Container -->
+                                        <div class="ticket-types-container">
+                                            <h5 style="margin-bottom: 15px; font-size: 14px; color: #666;">
+                                                <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                                Ticket Types
+                                            </h5>
+
+                                            <div id="mixedTicketTypesList">
+                                                <!-- Default ticket type -->
+                                                <div class="ticket-type-item" data-ticket-id="1">
+                                                    <div class="ticket-type-header">
+                                                        <input type="text" class="form-input ticket-type-name" value="General Admission" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                        <button type="button" class="remove-ticket-type-btn">×</button>
+                                                    </div>
+                                                    <div class="ticket-type-details">
+                                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                            <div>
+                                                                <label class="form-label">Quantity Available</label>
+                                                                <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
+                                                            </div>
+                                                            <div>
+                                                                <label class="form-label">Price (LKR)</label>
+                                                                <input type="number" class="form-input ticket-price" value="15" placeholder="Enter price" min="0" step="0.01">
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Discount Section for Ticket Type -->
+                                                        <div class="ticket-discount-section">
+                                                            <div class="toggle-container">
+                                                                <span><i class="fas fa-tag" style="color: #FF6B35; margin-right: 8px;"></i>Discount for Outside Users?</span>
+                                                                <label class="switch">
+                                                                    <input type="checkbox" class="discount-toggle">
+                                                                    <span class="slider"></span>
+                                                                </label>
+                                                            </div>
+
+                                                            <div class="discount-details hidden">
+                                                                <div class="info-note" style="background: #f0f9ff; border-color: #0ea5e9; margin-bottom: 15px;">
+                                                                    <i class="fas fa-info-circle"></i>
+                                                                    Discount will be applied to Outside Users
+                                                                </div>
+
+                                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                                    <div>
+                                                                        <label class="form-label">Discount Percentage</label>
+                                                                        <input type="number" class="form-input discount-percent" placeholder="Enter discount %" min="0" max="100">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">Discounted Price</label>
+                                                                        <input type="number" class="form-input discounted-price" placeholder="Calculated price" readonly>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="form-label">Description (Optional)</label>
+                                                            <textarea class="form-textarea" placeholder="Describe this ticket type" style="min-height: 60px;"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button type="button" class="add-ticket-type-btn" id="addMixedTicketTypeBtn">
+                                                <i class="fas fa-plus"></i> Add Another Ticket Type
+                                            </button>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Sale Period</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be available for purchase</p>
+
+                                            <div class="sale-dates">
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                    <input type="date" class="form-input" value="2023-06-05">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                    <input type="time" class="form-input" value="09:00">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                    <input type="date" class="form-input" value="2023-06-09">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                    <input type="time" class="form-input" value="18:00">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -608,6 +760,26 @@
                                 <button type="button" id="addPositionBtn" class="add-field-btn" style="margin-top: 10px;">+ Add Position</button>
                                 <p><a href="volunteerreg.view.php">Go to volunteerreg Form</a></p>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Add this section after the ticket section -->
+                <section class="section" id="donation">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Donations</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label for="donationToggle" style="display: block; margin-bottom: 8px; color: #333;">
+                                Do you want to allow participants to make donations to support this event? </label>
+
+                            <label class="switch">
+                                <input type="checkbox" id="donationToggle" name="donationToggle">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
                 </section>

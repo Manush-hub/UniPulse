@@ -279,76 +279,205 @@ if (addPositionBtn && newOptionInput) {
 }
 
 // NEW TICKET FUNCTIONALITY
-const freeUniCheckbox = document.getElementById("freeUni");
-const freeOutsideCheckbox = document.getElementById("freeOutside");
-const paidCheckbox = document.getElementById("paid");
-const freeUniDetails = document.getElementById("freeUniDetails");
-const freeOutsideDetails = document.getElementById("freeOutsideDetails");
-const paidDetails = document.getElementById("paidDetails");
+const freeAllRadio = document.getElementById("free-all");
+const paidAllRadio = document.getElementById("paid-all");
+const mixedRadio = document.getElementById("mixed");
+const freeAllDetails = document.getElementById("freeAllDetails");
+const paidAllDetails = document.getElementById("paidAllDetails");
+const mixedDetails = document.getElementById("mixedDetails");
 
-const discountToggle = document.getElementById("discountToggle");
-const discountDetails = document.getElementById("discountDetails");
-const discountPercent = document.getElementById("discountPercent");
-const discountPrice = document.getElementById("discountPrice");
-const priceInput = document.querySelector("#paidDetails input[type='number'][placeholder='Enter price']");
+// Ticket type counters
+let ticketTypeCounter = 1;
+let mixedTicketTypeCounter = 1;
 
-// Handle checkbox logic
-function updateOptions() {
+// Handle radio button logic
+function updateTicketOptions() {
     // Reset all details sections
-    freeUniDetails.classList.add("hidden");
-    freeOutsideDetails.classList.add("hidden");
-    paidDetails.classList.add("hidden");
+    freeAllDetails.classList.add("hidden");
+    paidAllDetails.classList.add("hidden");
+    mixedDetails.classList.add("hidden");
 
     // Show details based on selection
-    if (freeUniCheckbox.checked) {
-        freeUniDetails.classList.remove("hidden");
-    }
-
-    if (freeOutsideCheckbox.checked) {
-        freeOutsideDetails.classList.remove("hidden");
-    }
-
-    if (paidCheckbox.checked) {
-        paidDetails.classList.remove("hidden");
-    }
-
-    // Make options mutually exclusive
-    if (freeUniCheckbox.checked || freeOutsideCheckbox.checked) {
-        paidCheckbox.checked = false;
-    }
-
-    if (paidCheckbox.checked) {
-        freeUniCheckbox.checked = false;
-        freeOutsideCheckbox.checked = false;
+    if (freeAllRadio.checked) {
+        freeAllDetails.classList.remove("hidden");
+    } else if (paidAllRadio.checked) {
+        paidAllDetails.classList.remove("hidden");
+    } else if (mixedRadio.checked) {
+        mixedDetails.classList.remove("hidden");
     }
 }
 
 // Add event listeners
-freeUniCheckbox.addEventListener("change", updateOptions);
-freeOutsideCheckbox.addEventListener("change", updateOptions);
-paidCheckbox.addEventListener("change", updateOptions);
+freeAllRadio.addEventListener("change", updateTicketOptions);
+paidAllRadio.addEventListener("change", updateTicketOptions);
+mixedRadio.addEventListener("change", updateTicketOptions);
 
-// Handle discount toggle
-discountToggle.addEventListener("change", () => {
-    if (discountToggle.checked) {
-        discountDetails.classList.remove("hidden");
-    } else {
-        discountDetails.classList.add("hidden");
+// Setup discount functionality for a ticket type
+function setupTicketDiscount(ticketElement) {
+    const discountToggle = ticketElement.querySelector('.discount-toggle');
+    const discountDetails = ticketElement.querySelector('.discount-details');
+    const discountPercent = ticketElement.querySelector('.discount-percent');
+    const discountedPrice = ticketElement.querySelector('.discounted-price');
+    const ticketPrice = ticketElement.querySelector('.ticket-price');
+
+    // Toggle discount details
+    discountToggle.addEventListener('change', function () {
+        if (this.checked) {
+            discountDetails.classList.remove('hidden');
+            calculateDiscount();
+        } else {
+            discountDetails.classList.add('hidden');
+            discountedPrice.value = '';
+        }
+    });
+
+    // Calculate discount when values change
+    function calculateDiscount() {
+        const price = parseFloat(ticketPrice.value) || 0;
+        const percent = parseFloat(discountPercent.value) || 0;
+        const discounted = price - (price * percent / 100);
+        discountedPrice.value = discounted > 0 ? discounted.toFixed(2) : 0;
     }
-});
 
-// Auto calculate discounted price
-function calculateDiscount() {
-    const price = parseFloat(priceInput.value) || 0;
-    const percent = parseFloat(discountPercent.value) || 0;
-    const discounted = price - (price * percent / 100);
-    discountPrice.value = discounted > 0 ? discounted.toFixed(2) : 0;
+    discountPercent.addEventListener('input', calculateDiscount);
+    ticketPrice.addEventListener('input', calculateDiscount);
 }
 
-discountPercent.addEventListener("input", calculateDiscount);
-priceInput.addEventListener("input", calculateDiscount);
+// Add ticket type functionality
+function addTicketType(containerId, counterVar) {
+    const container = document.getElementById(containerId);
+    const newTicketType = document.createElement("div");
+    newTicketType.classList.add("ticket-type-item");
+
+    const typeId = counterVar++;
+
+    newTicketType.innerHTML = `
+        <div class="ticket-type-header">
+            <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name (e.g., VIP, 1st Class)" style="max-width: 250px; margin-bottom: 0;">
+            <button type="button" class="remove-ticket-type-btn">×</button>
+        </div>
+        <div class="ticket-type-details">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label class="form-label">Quantity Available</label>
+                    <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1" value="100">
+                </div>
+                <div>
+                    <label class="form-label">Price (USD)</label>
+                    <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01" value="10">
+                </div>
+            </div>
+            
+            <!-- Discount Section for Ticket Type -->
+            <div class="ticket-discount-section">
+                <div class="toggle-container">
+                    <span><i class="fas fa-tag" style="color: #FF6B35; margin-right: 8px;"></i>Discount for University Students?</span>
+                    <label class="switch">
+                        <input type="checkbox" class="discount-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="discount-details hidden">
+                    <div class="info-note" style="background: #f0f9ff; border-color: #0ea5e9; margin-bottom: 15px;">
+                        <i class="fas fa-info-circle"></i>
+                        Discount will be applied to university students only
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label class="form-label">Discount Percentage</label>
+                            <input type="number" class="form-input discount-percent" placeholder="Enter discount %" min="0" max="100">
+                        </div>
+                        <div>
+                            <label class="form-label">Discounted Price</label>
+                            <input type="number" class="form-input discounted-price" placeholder="Calculated price" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label class="form-label">Description (Optional)</label>
+                <textarea class="form-textarea" placeholder="Describe this ticket type" style="min-height: 60px;"></textarea>
+            </div>
+        </div>
+    `;
+
+    // Add remove functionality
+    const removeBtn = newTicketType.querySelector(".remove-ticket-type-btn");
+    removeBtn.addEventListener("click", function () {
+        newTicketType.remove();
+    });
+
+    container.appendChild(newTicketType);
+
+    // Setup discount functionality for the new ticket type
+    setupTicketDiscount(newTicketType);
+
+    return counterVar;
+}
+
+// Set up add ticket type buttons
+document.getElementById("addTicketTypeBtn").addEventListener("click", function () {
+    ticketTypeCounter = addTicketType("ticketTypesList", ticketTypeCounter);
+});
+
+document.getElementById("addMixedTicketTypeBtn").addEventListener("click", function () {
+    mixedTicketTypeCounter = addTicketType("mixedTicketTypesList", mixedTicketTypeCounter);
+});
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function () {
-    updateOptions();
+    updateTicketOptions();
+
+    // Set up discount functionality for existing ticket types
+    document.querySelectorAll('.ticket-type-item').forEach(setupTicketDiscount);
+
+    // Set up remove buttons for default ticket types
+    document.querySelectorAll(".remove-ticket-type-btn").forEach(btn => {
+        btn.addEventListener("click", function () {
+            // Don't remove if it's the only ticket type
+            const container = this.closest(".ticket-types-container");
+            const items = container.querySelectorAll(".ticket-type-item");
+            if (items.length > 1) {
+                this.closest(".ticket-type-item").remove();
+            } else {
+                alert("You need at least one ticket type.");
+            }
+        });
+    });
+});
+
+
+// get donation
+document.addEventListener('DOMContentLoaded', function () {
+    // Add sidebar navigation for donation section
+    const sidebar = document.querySelector('.sidebar');
+    const donationSidebarItem = document.createElement('div');
+    donationSidebarItem.classList.add('sidebar-item');
+    donationSidebarItem.setAttribute('data-target', 'donation');
+    donationSidebarItem.textContent = 'Donations';
+
+    // Insert after the ticket item
+    const ticketItem = document.querySelector('.sidebar-item[data-target="ticket"]');
+    ticketItem.parentNode.insertBefore(donationSidebarItem, ticketItem.nextSibling);
+
+    // Add click event to scroll to donation section
+    donationSidebarItem.addEventListener('click', () => {
+        // remove previous active
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        donationSidebarItem.classList.add('active');
+
+        // scroll to section
+        const donationSection = document.getElementById('donation');
+
+        if (donationSection) {
+            // Expand section if collapsed
+            donationSection.classList.remove('collapsed');
+
+            // Smooth scroll
+            donationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 });
