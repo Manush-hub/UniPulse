@@ -310,117 +310,164 @@
                     </div>
                     <div class="section-content">
                         <div class="form-group">
-                            <label class="form-label">Ticket Type</label>
-                            <div class="ticket-options">
-                                <div class="ticket-option">
-                                    <input type="radio" name="ticket-type" id="paid" value="paid" checked>
-                                    <label for="paid">
-                                        <i class="fas fa-credit-card" style="margin-right: 5px; color: #FF6B35;"></i>
+                            <div class="ticket-container">
+                                <h4>Ticket Booking Options:</h4>
+
+                                <div class="options">
+                                    <label>
+                                        <input type="checkbox" id="freeUni" name="ticketOption">
+                                        <i class="fas fa-graduation-cap ticket-icon" style="color: #4A5BCC;"></i>
+                                        Free for University Students
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" id="freeOutside" name="ticketOption">
+                                        <i class="fas fa-gift ticket-icon" style="color: #10B981;"></i>
+                                        Free for Outside Users
+                                    </label>
+                                    <label>
+                                        <input type="checkbox" id="paid" name="ticketOption">
+                                        <i class="fas fa-credit-card ticket-icon" style="color: #F59E0B;"></i>
                                         Paid
                                     </label>
                                 </div>
-                                <div class="ticket-option">
-                                    <input type="radio" name="ticket-type" id="free" value="free">
-                                    <label for="free">
-                                        <i class="fas fa-gift" style="margin-right: 5px; color: #10B981;"></i>
-                                        Free
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="ticket-details" id="paidTicketDetails">
-                            <div class="info-note">
-                                <i class="fas fa-ticket-alt"></i>
-                                Configure your paid ticket details below
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                                <div>
-                                    <label class="form-label">Quantity Available</label>
-                                    <input type="number" class="form-input" value="300" placeholder="Enter quantity"
-                                        min="1">
-                                </div>
-                                <div>
-                                    <label class="form-label">Price (USD)</label>
-                                    <input type="number" class="form-input" value="10" placeholder="Enter price" min="0"
-                                        step="0.01">
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Sale Period</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be
-                                    available for purchase</p>
-
-                                <div class="sale-dates">
-                                    <div>
-                                        <label
-                                            style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                            Date</label>
-                                        <input type="date" class="form-input" value="2023-06-05">
+                                <!-- Free University Students Details -->
+                                <div id="freeUniDetails" class="ticket-details hidden">
+                                    <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
+                                        <i class="fas fa-gift"></i>
+                                        Free registration for university students.
                                     </div>
-                                    <div>
-                                        <label
-                                            style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                            Time</label>
-                                        <input type="time" class="form-input" value="09:00">
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Limit (Optional)</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
+                                        <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
                                     </div>
-                                    <div>
-                                        <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                            Date</label>
-                                        <input type="date" class="form-input" value="2023-06-09">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                            Time</label>
-                                        <input type="time" class="form-input" value="18:00">
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Period</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
+
+                                        <div class="sale-dates">
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" class="form-input" value="2023-06-05">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" class="form-input" value="09:00">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" class="form-input" value="2023-06-09">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" class="form-input" value="18:00">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="ticket-details hidden" id="freeTicketDetails">
-                            <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
-                                <i class="fas fa-gift"></i>
-                                This is a free event. Attendees can register without payment.
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Registration Limit (Optional)</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of
-                                    registrations if needed</p>
-                                <input type="number" class="form-input"
-                                    placeholder="Leave empty for unlimited registrations" min="1">
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Registration Period</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and
-                                    closes</p>
-
-                                <div class="sale-dates">
-                                    <div>
-                                        <label
-                                            style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                            Date</label>
-                                        <input type="date" class="form-input" value="2023-06-05">
+                                <!-- Free Outside Users Details -->
+                                <div id="freeOutsideDetails" class="ticket-details hidden">
+                                    <div class="info-note" style="background: #fff7ed; border-color: #FF6B35;">
+                                        <i class="fas fa-gift"></i>
+                                        Free registration for outside users.
                                     </div>
-                                    <div>
-                                        <label
-                                            style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
-                                            Time</label>
-                                        <input type="time" class="form-input" value="09:00">
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Limit (Optional)</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
+                                        <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
                                     </div>
-                                    <div>
-                                        <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                            Date</label>
-                                        <input type="date" class="form-input" value="2023-06-09">
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Period</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
+
+                                        <div class="sale-dates">
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" class="form-input" value="2023-06-05">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" class="form-input" value="09:00">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" class="form-input" value="2023-06-09">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" class="form-input" value="18:00">
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
-                                            Time</label>
-                                        <input type="time" class="form-input" value="18:00">
+                                </div>
+
+                                <!-- Paid Ticket Details -->
+                                <div id="paidDetails" class="ticket-details hidden">
+                                    <div class="info-note">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        Configure your paid ticket details below
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                        <div>
+                                            <label class="form-label">Quantity Available</label>
+                                            <input type="number" class="form-input" value="300" placeholder="Enter quantity" min="1">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Price (USD)</label>
+                                            <input type="number" class="form-input" value="10" placeholder="Enter price" min="0" step="0.01">
+                                        </div>
+                                    </div>
+
+                                    <div class="toggle-container">
+                                        <span>University Student Discount?</span>
+                                        <label class="switch">
+                                            <input type="checkbox" id="discountToggle">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+
+                                    <div id="discountDetails" class="hidden">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                            <div>
+                                                <label class="form-label">Discount Percentage</label>
+                                                <input type="number" class="form-input" id="discountPercent" placeholder="Enter discount %" min="0" max="100">
+                                            </div>
+                                            <div>
+                                                <label class="form-label">Discounted Price</label>
+                                                <input type="number" class="form-input" id="discountPrice" placeholder="Calculated price" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Sale Period</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be available for purchase</p>
+
+                                        <div class="sale-dates">
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" class="form-input" value="2023-06-05">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" class="form-input" value="09:00">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" class="form-input" value="2023-06-09">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" class="form-input" value="18:00">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -520,7 +567,7 @@
                                 <label class="form-label">Volunteer Source</label>
                                 <div class="volunteer-source-options">
                                     <div class="volunteer-source-option">
-                                        <input type="radio" id="faculty-volunteers" name="volunteer-source" value="faculty"
+                                        <input type="checkbox" id="faculty-volunteers" name="volunteer-source" value="faculty"
                                             checked>
                                         <label for="faculty-volunteers">
                                             <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
@@ -528,7 +575,7 @@
                                         </label>
                                     </div>
                                     <div class="volunteer-source-option">
-                                        <input type="radio" id="university-volunteers" name="volunteer-source"
+                                        <input type="checkbox" id="university-volunteers" name="volunteer-source"
                                             value="university">
                                         <label for="university-volunteers">
                                             <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
@@ -536,17 +583,10 @@
                                         </label>
                                     </div>
                                     <div class="volunteer-source-option">
-                                        <input type="radio" id="public-volunteers" name="volunteer-source" value="public">
+                                        <input type="checkbox" id="public-volunteers" name="volunteer-source" value="public">
                                         <label for="public-volunteers">
                                             <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
                                             Public Users
-                                        </label>
-                                    </div>
-                                    <div class="volunteer-source-option">
-                                        <input type="radio" id="anyone-volunteers" name="volunteer-source" value="anyone">
-                                        <label for="anyone-volunteers">
-                                            <i class="fas fa-globe" style="color: #9C27B0; font-size: 18px;"></i>
-                                            Anyone
                                         </label>
                                     </div>
                                 </div>

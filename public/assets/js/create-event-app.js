@@ -143,30 +143,8 @@ volunteerToggle.addEventListener('change', toggleVolunteerDetails);
 // Initialize volunteer details visibility
 toggleVolunteerDetails();
 
-// TICKET TYPE TOGGLE FUNCTIONALITY
-const ticketTypeRadios = document.querySelectorAll('input[name="ticket-type"]');
-const paidTicketDetails = document.getElementById('paidTicketDetails');
-const freeTicketDetails = document.getElementById('freeTicketDetails');
-
-function toggleTicketDetails() {
-    const selectedType = document.querySelector('input[name="ticket-type"]:checked').value;
-
-    if (selectedType === 'paid') {
-        paidTicketDetails.classList.remove('hidden');
-        freeTicketDetails.classList.add('hidden');
-    } else {
-        paidTicketDetails.classList.add('hidden');
-        freeTicketDetails.classList.remove('hidden');
-    }
-}
-
-// Add event listeners to ticket type radio buttons
-ticketTypeRadios.forEach(radio => {
-    radio.addEventListener('change', toggleTicketDetails);
-});
-
-// Initialize with current selection
-toggleTicketDetails();
+// Remove old ticket functionality (lines 150-170)
+// TICKET TYPE TOGGLE FUNCTIONALITY - REMOVE THIS SECTION
 
 // CUSTOM FIELDS FUNCTIONALITY
 const dynamicFields = document.getElementById("dynamicFields");
@@ -299,3 +277,78 @@ if (addPositionBtn && newOptionInput) {
         }
     });
 }
+
+// NEW TICKET FUNCTIONALITY
+const freeUniCheckbox = document.getElementById("freeUni");
+const freeOutsideCheckbox = document.getElementById("freeOutside");
+const paidCheckbox = document.getElementById("paid");
+const freeUniDetails = document.getElementById("freeUniDetails");
+const freeOutsideDetails = document.getElementById("freeOutsideDetails");
+const paidDetails = document.getElementById("paidDetails");
+
+const discountToggle = document.getElementById("discountToggle");
+const discountDetails = document.getElementById("discountDetails");
+const discountPercent = document.getElementById("discountPercent");
+const discountPrice = document.getElementById("discountPrice");
+const priceInput = document.querySelector("#paidDetails input[type='number'][placeholder='Enter price']");
+
+// Handle checkbox logic
+function updateOptions() {
+    // Reset all details sections
+    freeUniDetails.classList.add("hidden");
+    freeOutsideDetails.classList.add("hidden");
+    paidDetails.classList.add("hidden");
+
+    // Show details based on selection
+    if (freeUniCheckbox.checked) {
+        freeUniDetails.classList.remove("hidden");
+    }
+
+    if (freeOutsideCheckbox.checked) {
+        freeOutsideDetails.classList.remove("hidden");
+    }
+
+    if (paidCheckbox.checked) {
+        paidDetails.classList.remove("hidden");
+    }
+
+    // Make options mutually exclusive
+    if (freeUniCheckbox.checked || freeOutsideCheckbox.checked) {
+        paidCheckbox.checked = false;
+    }
+
+    if (paidCheckbox.checked) {
+        freeUniCheckbox.checked = false;
+        freeOutsideCheckbox.checked = false;
+    }
+}
+
+// Add event listeners
+freeUniCheckbox.addEventListener("change", updateOptions);
+freeOutsideCheckbox.addEventListener("change", updateOptions);
+paidCheckbox.addEventListener("change", updateOptions);
+
+// Handle discount toggle
+discountToggle.addEventListener("change", () => {
+    if (discountToggle.checked) {
+        discountDetails.classList.remove("hidden");
+    } else {
+        discountDetails.classList.add("hidden");
+    }
+});
+
+// Auto calculate discounted price
+function calculateDiscount() {
+    const price = parseFloat(priceInput.value) || 0;
+    const percent = parseFloat(discountPercent.value) || 0;
+    const discounted = price - (price * percent / 100);
+    discountPrice.value = discounted > 0 ? discounted.toFixed(2) : 0;
+}
+
+discountPercent.addEventListener("input", calculateDiscount);
+priceInput.addEventListener("input", calculateDiscount);
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function () {
+    updateOptions();
+});
