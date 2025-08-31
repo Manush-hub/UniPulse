@@ -764,7 +764,7 @@
                     </div>
                 </section>
 
-                <!-- Add this section after the ticket section -->
+                <!-- doantion-->
                 <section class="section" id="donation">
                     <div class="section-header">
                         <div class="section-icon"></div>
