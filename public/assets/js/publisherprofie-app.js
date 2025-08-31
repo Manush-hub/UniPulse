@@ -1,17 +1,21 @@
 class ClubProfile {
     constructor() {
         this.currentTab = 'about';
-        this.isPublicView = false;
         this.organizationData = {
             name: 'Tech Innovation Society',
             type: 'student-org',
             university: 'University of California, Berkeley',
             faculty: 'School of Engineering',
-            department: 'Computer Science & Engineering',
-            contactEmail: 'contact@techinnovationsociety.org',
-            contactPhone: '+1 (510) 642-1000',
+            officialEmail: 'contact@techinnovationsociety.org',
+            contactNumber: '+1 (510) 642-1000',
+            address: '123 Tech Lane, Berkeley, CA 94720',
             establishedYear: 2018,
             memberCount: 245,
+            adminisName: 'Sarah Johnson',
+            adminisContact: '+1 (510) 123-4567',
+            adminRole: 'President',
+            adminEmail: 'sarah.johnson@berkeley.edu',
+            headline: 'Student Organization',
             bio: 'Leading student organization dedicated to fostering innovation and technological advancement. We organize workshops, hackathons, and networking events to bridge the gap between academia and industry.',
             mission: 'To create a vibrant community of tech enthusiasts, fostering innovation, collaboration, and professional development through hands-on learning experiences and industry partnerships.',
             website: 'https://techinnovationsociety.berkeley.edu',
@@ -111,6 +115,7 @@ class ClubProfile {
         this.setupAnimations();
         this.categorizeEvents();
         this.setupImageUploads();
+        this.initializeEventsFilter();
     }
 
     setupImageUploads() {
@@ -137,7 +142,7 @@ class ClubProfile {
                         const coverImg = document.getElementById('coverPhoto');
                         if (coverImg) {
                             coverImg.src = e.target.result;
-                            this.showNotification('Cover photo updated successfully!', 'success');
+                            // this.showNotification('Cover photo updated successfully!', 'success');
                         }
                     };
                     reader.readAsDataURL(file);
@@ -250,13 +255,6 @@ class ClubProfile {
     }
 
     bindToggleEvents() {
-        // Privacy toggles
-        document.querySelectorAll('.toggle input').forEach(toggle => {
-            toggle.addEventListener('change', (e) => {
-                this.updatePrivacySetting(e.target.id, e.target.checked);
-            });
-        });
-
         // Preference checkboxes
         document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
@@ -326,7 +324,6 @@ class ClubProfile {
 
         // Load focus areas
         this.loadFocusAreas();
-        this.updateStats();
     }
 
     loadFocusAreas() {
@@ -348,18 +345,9 @@ class ClubProfile {
         });
     }
 
-    updateStats() {
-        const upcomingCount = this.events.filter(e => e.category === 'upcoming').length;
-        const pastCount = this.events.filter(e => e.category === 'past').length;
-        const totalCount = this.events.length;
-
-        const totalEvents = document.getElementById('totalEvents');
-        const upcomingEvents = document.getElementById('upcomingEvents');
-        const pastEvents = document.getElementById('pastEvents');
-
-        if (totalEvents) totalEvents.textContent = totalCount;
-        if (upcomingEvents) upcomingEvents.textContent = upcomingCount;
-        if (pastEvents) pastEvents.textContent = pastCount;
+    initializeEventsFilter() {
+        // Set default filter to upcoming events
+        this.filterEvents('upcoming');
     }
 
     togglePreference(button) {
@@ -368,9 +356,9 @@ class ClubProfile {
         const isActive = button.classList.contains('active');
         
         if (isActive) {
-            this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
+            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
         } else {
-            this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference removed`, 'info');
+            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference removed`, 'info');
         }
     }
 
@@ -386,7 +374,7 @@ class ClubProfile {
         // Update hidden input value
         document.getElementById('role').value = role;
 
-        this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
+        // this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
     }
 
     showTab(tabName) {
@@ -452,15 +440,12 @@ class ClubProfile {
         card.dataset.title = event.title.toLowerCase();
 
         const badgeClass = event.category === 'upcoming' ? 'upcoming' : 'past';
-        const badgeText = event.type === 'organized' ? 
-            (event.category === 'upcoming' ? 'Organizing' : 'Organized') :
-            (event.category === 'upcoming' ? 'Registered' : 'Attended');
+        const badgeText = event.category === 'upcoming' ? 'Upcoming' : 'Past Event';
 
         card.innerHTML = `
             <div class="event-image">
                 <img src="${event.image}" alt="${event.title}" loading="lazy">
                 <span class="event-badge ${badgeClass}">${badgeText}</span>
-                ${event.featured ? '<span class="event-badge featured" style="top: 15px; left: 15px; background: rgba(255, 193, 7, 0.9);">Featured</span>' : ''}
             </div>
             <div class="event-info">
                 <h4>${event.title}</h4>
@@ -481,11 +466,9 @@ class ClubProfile {
                     <button class="btn btn-small btn-primary" onclick="clubProfile.viewEventDetails(${event.id})">
                         View Details
                     </button>
-                    ${event.type === 'organized' ? 
+                    ${event.category === 'upcoming' ? 
                         '<button class="btn btn-small btn-secondary" onclick="clubProfile.manageEvent(' + event.id + ')">Manage Event</button>' : 
-                        (event.category === 'past' ? 
-                            '<button class="btn btn-small btn-secondary" onclick="clubProfile.rateEvent(' + event.id + ')">Rate Event</button>' : 
-                            '<button class="btn btn-small btn-secondary" onclick="clubProfile.viewTicket(' + event.id + ')">View Ticket</button>')
+                        '<button class="btn btn-small btn-secondary" onclick="clubProfile.viewReport(' + event.id + ')">View Report</button>'
                     }
                 </div>
             </div>
@@ -504,95 +487,22 @@ class ClubProfile {
         return date.toLocaleDateString('en-US', options);
     }
 
-    toggleMode() {
-        this.isPublicView = !this.isPublicView;
-        const overlay = document.getElementById('publicViewOverlay');
-        const modeIcon = document.getElementById('modeIcon');
-        const modeText = document.getElementById('modeText');
-
-        if (this.isPublicView) {
-            overlay.classList.add('active');
-            modeIcon.className = 'fas fa-user-edit';
-            modeText.textContent = 'Edit Mode';
-            this.enablePublicView();
-        } else {
-            overlay.classList.remove('active');
-            modeIcon.className = 'fas fa-eye';
-            modeText.textContent = 'Public View';
-            this.disablePublicView();
-        }
-    }
-
-    enablePublicView() {
-        document.querySelectorAll('.btn:not(.btn-primary):not(.filter-btn):not(.nav-item)').forEach(btn => {
-            if (!btn.closest('.profile-actions') && !btn.closest('.event-actions')) {
-                btn.style.display = 'none';
-            }
-        });
-
-        const settingsTab = document.querySelector('[data-tab="settings"]');
-        const preferencesTab = document.querySelector('[data-tab="preferences"]');
-        if (settingsTab) settingsTab.style.display = 'none';
-        if (preferencesTab) preferencesTab.style.display = 'none';
-
-        if (this.currentTab === 'settings' || this.currentTab === 'preferences') {
-            this.showTab('personal');
-        }
-
-        this.applyPrivacySettings();
-    }
-
-    disablePublicView() {
-        document.querySelectorAll('[style*="display: none"]').forEach(el => {
-            el.style.display = '';
-        });
-    }
-
-    applyPrivacySettings() {
-        const showContact = document.getElementById('showContact')?.checked;
-        const showEventHistory = document.getElementById('showEventHistory')?.checked;
-
-        if (!showContact) {
-            document.querySelectorAll('#email, #phone').forEach(input => {
-                const originalValue = input.value;
-                input.value = 'Hidden for privacy';
-                input.style.fontStyle = 'italic';
-                input.dataset.originalValue = originalValue;
-            });
-        }
-
-        if (!showEventHistory) {
-            document.getElementById('events').style.display = 'none';
-            document.querySelector('[data-tab="events"]').style.display = 'none';
-        }
-    }
-
-    toggleEdit(formId) {
-        const form = document.getElementById(formId);
-        const inputs = form.querySelectorAll('input, textarea');
-        const actions = form.querySelector('.form-actions');
-        const isEditing = !inputs[0].readOnly;
-
-        inputs.forEach(input => {
-            input.readOnly = isEditing;
-        });
-
-        if (actions) {
-            actions.style.display = isEditing ? 'none' : 'flex';
-        }
-    }
-
     saveOrganizationInfo() {
         const formData = {
             name: document.getElementById('orgName').value,
             type: document.getElementById('orgType').value,
             university: document.getElementById('university').value,
             faculty: document.getElementById('faculty').value,
-            department: document.getElementById('department').value,
-            contactEmail: document.getElementById('contactEmail').value,
-            contactPhone: document.getElementById('contactPhone').value,
+            officialEmail: document.getElementById('officialEmail').value,
+            contactNumber: document.getElementById('contactNumber').value,
+            address: document.getElementById('address').value,
             establishedYear: document.getElementById('establishedYear').value,
             memberCount: document.getElementById('memberCount').value,
+            adminisName: document.getElementById('adminisName').value,
+            adminisContact: document.getElementById('adminisContact').value,
+            adminRole: document.getElementById('adminRole').value,
+            adminEmail: document.getElementById('adminEmail').value,
+            headline: document.getElementById('headline').value,
             bio: document.getElementById('bio').value,
             mission: document.getElementById('mission').value
         };
@@ -600,15 +510,43 @@ class ClubProfile {
         // Update organizationData
         Object.assign(this.organizationData, formData);
 
-        this.showNotification('Organization information updated successfully!', 'success');
+        // this.showNotification('Organization information updated successfully!', 'success');
         
         // Update profile display
         document.getElementById('profileName').textContent = formData.name;
         const profileBioElements = document.querySelectorAll('#profileBio');
         profileBioElements.forEach(el => el.textContent = formData.bio);
+    }
 
-        // Exit edit mode
-        this.toggleEdit('organization-form');
+    cancelOrganizationInfo() {
+        // Reset form to original values
+        const form = document.getElementById('organization-form');
+        const inputs = form.querySelectorAll('input, textarea, select');
+        
+        // Reset to original values (you can implement actual reset logic here)
+        // this.showNotification('Changes cancelled', 'info');
+    }
+
+    cancelSocialLinks() {
+        // Reset social links form to original values
+        const form = document.getElementById('social-form');
+        const inputs = form.querySelectorAll('input');
+        
+        // Reset to original values (you can implement actual reset logic here)
+        // this.showNotification('Changes cancelled', 'info');
+    }
+
+    cancelSecuritySettings() {
+        // Reset security form to original values
+        const form = document.getElementById('security-form');
+        const inputs = form.querySelectorAll('input');
+        
+        // Clear password fields
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        
+        // this.showNotification('Changes cancelled', 'info');
     }
 
     filterEvents(filter) {
@@ -620,18 +558,15 @@ class ClubProfile {
         // Add active class to clicked button
         document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
-        // Filter events
+        // Filter events - only show upcoming or past events
         const eventCards = document.querySelectorAll('.event-card');
         eventCards.forEach(card => {
-            const show = filter === 'all' || 
-                        card.dataset.category === filter || 
-                        card.dataset.type === filter ||
-                        (filter === 'featured' && card.querySelector('.event-badge.featured'));
-            
+            const show = card.dataset.category === filter;
             card.style.display = show ? 'block' : 'none';
         });
 
-        this.showNotification(`Showing ${filter} events`, 'info');
+        const filterText = filter === 'upcoming' ? 'upcoming events' : 'past events';
+        // Removed notification popup
     }
 
     searchEvents(query) {
@@ -668,48 +603,68 @@ class ClubProfile {
         });
     }
 
-    manageLeadership() {
-        this.showNotification('Opening leadership management panel...', 'info');
-        // Implement leadership management functionality
+    manageExecutiveCommittee() {
+        document.getElementById('executiveCommitteeModal').style.display = 'flex';
+        document.getElementById('executiveCommitteeModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Load existing committee data if available
+        this.loadExistingCommitteeData();
+    }
+
+    loadExistingCommitteeData() {
+        // This function would load existing committee member data from the database
+        // For now, it's a placeholder for future implementation
+        console.log('Loading existing committee data...');
     }
 
     addAdmin() {
-        this.showNotification('Opening add administrator dialog...', 'info');
-        // Implement add admin functionality
+        document.getElementById('addAdminModal').style.display = 'flex';
+        document.getElementById('addAdminModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Reset form
+        this.clearAddAdminForm();
+    }
+
+    clearAddAdminForm() {
+        // Clear all input fields
+        const form = document.getElementById('addAdminForm');
+        if (form) {
+            form.reset();
+        }
+        
+        // Clear photo preview
+        const preview = document.getElementById('adminPhotoPreview');
+        const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
+        
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        
+        if (uploadPlaceholder) {
+            uploadPlaceholder.style.display = 'flex';
+        }
     }
 
     removeAdmin(adminId) {
         if (confirm('Are you sure you want to remove this administrator?')) {
-            this.showNotification(`Administrator ${adminId} removed successfully`, 'success');
+            // this.showNotification(`Administrator ${adminId} removed successfully`, 'success');
             // Implement remove admin functionality
         }
     }
 
-    exportData() {
-        this.showNotification('Preparing organization data export...', 'info');
-        // Implement data export functionality
-    }
-
-    exportMembers() {
-        this.showNotification('Preparing member list export...', 'info');
-        // Implement member export functionality
-    }
-
-    exportEvents() {
-        this.showNotification('Preparing event history export...', 'info');
-        // Implement event export functionality
-    }
-
     deactivateOrganization() {
         if (confirm('Are you sure you want to deactivate this organization? This action can be reversed.')) {
-            this.showNotification('Organization deactivation process started', 'warning');
+            // this.showNotification('Organization deactivation process started', 'warning');
             // Implement deactivation logic
         }
     }
 
     transferOwnership() {
         if (confirm('Are you sure you want to transfer ownership of this organization?')) {
-            this.showNotification('Opening ownership transfer dialog...', 'info');
+            // this.showNotification('Opening ownership transfer dialog...', 'info');
             // Implement ownership transfer logic
         }
     }
@@ -717,7 +672,7 @@ class ClubProfile {
     deleteOrganization() {
         if (confirm('Are you sure you want to delete this organization? This action cannot be undone.')) {
             if (confirm('Please confirm again. This will permanently delete all organization data.')) {
-                this.showNotification('Organization deletion process started', 'error');
+                // this.showNotification('Organization deletion process started', 'error');
                 // Implement deletion logic
             }
         }
@@ -730,8 +685,7 @@ class ClubProfile {
             linkedin: document.getElementById('linkedin').value
         };
 
-        this.showNotification('Social links updated successfully!', 'success');
-        this.toggleEdit('social-form');
+        // this.showNotification('Social links updated successfully!', 'success');
     }
 
     saveSettings() {
@@ -741,7 +695,7 @@ class ClubProfile {
             language: document.getElementById('language').value
         };
 
-        this.showNotification('Settings saved successfully!', 'success');
+        // this.showNotification('Settings saved successfully!', 'success');
     }
 
     addTag() {
@@ -752,7 +706,7 @@ class ClubProfile {
             this.interests.push(tagValue);
             this.loadInterests();
             newTagInput.value = '';
-            this.showNotification('Interest added successfully!', 'success');
+            // this.showNotification('Interest added successfully!', 'success');
         }
     }
 
@@ -761,18 +715,13 @@ class ClubProfile {
         if (index > -1) {
             this.interests.splice(index, 1);
             this.loadInterests();
-            this.showNotification('Interest removed successfully!', 'info');
+            // this.showNotification('Interest removed successfully!', 'info');
         }
-    }
-
-    updatePrivacySetting(settingId, value) {
-        console.log(`Privacy setting ${settingId} set to ${value}`);
-        this.showNotification(`Privacy setting updated!`, 'info');
     }
 
     updateEventPreference(preference, isChecked) {
         console.log(`Event preference ${preference} set to ${isChecked}`);
-        this.showNotification('Preferences updated!', 'success');
+        // this.showNotification('Preferences updated!', 'success');
     }
 
     uploadImage() {
@@ -785,7 +734,7 @@ class ClubProfile {
             reader.onload = (e) => {
                 document.getElementById('profileImage').src = e.target.result;
                 this.userData.avatar = e.target.result;
-                this.showNotification('Profile picture updated!', 'success');
+                // this.showNotification('Profile picture updated!', 'success');
                 this.closeModal('imageUploadModal');
             };
             reader.readAsDataURL(file);
@@ -811,7 +760,7 @@ class ClubProfile {
     viewEventDetails(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Opening details for ${event.title}`, 'info');
+            // this.showNotification(`Opening details for ${event.title}`, 'info');
             // Implement event details modal or navigation
         }
     }
@@ -819,15 +768,23 @@ class ClubProfile {
     manageEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Managing ${event.title}`, 'info');
+            // this.showNotification(`Managing ${event.title}`, 'info');
             // Implement event management functionality
+        }
+    }
+
+    viewReport(eventId) {
+        const event = this.events.find(e => e.id === eventId);
+        if (event) {
+            // this.showNotification(`Viewing report for ${event.title}`, 'info');
+            // Implement event report functionality
         }
     }
 
     rateEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Rating ${event.title}`, 'info');
+            // this.showNotification(`Rating ${event.title}`, 'info');
             // Implement rating modal
         }
     }
@@ -835,14 +792,14 @@ class ClubProfile {
     viewTicket(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Viewing ticket for ${event.title}`, 'info');
+            // this.showNotification(`Viewing ticket for ${event.title}`, 'info');
             // Implement ticket view
         }
     }
 
     deactivateAccount() {
         if (confirm('Are you sure you want to deactivate your account? This action can be reversed.')) {
-            this.showNotification('Account deactivation process started', 'warning');
+            // this.showNotification('Account deactivation process started', 'warning');
             // Implement deactivation logic
         }
     }
@@ -850,115 +807,18 @@ class ClubProfile {
     deleteAccount() {
         if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
             if (confirm('Please confirm again. This will permanently delete all your data.')) {
-                this.showNotification('Account deletion process started', 'error');
+                // this.showNotification('Account deletion process started', 'error');
                 // Implement deletion logic
             }
         }
     }
 
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
-                <span>${message}</span>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
-            </div>
-        `;
-
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${this.getNotificationColor(type)};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 2000;
-            animation: slideInRight 0.3s ease;
-            max-width: 400px;
-        `;
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .notification-close {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 1.2em;
-                cursor: pointer;
-                margin-left: auto;
-            }
-        `;
-        document.head.appendChild(style);
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 5000);
-    }
-
-    getNotificationIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
-
-    getNotificationColor(type) {
-        const colors = {
-            success: '#4CAF50',
-            error: '#f44336',
-            warning: '#ff9800',
-            info: '#2196F3'
-        };
-        return colors[type] || '#2196F3';
-    }
-
-    editProfile() {
-        this.showTab('personal');
-        this.toggleEdit('personal-form');
-    }
-
-    cancelEdit(formId) {
-        // Restore original values
-        this.loadUserData();
-        this.toggleEdit(formId);
-    }
+    // Notification functions removed
 }
 
 // Global functions for onclick handlers
-function toggleMode() {
-    clubProfile.toggleMode();
-}
-
 function uploadImage() {
     clubProfile.uploadImage();
-}
-
-function editProfile() {
-    clubProfile.editProfile();
-}
-
-function toggleEdit(formId) {
-    clubProfile.toggleEdit(formId);
 }
 
 function saveOrganizationInfo() {
@@ -969,8 +829,16 @@ function saveSocialLinks() {
     clubProfile.saveSocialLinks();
 }
 
-function cancelEdit(formId) {
-    clubProfile.cancelEdit(formId);
+function cancelOrganizationInfo() {
+    clubProfile.cancelOrganizationInfo();
+}
+
+function cancelSocialLinks() {
+    clubProfile.cancelSocialLinks();
+}
+
+function cancelSecuritySettings() {
+    clubProfile.cancelSecuritySettings();
 }
 
 function addTag() {
@@ -993,8 +861,8 @@ function deleteOrganization() {
     clubProfile.deleteOrganization();
 }
 
-function manageLeadership() {
-    clubProfile.manageLeadership();
+function manageExecutiveCommittee() {
+    clubProfile.manageExecutiveCommittee();
 }
 
 function addAdmin() {
@@ -1003,18 +871,6 @@ function addAdmin() {
 
 function removeAdmin(adminId) {
     clubProfile.removeAdmin(adminId);
-}
-
-function exportData() {
-    clubProfile.exportData();
-}
-
-function exportMembers() {
-    clubProfile.exportMembers();
-}
-
-function exportEvents() {
-    clubProfile.exportEvents();
 }
 
 // Cover photo upload functions
@@ -1030,7 +886,7 @@ function changeCover(event) {
             const coverImg = document.getElementById('coverPhoto');
             if (coverImg) {
                 coverImg.src = e.target.result;
-                clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                // clubProfile.showNotification('Cover photo updated successfully!', 'success');
             }
         };
         reader.readAsDataURL(file);
@@ -1050,7 +906,7 @@ function changeProfileImage(event) {
             const profileImg = document.getElementById('profileImage');
             if (profileImg) {
                 profileImg.src = e.target.result;
-                clubProfile.showNotification('Organization logo updated successfully!', 'success');
+                // clubProfile.showNotification('Organization logo updated successfully!', 'success');
             }
         };
         reader.readAsDataURL(file);
@@ -1102,39 +958,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Privacy Toggle Functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize privacy toggles
-    const privacyToggles = [
-        { toggleId: 'emailPrivacy', labelId: 'email' },
-        { toggleId: 'phonePrivacy', labelId: 'phone' },
-        { toggleId: 'currentCityPrivacy', labelId: 'currentCity' },
-        { toggleId: 'homeTownPrivacy', labelId: 'homeTown' }
-    ];
-
-    privacyToggles.forEach(({ toggleId, labelId }) => {
-        const toggle = document.getElementById(toggleId);
-        const label = document.querySelector(`label[for="${labelId}"]`);
-        
-        if (toggle && label) {
-            const statusText = label.querySelector('small');
-            
-            // Update status text on toggle change
-            toggle.addEventListener('change', function() {
-                if (statusText) {
-                    statusText.textContent = this.checked ? 'Public' : 'Private';
-                    statusText.style.color = this.checked ? '#4A5BCC' : '#666';
-                }
-            });
-            
-            // Initialize status text color
-            if (statusText) {
-                statusText.style.color = toggle.checked ? '#4A5BCC' : '#666';
-            }
-        }
-    });
-});
-
 // Add CSS for loading states
 const loadingStyle = document.createElement('style');
 loadingStyle.textContent = `
@@ -1153,3 +976,713 @@ loadingStyle.textContent = `
     }
 `;
 document.head.appendChild(loadingStyle);
+
+// Gallery Functionality
+let galleryPhotos = [
+    {
+        id: 1,
+        title: 'Organization Events',
+        description: 'Highlights from our recent tech conferences and networking events',
+        images: [
+            'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=600&h=400&fit=crop'
+        ]
+    },
+    {
+        id: 2,
+        title: 'Team Building',
+        description: 'Building stronger connections through collaborative activities',
+        images: [
+            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&h=400&fit=crop'
+        ]
+    },
+    {
+        id: 3,
+        title: 'Community Outreach',
+        description: 'Making a positive impact in our local community',
+        images: [
+            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=400&fit=crop'
+        ]
+    }
+];
+
+let currentEditingGalleryId = null;
+const MAX_GALLERY_ENTRIES = 5;
+const MAX_PHOTOS_PER_ENTRY = 10;
+
+// Add Gallery Photo
+function addGalleryPhoto() {
+    if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
+        // clubProfile.showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+        return;
+    }
+    
+    currentEditingGalleryId = null;
+    document.getElementById('galleryModalTitle').textContent = 'Add Photo Gallery';
+    document.getElementById('galleryTitle').value = '';
+    document.getElementById('galleryDescription').value = '';
+    
+    // Reset all file inputs and previews
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        const uploadContent = document.querySelector(`#galleryFile${i}`)?.parentElement?.querySelector('.upload-content');
+        
+        if (fileInput) fileInput.value = '';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        if (uploadContent) uploadContent.style.display = 'flex';
+    }
+    
+    // Show modal
+    document.getElementById('galleryPhotoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Edit Gallery Item
+function editGalleryItem(galleryId) {
+    const photo = galleryPhotos.find(p => p.id === galleryId);
+    if (!photo) return;
+    
+    currentEditingGalleryId = galleryId;
+    document.getElementById('galleryModalTitle').textContent = 'Edit Photo';
+    document.getElementById('galleryTitle').value = photo.title;
+    document.getElementById('galleryDescription').value = photo.description;
+    
+    // Show modal
+    document.getElementById('galleryPhotoModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Delete Gallery Item
+function deleteGalleryItem(galleryId) {
+    if (confirm('Are you sure you want to delete this photo?')) {
+        galleryPhotos = galleryPhotos.filter(p => p.id !== galleryId);
+        // clubProfile.showNotification('Photo deleted successfully!', 'success');
+    }
+}
+
+// Preview Gallery Image
+function previewGalleryImage(event, photoIndex) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        // clubProfile.showNotification('File size must be less than 5MB', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        // clubProfile.showNotification('Please select a valid image file', 'error');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById(`galleryPreview${photoIndex}`);
+        const uploadContent = event.target.parentElement.querySelector('.upload-content');
+        
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        uploadContent.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Save Gallery Photo
+function saveGalleryPhoto() {
+    const title = document.getElementById('galleryTitle').value.trim();
+    const description = document.getElementById('galleryDescription').value.trim();
+    
+    // Validation
+    if (!title) {
+        // clubProfile.showNotification('Please enter a title for the gallery', 'error');
+        return;
+    }
+    
+    if (!description) {
+        // clubProfile.showNotification('Please enter a description for the gallery', 'error');
+        return;
+    }
+    
+    if (title.length > 50) {
+        // clubProfile.showNotification('Title must be 50 characters or less', 'error');
+        return;
+    }
+    
+    if (description.length > 150) {
+        // clubProfile.showNotification('Description must be 150 characters or less', 'error');
+        return;
+    }
+    
+    // Collect uploaded images
+    const images = [];
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        
+        if (fileInput && fileInput.files[0] && preview && preview.src) {
+            images.push(preview.src);
+        }
+    }
+    
+    if (images.length === 0 && !currentEditingGalleryId) {
+        // clubProfile.showNotification('Please upload at least one image', 'error');
+        return;
+    }
+    
+    if (currentEditingGalleryId) {
+        // Update existing gallery entry
+        const photoIndex = galleryPhotos.findIndex(p => p.id === currentEditingGalleryId);
+        if (photoIndex !== -1) {
+            galleryPhotos[photoIndex].title = title;
+            galleryPhotos[photoIndex].description = description;
+            if (images.length > 0) {
+                galleryPhotos[photoIndex].images = images;
+            }
+        }
+        // clubProfile.showNotification('Gallery updated successfully!', 'success');
+    } else {
+        // Add new gallery entry
+        if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
+            // clubProfile.showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+            return;
+        }
+        
+        const newGallery = {
+            id: Date.now(),
+            title: title,
+            description: description,
+            images: images
+        };
+        
+        galleryPhotos.push(newGallery);
+        // clubProfile.showNotification('Gallery added successfully!', 'success');
+    }
+    
+    closeGalleryModal();
+}
+
+// Close Gallery Modal
+function closeGalleryModal() {
+    document.getElementById('galleryPhotoModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // Reset form
+    document.getElementById('galleryTitle').value = '';
+    document.getElementById('galleryDescription').value = '';
+    
+    // Reset all file inputs and previews
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        const uploadContent = document.querySelector(`#galleryFile${i}`)?.parentElement?.querySelector('.upload-content');
+        
+        if (fileInput) fileInput.value = '';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        if (uploadContent) uploadContent.style.display = 'flex';
+    }
+    
+    currentEditingGalleryId = null;
+}
+
+// Carousel functionality for gallery items
+function changeCarouselImage(galleryId, direction) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
+    
+    // Remove active class from current image and indicator
+    images[currentIndex].classList.remove('active');
+    indicators[currentIndex].classList.remove('active');
+    
+    // Calculate new index
+    currentIndex += direction;
+    if (currentIndex >= images.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = images.length - 1;
+    
+    // Add active class to new image and indicator
+    images[currentIndex].classList.add('active');
+    indicators[currentIndex].classList.add('active');
+}
+
+function setCarouselImage(galleryId, index) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    
+    // Remove active class from all
+    images.forEach(img => img.classList.remove('active'));
+    indicators.forEach(ind => ind.classList.remove('active'));
+    
+    // Add active class to selected
+    if (images[index]) images[index].classList.add('active');
+    if (indicators[index]) indicators[index].classList.add('active');
+}
+
+// Close gallery modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('galleryPhotoModal');
+    if (event.target === modal) {
+        closeGalleryModal();
+    }
+});
+
+// Close gallery modal with escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('galleryPhotoModal');
+        if (modal && modal.style.display === 'flex') {
+            closeGalleryModal();
+        }
+        
+        const committeeModal = document.getElementById('executiveCommitteeModal');
+        if (committeeModal && committeeModal.style.display === 'flex') {
+            closeExecutiveCommitteeModal();
+        }
+        
+        const addAdminModal = document.getElementById('addAdminModal');
+        if (addAdminModal && addAdminModal.style.display === 'flex') {
+            closeAddAdminModal();
+        }
+    }
+});
+
+// Executive Committee Management Functions
+function closeExecutiveCommitteeModal() {
+    document.getElementById('executiveCommitteeModal').style.display = 'none';
+    document.getElementById('executiveCommitteeModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+    
+    // Reset form
+    clearCommitteeForm();
+}
+
+function clearCommitteeForm() {
+    // Clear all input fields
+    const positions = ['president', 'vicePresident', 'secretary', 'treasurer'];
+    
+    positions.forEach(position => {
+        const firstNameInput = document.getElementById(`${position}FirstName`);
+        const lastNameInput = document.getElementById(`${position}LastName`);
+        
+        if (firstNameInput) firstNameInput.value = '';
+        if (lastNameInput) lastNameInput.value = '';
+        
+        // Clear photo preview
+        const preview = document.getElementById(`${position}Preview`);
+        const uploadPlaceholder = document.querySelector(`#${position}Photo`)?.parentElement?.querySelector('.upload-placeholder');
+        
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        
+        if (uploadPlaceholder) {
+            uploadPlaceholder.style.display = 'flex';
+        }
+        
+        // Reset file input
+        const fileInput = document.getElementById(`${position}Photo`);
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    });
+}
+
+function previewCommitteePhoto(event, position) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+            // clubProfile.showNotification('Please select a valid image file (JPG, PNG)', 'error');
+            event.target.value = '';
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            // clubProfile.showNotification('File size must be less than 5MB', 'error');
+            event.target.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(`${position}Preview`);
+            const uploadPlaceholder = event.target.parentElement.querySelector('.upload-placeholder');
+            
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            
+            if (uploadPlaceholder) {
+                uploadPlaceholder.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function saveExecutiveCommittee() {
+    // Collect data from all committee member forms
+    const committeeData = {
+        president: getCommitteeMemberData('president'),
+        vicePresident: getCommitteeMemberData('vicePresident'),
+        secretary: getCommitteeMemberData('secretary'),
+        treasurer: getCommitteeMemberData('treasurer')
+    };
+    
+    // Validate that at least one member is filled
+    const hasData = Object.values(committeeData).some(member => 
+        member.firstName.trim() !== '' || member.lastName.trim() !== '' || member.hasPhoto
+    );
+    
+    if (!hasData) {
+        // clubProfile.showNotification('Please add at least one committee member', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const saveBtn = document.querySelector('#executiveCommitteeModal .btn-primary');
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+    
+    // Simulate API call (replace with actual implementation)
+    setTimeout(() => {
+        console.log('Committee data to save:', committeeData);
+        
+        // Update the executive committee display
+        updateExecutiveCommitteeDisplay(committeeData);
+        
+        // Reset button state
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+        
+        // Close modal
+        closeExecutiveCommitteeModal();
+        
+        // Show success message
+        showSuccessMessage('Executive committee updated successfully!');
+    }, 1000);
+}
+
+function getCommitteeMemberData(position) {
+    const firstNameInput = document.getElementById(`${position}FirstName`);
+    const lastNameInput = document.getElementById(`${position}LastName`);
+    const photoInput = document.getElementById(`${position}Photo`);
+    
+    const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+    const lastName = lastNameInput ? lastNameInput.value.trim() : '';
+    const hasPhoto = photoInput && photoInput.files.length > 0;
+    
+    return {
+        firstName,
+        lastName,
+        photo: hasPhoto ? photoInput.files[0] : null,
+        hasPhoto
+    };
+}
+
+function updateExecutiveCommitteeDisplay(committeeData) {
+    // Update the committee cards on the main page
+    const positions = [
+        { key: 'president', title: 'President' },
+        { key: 'vicePresident', title: 'Vice President' },
+        { key: 'secretary', title: 'Secretary' },
+        { key: 'treasurer', title: 'Treasurer' }
+    ];
+    
+    const leadershipGrid = document.querySelector('.leadership-grid');
+    if (!leadershipGrid) return;
+    
+    // Clear existing cards
+    leadershipGrid.innerHTML = '';
+    
+    positions.forEach(position => {
+        const memberData = committeeData[position.key];
+        
+        // Only create card if member has data
+        if (memberData.firstName || memberData.lastName || memberData.hasPhoto) {
+            const card = createCommitteeMemberCard(memberData, position.title);
+            leadershipGrid.appendChild(card);
+        }
+    });
+    
+    // If no members, show placeholder
+    if (leadershipGrid.children.length === 0) {
+        leadershipGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px;">No executive committee members added yet.</p>';
+    }
+}
+
+function createCommitteeMemberCard(memberData, position) {
+    const card = document.createElement('div');
+    card.className = 'member-card leadership';
+    
+    const fullName = `${memberData.firstName} ${memberData.lastName}`.trim() || 'No Name';
+    const photoSrc = memberData.hasPhoto ? URL.createObjectURL(memberData.photo) : '/Applications/MAMP/htdocs/UniPulse/public/assets/images/logo.png';
+    
+    card.innerHTML = `
+        <div class="member-avatar">
+            <img src="${photoSrc}" alt="${fullName}">
+        </div>
+        <div class="member-info">
+            <h4>${fullName}</h4>
+            <p class="member-role">${position}</p>
+        </div>
+    `;
+    
+    return card;
+}
+
+function showSuccessMessage(message) {
+    // Create and show a temporary success message
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 1001;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideInRight 0.3s ease;
+    `;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(messageDiv)) {
+                document.body.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Close executive committee modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('executiveCommitteeModal');
+    if (event.target === modal) {
+        closeExecutiveCommitteeModal();
+    }
+    
+    const addAdminModal = document.getElementById('addAdminModal');
+    if (event.target === addAdminModal) {
+        closeAddAdminModal();
+    }
+});
+
+// Add Admin Modal Functions
+function closeAddAdminModal() {
+    document.getElementById('addAdminModal').style.display = 'none';
+    document.getElementById('addAdminModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+    
+    // Reset form
+    clearAddAdminForm();
+}
+
+function clearAddAdminForm() {
+    // Clear all input fields
+    document.getElementById('adminFirstName').value = '';
+    document.getElementById('adminLastName').value = '';
+    document.getElementById('adminEmail').value = '';
+    document.getElementById('adminRole').value = '';
+    
+    // Clear photo preview
+    const preview = document.getElementById('adminPhotoPreview');
+    const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
+    
+    if (preview) {
+        preview.style.display = 'none';
+        preview.src = '';
+    }
+    
+    if (uploadPlaceholder) {
+        uploadPlaceholder.style.display = 'flex';
+    }
+    
+    // Reset file input
+    const fileInput = document.getElementById('adminPhoto');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    // Clear all checkboxes
+    document.querySelectorAll('#addAdminModal input[type="checkbox"]').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+function previewAdminPhoto(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+            // clubProfile.showNotification('Please select a valid image file (JPG, PNG)', 'error');
+            event.target.value = '';
+            return;
+        }
+        
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            // clubProfile.showNotification('File size must be less than 5MB', 'error');
+            event.target.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('adminPhotoPreview');
+            const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
+            
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            
+            if (uploadPlaceholder) {
+                uploadPlaceholder.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function saveNewAdmin() {
+    // Get form data
+    const firstName = document.getElementById('adminFirstName').value.trim();
+    const lastName = document.getElementById('adminLastName').value.trim();
+    const email = document.getElementById('adminEmail').value.trim();
+    const role = document.getElementById('adminRole').value;
+    const photoInput = document.getElementById('adminPhoto');
+    
+    // Validation
+    if (!firstName || !lastName || !email || !role) {
+        // clubProfile.showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        // clubProfile.showNotification('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    // Get selected permissions
+    const permissions = [];
+    document.querySelectorAll('#addAdminModal input[type="checkbox"]:checked').forEach(checkbox => {
+        permissions.push(checkbox.value);
+    });
+    
+    // Create admin data object
+    const adminData = {
+        firstName,
+        lastName,
+        email,
+        role,
+        permissions,
+        photo: photoInput.files.length > 0 ? photoInput.files[0] : null,
+        hasPhoto: photoInput.files.length > 0
+    };
+    
+    // Show loading state
+    const saveBtn = document.querySelector('#addAdminModal .btn-primary');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    saveBtn.disabled = true;
+    
+    // Simulate API call (replace with actual implementation)
+    setTimeout(() => {
+        console.log('Admin data to save:', adminData);
+        
+        // Add admin to the list (in real implementation, this would update the DOM)
+        addAdminToList(adminData);
+        
+        // Reset button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        // Close modal
+        closeAddAdminModal();
+        
+        // Show success message
+        // clubProfile.showNotification(`${firstName} ${lastName} has been added as an administrator!`, 'success');
+    }, 1000);
+}
+
+function addAdminToList(adminData) {
+    // This function would add the new admin to the admin list in the UI
+    // In a real implementation, you would update the DOM here
+    console.log('Adding admin to list:', adminData);
+    
+    // For demonstration, you could dynamically add to the admin list
+    const adminList = document.querySelector('.admin-list');
+    if (adminList) {
+        const newAdminHTML = createAdminItemHTML(adminData);
+        adminList.insertAdjacentHTML('beforeend', newAdminHTML);
+    }
+}
+
+function createAdminItemHTML(adminData) {
+    const fullName = `${adminData.firstName} ${adminData.lastName}`;
+    const photoSrc = adminData.hasPhoto ? URL.createObjectURL(adminData.photo) : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face';
+    const roleDisplayMap = {
+        'co-admin': 'Co-Administrator',
+        'moderator': 'Moderator',
+        'event-manager': 'Event Manager'
+    };
+    const roleDisplay = roleDisplayMap[adminData.role] || adminData.role;
+    
+    return `
+        <div class="admin-item">
+            <div class="admin-info">
+                <div class="admin-avatar">
+                    <img src="${photoSrc}" alt="${fullName}">
+                </div>
+                <div class="admin-details">
+                    <h4>${fullName}</h4>
+                    <p>${roleDisplay}</p>
+                    <small>${adminData.email}</small>
+                </div>
+            </div>
+            <div class="admin-actions">
+                <button class="btn btn-small btn-danger" onclick="removeAdmin('${adminData.email}')">
+                    <i class="fas fa-user-minus"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}

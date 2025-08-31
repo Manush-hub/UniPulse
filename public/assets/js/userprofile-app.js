@@ -101,7 +101,7 @@ class UniPulseProfile {
                         const coverImg = document.getElementById('coverPhoto');
                         if (coverImg) {
                             coverImg.src = e.target.result;
-                            this.showNotification('Cover photo updated successfully!', 'success');
+                            // this.showNotification('Cover photo updated successfully!', 'success');
                         }
                     };
                     reader.readAsDataURL(file);
@@ -318,9 +318,9 @@ class UniPulseProfile {
         const isActive = button.classList.contains('active');
         
         if (isActive) {
-            this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
+            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
         } else {
-            this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference removed`, 'info');
+            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference removed`, 'info');
         }
     }
 
@@ -336,7 +336,7 @@ class UniPulseProfile {
         // Update hidden input value
         document.getElementById('role').value = role;
 
-        this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
+        // this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
     }
 
     selectGender(gender) {
@@ -351,7 +351,7 @@ class UniPulseProfile {
         // Update hidden input value
         document.getElementById('gender').value = gender;
 
-        this.showNotification(`Gender set to ${gender.charAt(0).toUpperCase() + gender.slice(1)}`, 'info');
+        // this.showNotification(`Gender set to ${gender.charAt(0).toUpperCase() + gender.slice(1)}`, 'info');
     }
 
     showTab(tabName) {
@@ -508,7 +508,7 @@ class UniPulseProfile {
         // Update userData
         Object.assign(this.userData, formData);
 
-        this.showNotification('Personal information updated successfully!', 'success');
+        // this.showNotification('Personal information updated successfully!', 'success');
         
         // Update profile display
         document.getElementById('profileName').textContent = `${formData.firstName} ${formData.lastName}`;
@@ -557,7 +557,7 @@ class UniPulseProfile {
         document.querySelector(`[data-role="${defaultRole}"]`)?.classList.add('active');
         document.getElementById('role').value = defaultRole;
 
-        this.showNotification('Changes cancelled, form restored to original values', 'info');
+        // this.showNotification('Changes cancelled, form restored to original values', 'info');
     }
 
     saveSocialLinks() {
@@ -575,7 +575,7 @@ class UniPulseProfile {
         // Update userData
         Object.assign(this.userData, socialData);
 
-        this.showNotification('Social links updated successfully!', 'success');
+        // this.showNotification('Social links updated successfully!', 'success');
     }
 
     cancelSocialLinks() {
@@ -589,7 +589,7 @@ class UniPulseProfile {
         document.getElementById('x-twitter').value = this.userData.xTwitter || '';
         document.getElementById('discord').value = this.userData.discord || '';
 
-        this.showNotification('Changes cancelled, social links restored to original values', 'info');
+        // this.showNotification('Changes cancelled, social links restored to original values', 'info');
     }
 
     saveSettings() {
@@ -599,7 +599,7 @@ class UniPulseProfile {
             language: document.getElementById('language').value
         };
 
-        this.showNotification('Settings saved successfully!', 'success');
+        // this.showNotification('Settings saved successfully!', 'success');
     }
 
     addTag() {
@@ -610,7 +610,7 @@ class UniPulseProfile {
             this.interests.push(tagValue);
             this.loadInterests();
             newTagInput.value = '';
-            this.showNotification('Interest added successfully!', 'success');
+            // this.showNotification('Interest added successfully!', 'success');
         }
     }
 
@@ -619,18 +619,18 @@ class UniPulseProfile {
         if (index > -1) {
             this.interests.splice(index, 1);
             this.loadInterests();
-            this.showNotification('Interest removed successfully!', 'info');
+            // this.showNotification('Interest removed successfully!', 'info');
         }
     }
 
     updatePrivacySetting(settingId, value) {
         console.log(`Privacy setting ${settingId} set to ${value}`);
-        this.showNotification(`Privacy setting updated!`, 'info');
+        // this.showNotification(`Privacy setting updated!`, 'info');
     }
 
     updateEventPreference(preference, isChecked) {
         console.log(`Event preference ${preference} set to ${isChecked}`);
-        this.showNotification('Preferences updated!', 'success');
+        // this.showNotification('Preferences updated!', 'success');
     }
 
     uploadImage() {
@@ -643,7 +643,7 @@ class UniPulseProfile {
             reader.onload = (e) => {
                 document.getElementById('profileImage').src = e.target.result;
                 this.userData.avatar = e.target.result;
-                this.showNotification('Profile picture updated!', 'success');
+                // this.showNotification('Profile picture updated!', 'success');
                 this.closeModal('imageUploadModal');
             };
             reader.readAsDataURL(file);
@@ -669,7 +669,7 @@ class UniPulseProfile {
     viewEventDetails(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Opening details for ${event.title}`, 'info');
+            // this.showNotification(`Opening details for ${event.title}`, 'info');
             // Implement event details modal or navigation
         }
     }
@@ -677,7 +677,7 @@ class UniPulseProfile {
     manageEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Managing ${event.title}`, 'info');
+            // this.showNotification(`Managing ${event.title}`, 'info');
             // Implement event management functionality
         }
     }
@@ -685,7 +685,7 @@ class UniPulseProfile {
     rateEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Rating ${event.title}`, 'info');
+            // this.showNotification(`Rating ${event.title}`, 'info');
             // Implement rating modal
         }
     }
@@ -693,14 +693,14 @@ class UniPulseProfile {
     viewTicket(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            this.showNotification(`Viewing ticket for ${event.title}`, 'info');
+            // this.showNotification(`Viewing ticket for ${event.title}`, 'info');
             // Implement ticket view
         }
     }
 
     deactivateAccount() {
         if (confirm('Are you sure you want to deactivate your account? This action can be reversed.')) {
-            this.showNotification('Account deactivation process started', 'warning');
+            // this.showNotification('Account deactivation process started', 'warning');
             // Implement deactivation logic
         }
     }
@@ -708,87 +708,13 @@ class UniPulseProfile {
     deleteAccount() {
         if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
             if (confirm('Please confirm again. This will permanently delete all your data.')) {
-                this.showNotification('Account deletion process started', 'error');
+                // this.showNotification('Account deletion process started', 'error');
                 // Implement deletion logic
             }
         }
     }
 
-    showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas fa-${this.getNotificationIcon(type)}"></i>
-                <span>${message}</span>
-                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
-            </div>
-        `;
-
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${this.getNotificationColor(type)};
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 2000;
-            animation: slideInRight 0.3s ease;
-            max-width: 400px;
-        `;
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .notification-close {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 1.2em;
-                cursor: pointer;
-                margin-left: auto;
-            }
-        `;
-        document.head.appendChild(style);
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 5000);
-    }
-
-    getNotificationIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
-
-    getNotificationColor(type) {
-        const colors = {
-            success: '#4CAF50',
-            error: '#f44336',
-            warning: '#ff9800',
-            info: '#2196F3'
-        };
-        return colors[type] || '#2196F3';
-    }
+    // Notification functions removed
 
     editProfile() {
         this.showTab('personal');
