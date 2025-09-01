@@ -308,7 +308,7 @@
                     <ul>
                         <li><a href="AboutUs.php">About Us</a></li>
                         <li><a href="features.php">Features</a></li>
-                        <li><a href="FindFeatures.php">Find Events</a></li>
+                        <li><a href="FindEvents.php">Find Events</a></li>
                         <li><a href="Contact.php">Contact</a></li>
                     </ul>
                 </div>
