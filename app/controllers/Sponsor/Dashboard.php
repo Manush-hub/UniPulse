@@ -21,3 +21,14 @@ class Dashboard extends Controller{
         // User management
         $this->view('users');
     }
+    
+    public function settings($a = '', $b = '' , $c = ''){
+        // System settings
+        $this->view('settings');
+    }
+    
+    public function reports($a = '', $b = '' , $c = ''){
+        // System reports
+        $this->view('reports');
+    }
+}
