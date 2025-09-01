@@ -29,6 +29,12 @@
             </div>
             
             <div class="org-info-section">
+                <!-- Verified Button in top right -->
+                <button class="btn btn-verified-topright" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    Verified Organization
+                </button>
+                
                 <div class="org-main-info">
                     <div class="org-title-container">
                         <h1 id="orgName" class="org-title">Tech Innovation Society</h1>
@@ -42,15 +48,8 @@
                             <div class="meta-item">
                                 <i class="fas fa-graduation-cap"></i>
                                 <div class="meta-content">
-                                    <span class="meta-label">Institution</span>
-                                    <span class="meta-value">University of California, Berkeley</span>
-                                </div>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-users"></i>
-                                <div class="meta-content">
-                                    <span class="meta-label">Organization Type</span>
-                                    <span class="meta-value">Student Organization</span>
+                                    <span class="meta-label">university</span>
+                                    <span class="meta-value">University of Colombo</span>
                                 </div>
                             </div>
                         </div>
@@ -59,15 +58,8 @@
                             <div class="meta-item">
                                 <i class="fas fa-calendar-plus"></i>
                                 <div class="meta-content">
-                                    <span class="meta-label">Established</span>
-                                    <span class="meta-value">2018</span>
-                                </div>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-user-friends"></i>
-                                <div class="meta-content">
-                                    <span class="meta-label">Active Members</span>
-                                    <span class="meta-value">245+</span>
+                                    <span class="meta-label">Faculty</span>
+                                    <span class="meta-value">University of Colombo School of Computing</span>
                                 </div>
                             </div>
                         </div>
@@ -78,21 +70,6 @@
                             Leading student organization dedicated to fostering innovation and technological advancement. 
                             We organize workshops, hackathons, and networking events to bridge the gap between academia and industry.
                         </p>
-                        
-                        <div class="org-highlights">
-                            <div class="highlight-item">
-                                <i class="fas fa-award"></i>
-                                <span>Award-Winning Programs</span>
-                            </div>
-                            <div class="highlight-item">
-                                <i class="fas fa-handshake"></i>
-                                <span>Industry Partnerships</span>
-                            </div>
-                            <div class="highlight-item">
-                                <i class="fas fa-rocket"></i>
-                                <span>Innovation Focus</span>
-                            </div>
-                        </div>
                     </div>
                 </div> 
             </div>
@@ -102,9 +79,6 @@
         <main class="public-content">
             <!-- About Section -->
             <section id="about-section" class="content-section">
-                <div class="section-title">
-                    <h2>About Our Organization</h2>
-                </div>
                 <!-- Organization Details -->
                 <div class="info-grid">
                     <div class="info-card">
@@ -117,24 +91,16 @@
                                 <span>Student Organization</span>
                             </div>
                             <div class="info-item">
-                                <label>University:</label>
-                                <span>University of California, Berkeley</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Faculty/School:</label>
-                                <span>School of Engineering</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Department:</label>
-                                <span>Computer Science & Engineering</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Established:</label>
+                                <label>Established Year:</label>
                                 <span>2018</span>
                             </div>
                             <div class="info-item">
                                 <label>Current Members:</label>
                                 <span>245 Active Members</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Address:</label>
+                                <span>123 Tech Lane, Berkeley, CA 94720</span>
                             </div>
                         </div>
                     </div>
@@ -166,34 +132,6 @@
                         <span class="focus-tag">Startups</span>
                     </div>
                 </div>
-
-                <!-- Verification Status -->
-                <div class="info-card verification-card">
-                    <div class="info-header">
-                        <h3><i class="fas fa-shield-alt"></i> Verification Status</h3>
-                        <span class="verification-badge-header verified">
-                            <i class="fas fa-check-circle"></i> Verified Organization
-                        </span>
-                    </div>
-                    <div class="verification-list">
-                        <div class="verification-item verified">
-                            <i class="fas fa-check-circle"></i>
-                            <span>University Affiliation Verified</span>
-                        </div>
-                        <div class="verification-item verified">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Student Organization Registration</span>
-                        </div>
-                        <div class="verification-item verified">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Contact Information Verified</span>
-                        </div>
-                        <div class="verification-item verified">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Leadership Verification</span>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- Events Section -->
@@ -220,7 +158,6 @@
                             <div class="event-image">
                                 <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=250&fit=crop" alt="AI Innovation Summit 2024">
                                 <span class="event-badge upcoming">Upcoming</span>
-                                <span class="event-badge featured">Featured</span>
                             </div>
                             <div class="event-info">
                                 <h4>AI Innovation Summit 2024</h4>
@@ -275,7 +212,6 @@
                             <div class="event-image">
                                 <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=250&fit=crop" alt="Tech Networking Mixer">
                                 <span class="event-badge upcoming">Upcoming</span>
-                                <span class="event-badge featured">Featured</span>
                             </div>
                             <div class="event-info">
                                 <h4>Tech Networking Mixer</h4>
@@ -319,7 +255,6 @@
                             <div class="event-image">
                                 <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop" alt="Hackathon 2024">
                                 <span class="event-badge past">Past Event</span>
-                                <span class="event-badge featured">Featured</span>
                             </div>
                             <div class="event-info">
                                 <h4>Hackathon 2024</h4>
@@ -372,7 +307,6 @@
                             <div class="event-image">
                                 <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=250&fit=crop" alt="Industry Career Fair">
                                 <span class="event-badge past">Past Event</span>
-                                <span class="event-badge featured">Featured</span>
                             </div>
                             <div class="event-info">
                                 <h4>Industry Career Fair</h4>
@@ -406,7 +340,7 @@
                 <!-- Leadership Team -->
                 <div class="info-card">
                     <div class="info-header">
-                        <h3><i class="fas fa-crown"></i> Leadership Team</h3>
+                        <h3><i class="fas fa-crown"></i>Executive Committee</h3>
                     </div>
                     <div class="leadership-showcase">
                         <div class="leader-card">
@@ -416,7 +350,6 @@
                             <div class="leader-info">
                                 <h4>Sarah Johnson</h4>
                                 <p class="leader-role">President</p>
-                                <p class="leader-details">Computer Science, Senior</p>
                             </div>
                         </div>
 
@@ -427,7 +360,6 @@
                             <div class="leader-info">
                                 <h4>Michael Chen</h4>
                                 <p class="leader-role">Vice President</p>
-                                <p class="leader-details">Electrical Engineering, Junior</p>
                             </div>
                         </div>
 
@@ -438,7 +370,6 @@
                             <div class="leader-info">
                                 <h4>Emily Rodriguez</h4>
                                 <p class="leader-role">Secretary</p>
-                                <p class="leader-details">Information Systems, Junior</p>
                             </div>
                         </div>
 
@@ -449,7 +380,6 @@
                             <div class="leader-info">
                                 <h4>David Park</h4>
                                 <p class="leader-role">Treasurer</p>
-                                <p class="leader-details">Business Administration, Senior</p>
                             </div>
                         </div>
                     </div>
@@ -461,53 +391,153 @@
                 <div class="section-title">
                     <h2>Gallery</h2>
                 </div>
-                <div class="gallery-grid" id="galleryContainer">
-                    <!-- Static Gallery Items -->
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Hackathon 2024 Winners</h4>
-                            <p>Celebrating our winning teams at the annual hackathon</p>
+                <div class="gallery-grid">
+                    <!-- Gallery with Carousel Items -->
+                    <div class="info-card">
+                        <div class="info-header">
+                            <h3><i class="fas fa-images"></i> Events Gallery</h3>
                         </div>
-                    </div>
-                    
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Tech Workshop Session" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Tech Workshop Session</h4>
-                            <p>Students learning cutting-edge technologies</p>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Industry Networking Event" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Industry Networking Event</h4>
-                            <p>Connecting with tech industry professionals</p>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop" alt="Innovation Lab Session" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Innovation Lab Session</h4>
-                            <p>Working on cutting-edge projects</p>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=400&fit=crop" alt="Team Building Activities" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Team Building Activities</h4>
-                            <p>Building stronger connections within our community</p>
-                        </div>
-                    </div>
-                    
-                    <div class="gallery-item">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop" alt="Guest Speaker Series" loading="lazy">
-                        <div class="gallery-overlay">
-                            <h4>Guest Speaker Series</h4>
-                            <p>Learning from industry experts and thought leaders</p>
+                        <div class="gallery-carousel-container">
+                            <!-- Gallery Items with Carousel -->
+                            <div class="gallery-item" data-gallery-id="1">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 1" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 2" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 3" loading="lazy">
+                                        </div>
+                                    </div>
+                                    <div class="gallery-overlay">
+                                        <h4>Hackathon 2024 Winners</h4>
+                                        <p>Celebrating our winning teams at the annual hackathon</p>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4>Hackathon 2024 Winners</h4>
+                                    <p>Celebrating our winning teams at the annual hackathon</p>
+                                </div>
+                            </div>
+                            
+                            <div class="gallery-item" data-gallery-id="2">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Tech Workshop Session 1" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=600&h=400&fit=crop" alt="Tech Workshop Session 2" loading="lazy">
+                                        </div>
+                                    </div>
+                                    <div class="gallery-overlay">
+                                        <h4>Tech Workshop Session</h4>
+                                        <p>Students learning cutting-edge technologies</p>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4>Tech Workshop Session</h4>
+                                    <p>Students learning cutting-edge technologies</p>
+                                </div>
+                            </div>
+                            
+                            <div class="gallery-item" data-gallery-id="3">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Industry Networking Event" loading="lazy">
+                                        </div>
+                                    </div>
+                                    <div class="gallery-overlay">
+                                        <h4>Industry Networking Event</h4>
+                                        <p>Connecting with tech industry professionals</p>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4>Industry Networking Event</h4>
+                                    <p>Connecting with tech industry professionals</p>
+                                </div>
+                            </div>
+                            
+                            <div class="gallery-item" data-gallery-id="4">
+                                <div class="gallery-images-container">
+                                    <div class="gallery-image-carousel">
+                                        <div class="carousel-image active">
+                                            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop" alt="Innovation Lab Session 1" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=400&fit=crop" alt="Innovation Lab Session 2" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop" alt="Innovation Lab Session 3" loading="lazy">
+                                        </div>
+                                        <div class="carousel-image">
+                                            <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop" alt="Innovation Lab Session 4" loading="lazy">
+                                        </div>
+                                    </div>
+                                    <div class="gallery-overlay">
+                                        <h4>Innovation Lab Session</h4>
+                                        <p>Working on cutting-edge projects</p>
+                                    </div>
+                                    <div class="carousel-controls">
+                                        <button class="carousel-btn prev" onclick="changeCarouselImage(4, -1)">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button class="carousel-btn next" onclick="changeCarouselImage(4, 1)">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="carousel-indicators">
+                                        <span class="indicator active" onclick="setCarouselImage(4, 0)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(4, 1)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(4, 2)"></span>
+                                        <span class="indicator" onclick="setCarouselImage(4, 3)"></span>
+                                    </div>
+                                </div>
+                                <div class="gallery-content">
+                                    <h4>Innovation Lab Session</h4>
+                                    <p>Working on cutting-edge projects</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -519,20 +549,32 @@
                     <h2>Contact</h2>
                 </div>
                 <div class="contact-grid">
-                    <!-- Club Contact Information -->
+                    <!-- Contact Information -->
                     <div class="info-card">
                         <div class="info-header">
-                            <h3><i class="fas fa-envelope"></i> Get in Touch</h3>
+                            <h3><i class="fas fa-address-book"></i> Contact Information</h3>
                         </div>
-                        <div class="contact-links">
-                            <a href="mailto:contact@techinnovationsociety.org" class="contact-link email">
-                                <i class="fas fa-envelope"></i>
-                                <span>contact@techinnovationsociety.org</span>
-                            </a>
-                            <a href="tel:+15104861234" class="contact-link phone">
-                                <i class="fas fa-phone"></i>
-                                <span>+1 (510) 486-1234</span>
-                            </a>
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <!-- <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div> -->
+                                <div class="contact-details">
+                                    <h4>Email Address</h4>
+                                    <p>contact@techinnovationsociety.org</p>
+                                    <!-- <a href="mailto:contact@techinnovationsociety.org" class="contact-link">Send Email</a> -->
+                                </div>
+                            </div>
+                            <div class="contact-item">
+                                <!-- <div class="contact-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div> -->
+                                <div class="contact-details">
+                                    <h4>Phone Number</h4>
+                                    <p>+1 (510) 555-0123</p>
+                                    <!-- <a href="tel:+15105550123" class="contact-link">Call Now</a> -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -546,13 +588,9 @@
                                 <i class="fas fa-globe"></i>
                                 <span>Official Website</span>
                             </a>
-                            <a href="https://instagram.com/berkeley_tech_society" target="_blank" class="social-link instagram">
-                                <i class="fab fa-instagram"></i>
-                                <span>Instagram</span>
-                            </a>
-                            <a href="https://facebook.com/BerkeleyTechSociety" target="_blank" class="social-link facebook">
-                                <i class="fab fa-facebook"></i>
-                                <span>Facebook</span>
+                            <a href="https://github.com/berkeley-tech-society" target="_blank" class="social-link github">
+                                <i class="fab fa-github"></i>
+                                <span>GitHub</span>
                             </a>
                             <a href="https://linkedin.com/company/berkeley-tech-innovation-society" target="_blank" class="social-link linkedin">
                                 <i class="fab fa-linkedin"></i>
@@ -562,9 +600,13 @@
                                 <i class="fab fa-twitter"></i>
                                 <span>Twitter</span>
                             </a>
-                            <a href="https://discord.gg/berkeley-tech" target="_blank" class="social-link discord">
-                                <i class="fab fa-discord"></i>
-                                <span>Discord Server</span>
+                            <a href="https://instagram.com/berkeley_tech_society" target="_blank" class="social-link instagram">
+                                <i class="fab fa-instagram"></i>
+                                <span>Instagram</span>
+                            </a>
+                            <a href="mailto:contact@techinnovationsociety.org" class="social-link email">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email Us</span>
                             </a>
                         </div>
                     </div>

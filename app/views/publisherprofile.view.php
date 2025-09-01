@@ -473,6 +473,36 @@
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
 
+                <!-- Organization Verification Status -->
+                <div class="card verification-status-card">
+                    <div class="card-header">
+                        <h3>Organization Verification Status</h3>
+                    </div>
+                    <div class="verification-content">
+                        <div class="verification-info">
+                            <div class="verification-badge verified">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Verified Organization</span>
+                            </div>
+                            <!-- <p class="verification-description">Your organization has been verified and is eligible for premium features.</p> -->
+                        </div>
+                        <div class="verification-details">
+                            <div class="verification-item">
+                                <span class="label">Verification Date:</span>
+                                <span class="value">August 15, 2024</span>
+                            </div>
+                            <div class="verification-item">
+                                <span class="label">Verification Type:</span>
+                                <span class="value">Educational Institution</span>
+                            </div>
+                            <div class="verification-item">
+                                <span class="label">Status:</span>
+                                <span class="value status-active">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Notification Settings -->
                 <div class="card">
                     <div class="card-header">

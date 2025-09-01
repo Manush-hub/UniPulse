@@ -617,6 +617,68 @@ function closeModal(modalId) {
     orgProfile.closeModal(modalId);
 }
 
+function verifyOrganization() {
+    orgProfile.showNotification('Verification request submitted! Our team will review and contact you within 48 hours.', 'success');
+    
+    // Add some visual feedback to the button
+    const button = document.querySelector('.btn-verify');
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-check-circle"></i> Request Submitted';
+            button.style.background = 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.style.background = '';
+            }, 3000);
+        }, 2000);
+    }
+}
+
+// Carousel functionality for gallery items
+function changeCarouselImage(galleryId, direction) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
+    
+    // Remove active class from current image and indicator
+    images[currentIndex].classList.remove('active');
+    indicators[currentIndex].classList.remove('active');
+    
+    // Calculate new index
+    currentIndex += direction;
+    if (currentIndex >= images.length) currentIndex = 0;
+    if (currentIndex < 0) currentIndex = images.length - 1;
+    
+    // Add active class to new image and indicator
+    images[currentIndex].classList.add('active');
+    indicators[currentIndex].classList.add('active');
+}
+
+function setCarouselImage(galleryId, index) {
+    const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+    if (!galleryItem) return;
+    
+    const images = galleryItem.querySelectorAll('.carousel-image');
+    const indicators = galleryItem.querySelectorAll('.indicator');
+    
+    // Remove active class from all
+    images.forEach(img => img.classList.remove('active'));
+    indicators.forEach(ind => ind.classList.remove('active'));
+    
+    // Add active class to selected
+    if (images[index]) images[index].classList.add('active');
+    if (indicators[index]) indicators[index].classList.add('active');
+}
+
 // Initialize the organization public profile when DOM is loaded
 let orgProfile;
 document.addEventListener('DOMContentLoaded', () => {

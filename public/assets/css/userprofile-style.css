@@ -1218,9 +1218,9 @@ input:checked + .slider-small:before {
     animation: fadeIn 0.4s ease;
 }
 
-.card {
+/* .card {
     animation: slideInRight 0.3s ease;
-}
+} */
 
 /* Responsive Design */
 /* Medium screens - tablets */

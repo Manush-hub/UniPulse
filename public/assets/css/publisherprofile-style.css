@@ -1128,6 +1128,90 @@ body {
     gap: 12px;
 }
 
+/* Organization Verification Status */
+.verification-status-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #28a745;
+    margin-bottom: 30px;
+}
+
+.verification-content {
+    padding: 25px 30px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.verification-info {
+    flex: 1;
+}
+
+.verification-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.verification-badge.verified {
+    color: #28a745;
+}
+
+.verification-badge.verified i {
+    font-size: 1.3em;
+}
+
+.verification-badge span {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.verification-description {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.verification-details {
+    flex: 0 0 550px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+.verification-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.verification-item:last-child {
+    margin-bottom: 0;
+}
+
+.verification-item .label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.verification-item .value {
+    font-size: 13px;
+    color: #333;
+    font-weight: 600;
+}
+
+.verification-item .status-active {
+    color: #28a745;
+    background: #d4edda;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
 /* Preferences */
 .preferences-section {
     padding: 30px;
@@ -1498,9 +1582,9 @@ input:checked + .slider:before {
     animation: fadeIn 0.4s ease;
 }
 
-.card {
+/* .card {
     animation: slideInRight 0.3s ease;
-}
+} */
 
 /* Responsive Design */
 /* Medium screens - tablets */
