@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Event Organizer Dashboard</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/organizerdashboard-style.css">
+    <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
 </head>
 
 <body>
@@ -356,7 +356,7 @@
         </div>
     </div>
 
-    <script src="/unipulse/public/assets/js/organizerdashboard-app.js"></script>
+    <script src="<?php echo $controller->loadJS('organizerdashboard-app.js'); ?>"></script>
 </body>
 
 </html>
