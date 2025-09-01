@@ -4,7 +4,7 @@ class Dashboard extends Controller{
 
     public function __construct() {
         parent::__construct();
-        // Ensure only admins can access this controller
+        // Ensure only sponsors can access this controller
         $this->requireRole('Sponsor');
     }
 
@@ -18,17 +18,17 @@ class Dashboard extends Controller{
     } 
     
     public function users($a = '', $b = '' , $c = ''){
-        // User management
-        $this->view('users');
+        // Manage sponsor-related users
+        $this->view('sponsors');
     }
     
     public function settings($a = '', $b = '' , $c = ''){
-        // System settings
+        // Sponsor account settings
         $this->view('settings');
     }
     
     public function reports($a = '', $b = '' , $c = ''){
-        // System reports
+        // Reports for sponsor activity
         $this->view('reports');
     }
 }
