@@ -307,7 +307,7 @@
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="AboutUs.php">About Us</a></li>
-                        <li><a href="Features.php">Features</a></li>
+                        <li><a href="features.php">Features</a></li>
                         <li><a href="FindFeatures.php">Find Events</a></li>
                         <li><a href="Contact.php">Contact</a></li>
                     </ul>
