@@ -306,10 +306,10 @@
                 <div class="footer-section">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#events">Find Events</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="AboutUs.php">About Us</a></li>
+                        <li><a href="Features.php">Features</a></li>
+                        <li><a href="FindFeatures.php">Find Events</a></li>
+                        <li><a href="Contact.php">Contact</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
