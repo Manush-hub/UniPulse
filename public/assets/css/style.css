@@ -1,0 +1,161 @@
+/* ========== Reset & Global ========== */
+.unp-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+    max-height: 60px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #ddd;
+  padding-bottom: 70px; /* prevent footer overlap */
+  color: #333;  
+}
+
+header {
+  background: #ddd;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #ff5722;
+}
+
+header h1 {
+  color: black;
+  font-size: 28px;
+  text-align: center;
+}
+
+main {
+  padding: 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+h2, h3 {
+  color: black;
+  margin: 15px 0 10px;
+}
+
+p {
+  margin: 10px 0;
+}
+
+/* ========== Lists ========== */
+ul {
+  list-style: none;
+  margin: 10px 0;
+}
+
+ul li {
+  margin-bottom: 8px;
+  padding-left: 20px;
+  position: relative;
+}
+
+ul li::before {
+  content: "✔";
+  position: absolute;
+  left: 0;
+  color: #ff5722;
+}
+
+/* ========== Buttons ========== */
+button, input[type="submit"] {
+  background: #ff5722;
+  border: none;
+  padding: 10px 15px;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover, input[type="submit"]:hover {
+  background: #e64a19;
+}
+
+/* ========== Forms ========== */
+form {
+  background: #4A5BCC;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background: #222;
+  color: #ddd;
+}
+
+textarea {
+  height: 120px;
+}
+
+/* ========== Event Cards ========== */
+.event-card {
+  background: #4A5BCC;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.event-card h3 {
+  color: #ff5722;
+}
+
+/* ========== Footer ========== */
+footer {
+  background: #1a1a1a;
+  padding: 30px 50px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+footer h3 {
+  color: #ff5722;
+  margin-bottom: 12px;
+}
+
+footer a {
+  color: #ddd;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 8px;
+  transition: color 0.3s;
+}
+
+footer a:hover {
+  color: #ff5722;
+}
+
+footer p {
+  margin: 6px 0;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: 15px;
+  background: #111;
+  font-size: 14px;
+  color: #aaa;
+  width: 100%;
+  margin-top: 20px;
+}

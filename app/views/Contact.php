@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Us | UniPulse</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/style.css">
 </head>
 <body>
   <header>
-    <h1>Contact Us</h1>
+    <div class="logo">
+        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+    </div>
+    
   </header>
   <main>
+    <h1>Contact Us</h1>
     <form>
       <label>Name:</label><br>
       <input type="text" name="name"><br><br>
