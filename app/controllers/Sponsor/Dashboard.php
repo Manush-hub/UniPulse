@@ -14,21 +14,21 @@ class Dashboard extends Controller{
             'title' => 'Sponsor Dashboard',
             'user_role' => $this->userRole
         ];
-        $this->view('dashboard', $data);
+        $this->view('sponsor_dashboard', $data);
     } 
     
-    public function users($a = '', $b = '' , $c = ''){
-        // Manage sponsor-related users
-        $this->view('sponsors');
+    public function campaigns($a = '', $b = '' , $c = ''){
+        // Manage sponsorship campaigns
+        $this->view('sponsors_campaigns');
+    }
+
+    public function reports($a = '', $b = '' , $c = ''){
+        // Sponsorship reports
+        $this->view('sponsor_reports');
     }
     
     public function settings($a = '', $b = '' , $c = ''){
         // Sponsor account settings
-        $this->view('settings');
-    }
-    
-    public function reports($a = '', $b = '' , $c = ''){
-        // Reports for sponsor activity
-        $this->view('reports');
-    }
+        $this->view('sponsor_settings');
+    }       
 }
