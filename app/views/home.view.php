@@ -315,10 +315,10 @@
                 <div class="footer-section">
                     <h4>Support</h4>
                     <ul>
-                        <li><a href="#help">Help Center</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
+                        <li><a href="HelpCenter.php">Help Center</a></li>
+                        <li><a href="FAQ.php">FAQ</a></li>
+                        <li><a href="PrivacyPolicy.php">Privacy Policy</a></li>
+                        <li><a href="Terms.php">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
