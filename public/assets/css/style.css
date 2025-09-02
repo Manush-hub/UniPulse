@@ -15,9 +15,9 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  color: #ddd;
-  padding-bottom: 70px; /* prevent footer overlap */
-  color: #333;  
+  color: #fff;
+  padding-bottom: 70px; /* prevent footer overlap */ 
+  background: linear-gradient(135deg, #4A5BCC 30%, #ff7722 70%);
 }
 
 header {
@@ -28,7 +28,7 @@ header {
 }
 
 header h1 {
-  color: black;
+  color: #fff;
   font-size: 28px;
   text-align: center;
 }
@@ -40,7 +40,7 @@ main {
 }
 
 h2, h3 {
-  color: black;
+  color: #fff;
   margin: 15px 0 10px;
 }
 
@@ -122,7 +122,7 @@ footer {
   background: #1a1a1a;
   padding: 30px 50px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
   position: relative;
   bottom: 0;
@@ -155,7 +155,7 @@ footer p {
   padding: 15px;
   background: #111;
   font-size: 14px;
-  color: #aaa;
+  color: #fff;
   width: 100%;
   margin-top: 20px;
 }
