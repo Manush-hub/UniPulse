@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FAQ | UniPulse</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/style.css">
 </head>
 <body>
   <header>
-    <h1>Frequently Asked Questions</h1>
+    <div class="logo">
+        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+    </div>
+    
   </header>
   <main>
+    <h1>Frequently Asked Questions</h1>
     <h3>Who can use UniPulse?</h3>
     <p>University students, organizers, sponsors, and the public (for open events).</p>
     <h3>Can outsiders attend university events?</h3>

@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms of Service | UniPulse</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/style.css">
 </head>
 <body>
   <header>
-    <h1>Terms of Service</h1>
+    <div class="logo">
+        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+    </div>
+    
   </header>
   <main>
+    <h1>Terms of Service</h1>
     <p>By using UniPulse, you agree to follow the rules below:</p>
     <ul>
       <li>Provide accurate and truthful event details.</li>

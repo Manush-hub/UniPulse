@@ -4,13 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>About Us | UniPulse</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/style.css">
 </head>
 <body>
   <header>
-    <h1>About UniPulse</h1>
+    <div class="logo">
+        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+    </div>
   </header>
   <main>
+    <h1>About UniPulse</h1>
     <p>UniPulse is a centralized University Event Management System designed to connect students, organizers, and sponsors across Sri Lanka.</p>
     <h2>Problem Statement</h2>
     <p>University events are vital for academic, cultural, and social growth, but current promotion methods are scattered across informal channels like WhatsApp and Facebook. This causes students to miss opportunities and makes it difficult for organizers to reach audiences or secure sponsorships. Without a centralized system, funding is unreliable, visibility is unclear between internal and external users, and event management remains inefficient. A unified platform is needed to centralize event promotion, improve access, and support sponsorships across all government universities in Sri Lanka.</p>
