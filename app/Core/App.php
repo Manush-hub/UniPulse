@@ -75,10 +75,27 @@ class App {
     public function loadController() {
         // Try role-specific controller first
         $roleControllerFile = "../app/controllers/{$this->userRole}/" . $this->controller . ".php";
+        $roleControllerClass = $this->userRole . $this->controller; // e.g., PublisherDashboard, UserDashboard
         
         if (file_exists($roleControllerFile)) {
             require_once $roleControllerFile;
-            $controllerInstance = new $this->controller;
+            
+            // Try role-specific class name first
+            if (class_exists($roleControllerClass)) {
+                $controllerInstance = new $roleControllerClass;
+            } else {
+                // Fallback to generic class name for backward compatibility
+                if (class_exists($this->controller)) {
+                    $controllerInstance = new $this->controller;
+                } else {
+                    // Load 404 if neither class exists
+                    $this->load404();
+                    return;
+                }
+            }
+            
+            // Set the user role in the controller instance
+            $controllerInstance->setUserRole($this->userRole);
             
             // Check if method exists in controller
             if (method_exists($controllerInstance, $this->method)) {
@@ -96,6 +113,9 @@ class App {
         if (file_exists($generalControllerFile)) {
             require_once $generalControllerFile;
             $controllerInstance = new $this->controller;
+            
+            // Set the user role for general controllers too
+            $controllerInstance->setUserRole($this->userRole);
             
             // Check if method exists in controller
             if (method_exists($controllerInstance, $this->method)) {

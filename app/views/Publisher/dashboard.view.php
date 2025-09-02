@@ -356,7 +356,7 @@
         </div>
     </div>
 
-    <script src="<?php echo $controller->loadJS('organizerdashboard-app.js'); ?>"></script>
+    <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
 
 </html>
