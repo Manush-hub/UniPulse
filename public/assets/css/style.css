@@ -89,7 +89,7 @@ main {
 }
 
 h2, h3 {
-  color: #ed2929;
+  color: #fff;
   margin: 15px 0 10px;
 }
 
@@ -201,10 +201,10 @@ footer p {
 
 .footer-bottom {
   text-align: center;
-  padding: 35px;
+  padding: 15px;
   background: #111;
   font-size: 14px;
-  color: #aaa;
+  color: #fff;
   width: 100%;
   margin-top: 20px;
 }
