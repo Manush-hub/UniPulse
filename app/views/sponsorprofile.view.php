@@ -53,9 +53,6 @@
             <button class="nav-item" data-tab="portfolio">
                 <i class="fas fa-trophy"></i> Portfolio & Media
             </button>
-            <button class="nav-item" data-tab="testimonials">
-                <i class="fas fa-star"></i> Testimonials
-            </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
             </button>
@@ -86,29 +83,13 @@
                         </div>
 
                         <!-- Second Row: Tagline and Industry -->
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label for="tagline">Tagline / Short Description</label>
                             <textarea id="tagline" rows="2" placeholder="1-2 lines summarizing the sponsor">Empowering innovation through strategic partnerships and technology advancement.</textarea>
-                        </div>
+                        </div> -->
                         <div class="form-group">
                             <label for="industry">Industry / Sector</label>
                             <input type="text" id="industry" value="Technology & Software" placeholder="For companies: Industry/Sector">
-                        </div>
-
-                        <!-- Third Row: Email and Phone -->
-                        <div class="form-group">
-                            <label for="sponsorEmail">Email</label>
-                            <input type="email" id="sponsorEmail" value="partnerships@techinnovation.com" placeholder="Contact email address">
-                        </div>
-                        <div class="form-group">
-                            <label for="sponsorPhone">Phone Number</label>
-                            <input type="tel" id="sponsorPhone" value="+1 (555) 123-4567" placeholder="Contact phone number">
-                        </div>
-                        
-                        <!-- Fourth Row: Website and Company Size -->
-                        <div class="form-group">
-                            <label for="sponsorWebsite">Website</label>
-                            <input type="url" id="sponsorWebsite" value="https://techinnovation.com" placeholder="Official website URL">
                         </div>
                         <div class="form-group">
                             <label for="companySize">Company Size</label>
@@ -122,6 +103,34 @@
                                 <option value="1000+">1000+ employees</option>
                             </select>
                         </div>
+
+                        <!-- Third Row: Email and Phone -->
+                        <div class="form-group">
+                            <label for="sponsorEmail">Email</label>
+                            <input type="email" id="sponsorEmail" value="partnerships@techinnovation.com" placeholder="Contact email address">
+                        </div>
+                        <div class="form-group">
+                            <label for="sponsorPhone">Phone Number</label>
+                            <input type="tel" id="sponsorPhone" value="+1 (555) 123-4567" placeholder="Contact phone number">
+                        </div>
+                        
+                        <!-- Fourth Row: Website and Company Size -->
+                        <!-- <div class="form-group">
+                            <label for="sponsorWebsite">Website</label>
+                            <input type="url" id="sponsorWebsite" value="https://techinnovation.com" placeholder="Official website URL">
+                        </div> -->
+                        <!-- <div class="form-group">
+                            <label for="companySize">Company Size</label>
+                            <select id="companySize">
+                                <option value="">Select size (for companies)</option>
+                                <option value="1-10">1-10 employees</option>
+                                <option value="11-50">11-50 employees</option>
+                                <option value="51-200" selected>51-200 employees</option>
+                                <option value="201-500">201-500 employees</option>
+                                <option value="501-1000">501-1000 employees</option>
+                                <option value="1000+">1000+ employees</option>
+                            </select>
+                        </div> -->
                         
                         <!-- Fifth Row: Address -->
                         <div class="form-group full-width">
@@ -129,9 +138,18 @@
                             <textarea id="sponsorAddress" rows="2" placeholder="Business address">123 Innovation Drive, Tech Valley, CA 94043</textarea>
                         </div>
                         
+                        <div class="form-group full-width">
+                            <label for="headline">Headline</label>
+                            <textarea id="headline" rows="1">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="about">About Sponsor</label>
+                            <textarea id="about" rows="4">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
+                        </div>
+
                         <!-- Mission/Vision for Companies -->
                         <div class="form-group full-width">
-                            <label for="mission">Mission Statement (For Companies)</label>
+                            <label for="mission">Mission Statement</label>
                             <textarea id="mission" rows="3" placeholder="Company mission or vision statement">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
                         </div>
                         
@@ -162,64 +180,7 @@
                     </form>
                 </div>
 
-                <!-- Contact Information -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Contact Information & Social Media</h3>
-                    </div>
-                    <form id="contact-form" class="form">
-                        <!-- Social Media Links -->
-                        <div class="form-group">
-                            <label for="linkedin">
-                                <i class="fab fa-linkedin"></i> LinkedIn
-                            </label>
-                            <input type="url" id="linkedin" value="https://linkedin.com/company/tech-innovation-corp" placeholder="https://linkedin.com/company/yourcompany">
-                        </div>
-                        <div class="form-group">
-                            <label for="instagram">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </label>
-                            <input type="url" id="instagram" value="https://instagram.com/tech_innovation_corp" placeholder="https://instagram.com/yourcompany">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="twitter">
-                                <i class="fab fa-x-twitter"></i> X (Twitter)
-                            </label>
-                            <input type="url" id="twitter" value="https://twitter.com/TechInnovCorp" placeholder="https://x.com/yourcompany">
-                        </div>
-                        <div class="form-group">
-                            <label for="facebook">
-                                <i class="fab fa-facebook"></i> Facebook
-                            </label>
-                            <input type="url" id="facebook" value="https://facebook.com/TechInnovationCorp" placeholder="https://facebook.com/yourcompany">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="youtube">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </label>
-                            <input type="url" id="youtube" placeholder="https://youtube.com/@yourcompany">
-                        </div>
-                        <div class="form-group">
-                            <label for="github">
-                                <i class="fab fa-github"></i> GitHub
-                            </label>
-                            <input type="url" id="github" placeholder="https://github.com/yourcompany">
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveContactInfo()">
-                                Save Changes
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelContactInfo()">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Interests & Causes -->
+                <!-- Interests & Sponsorship Focus Areas -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Interests & Sponsorship Focus Areas</h3>
@@ -240,153 +201,82 @@
                     </div>
                 </div>
 
-                <!-- Sponsorship Statistics & Overview -->
+                <!-- Contact Information -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Your Sponsorship Statistics</h3>
+                        <h3>Connect With Us</h3>
                     </div>
-                    <div class="stats-overview">
-                        <div class="stats-grid">
-                            <div class="stat-item">
-                                <span class="stat-number">25+</span>
-                                <span class="stat-label">Events Sponsored</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">50K+</span>
-                                <span class="stat-label">Students Reached</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">3</span>
-                                <span class="stat-label">Years Active</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">$125K+</span>
-                                <span class="stat-label">Total Invested</span>
-                            </div>
+                    <form id="contact-form" class="form">
+                        <!-- Social Media Links -->
+                        <div class="form-group">
+                            <label for="website">
+                                <i class="fas fa-globe"></i> Organization Website
+                            </label>
+                            <input type="url" id="website" value="https://techinnovationsociety.berkeley.edu" placeholder="https://yourorganization.com">
                         </div>
-                        <div class="profile-actions">
-                            <button class="btn btn-primary" onclick="downloadProfile()">
-                                <i class="fas fa-download"></i> Export Profile (PDF)
+                        <div class="form-group">
+                            <label for="facebook">
+                                <i class="fab fa-facebook"></i> Facebook
+                            </label>
+                            <input type="url" id="facebook" value="https://facebook.com/BerkeleyTechSociety" placeholder="https://facebook.com/orgname">
+                        </div>
+                        
+                        <!-- 2nd Row: Instagram and Telegram -->
+                        <div class="form-group">
+                            <label for="instagram">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </label>
+                            <input type="url" id="instagram" value="https://instagram.com/berkeley_tech_society" placeholder="https://instagram.com/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="telegram">
+                                <i class="fab fa-telegram"></i> Telegram
+                            </label>
+                            <input type="url" id="telegram" value="" placeholder="https://t.me/channelname">
+                        </div>
+                        
+                        <!-- 3rd Row: LinkedIn and GitHub -->
+                        <div class="form-group">
+                            <label for="linkedin">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </label>
+                            <input type="url" id="linkedin" value="https://linkedin.com/company/berkeley-tech-innovation-society" placeholder="https://linkedin.com/company/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="github">
+                                <i class="fab fa-github"></i> GitHub
+                            </label>
+                            <input type="url" id="github" value="" placeholder="https://github.com/orgname">
+                        </div>
+                        
+                        <!-- 4th Row: X and Discord -->
+                        <div class="form-group">
+                            <label for="twitter">
+                                <i class="fab fa-x-twitter"></i> X (Twitter)
+                            </label>
+                            <input type="url" id="twitter" value="https://twitter.com/BerkeleyTechSoc" placeholder="https://x.com/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="discord">
+                                <i class="fab fa-discord"></i> Discord Server
+                            </label>
+                            <input type="url" id="discord" value="https://discord.gg/berkeley-tech" placeholder="https://discord.gg/serverinvite">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveContactInfo()">
+                                Save Changes
                             </button>
-                            <button class="btn btn-secondary" onclick="generateReport()">
-                                <i class="fas fa-chart-bar"></i> Generate Report
+                            <button type="button" class="btn btn-secondary" onclick="cancelContactInfo()">
+                                Cancel
                             </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 
             <!-- Sponsorship Details Tab -->
             <div id="sponsorship" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Sponsorship History & Contributions</h3>
-                        <button class="btn btn-small" onclick="addSponsorshipRecord()">
-                            <i class="fas fa-plus"></i> Add Record
-                        </button>
-                    </div>
-                    <div class="sponsorship-records">
-                        <div class="sponsorship-record">
-                            <div class="record-header">
-                                <h4>Annual Tech Conference 2024</h4>
-                                <span class="sponsorship-badge cash">Cash Sponsor</span>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <span class="label">Event Date:</span>
-                                    <span class="value">March 15-17, 2024</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Organizer:</span>
-                                    <span class="value">Berkeley Computer Science Society</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Contribution Type:</span>
-                                    <span class="value">Cash Sponsorship + Venue</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Amount:</span>
-                                    <span class="value">$15,000</span>
-                                </div>
-                            </div>
-                            <div class="record-actions">
-                                <button class="btn btn-small btn-secondary" onclick="editSponsorshipRecord(1)">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-small btn-danger" onclick="deleteSponsorshipRecord(1)">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="sponsorship-record">
-                            <div class="record-header">
-                                <h4>Startup Pitch Competition 2024</h4>
-                                <span class="sponsorship-badge product">Product Sponsor</span>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <span class="label">Event Date:</span>
-                                    <span class="value">June 8, 2024</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Organizer:</span>
-                                    <span class="value">Entrepreneurship Club</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Contribution Type:</span>
-                                    <span class="value">Product Prizes + Mentorship</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Value:</span>
-                                    <span class="value">$8,500</span>
-                                </div>
-                            </div>
-                            <div class="record-actions">
-                                <button class="btn btn-small btn-secondary" onclick="editSponsorshipRecord(2)">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-small btn-danger" onclick="deleteSponsorshipRecord(2)">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="sponsorship-record">
-                            <div class="record-header">
-                                <h4>Women in Tech Workshop Series</h4>
-                                <span class="sponsorship-badge media">Media Sponsor</span>
-                            </div>
-                            <div class="record-details">
-                                <div class="detail-item">
-                                    <span class="label">Event Date:</span>
-                                    <span class="value">September 2023 - May 2024</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Organizer:</span>
-                                    <span class="value">Women Engineers Association</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Contribution Type:</span>
-                                    <span class="value">Media Coverage + Platform</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="label">Value:</span>
-                                    <span class="value">$5,000</span>
-                                </div>
-                            </div>
-                            <div class="record-actions">
-                                <button class="btn btn-small btn-secondary" onclick="editSponsorshipRecord(3)">
-                                    <i class="fas fa-edit"></i> Edit
-                                </button>
-                                <button class="btn btn-small btn-danger" onclick="deleteSponsorshipRecord(3)">
-                                    <i class="fas fa-trash"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Analytics Section -->
                 <div class="card">
                     <div class="card-header">
@@ -427,35 +317,6 @@
                             <div class="analytics-content">
                                 <h4>12</h4>
                                 <p>Partner Organizations</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Partnership Collaborations -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Partnership Collaborations</h3>
-                    </div>
-                    <div class="partnerships-section">
-                        <div class="partnership-item">
-                            <div class="partner-logo">
-                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=80&h=80&fit=crop" alt="Partner Logo">
-                            </div>
-                            <div class="partner-info">
-                                <h4>Future Tech Foundation</h4>
-                                <p>Joint sponsor for Annual Innovation Summit</p>
-                                <span class="partnership-status active">Active Partnership</span>
-                            </div>
-                        </div>
-                        <div class="partnership-item">
-                            <div class="partner-logo">
-                                <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=80&h=80&fit=crop" alt="Partner Logo">
-                            </div>
-                            <div class="partner-info">
-                                <h4>Digital Skills Institute</h4>
-                                <p>Collaborative sponsorship for skills development programs</p>
-                                <span class="partnership-status active">Active Partnership</span>
                             </div>
                         </div>
                     </div>
@@ -608,201 +469,182 @@
                 <!-- Press & Media -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Press Releases & Media Coverage</h3>
+                        <h3>Latest News & Updates</h3>
                         <button class="btn btn-small" onclick="addPressRelease()">
-                            <i class="fas fa-plus"></i> Add Press Release
+                            <i class="fas fa-plus"></i> Add News Article
                         </button>
                     </div>
                     <div class="press-releases">
-                        <div class="press-item">
-                            <div class="press-date">Aug 15, 2024</div>
-                            <div class="press-content">
-                                <h4>Tech Innovation Corp Partners with University for Annual Tech Summit</h4>
-                                <p>Major sponsorship announcement for the largest student technology conference...</p>
-                                <a href="#" class="press-link">Read Full Article <i class="fas fa-external-link-alt"></i></a>
+                        <!-- Filter Section -->
+                        <!-- <div class="press-section-header">
+                            <h4>Latest News & Updates</h4>
+                            <div class="press-filter">
+                                <span class="filter-tag active" data-filter="all">All</span>
+                                <span class="filter-tag" data-filter="press-release">Press Releases</span>
+                                <span class="filter-tag" data-filter="news">News Articles</span>
+                                <span class="filter-tag" data-filter="awards">Awards</span>
                             </div>
-                        </div>
-                        <div class="press-item">
-                            <div class="press-date">Jun 22, 2024</div>
-                            <div class="press-content">
-                                <h4>Local Company Receives "Best Corporate Partner" Award</h4>
-                                <p>Recognition for outstanding contribution to student development programs...</p>
-                                <a href="#" class="press-link">Read Full Article <i class="fas fa-external-link-alt"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        </div> -->
 
-                <!-- Downloadable Resources -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Downloadable Resources</h3>
-                    </div>
-                    <div class="resources-section">
-                        <div class="resource-item">
-                            <div class="resource-icon">
-                                <i class="fas fa-file-pdf"></i>
+                        <div class="press-grid">
+                            <!-- Press Release Article -->
+                            <div class="press-item" data-type="press-release">
+                                <div class="press-image">
+                                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=250&fit=crop" alt="Tech Summit Partnership">
+                                    <div class="press-type-badge badge-press-release">Press Release</div>
+                                </div>
+                                <div class="press-content">
+                                    <div class="press-meta">
+                                        <div class="press-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            August 15, 2024
+                                        </div>
+                                        <div class="press-source">
+                                            <i class="fas fa-building"></i>
+                                            Tech Innovation Corp
+                                        </div>
+                                    </div>
+                                    <h3 class="press-title">Tech Innovation Corp Partners with University for Annual Tech Summit</h3>
+                                    <p class="press-excerpt">Tech Innovation Corp announced today a major partnership with the University of California to sponsor the largest student technology conference on the West Coast. This collaboration will provide students with unprecedented access to industry experts, cutting-edge technology, and career opportunities in the tech sector.</p>
+                                    <div class="press-footer">
+                                        <a href="#" class="press-link">
+                                            Read Full Article
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        <div class="press-actions">
+                                            <button class="press-action-btn edit" onclick="editPressRelease(1)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="press-action-btn delete" onclick="deletePressRelease(1)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="resource-info">
-                                <h4>Company Profile</h4>
-                                <p>Comprehensive overview of our company and sponsorship approach</p>
+
+                            <!-- News Article -->
+                            <div class="press-item" data-type="news">
+                                <div class="press-image">
+                                    <img src="https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=400&h=200&fit=crop" alt="Best Corporate Partner Award">
+                                    <div class="press-type-badge badge-award">Award</div>
+                                </div>
+                                <div class="press-content">
+                                    <div class="press-meta">
+                                        <div class="press-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            June 22, 2024
+                                        </div>
+                                        <div class="press-source">
+                                            <i class="fas fa-newspaper"></i>
+                                            Tech Business Journal
+                                        </div>
+                                    </div>
+                                    <h4 class="press-title">Local Company Receives "Best Corporate Partner" Award</h4>
+                                    <p class="press-excerpt">Tech Innovation Corp has been recognized with the prestigious "Best Corporate Partner" award by the University Tech Alliance for their outstanding contribution to student development programs and educational initiatives.</p>
+                                    <div class="press-footer">
+                                        <a href="#" class="press-link">
+                                            Read Full Article
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        <div class="press-actions">
+                                            <button class="press-action-btn edit" onclick="editPressRelease(2)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="press-action-btn delete" onclick="deletePressRelease(2)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <button class="btn btn-small btn-secondary" onclick="downloadResource('profile')">
-                                <i class="fas fa-download"></i> Download
+
+                            <div class="press-item" data-type="news">
+                                <div class="press-image">
+                                    <img src="https://images.unsplash.com/photo-1553484771-371a605b060b?w=400&h=200&fit=crop" alt="Innovation Summit">
+                                    <div class="press-type-badge badge-news-article">News Article</div>
+                                </div>
+                                <div class="press-content">
+                                    <div class="press-meta">
+                                        <div class="press-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            May 10, 2024
+                                        </div>
+                                        <div class="press-source">
+                                            <i class="fas fa-newspaper"></i>
+                                            Innovation Weekly
+                                        </div>
+                                    </div>
+                                    <h4 class="press-title">Leading the Future: Tech Innovation's Impact on Student Entrepreneurship</h4>
+                                    <p class="press-excerpt">An in-depth look at how Tech Innovation Corp's mentorship programs and startup incubators are shaping the next generation of entrepreneurs and technology leaders.</p>
+                                    <div class="press-footer">
+                                        <a href="#" class="press-link">
+                                            Read Full Article
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        <div class="press-actions">
+                                            <button class="press-action-btn edit" onclick="editPressRelease(3)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="press-action-btn delete" onclick="deletePressRelease(3)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="press-item" data-type="interview">
+                                <div class="press-image">
+                                    <div class="press-image-placeholder">
+                                        <i class="fas fa-microphone-alt"></i>
+                                    </div>
+                                    <div class="press-type-badge badge-interview">Interview</div>
+                                </div>
+                                <div class="press-content">
+                                    <div class="press-meta">
+                                        <div class="press-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            April 3, 2024
+                                        </div>
+                                        <div class="press-source">
+                                            <i class="fas fa-podcast"></i>
+                                            Business Leadership Podcast
+                                        </div>
+                                    </div>
+                                    <h4 class="press-title">CEO Interview: Building Sustainable Partnerships in Education</h4>
+                                    <p class="press-excerpt">Tech Innovation Corp's CEO discusses the company's commitment to educational partnerships and the importance of investing in student development programs.</p>
+                                    <div class="press-footer">
+                                        <a href="#" class="press-link">
+                                            Listen to Interview
+                                            <i class="fas fa-play"></i>
+                                        </a>
+                                        <div class="press-actions">
+                                            <button class="press-action-btn edit" onclick="editPressRelease(4)" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="press-action-btn delete" onclick="deletePressRelease(4)" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Empty State (for companies with no press coverage) -->
+                        <!-- 
+                        <div class="press-empty-state">
+                            <div class="press-empty-icon">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
+                            <h4>No Press Coverage Yet</h4>
+                            <p>Start building your media presence by adding press releases, news articles, and company announcements.</p>
+                            <button class="btn btn-primary" onclick="addPressRelease()">
+                                <i class="fas fa-plus"></i> Add Your First Article
                             </button>
                         </div>
-                        <div class="resource-item">
-                            <div class="resource-icon">
-                                <i class="fas fa-file-pdf"></i>
-                            </div>
-                            <div class="resource-info">
-                                <h4>Sponsorship Portfolio</h4>
-                                <p>Detailed portfolio of our sponsorship activities and impact</p>
-                            </div>
-                            <button class="btn btn-small btn-secondary" onclick="downloadResource('portfolio')">
-                                <i class="fas fa-download"></i> Download
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Testimonials Tab -->
-            <div id="testimonials" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Testimonials & Feedback</h3>
-                        <div class="rating-summary">
-                            <div class="overall-rating">
-                                <span class="rating-score">4.8</span>
-                                <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <span class="rating-count">(24 reviews)</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonials-section">
-                        <div class="testimonial-item">
-                            <div class="testimonial-header">
-                                <div class="organizer-info">
-                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face" alt="Sarah Johnson" class="organizer-avatar">
-                                    <div class="organizer-details">
-                                        <h4>Sarah Johnson</h4>
-                                        <p>President, Computer Science Society</p>
-                                        <span class="event-name">Annual Tech Conference 2024</span>
-                                    </div>
-                                </div>
-                                <div class="testimonial-rating">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="testimonial-content">
-                                <p>"Tech Innovation Corp was an exceptional partner for our annual conference. Their support went beyond financial contribution - they provided mentors, technical expertise, and valuable networking opportunities for our students. Highly recommend!"</p>
-                            </div>
-                            <div class="testimonial-date">August 20, 2024</div>
-                        </div>
-
-                        <div class="testimonial-item">
-                            <div class="testimonial-header">
-                                <div class="organizer-info">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Michael Chen" class="organizer-avatar">
-                                    <div class="organizer-details">
-                                        <h4>Michael Chen</h4>
-                                        <p>Director, Entrepreneurship Hub</p>
-                                        <span class="event-name">Startup Pitch Competition</span>
-                                    </div>
-                                </div>
-                                <div class="testimonial-rating">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="testimonial-content">
-                                <p>"Outstanding partnership! Not only did they provide generous prizes, but their team also served as judges and mentors. The students gained invaluable insights from industry professionals."</p>
-                            </div>
-                            <div class="testimonial-date">June 15, 2024</div>
-                        </div>
-
-                        <div class="testimonial-item">
-                            <div class="testimonial-header">
-                                <div class="organizer-info">
-                                    <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face" alt="Emily Rodriguez" class="organizer-avatar">
-                                    <div class="organizer-details">
-                                        <h4>Emily Rodriguez</h4>
-                                        <p>Coordinator, Women Engineers Association</p>
-                                        <span class="event-name">Women in Tech Workshop Series</span>
-                                    </div>
-                                </div>
-                                <div class="testimonial-rating">
-                                    <div class="stars">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="testimonial-content">
-                                <p>"Great collaboration for our workshop series. Their media platform helped us reach a wider audience, and their commitment to supporting women in tech is genuine and impactful."</p>
-                            </div>
-                            <div class="testimonial-date">March 10, 2024</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Public Interaction Settings -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Public Interaction Settings</h3>
-                    </div>
-                    <div class="interaction-settings">
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Allow Public Comments</h4>
-                                <p>Let event organizers leave public comments on your profile</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Show Rating & Reviews</h4>
-                                <p>Display ratings and reviews from event organizers</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-info">
-                                <h4>Public Contact Form</h4>
-                                <p>Allow potential partners to send messages through your profile</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
+                        -->
                     </div>
                 </div>
             </div>
@@ -973,33 +815,6 @@
                     </form>
                 </div>
 
-                <!-- Account Management -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Account Management</h3>
-                    </div>
-                    <div class="account-actions">
-                        <div class="account-action-item">
-                            <div class="action-info">
-                                <h4>Export Sponsorship Data</h4>
-                                <p>Download all your sponsorship records and analytics</p>
-                            </div>
-                            <button class="btn btn-secondary" onclick="exportSponsorshipData()">
-                                <i class="fas fa-download"></i> Export Data
-                            </button>
-                        </div>
-                        <div class="account-action-item">
-                            <div class="action-info">
-                                <h4>Generate Sponsorship Report</h4>
-                                <p>Create a comprehensive report of your sponsorship activities</p>
-                            </div>
-                            <button class="btn btn-secondary" onclick="generateReport()">
-                                <i class="fas fa-file-pdf"></i> Generate Report
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Danger Zone -->
                 <div class="card danger-zone">
                     <div class="card-header">
@@ -1018,7 +833,7 @@
                                 <h4>Delete Sponsor Account</h4>
                                 <p>Permanently delete your sponsor account and all data</p>
                             </div>
-                            <button class="btn btn-danger" onclick="deleteSponsorAccount()">Delete Account</button>
+                            <button class="btn btn-danger" onclick="deleteSponsorAccount()">Delete</button>
                         </div>
                     </div>
                 </div>
@@ -1110,31 +925,85 @@
     <div id="pressReleaseModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Add Press Release</h3>
+                <h3 id="pressModalTitle">Add Press Release</h3>
                 <button class="close-modal" onclick="closePressReleaseModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="pressReleaseForm" class="form">
+                    <!-- First Row: Title and Type -->
                     <div class="form-group">
-                        <label for="pressTitle">Press Release Title</label>
-                        <input type="text" id="pressTitle" placeholder="Enter press release title" required>
+                        <label for="pressTitle">Article Title</label>
+                        <input type="text" id="pressTitle" placeholder="Enter article title" maxlength="100" required>
+                        <small>Maximum 100 characters</small>
                     </div>
+                    <div class="form-group">
+                        <label for="pressType">Content Type</label>
+                        <select id="pressType" required>
+                            <option value="">Select type</option>
+                            <option value="press-release">Press Release</option>
+                            <option value="news">News Article</option>
+                            <option value="interview">Interview</option>
+                            <option value="award">Award/Recognition</option>
+                            <option value="announcement">Company Announcement</option>
+                        </select>
+                    </div>
+
+                    <!-- Second Row: Date and Source -->
                     <div class="form-group">
                         <label for="pressDate">Publication Date</label>
                         <input type="date" id="pressDate" required>
                     </div>
-                    <div class="form-group full-width">
-                        <label for="pressExcerpt">Excerpt/Summary</label>
-                        <textarea id="pressExcerpt" rows="3" placeholder="Brief summary or excerpt from the press release" required></textarea>
+                    <div class="form-group">
+                        <label for="pressSource">Source/Publisher</label>
+                        <input type="text" id="pressSource" placeholder="e.g., Tech Innovation Corp, Business Journal" required>
                     </div>
+
+                    <!-- Third Row: Image Upload -->
                     <div class="form-group full-width">
-                        <label for="pressLink">Link to Full Article (Optional)</label>
-                        <input type="url" id="pressLink" placeholder="https://example.com/press-release">
+                        <label for="pressImage">Featured Image (Optional)</label>
+                        <div class="press-image-upload">
+                            <input type="file" id="pressImage" accept="image/*" style="display: none;" onchange="previewPressImage(event)">
+                            <div class="upload-area" onclick="document.getElementById('pressImage').click()">
+                                <div class="upload-content" id="pressUploadContent">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Click to upload image</p>
+                                    <small>PNG, JPG up to 5MB</small>
+                                </div>
+                                <img id="pressImagePreview" class="image-preview" style="display: none;" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fourth Row: Excerpt -->
+                    <div class="form-group full-width">
+                        <label for="pressExcerpt">Article Summary</label>
+                        <textarea id="pressExcerpt" rows="4" placeholder="Write a brief summary of the article (2-3 sentences)" maxlength="300" required></textarea>
+                        <small>Maximum 300 characters</small>
+                    </div>
+
+                    <!-- Fifth Row: Full Content -->
+                    <div class="form-group full-width">
+                        <label for="pressContent">Full Content (Optional)</label>
+                        <textarea id="pressContent" rows="6" placeholder="Write the full article content or leave empty if linking to external article"></textarea>
+                    </div>
+
+                    <!-- Sixth Row: External Link -->
+                    <div class="form-group full-width">
+                        <label for="pressLink">External Link (Optional)</label>
+                        <input type="url" id="pressLink" placeholder="https://example.com/full-article">
+                        <small>Link to full article on external website</small>
+                    </div>
+
+                    <!-- Seventh Row: Tags -->
+                    <div class="form-group full-width">
+                        <label for="pressTags">Tags (Optional)</label>
+                        <input type="text" id="pressTags" placeholder="e.g., partnership, innovation, award (comma-separated)">
+                        <small>Separate multiple tags with commas</small>
                     </div>
                 </form>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-primary" onclick="savePressRelease()">
-                        Add Press Release
+                        Save Article
                     </button>
                     <button type="button" class="btn btn-secondary" onclick="closePressReleaseModal()">
                         Cancel

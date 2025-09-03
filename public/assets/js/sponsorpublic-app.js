@@ -84,32 +84,32 @@ class SponsorPublicProfile {
         this.testimonials = [
             {
                 id: 1,
-                organizerName: 'Sarah Johnson',
-                position: 'President, Computer Science Society',
-                university: 'UC Berkeley',
+                organizerName: 'Dr. Sarah Johnson',
+                position: 'Dean of Engineering',
+                university: 'State University',
                 eventName: 'Annual Tech Conference 2024',
                 rating: 5,
-                text: 'Tech Innovation Corp has been an incredible partner. Their support went beyond financial - they provided mentorship and real-world insights that made our conference truly impactful.',
+                text: 'Tech Innovation Corp has been an incredible partner in our educational initiatives. Their support has enabled us to reach thousands of students.',
                 date: '2024-03-20',
                 avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face'
             },
             {
                 id: 2,
                 organizerName: 'Michael Chen',
-                position: 'Director, Entrepreneurship Club',
-                university: 'Stanford University',
+                position: 'Event Director',
+                university: 'TechFest 2024',
                 rating: 5,
-                text: 'Working with Tech Innovation Corp was seamless. They understood our vision and provided exactly what we needed to make our startup competition a huge success.',
+                text: 'The partnership with Tech Innovation Corp transformed our annual tech conference. Their expertise and funding made it a huge success.',
                 date: '2024-02-25',
                 avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face'
             },
             {
                 id: 3,
-                organizerName: 'Dr. Lisa Rodriguez',
-                position: 'Faculty Advisor, Women in Engineering',
-                university: 'MIT',
-                rating: 4,
-                text: 'Tech Innovation Corp\'s commitment to diversity in tech is genuine. Their sponsorship enabled us to create meaningful opportunities for women in STEM.',
+                organizerName: 'Prof. Emily Rodriguez',
+                position: 'Research Director',
+                university: 'Innovation Lab',
+                rating: 5,
+                text: 'Outstanding support for our research project. Tech Innovation Corp\'s mentorship program connected our students with industry leaders.',
                 date: '2024-01-18',
                 avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=60&h=60&fit=crop&crop=face'
             }
@@ -120,29 +120,6 @@ class SponsorPublicProfile {
             'AI & Machine Learning', 'Entrepreneurship', 
             'STEM Education', 'Research', 'Diversity in Tech'
         ];
-
-        this.partnershipTypes = [
-            {
-                type: 'Event Sponsorship',
-                description: 'Support for conferences, workshops, and educational events',
-                icon: 'fas fa-calendar-alt'
-            },
-            {
-                type: 'Scholarship Programs',
-                description: 'Direct financial support for student education',
-                icon: 'fas fa-graduation-cap'
-            },
-            {
-                type: 'Research Funding',
-                description: 'Supporting innovative research projects and initiatives',
-                icon: 'fas fa-flask'
-            },
-            {
-                type: 'Mentorship Programs',
-                description: 'Connecting students with industry professionals',
-                icon: 'fas fa-users'
-            }
-        ];
         
         this.init();
     }
@@ -151,42 +128,15 @@ class SponsorPublicProfile {
         this.bindEvents();
         this.setupAnimations();
         this.loadSponsorData();
-        this.loadSponsorshipHistory();
         this.loadTestimonials();
     }
 
     bindEvents() {
-        // Contact form
-        const contactForm = document.getElementById('contactForm');
-        if (contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.submitContactForm();
-            });
-        }
-
-        // Sponsorship search
-        const sponsorshipSearch = document.getElementById('sponsorshipSearch');
-        if (sponsorshipSearch) {
-            sponsorshipSearch.addEventListener('input', (e) => {
-                this.searchSponsorships(e.target.value);
-            });
-        }
-
-        // Filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
+        // Event card scroll functionality
+        document.querySelectorAll('.scroll-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                this.filterSponsorships(e.target.dataset.filter);
-            });
-        });
-
-        // Tab navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const tabName = e.target.dataset.tab;
-                if (tabName) {
-                    this.showTab(tabName);
-                }
+                const direction = btn.classList.contains('scroll-left') ? 'left' : 'right';
+                this.scrollEvents('recent', direction);
             });
         });
     }
@@ -208,43 +158,10 @@ class SponsorPublicProfile {
         }, observerOptions);
 
         // Observe cards and elements for animation
-        document.querySelectorAll('.info-card, .event-card, .leader-card').forEach((element, index) => {
+        document.querySelectorAll('.info-card, .event-card').forEach((element, index) => {
             element.dataset.delay = index * 100;
             observer.observe(element);
         });
-
-        // Animate statistics on scroll
-        this.animateStatistics();
-    }
-
-    animateStatistics() {
-        const stats = document.querySelectorAll('.stat-number');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    this.animateNumber(entry.target);
-                    observer.unobserve(entry.target);
-                }
-            });
-        });
-
-        stats.forEach(stat => observer.observe(stat));
-    }
-
-    animateNumber(element) {
-        const target = parseInt(element.textContent);
-        const duration = 2000;
-        const increment = target / (duration / 16);
-        let current = 0;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
-            }
-            element.textContent = Math.floor(current);
-        }, 16);
     }
 
     loadSponsorData() {
@@ -252,107 +169,11 @@ class SponsorPublicProfile {
         document.title = `${this.sponsorData.name} - UniPulse`;
         
         // Update sponsor info in DOM
-        const sponsorName = document.getElementById('sponsorName');
-        const sponsorDescription = document.getElementById('sponsorDescription');
+        const orgName = document.getElementById('orgName');
         const sponsorMission = document.getElementById('sponsorMission');
         
-        if (sponsorName) sponsorName.textContent = this.sponsorData.name;
-        if (sponsorDescription) sponsorDescription.textContent = this.sponsorData.description;
+        if (orgName) orgName.textContent = this.sponsorData.name;
         if (sponsorMission) sponsorMission.textContent = this.sponsorData.mission;
-
-        // Update statistics
-        this.updateStatistics();
-        
-        // Update focus areas
-        this.updateFocusAreas();
-    }
-
-    updateStatistics() {
-        const totalSponsoredEl = document.getElementById('totalSponsored');
-        const eventsSponsoredEl = document.getElementById('eventsSponsored');
-        const studentsReachedEl = document.getElementById('studentsReached');
-        const yearsActiveEl = document.getElementById('yearsActive');
-
-        if (totalSponsoredEl) totalSponsoredEl.textContent = `$${(this.sponsorData.totalSponsored / 1000)}K+`;
-        if (eventsSponsoredEl) eventsSponsoredEl.textContent = `${this.sponsorData.eventsSponsored}+`;
-        if (studentsReachedEl) studentsReachedEl.textContent = `${(this.sponsorData.studentsReached / 1000)}K+`;
-        if (yearsActiveEl) yearsActiveEl.textContent = `${new Date().getFullYear() - this.sponsorData.establishedYear}`;
-    }
-
-    updateFocusAreas() {
-        const focusContainer = document.getElementById('focusAreasContainer');
-        if (!focusContainer) return;
-
-        focusContainer.innerHTML = '';
-        this.focusAreas.forEach(area => {
-            const areaElement = document.createElement('span');
-            areaElement.className = 'focus-area-tag';
-            areaElement.textContent = area;
-            focusContainer.appendChild(areaElement);
-        });
-    }
-
-    loadSponsorshipHistory() {
-        const container = document.getElementById('sponsorshipContainer');
-        if (!container) return;
-
-        container.innerHTML = '';
-        
-        // Sort sponsorships by date (recent first)
-        const sortedSponsorships = this.sponsorshipHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        sortedSponsorships.forEach(sponsorship => {
-            const sponsorshipCard = this.createSponsorshipCard(sponsorship);
-            container.appendChild(sponsorshipCard);
-        });
-    }
-
-    createSponsorshipCard(sponsorship) {
-        const card = document.createElement('div');
-        card.className = 'sponsorship-card';
-        card.dataset.status = sponsorship.status;
-        card.dataset.type = sponsorship.type.toLowerCase().replace(' ', '-');
-
-        const statusClass = sponsorship.status === 'completed' ? 'completed' : 'upcoming';
-        const statusText = sponsorship.status === 'completed' ? 'Completed' : 'Upcoming';
-
-        card.innerHTML = `
-            <div class="sponsorship-image">
-                <img src="${sponsorship.image}" alt="${sponsorship.eventName}" loading="lazy">
-                <span class="sponsorship-badge ${statusClass}">${statusText}</span>
-                <span class="sponsorship-type-badge">${sponsorship.type}</span>
-            </div>
-            <div class="sponsorship-info">
-                <h4>${sponsorship.eventName}</h4>
-                <p class="sponsorship-organizer">
-                    <i class="fas fa-users"></i> 
-                    ${sponsorship.organizerName}
-                </p>
-                <p class="sponsorship-university">
-                    <i class="fas fa-university"></i> 
-                    ${sponsorship.university}
-                </p>
-                <p class="sponsorship-date">
-                    <i class="fas fa-calendar"></i> 
-                    ${this.formatDate(sponsorship.date)}
-                </p>
-                <p class="sponsorship-amount">
-                    <i class="fas fa-dollar-sign"></i> 
-                    $${sponsorship.amount.toLocaleString()} sponsored
-                </p>
-                <p class="sponsorship-attendees">
-                    <i class="fas fa-user-friends"></i> 
-                    ${sponsorship.attendees} attendees reached
-                </p>
-                <p class="sponsorship-description">${sponsorship.description}</p>
-                <div class="sponsorship-impact">
-                    <h5><i class="fas fa-heart"></i> Impact:</h5>
-                    <p>${sponsorship.impact}</p>
-                </div>
-            </div>
-        `;
-
-        return card;
     }
 
     loadTestimonials() {
@@ -382,7 +203,6 @@ class SponsorPublicProfile {
                     <h4>${testimonial.organizerName}</h4>
                     <p class="testimonial-position">${testimonial.position}</p>
                     <p class="testimonial-university">${testimonial.university}</p>
-                    <p class="testimonial-event">${testimonial.eventName}</p>
                 </div>
                 <div class="testimonial-rating">
                     <div class="stars">${stars}</div>
@@ -398,80 +218,25 @@ class SponsorPublicProfile {
         return card;
     }
 
-    showTab(tabName) {
-        // Update active tab
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
-        });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-        // Update active content
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
+    scrollEvents(type, direction) {
+        const container = document.getElementById('recentSponsorshipsContainer');
         
-        const targetTab = document.getElementById(tabName);
-        if (targetTab) {
-            targetTab.classList.add('active');
+        if (container) {
+            const scrollAmount = 375; // Width of card + gap
+            const currentScroll = container.scrollLeft;
+            
+            if (direction === 'left') {
+                container.scrollTo({
+                    left: currentScroll - scrollAmount,
+                    behavior: 'smooth'
+                });
+            } else {
+                container.scrollTo({
+                    left: currentScroll + scrollAmount,
+                    behavior: 'smooth'
+                });
+            }
         }
-
-        this.currentTab = tabName;
-        this.addTransitionEffect();
-    }
-
-    addTransitionEffect() {
-        const activeContent = document.querySelector('.tab-content.active');
-        if (activeContent) {
-            activeContent.style.opacity = '0';
-            activeContent.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                activeContent.style.transition = 'all 0.3s ease';
-                activeContent.style.opacity = '1';
-                activeContent.style.transform = 'translateY(0)';
-            }, 50);
-        }
-    }
-
-    filterSponsorships(filter) {
-        // Remove active class from all filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Add active class to clicked button
-        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-
-        // Filter sponsorships
-        const sponsorshipCards = document.querySelectorAll('.sponsorship-card');
-        sponsorshipCards.forEach(card => {
-            const show = filter === 'all' || 
-                        card.dataset.status === filter || 
-                        card.dataset.type === filter;
-            
-            card.style.display = show ? 'block' : 'none';
-        });
-
-        this.showNotification(`Showing ${filter === 'all' ? 'all' : filter} sponsorships`, 'info');
-    }
-
-    searchSponsorships(query) {
-        const sponsorshipCards = document.querySelectorAll('.sponsorship-card');
-        const searchTerm = query.toLowerCase();
-
-        sponsorshipCards.forEach(card => {
-            const eventName = card.querySelector('h4').textContent.toLowerCase();
-            const organizer = card.querySelector('.sponsorship-organizer').textContent.toLowerCase();
-            const university = card.querySelector('.sponsorship-university').textContent.toLowerCase();
-            const description = card.querySelector('.sponsorship-description').textContent.toLowerCase();
-            
-            const matches = eventName.includes(searchTerm) || 
-                          organizer.includes(searchTerm) || 
-                          university.includes(searchTerm) ||
-                          description.includes(searchTerm);
-            
-            card.style.display = matches ? 'block' : 'none';
-        });
     }
 
     formatDate(dateString) {
@@ -485,38 +250,37 @@ class SponsorPublicProfile {
         return date.toLocaleDateString('en-US', options);
     }
 
-    submitContactForm() {
-        const formData = new FormData(document.getElementById('contactForm'));
-        const data = Object.fromEntries(formData);
-        
-        // Validate form
-        if (!data.name || !data.email || !data.organization || !data.message) {
-            this.showNotification('Please fill in all required fields.', 'error');
-            return;
-        }
+    // Gallery Carousel Functions
+    changeCarouselImage(galleryId, direction) {
+        const gallery = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+        if (!gallery) return;
 
-        // Simulate form submission
-        this.showNotification('Sponsorship inquiry sent successfully! We will get back to you within 24 hours.', 'success');
-        document.getElementById('contactForm').reset();
+        const carousel = gallery.querySelector('.gallery-image-carousel');
+        const images = carousel.querySelectorAll('.carousel-image');
+        const currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
         
-        // In a real app, this would send data to the server
-        console.log('Sponsorship inquiry data:', data);
+        let newIndex = currentIndex + direction;
+        
+        if (newIndex >= images.length) newIndex = 0;
+        if (newIndex < 0) newIndex = images.length - 1;
+        
+        this.setCarouselImage(galleryId, newIndex);
     }
 
-    openModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-    }
+    setCarouselImage(galleryId, index) {
+        const gallery = document.querySelector(`[data-gallery-id="${galleryId}"]`);
+        if (!gallery) return;
 
-    closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-        }
+        const images = gallery.querySelectorAll('.carousel-image');
+        const indicators = gallery.querySelectorAll('.indicator');
+        
+        // Remove active class from all images and indicators
+        images.forEach(img => img.classList.remove('active'));
+        indicators.forEach(ind => ind.classList.remove('active'));
+        
+        // Add active class to selected image and indicator
+        if (images[index]) images[index].classList.add('active');
+        if (indicators[index]) indicators[index].classList.add('active');
     }
 
     showNotification(message, type = 'info') {
@@ -547,37 +311,6 @@ class SponsorPublicProfile {
             max-width: 400px;
             font-weight: 500;
         `;
-
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideInRight {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            .notification-content {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            .notification-close {
-                background: none;
-                border: none;
-                color: white;
-                font-size: 1.2em;
-                cursor: pointer;
-                margin-left: auto;
-                opacity: 0.8;
-                transition: opacity 0.3s ease;
-            }
-            .notification-close:hover {
-                opacity: 1;
-            }
-        `;
-        
-        if (!document.querySelector('style[data-notification]')) {
-            style.setAttribute('data-notification', 'true');
-            document.head.appendChild(style);
-        }
 
         document.body.appendChild(notification);
 
@@ -610,50 +343,28 @@ class SponsorPublicProfile {
     }
 }
 
-// Global functions for onclick handlers
-function scrollSponsorships(direction) {
-    const container = document.getElementById('sponsorshipContainer');
-    
-    if (container) {
-        const scrollAmount = 375; // Width of card + gap
-        const currentScroll = container.scrollLeft;
-        
-        if (direction === 'left') {
-            container.scrollTo({
-                left: currentScroll - scrollAmount,
-                behavior: 'smooth'
-            });
-        } else {
-            container.scrollTo({
-                left: currentScroll + scrollAmount,
-                behavior: 'smooth'
-            });
-        }
+// Global functions
+function scrollEvents(type, direction) {
+    if (window.sponsorProfile) {
+        window.sponsorProfile.scrollEvents(type, direction);
     }
 }
 
-function closeModal(modalId) {
-    sponsorProfile.closeModal(modalId);
-}
-
-function sendSponsorshipInquiry() {
-    sponsorProfile.showNotification('Opening sponsorship inquiry form...', 'info');
-    // This would open a contact form modal or redirect to contact page
-    const contactSection = document.getElementById('contact');
-    if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
+function changeCarouselImage(galleryId, direction) {
+    if (window.sponsorProfile) {
+        window.sponsorProfile.changeCarouselImage(galleryId, direction);
     }
 }
 
-function requestPartnership() {
-    sponsorProfile.showNotification('Partnership request form opened! Please fill out your details.', 'success');
-    // This would open a partnership request form
+function setCarouselImage(galleryId, index) {
+    if (window.sponsorProfile) {
+        window.sponsorProfile.setCarouselImage(galleryId, index);
+    }
 }
 
 // Initialize the sponsor public profile when DOM is loaded
-let sponsorProfile;
 document.addEventListener('DOMContentLoaded', () => {
-    sponsorProfile = new SponsorPublicProfile();
+    window.sponsorProfile = new SponsorPublicProfile();
     
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
@@ -684,38 +395,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Add intersection observer for animating elements
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -10% 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, observerOptions);
-
-    // Observe all cards for animation
-    document.querySelectorAll('.info-card, .event-card, .leader-card, .stat-card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        card.style.transition = 'all 0.6s ease';
-        observer.observe(card);
-    });
-
     console.log('Sponsor Public Profile initialized successfully!');
 });
-
-// Add slideOutRight animation
-const slideOutStyle = document.createElement('style');
-slideOutStyle.textContent = `
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-`;
-document.head.appendChild(slideOutStyle);

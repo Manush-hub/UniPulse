@@ -24,71 +24,7 @@ class SponsorProfile {
             logo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=cover&w=400&q=80'
         };
         
-        this.sponsorshipRecords = [
-            {
-                id: 1,
-                eventName: 'Annual Tech Conference 2024',
-                organizer: 'Berkeley Computer Science Society',
-                date: '2024-03-15',
-                type: 'cash',
-                details: 'Cash Sponsorship + Venue',
-                amount: 15000,
-                status: 'completed'
-            },
-            {
-                id: 2,
-                eventName: 'Startup Pitch Competition 2024',
-                organizer: 'Entrepreneurship Club',
-                date: '2024-06-08',
-                type: 'product',
-                details: 'Product Prizes + Mentorship',
-                amount: 8500,
-                status: 'completed'
-            },
-            {
-                id: 3,
-                eventName: 'Women in Tech Workshop Series',
-                organizer: 'Women Engineers Association',
-                date: '2023-09-01',
-                type: 'media',
-                details: 'Media Coverage + Platform',
-                amount: 5000,
-                status: 'completed'
-            }
-        ];
-        
-        this.testimonials = [
-            {
-                id: 1,
-                organizerName: 'Sarah Johnson',
-                organizerRole: 'President, Computer Science Society',
-                organizerAvatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face',
-                eventName: 'Annual Tech Conference 2024',
-                rating: 5,
-                content: 'Tech Innovation Corp was an exceptional partner for our annual conference. Their support went beyond financial contribution - they provided mentors, technical expertise, and valuable networking opportunities for our students. Highly recommend!',
-                date: '2024-08-20'
-            },
-            {
-                id: 2,
-                organizerName: 'Michael Chen',
-                organizerRole: 'Director, Entrepreneurship Hub',
-                organizerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face',
-                eventName: 'Startup Pitch Competition',
-                rating: 5,
-                content: 'Outstanding partnership! Not only did they provide generous prizes, but their team also served as judges and mentors. The students gained invaluable insights from industry professionals.',
-                date: '2024-06-15'
-            },
-            {
-                id: 3,
-                organizerName: 'Emily Rodriguez',
-                organizerRole: 'Coordinator, Women Engineers Association',
-                organizerAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=60&h=60&fit=crop&crop=face',
-                eventName: 'Women in Tech Workshop Series',
-                rating: 4,
-                content: 'Great collaboration for our workshop series. Their media platform helped us reach a wider audience, and their commitment to supporting women in tech is genuine and impactful.',
-                date: '2024-03-10'
-            }
-        ];
+        this.sponsorshipRecords = [];
         
         this.pressReleases = [
             {
@@ -123,8 +59,6 @@ class SponsorProfile {
         this.loadSponsorData();
         this.setupAnimations();
         this.setupImageUploads();
-        this.loadSponsorshipRecords();
-        this.loadTestimonials();
         this.loadPressReleases();
         this.loadAnalytics();
     }
@@ -320,14 +254,17 @@ class SponsorProfile {
         });
     }
 
-    loadSponsorshipRecords() {
-        // This would load sponsorship records from the backend
-        console.log('Loading sponsorship records:', this.sponsorshipRecords);
+    loadSponsorshipHistory() {
+        // This would load verified sponsorship history from the backend
+        console.log('Loading verified sponsorship history:', this.sponsorshipRecords);
+        // In a real implementation, this would fetch data from the server
+        // and populate the sponsorship records section
     }
 
-    loadTestimonials() {
-        // This would load testimonials from the backend
-        console.log('Loading testimonials:', this.testimonials);
+    refreshSponsorshipHistory() {
+        // This would refresh the sponsorship history from the server
+        console.log('Refreshing sponsorship history...');
+        this.loadSponsorshipHistory();
     }
 
     loadPressReleases() {
@@ -464,107 +401,159 @@ class SponsorProfile {
         }
     }
 
-    // Sponsorship record management
-    addSponsorshipRecord() {
-        this.openModal('sponsorshipRecordModal');
-        document.getElementById('recordModalTitle').textContent = 'Add Sponsorship Record';
-        this.clearSponsorshipRecordForm();
+    // Sponsorship history management (read-only)
+    loadSponsorshipHistory() {
+        // This would load verified sponsorship history from the backend
+        console.log('Loading verified sponsorship history:', this.sponsorshipRecords);
+        // In a real implementation, this would fetch data from the server
+        // and populate the sponsorship records section
     }
 
-    editSponsorshipRecord(recordId) {
-        const record = this.sponsorshipRecords.find(r => r.id === recordId);
-        if (record) {
-            this.openModal('sponsorshipRecordModal');
-            document.getElementById('recordModalTitle').textContent = 'Edit Sponsorship Record';
-            this.populateSponsorshipRecordForm(record);
-        }
+    refreshSponsorshipHistory() {
+        // This would refresh the sponsorship history from the server
+        console.log('Refreshing sponsorship history...');
+        this.loadSponsorshipHistory();
     }
 
-    deleteSponsorshipRecord(recordId) {
-        if (confirm('Are you sure you want to delete this sponsorship record?')) {
-            this.sponsorshipRecords = this.sponsorshipRecords.filter(r => r.id !== recordId);
-            console.log('Sponsorship record deleted:', recordId);
-        }
+    // Navigation functions for empty state
+    browseEvents() {
+        console.log('Redirecting to browse sponsorship opportunities...');
+        // In a real implementation, this would redirect to events/opportunities page
+        alert('Redirecting to sponsorship opportunities page...');
     }
 
-    saveSponsorshipRecord() {
-        const formData = {
-            eventName: document.getElementById('eventName').value,
-            organizer: document.getElementById('eventOrganizer').value,
-            date: document.getElementById('eventDate').value,
-            type: document.getElementById('sponsorshipType').value,
-            details: document.getElementById('contributionDetails').value,
-            amount: parseFloat(document.getElementById('contributionAmount').value),
-            status: document.getElementById('eventStatus').value
-        };
-
-        // Validate required fields
-        if (!formData.eventName || !formData.organizer || !formData.date || !formData.type) {
-            alert('Please fill in all required fields');
-            return;
-        }
-
-        // Add or update record
-        const newRecord = {
-            id: Date.now(),
-            ...formData
-        };
-
-        this.sponsorshipRecords.push(newRecord);
-        console.log('Sponsorship record saved:', newRecord);
-        this.closeModal('sponsorshipRecordModal');
-    }
-
-    clearSponsorshipRecordForm() {
-        document.getElementById('sponsorshipRecordForm').reset();
-    }
-
-    populateSponsorshipRecordForm(record) {
-        document.getElementById('eventName').value = record.eventName;
-        document.getElementById('eventOrganizer').value = record.organizer;
-        document.getElementById('eventDate').value = record.date;
-        document.getElementById('sponsorshipType').value = record.type;
-        document.getElementById('contributionDetails').value = record.details;
-        document.getElementById('contributionAmount').value = record.amount;
-        document.getElementById('eventStatus').value = record.status;
-    }
-
-    closeSponsorshipRecordModal() {
-        this.closeModal('sponsorshipRecordModal');
+    learnMore() {
+        console.log('Opening sponsorship information...');
+        // In a real implementation, this would open a modal or page with sponsorship info
+        alert('Opening sponsorship guide and information...');
     }
 
     // Press release management
     addPressRelease() {
         this.openModal('pressReleaseModal');
+        document.getElementById('pressModalTitle').textContent = 'Add Press Release';
         this.clearPressReleaseForm();
+    }
+
+    editPressRelease(pressId) {
+        const pressRelease = this.pressReleases.find(p => p.id === pressId);
+        if (pressRelease) {
+            this.openModal('pressReleaseModal');
+            document.getElementById('pressModalTitle').textContent = 'Edit Press Release';
+            this.populatePressReleaseForm(pressRelease);
+        }
+    }
+
+    deletePressRelease(pressId) {
+        if (confirm('Are you sure you want to delete this press release?')) {
+            this.pressReleases = this.pressReleases.filter(p => p.id !== pressId);
+            console.log('Press release deleted:', pressId);
+            // In real implementation, this would update the DOM and call API
+            alert('Press release deleted successfully!');
+        }
     }
 
     savePressRelease() {
         const formData = {
-            title: document.getElementById('pressTitle').value,
+            title: document.getElementById('pressTitle').value.trim(),
+            type: document.getElementById('pressType').value,
             date: document.getElementById('pressDate').value,
-            excerpt: document.getElementById('pressExcerpt').value,
-            link: document.getElementById('pressLink').value
+            source: document.getElementById('pressSource').value.trim(),
+            excerpt: document.getElementById('pressExcerpt').value.trim(),
+            content: document.getElementById('pressContent').value.trim(),
+            link: document.getElementById('pressLink').value.trim(),
+            tags: document.getElementById('pressTags').value.trim(),
+            image: document.getElementById('pressImage').files[0] || null
         };
 
-        // Validate required fields
-        if (!formData.title || !formData.date || !formData.excerpt) {
+        // Validation
+        if (!formData.title || !formData.type || !formData.date || !formData.source || !formData.excerpt) {
             alert('Please fill in all required fields');
             return;
         }
 
-        const newRelease = {
+        if (formData.title.length > 100) {
+            alert('Title must be 100 characters or less');
+            return;
+        }
+
+        if (formData.excerpt.length > 300) {
+            alert('Summary must be 300 characters or less');
+            return;
+        }
+
+        // Validate image file if uploaded
+        if (formData.image) {
+            if (formData.image.size > 5 * 1024 * 1024) {
+                alert('Image file must be less than 5MB');
+                return;
+            }
+            
+            if (!formData.image.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+        }
+
+        // Create new press release object
+        const newPressRelease = {
             id: Date.now(),
-            ...formData
+            ...formData,
+            imageUrl: formData.image ? URL.createObjectURL(formData.image) : null,
+            createdAt: new Date().toISOString()
         };
 
-        this.pressReleases.push(newRelease);
-        console.log('Press release saved:', newRelease);
+        // Add to press releases array
+        this.pressReleases.push(newPressRelease);
+        console.log('Press release saved:', newPressRelease);
+        
+        // Close modal and show success message
         this.closeModal('pressReleaseModal');
+        alert('Press release saved successfully!');
+        
+        // In real implementation, this would update the DOM and call API
+    }
+
+    populatePressReleaseForm(pressRelease) {
+        document.getElementById('pressTitle').value = pressRelease.title || '';
+        document.getElementById('pressType').value = pressRelease.type || '';
+        document.getElementById('pressDate').value = pressRelease.date || '';
+        document.getElementById('pressSource').value = pressRelease.source || '';
+        document.getElementById('pressExcerpt').value = pressRelease.excerpt || '';
+        document.getElementById('pressContent').value = pressRelease.content || '';
+        document.getElementById('pressLink').value = pressRelease.link || '';
+        document.getElementById('pressTags').value = pressRelease.tags || '';
+        
+        // Handle image preview if exists
+        if (pressRelease.imageUrl) {
+            const preview = document.getElementById('pressImagePreview');
+            const uploadContent = document.getElementById('pressUploadContent');
+            preview.src = pressRelease.imageUrl;
+            preview.style.display = 'block';
+            uploadContent.style.display = 'none';
+        }
     }
 
     clearPressReleaseForm() {
         document.getElementById('pressReleaseForm').reset();
+        
+        // Clear image preview
+        const preview = document.getElementById('pressImagePreview');
+        const uploadContent = document.getElementById('pressUploadContent');
+        const fileInput = document.getElementById('pressImage');
+        
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        
+        if (uploadContent) {
+            uploadContent.style.display = 'flex';
+        }
+        
+        if (fileInput) {
+            fileInput.value = '';
+        }
     }
 
     closePressReleaseModal() {
@@ -572,24 +561,9 @@ class SponsorProfile {
     }
 
     // Utility functions
-    downloadProfile() {
-        console.log('Downloading sponsor profile PDF...');
-        alert('Profile download feature will be implemented soon!');
-    }
-
-    downloadResource(resourceType) {
-        console.log('Downloading resource:', resourceType);
-        alert(`${resourceType} download feature will be implemented soon!`);
-    }
-
     exportSponsorshipData() {
         console.log('Exporting sponsorship data...');
         alert('Data export feature will be implemented soon!');
-    }
-
-    generateReport() {
-        console.log('Generating sponsorship report...');
-        alert('Report generation feature will be implemented soon!');
     }
 
     deactivateSponsor() {
@@ -630,28 +604,24 @@ function closeModal(modalId) {
     sponsorProfile.closeModal(modalId);
 }
 
-function addSponsorshipRecord() {
-    sponsorProfile.addSponsorshipRecord();
+function browseEvents() {
+    sponsorProfile.browseEvents();
 }
 
-function editSponsorshipRecord(recordId) {
-    sponsorProfile.editSponsorshipRecord(recordId);
-}
-
-function deleteSponsorshipRecord(recordId) {
-    sponsorProfile.deleteSponsorshipRecord(recordId);
-}
-
-function saveSponsorshipRecord() {
-    sponsorProfile.saveSponsorshipRecord();
-}
-
-function closeSponsorshipRecordModal() {
-    sponsorProfile.closeSponsorshipRecordModal();
+function learnMore() {
+    sponsorProfile.learnMore();
 }
 
 function addPressRelease() {
     sponsorProfile.addPressRelease();
+}
+
+function editPressRelease(pressId) {
+    sponsorProfile.editPressRelease(pressId);
+}
+
+function deletePressRelease(pressId) {
+    sponsorProfile.deletePressRelease(pressId);
 }
 
 function savePressRelease() {
@@ -662,20 +632,65 @@ function closePressReleaseModal() {
     sponsorProfile.closePressReleaseModal();
 }
 
-function downloadProfile() {
-    sponsorProfile.downloadProfile();
+// Press image preview function
+function previewPressImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        event.target.value = '';
+        return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        event.target.value = '';
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('pressImagePreview');
+        const uploadContent = document.getElementById('pressUploadContent');
+        
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        uploadContent.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
 }
 
-function downloadResource(resourceType) {
-    sponsorProfile.downloadResource(resourceType);
+// Character counter for form fields
+function setupCharacterCounters() {
+    const fieldsWithCounters = [
+        { id: 'pressTitle', max: 100 },
+        { id: 'pressExcerpt', max: 300 }
+    ];
+    
+    fieldsWithCounters.forEach(field => {
+        const element = document.getElementById(field.id);
+        const small = element?.nextElementSibling;
+        
+        if (element && small) {
+            small.setAttribute('data-max', field.max);
+            
+            const updateCounter = () => {
+                const count = element.value.length;
+                small.setAttribute('data-count', count);
+                small.style.color = count > field.max ? '#dc3545' : '#666';
+            };
+            
+            element.addEventListener('input', updateCounter);
+            updateCounter(); // Initial count
+        }
+    });
 }
 
 function exportSponsorshipData() {
     sponsorProfile.exportSponsorshipData();
-}
-
-function generateReport() {
-    sponsorProfile.generateReport();
 }
 
 function deactivateSponsor() {
@@ -728,6 +743,9 @@ function changeProfileImage(event) {
 let sponsorProfile;
 document.addEventListener('DOMContentLoaded', () => {
     sponsorProfile = new SponsorProfile();
+    
+    // Setup character counters for form fields
+    setupCharacterCounters();
     
     // Add extra interactivity
     document.addEventListener('keydown', (e) => {
