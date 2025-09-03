@@ -69,10 +69,10 @@ body {
 }
 
 header {
-  background: #ddd;
+  background: #fff;
   padding: 20px;
   text-align: center;
-  border-bottom: 2px solid #ff5722;
+  border-bottom: 2px solid #4a22ff;
   box-shadow: none;
 }
 
@@ -89,7 +89,7 @@ main {
 }
 
 h2, h3 {
-  color: #fff;
+  color: #ed2929;
   margin: 15px 0 10px;
 }
 
@@ -170,7 +170,7 @@ textarea {
 footer {
   background: #1a1a1a;
   padding: 30px 50px;
-  display: flex;
+  display: block;
   justify-content: center;
   flex-wrap: wrap;
   position: relative;
@@ -184,7 +184,7 @@ footer h3 {
 }
 
 footer a {
-  color: #ddd;
+  color: black;
   text-decoration: none;
   display: block;
   margin-bottom: 8px;
@@ -201,10 +201,10 @@ footer p {
 
 .footer-bottom {
   text-align: center;
-  padding: 15px;
+  padding: 35px;
   background: #111;
   font-size: 14px;
-  color: #fff;
+  color: #aaa;
   width: 100%;
   margin-top: 20px;
 }

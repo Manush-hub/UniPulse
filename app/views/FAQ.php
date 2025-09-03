@@ -23,7 +23,7 @@
     <p>You can retry or contact support at info@unipulse.lk.</p>
   </main>
   <footer>
-    <p>© 2025 UniPulse</p>
+    <p>© 2025 UniPulse. All rights reserved.</p>
   </footer>
 </body>
 </html>

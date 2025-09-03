@@ -20,7 +20,7 @@
     <p>This platform is for academic purposes and follows general privacy guidelines.</p>
   </main>
   <footer>
-    <p>© 2025 UniPulse</p>
+    <p>© 2025 UniPulse. All rights reserved.</p>
   </footer>
 </body>
 </html>

@@ -24,7 +24,7 @@
     </ul>
   </main>
   <footer>
-    <p>© 2025 UniPulse</p>
+    <p>© 2025 UniPulse. All rights reserved.</p>
   </footer>
 </body>
 </html>

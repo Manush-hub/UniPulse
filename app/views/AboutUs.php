@@ -23,7 +23,7 @@
     <p>To build the future of event culture in Sri Lanka by centralizing event promotion and participation.</p>
   </main>
   <footer>
-    <p>© 2025 UniPulse</p>
+    <p>© 2025 UniPulse. All rights reserved.</p>
   </footer>
 </body>
 </html>
