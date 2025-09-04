@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Event Organizer Dashboard</title>
     <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
+
 </head>
 
 <body>
