@@ -1,0 +1,123 @@
+.unp-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+    max-height: 60px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #fff;
+  padding-bottom: 0; /* prevent footer overlap */ 
+  background: linear-gradient(to right, #4a66cc , #ff6422);
+}
+
+header {
+  background: #fff;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #fff;
+  box-shadow: none;
+}
+
+main {
+  padding: 30px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+h1 {
+  color: #fff;
+  font-size: 28px;
+  text-align: center;
+  font-size: xx-large;
+}
+
+h2 {
+  color: #fff;
+  margin: 30px 0 12px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 6px;
+}
+
+h3 {
+  color: #fff;
+  text-align: center;
+  margin-top: 8px;
+  font-weight: normal;
+}
+
+/* Items */
+.faq-item {
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  margin: 12px 0;
+  background: #1a1a1a;
+  overflow: hidden;
+}
+
+/* Question button */
+.faq-question {
+  width: 100%;
+  background: #092380;
+  color: #fff;
+  padding: 16px 18px;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-question:hover { background: #4a66cc; }
+
+/* Caret */
+.faq-question::after {
+  content: "▸";
+  color: #999;
+  transition: transform .2s ease;
+}
+.faq-item.open .faq-question::after {
+  transform: rotate(90deg);
+}
+
+/* Answer (animated height) */
+.faq-answer {
+  height: fit-content;          /* default height when closed */
+  color: #1a1a1a;
+  overflow: hidden;
+  background: #fff;
+  transition: max-height .28s ease;
+  padding: 0 18px;        /* side padding always */
+}
+.faq-item.open .faq-answer {
+  /* top/bottom padding only when open, controlled via JS for smoothness */
+  padding-top: 12px;
+  padding-bottom: 16px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.footer{
+  text-align: center;
+  padding: 30px;
+  background: #1a1a1a;
+  font-size: 14px;
+  color: #999;
+  width: 100%;
+  margin-top: 20px;
+}

@@ -7,10 +7,11 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/contact.css">
 </head>
 <body>
-  <header>
-    
-    
-  </header>
+<header>
+  <div class="logo">
+    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+  </div>
+</header>
   <main>
     <h1>Contact Us</h1>
     <form>
@@ -21,16 +22,20 @@
       <input type="email" name="email"><br><br>
       
       <label>Message:</label><br>
-      <textarea name="message"></textarea><br><br>
+      <textarea name="message" rows="5" cols="40"></textarea><br><br>
       
       <button type="submit">Send</button>
     </form>
+    
     <p>Email: info@unipulse.lk</p>
     <p>Phone: +94 11 234 5678</p>
     <p>Colombo, Sri Lanka</p>
   </main>
-  <footer>
-    <p>© 2025 UniPulse. All rights reserved.</p>
-  </footer>
+  <footer class="footer">
+    <div class="logo">
+      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+    </div>
+    <p>&copy; 2025 UniPulse. All rights reserved.</p>           
+    </footer>
 </body>
 </html>
