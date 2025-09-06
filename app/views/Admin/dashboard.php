@@ -13,7 +13,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <a href="dashboard.html">
+                <a href="index.html">
                     <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
                 </a>
             </div>
