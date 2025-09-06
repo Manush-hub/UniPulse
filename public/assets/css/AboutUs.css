@@ -16,15 +16,33 @@ body {
   line-height: 1.6;
   color: #fff;
   padding-bottom: 0; /* prevent footer overlap */ 
-  background: linear-gradient(to right, #4a66cc , #ff6422);
+  background: #fff;
 }
 
-header {
-  background: #fff;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 2px solid #fff;
-  box-shadow: none;
+
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
 }
 
 main {
@@ -34,28 +52,28 @@ main {
 }
 
 h1 {
-  color: #fff;
+  color: #162a71;
   font-size: 28px;
   text-align: center;
   font-size: xx-large;
+  margin-bottom: 10px;
 }
 
 h4 {
-  color: #fff;
+  color: #162a71;
   margin-top: 10px;
-  font-weight: normal;
+  font-weight: 500;
+  
 }
 
 .topic {
   text-align: center;
-  margin-top: 5px;
-  color: #ccc;
-  ;
+  margin-top: 20px;
 }
 /* Statistics Section */
 .statistics {
     padding: 60px 0;
-    background: #faf8f8;
+    background: #bfc8eb;
 }
 
 .stats-grid {
@@ -87,18 +105,20 @@ section {
 section h2 {
   color: #162a71;
   margin-bottom: 12px;
-  border-bottom: 2px solid #333;
   padding-bottom: 5px;
 }
 
 section p {
   margin: 10px 0;
-  color: #fff;
+  color: black;
+  font-weight: 500;
 }
 
 ul {
   list-style: none;
   padding-left: 0;
+  color: black;
+  font-weight: 500;
 }
 
 ul li {

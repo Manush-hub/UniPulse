@@ -14,18 +14,36 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  color: #fff;
+  color: #222;
   padding-bottom: 0; /* prevent footer overlap */ 
-  background: linear-gradient(to right, #4a66cc , #ff6422);
+  background: #fff;
 }
 
-header {
-  background: #fff;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 2px solid #fff;
-  box-shadow: none;
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
 }
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
 
 main {
   padding: 30px;
@@ -34,24 +52,23 @@ main {
 }
 
 h1 {
-  color: #fff;
+  color: #162a71;
   font-size: 28px;
   text-align: center;
   font-size: xx-large;
 }
 
 h2 {
-  color: #fff;
+  color: rgb(255, 111, 0);
   margin: 30px 0 12px;
-  border-bottom: 2px solid #333;
   padding-bottom: 6px;
 }
 
 h3 {
-  color: #fff;
+  color: #767474;
   text-align: center;
   margin-top: 8px;
-  font-weight: normal;
+  font-weight: 500;
 }
 
 /* Items */
@@ -66,7 +83,7 @@ h3 {
 /* Question button */
 .faq-question {
   width: 100%;
-  background: #092380;
+  background: #162a71;
   color: #fff;
   padding: 16px 18px;
   border: none;
@@ -77,7 +94,7 @@ h3 {
   justify-content: space-between;
   align-items: center;
 }
-.faq-question:hover { background: #4a66cc; }
+.faq-question:hover { background: #0d30af; }
 
 /* Caret */
 .faq-question::after {
@@ -93,6 +110,7 @@ h3 {
 .faq-answer {
   height: fit-content;          /* default height when closed */
   color: #1a1a1a;
+  font-weight: 500;
   overflow: hidden;
   background: #fff;
   transition: max-height .28s ease;

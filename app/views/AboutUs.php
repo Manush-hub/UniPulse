@@ -7,11 +7,15 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/AboutUs.css">
 </head>
 <body>
-  <header>
+<header class="header">
+  <div class="header-container">
     <div class="logo">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+      <a href="index.php">
+      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
+      </a>
     </div>
-  </header>
+  </div>
+</header>
   <main>
     <h1>About Us</h1>
     <section>
@@ -26,7 +30,7 @@
     </section>
       <h4>Learn more about UniPulse, our mission, vision, and the team behind it.</h4>
     <div class="topic">
-      <p>UNI PULSE</p>
+      <h1>UNI PULSE</h1>
     </div>
 
     <section class="statistics">

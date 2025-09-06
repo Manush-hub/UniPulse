@@ -14,18 +14,37 @@
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
-  color: #fff;
+  color: #222;
+  font-weight: 500;
   padding-bottom: 0; /* prevent footer overlap */ 
-  background: linear-gradient(to right, #4a66cc , #ff6422);
+  background: #fff;
 }
 
-header {
-  background: #fff;
-  padding: 20px;
-  text-align: center;
-  border-bottom: 2px solid #fff;
-  box-shadow: none;
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
 }
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
 
 main {
   padding: 30px;
@@ -34,14 +53,10 @@ main {
 }
 
 h1 {
-  color: #fff;
+  color: #162a71;
   font-size: xx-large;
   text-align: center;
-}
-
-h2 {
-  color: #fff;
-  margin: 15px 0 10px;
+  padding-bottom: 20px;
 }
 
 section {
@@ -50,9 +65,8 @@ section {
 
 section h2 {
   color: #ff5722;
-  margin-bottom: 12px;
-  border-bottom: 2px solid #0a1d62;
-  padding-bottom: 5px;
+  margin-bottom: 3px;
+  padding-bottom: 3px;
 }
 
 ul {
@@ -70,7 +84,7 @@ ul li::before {
   content: "•";
   position: absolute;
   left: 0;
-  color: #ff5722;
+  color: #222;
   font-weight: bold;
 }
 
@@ -98,6 +112,7 @@ a:hover {
   background: #1a1a1a;
   font-size: 14px;
   color: #999;
+  font-weight: normal;
   width: 100%;
   margin-top: 20px;
 }

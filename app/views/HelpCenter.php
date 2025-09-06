@@ -4,14 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Help Center | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/helpCenter.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/helpcenter.css">
 </head>
 <body>
-  <header>
+<header class="header">
+  <div class="header-container">
     <div class="logo">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-    </div>  
-  </header>
+      <a href="index.php">
+      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
+      </a>
+    </div>
+  </div>
+</header>
   <main>
     <h1>Help Center</h1>
     <div class="help-intro">

@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Help Center | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/Terms.css">
+  <title>Terms & Conditions | UniPulse</title>
+  <link rel="stylesheet" href="/unipulse/public/assets/css/terms.css">
 </head>
 <body>
 
-  <header>
+<header class="header">
+  <div class="header-container">
     <div class="logo">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-    </div>  
-  </header>
-
+      <a href="index.php">
+      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
+      </a>
+    </div>
+  </div>
+</header>
   <main>
     <h1>Terms & Conditions</h1>
-    <p>Effective Date: January 2025</p>
+    <p>Effective Date: September 2025</p>
     <section>
       <p>Welcome to <strong>UniPulse</strong>. By registering, accessing, or using our services, you agree to follow these Terms & Conditions. Please read them carefully.</p>
     </section>

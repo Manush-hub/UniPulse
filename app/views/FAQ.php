@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact Us | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/FAQ.css">
+  <title>FAQ | UniPulse</title>
+  <link rel="stylesheet" href="/unipulse/public/assets/css/faq.css">
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+<header class="header">
+  <div class="header-container">
+    <div class="logo">
+      <a href="index.php">
+      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
+      </a>
+    </div>
   </div>
 </header>
 

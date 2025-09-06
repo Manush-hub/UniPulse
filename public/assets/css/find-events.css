@@ -11,6 +11,13 @@
   box-sizing: border-box;
 }
 
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  padding-bottom: 0; /* prevent footer overlap */ 
+  background: #fff;
+}
+
 main {
   padding: 30px;
   max-width: 1000px;
@@ -18,116 +25,163 @@ main {
 }
 
 h1 {
-  color: #fff;
+  color: #162a71;
   font-size: xx-large;
   text-align: center;
 }
 
-h2 {
-  color: #fff;
-  margin: 15px 0 10px;
+h4 {
+  color: #3f3e3e;
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 500;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #fff;
-  padding-bottom: 0; /* prevent footer overlap */ 
-  background: linear-gradient(to right, #4a66cc , #ff6422);
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
 }
 
-header {
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Search & Filter */
+.search-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
   background: #fff;
   padding: 20px;
-  text-align: center;
-  border-bottom: 2px solid #fff;
-  box-shadow: none;
+
 }
 
-main {
-  padding: 30px;
-  max-width: 1000px;
+.search-bar {
+  padding: 10px;
+  width: 250px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #fff;
+  color: #222;
+}
+
+select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+}
+
+/* Highlight search/filter when active */
+.search-bar:focus,
+select:focus,
+input[type="date"]:focus {
+  outline: none;
+  border: 1px solid #222;
+  background: #fff;
+}
+
+/* Events Grid*/
+.events-grid {
+  display: grid;
+  padding: 20px 30px;
+  width :fit-content;
   margin: auto;
 }
 
-.tabs {
-      display: flex;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .tab-btn {
-      background: rgba(14, 14, 211, 0.829);
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      margin: 0 5px;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background 0.3s;
-    }
-    .tab-btn.active, .tab-btn:hover {
-      background: rgba(14, 14, 211, 0.829);
-    }
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin: 20px 0;
-    }
-    .filters select, .filters input {
-      padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #333;
-      background: #fff;
-      color: #333;
-    }
-    .search-bar {
-      text-align: center;
-      margin: 20px 0;
-    }
-    .search-bar input {
-      width: 60%;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #fff;
-      background: #fff;
-      color: black;
-    }
-    .hidden {
-      display: none;
-    }
-
 .event-card {
   background: #fff;
+  border: 1px solid #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  background: #fff;
+}
+
+.event-info {
   padding: 15px;
   margin: 15px 0;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-.event-card-content{
-    margin-bottom: 10px;
-    color: black;
-    font-weight: bold;
-}
-.event-card h3 {
-  color: #ff5722;
+.event-info h3 {
+  margin: 0 0 10px;
+  color: #162a71;
 }
 
-button, input[type="submit"] {
-  background: #ff5722;
-  border: none;
+.event-info p {
+  margin: 5px 0;
+  color: #222;
+  font-family: 500;
+}
+
+.event-info button {
+  margin-top: 10px;
   padding: 10px 15px;
-  color: #fff;
-  border-radius: 4px;
+  background: #162a71;
+  border: none;
+  border-radius: 8px;
+  color: white;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: 0.3s;
 }
 
-button:hover, input[type="submit"]:hover {
+.event-info button:hover {
   background: #e64a19;
 }
+
+.details-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: #222;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+
+/* Hide filtered events */
+.event-card.hide {
+  display: none;
+}
+
+/* Smooth hide animation */
+.event-card {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.event-card.hide {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+
+
 
 .footer-logo {
     display: flex;
