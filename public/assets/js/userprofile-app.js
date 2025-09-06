@@ -18,7 +18,6 @@ class UniPulseProfile {
             location: 'San Francisco, CA',
             website: 'https://vinuja.dev',
             avatar: 'https://avatars.githubusercontent.com/u/vinujawakishta?v=4',
-            // Social Links
             personalWebsite: '',
             facebook: 'https://facebook.com/vinujawakishta',
             instagram: 'https://instagram.com/vinujawakishta',
@@ -78,9 +77,7 @@ class UniPulseProfile {
     }
 
     setupImageUploads() {
-        // Setup cover photo upload
         this.setupCoverPhotoUpload();
-        // Setup profile photo upload
         this.setupProfilePhotoUpload();
     }
 
@@ -101,7 +98,6 @@ class UniPulseProfile {
                         const coverImg = document.getElementById('coverPhoto');
                         if (coverImg) {
                             coverImg.src = e.target.result;
-                            // this.showNotification('Cover photo updated successfully!', 'success');
                         }
                     };
                     reader.readAsDataURL(file);
@@ -114,7 +110,6 @@ class UniPulseProfile {
         const avatarEditBtn = document.querySelector('.avatar-edit-btn');
         const fileInput = document.getElementById('fileInput');
 
-        // Create file input if it doesn't exist
         if (!fileInput) {
             const input = document.createElement('input');
             input.type = 'file';
@@ -132,7 +127,7 @@ class UniPulseProfile {
     }
 
     categorizeEvents() {
-        const currentDate = new Date('2024-08-25'); // Using the provided current date
+        const currentDate = new Date('2024-08-25');
         
         this.events.forEach(event => {
             const eventDate = new Date(event.date);
@@ -141,7 +136,6 @@ class UniPulseProfile {
     }
 
     bindEvents() {
-        // Tab navigation
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -156,7 +150,6 @@ class UniPulseProfile {
     }
 
     bindFormEvents() {
-        // Personal info form
         const personalForm = document.getElementById('personal-form');
         if (personalForm) {
             personalForm.addEventListener('submit', (e) => {
@@ -165,28 +158,24 @@ class UniPulseProfile {
             });
         }
 
-        // Role button selection
         document.querySelectorAll('.role-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.selectRole(e.target.dataset.role);
             });
         });
 
-        // Gender button selection
         document.querySelectorAll('.gender-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.selectGender(e.target.dataset.gender);
             });
         });
 
-        // Event preference buttons
         document.querySelectorAll('.preference-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.togglePreference(e.target);
             });
         });
 
-        // Settings form
         const settingsForm = document.querySelector('#settings form');
         if (settingsForm) {
             settingsForm.addEventListener('submit', (e) => {
@@ -195,7 +184,6 @@ class UniPulseProfile {
             });
         }
 
-        // File upload
         const fileInput = document.getElementById('fileInput');
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
@@ -205,14 +193,12 @@ class UniPulseProfile {
     }
 
     bindToggleEvents() {
-        // Privacy toggles
         document.querySelectorAll('.toggle input').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
                 this.updatePrivacySetting(e.target.id, e.target.checked);
             });
         });
 
-        // Preference checkboxes
         document.querySelectorAll('.checkbox-item input').forEach(checkbox => {
             checkbox.addEventListener('change', (e) => {
                 this.updateEventPreference(e.target.parentElement.textContent.trim(), e.target.checked);
@@ -221,7 +207,6 @@ class UniPulseProfile {
     }
 
     bindModalEvents() {
-        // Modal close events
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const modal = e.target.closest('.modal');
@@ -229,7 +214,6 @@ class UniPulseProfile {
             });
         });
 
-        // Close modal on outside click
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -240,7 +224,6 @@ class UniPulseProfile {
     }
 
     setupAnimations() {
-        // Intersection Observer for scroll animations
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
@@ -262,7 +245,6 @@ class UniPulseProfile {
     }
 
     loadUserData() {
-        // Load user data into form fields
         Object.keys(this.userData).forEach(key => {
             const element = document.getElementById(key);
             if (element) {
@@ -270,7 +252,6 @@ class UniPulseProfile {
             }
         });
 
-        // Update profile display
         const profileName = document.getElementById('profileName');
         const profileBio = document.getElementById('profileBio');
         const profileImage = document.getElementById('profileImage');
@@ -279,7 +260,6 @@ class UniPulseProfile {
         if (profileBio) profileBio.textContent = this.userData.bio;
         if (profileImage) profileImage.src = this.userData.avatar;
 
-        // Load interests
         this.loadInterests();
         this.updateStats();
     }
@@ -301,7 +281,7 @@ class UniPulseProfile {
     updateStats() {
         const attendedCount = this.events.filter(e => e.type === 'attended').length;
         const organizedCount = this.events.filter(e => e.type === 'organized').length;
-        const totalConnections = 42; // This would come from your backend
+        const totalConnections = 42;
 
         const eventsAttended = document.getElementById('eventsAttended');
         const eventsOrganized = document.getElementById('eventsOrganized');
@@ -316,42 +296,24 @@ class UniPulseProfile {
         button.classList.toggle('active');
         const preference = button.dataset.preference;
         const isActive = button.classList.contains('active');
-        
-        if (isActive) {
-            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
-        } else {
-            // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference removed`, 'info');
-        }
     }
 
     selectRole(role) {
-        // Remove active class from all role buttons
         document.querySelectorAll('.role-btn').forEach(btn => {
             btn.classList.remove('active');
         });
 
-        // Add active class to selected button
         document.querySelector(`[data-role="${role}"]`).classList.add('active');
-
-        // Update hidden input value
         document.getElementById('role').value = role;
-
-        // this.showNotification(`Role set to ${role.charAt(0).toUpperCase() + role.slice(1)}`, 'info');
     }
 
     selectGender(gender) {
-        // Remove active class from all gender buttons
         document.querySelectorAll('.gender-btn').forEach(btn => {
             btn.classList.remove('active');
         });
 
-        // Add active class to selected button
         document.querySelector(`[data-gender="${gender}"]`).classList.add('active');
-
-        // Update hidden input value
         document.getElementById('gender').value = gender;
-
-        // this.showNotification(`Gender set to ${gender.charAt(0).toUpperCase() + gender.slice(1)}`, 'info');
     }
 
     showTab(tabName) {
@@ -389,17 +351,14 @@ class UniPulseProfile {
 
         container.innerHTML = '';
         
-        // Sort events: upcoming first (by date), then past events
         const sortedEvents = this.events.sort((a, b) => {
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
             const currentDate = new Date('2024-08-25');
             
-            // If both are upcoming or both are past, sort by date
             if ((dateA > currentDate && dateB > currentDate) || (dateA <= currentDate && dateB <= currentDate)) {
                 return dateA - dateB;
             }
-            // Upcoming events come first
             return dateA > currentDate ? -1 : 1;
         });
         
@@ -505,21 +464,15 @@ class UniPulseProfile {
             website: document.getElementById('website').value
         };
 
-        // Update userData
         Object.assign(this.userData, formData);
-
-        // this.showNotification('Personal information updated successfully!', 'success');
         
-        // Update profile display
         document.getElementById('profileName').textContent = `${formData.firstName} ${formData.lastName}`;
         document.getElementById('profileBio').textContent = formData.bio;
 
-        // Exit edit mode
         this.toggleEdit('personal-form');
     }
 
     cancelPersonalInfo() {
-        // Restore original values from userData
         const fields = [
             { id: 'firstname', key: 'firstName' },
             { id: 'lastname', key: 'lastName' },
@@ -541,7 +494,6 @@ class UniPulseProfile {
             }
         });
 
-        // Reset gender selection
         const defaultGender = this.userData.gender || 'male';
         document.querySelectorAll('.gender-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -549,15 +501,12 @@ class UniPulseProfile {
         document.querySelector(`[data-gender="${defaultGender}"]`)?.classList.add('active');
         document.getElementById('gender').value = defaultGender;
 
-        // Reset role selection
         const defaultRole = this.userData.role || 'student';
         document.querySelectorAll('.role-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         document.querySelector(`[data-role="${defaultRole}"]`)?.classList.add('active');
         document.getElementById('role').value = defaultRole;
-
-        // this.showNotification('Changes cancelled, form restored to original values', 'info');
     }
 
     saveSocialLinks() {
@@ -572,14 +521,10 @@ class UniPulseProfile {
             discord: document.getElementById('discord')?.value || ''
         };
 
-        // Update userData
         Object.assign(this.userData, socialData);
-
-        // this.showNotification('Social links updated successfully!', 'success');
     }
 
     cancelSocialLinks() {
-        // Restore original values from userData
         document.getElementById('personal-website').value = this.userData.personalWebsite || '';
         document.getElementById('facebook').value = this.userData.facebook || '';
         document.getElementById('instagram').value = this.userData.instagram || '';
@@ -588,8 +533,6 @@ class UniPulseProfile {
         document.getElementById('github').value = this.userData.github || '';
         document.getElementById('x-twitter').value = this.userData.xTwitter || '';
         document.getElementById('discord').value = this.userData.discord || '';
-
-        // this.showNotification('Changes cancelled, social links restored to original values', 'info');
     }
 
     saveSettings() {
@@ -598,8 +541,6 @@ class UniPulseProfile {
             timezone: document.getElementById('timezone').value,
             language: document.getElementById('language').value
         };
-
-        // this.showNotification('Settings saved successfully!', 'success');
     }
 
     addTag() {
@@ -610,7 +551,6 @@ class UniPulseProfile {
             this.interests.push(tagValue);
             this.loadInterests();
             newTagInput.value = '';
-            // this.showNotification('Interest added successfully!', 'success');
         }
     }
 
@@ -619,18 +559,15 @@ class UniPulseProfile {
         if (index > -1) {
             this.interests.splice(index, 1);
             this.loadInterests();
-            // this.showNotification('Interest removed successfully!', 'info');
         }
     }
 
     updatePrivacySetting(settingId, value) {
         console.log(`Privacy setting ${settingId} set to ${value}`);
-        // this.showNotification(`Privacy setting updated!`, 'info');
     }
 
     updateEventPreference(preference, isChecked) {
         console.log(`Event preference ${preference} set to ${isChecked}`);
-        // this.showNotification('Preferences updated!', 'success');
     }
 
     uploadImage() {
@@ -643,7 +580,6 @@ class UniPulseProfile {
             reader.onload = (e) => {
                 document.getElementById('profileImage').src = e.target.result;
                 this.userData.avatar = e.target.result;
-                // this.showNotification('Profile picture updated!', 'success');
                 this.closeModal('imageUploadModal');
             };
             reader.readAsDataURL(file);
@@ -669,52 +605,44 @@ class UniPulseProfile {
     viewEventDetails(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            // this.showNotification(`Opening details for ${event.title}`, 'info');
-            // Implement event details modal or navigation
+            console.log(`Opening details for ${event.title}`);
         }
     }
 
     manageEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            // this.showNotification(`Managing ${event.title}`, 'info');
-            // Implement event management functionality
+            console.log(`Managing ${event.title}`);
         }
     }
 
     rateEvent(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            // this.showNotification(`Rating ${event.title}`, 'info');
-            // Implement rating modal
+            console.log(`Rating ${event.title}`);
         }
     }
 
     viewTicket(eventId) {
         const event = this.events.find(e => e.id === eventId);
         if (event) {
-            // this.showNotification(`Viewing ticket for ${event.title}`, 'info');
-            // Implement ticket view
+            console.log(`Viewing ticket for ${event.title}`);
         }
     }
 
     deactivateAccount() {
         if (confirm('Are you sure you want to deactivate your account? This action can be reversed.')) {
-            // this.showNotification('Account deactivation process started', 'warning');
-            // Implement deactivation logic
+            console.log('Account deactivation process started');
         }
     }
 
     deleteAccount() {
         if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
             if (confirm('Please confirm again. This will permanently delete all your data.')) {
-                // this.showNotification('Account deletion process started', 'error');
-                // Implement deletion logic
+                console.log('Account deletion process started');
             }
         }
     }
-
-    // Notification functions removed
 
     editProfile() {
         this.showTab('personal');
@@ -722,13 +650,11 @@ class UniPulseProfile {
     }
 
     cancelEdit(formId) {
-        // Restore original values
         this.loadUserData();
         this.toggleEdit(formId);
     }
 }
 
-// Global functions for onclick handlers
 function uploadImage() {
     profileManager.uploadImage();
 }
@@ -777,7 +703,6 @@ function deleteAccount() {
     profileManager.deleteAccount();
 }
 
-// Cover photo upload functions
 function uploadCover() {
     document.getElementById('coverInput').click();
 }
@@ -790,14 +715,12 @@ function changeCover(event) {
             const coverImg = document.getElementById('coverPhoto');
             if (coverImg) {
                 coverImg.src = e.target.result;
-                profileManager.showNotification('Cover photo updated successfully!', 'success');
             }
         };
         reader.readAsDataURL(file);
     }
 }
 
-// Profile photo upload functions
 function uploadProfileImage() {
     document.getElementById('profileInput').click();
 }
@@ -810,21 +733,17 @@ function changeProfileImage(event) {
             const profileImg = document.getElementById('profileImage');
             if (profileImg) {
                 profileImg.src = e.target.result;
-                profileManager.showNotification('Profile photo updated successfully!', 'success');
             }
         };
         reader.readAsDataURL(file);
     }
 }
 
-// Initialize the profile manager when DOM is loaded
 let profileManager;
 document.addEventListener('DOMContentLoaded', () => {
     profileManager = new UniPulseProfile();
     
-    // Add some extra interactivity
     document.addEventListener('keydown', (e) => {
-        // ESC key to close modals
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal.active').forEach(modal => {
                 profileManager.closeModal(modal.id);
@@ -832,7 +751,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Add loading states to buttons
     document.querySelectorAll('.btn').forEach(btn => {
         btn.addEventListener('click', function() {
             if (!this.classList.contains('loading')) {
@@ -848,7 +766,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Add smooth scrolling to internal links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -863,9 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Privacy Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize privacy toggles
     const privacyToggles = [
         { toggleId: 'emailPrivacy', labelId: 'email' },
         { toggleId: 'phonePrivacy', labelId: 'phone' },
@@ -880,7 +795,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (toggle && label) {
             const statusText = label.querySelector('small');
             
-            // Update status text on toggle change
             toggle.addEventListener('change', function() {
                 if (statusText) {
                     statusText.textContent = this.checked ? 'Public' : 'Private';
@@ -888,7 +802,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Initialize status text color
             if (statusText) {
                 statusText.style.color = toggle.checked ? '#4A5BCC' : '#666';
             }
@@ -896,7 +809,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add CSS for loading states
 const loadingStyle = document.createElement('style');
 loadingStyle.textContent = `
     .btn.loading {
@@ -915,7 +827,6 @@ loadingStyle.textContent = `
 `;
 document.head.appendChild(loadingStyle);
 
-// Gallery Functionality
 let galleryPhotos = [
     {
         id: 1,
@@ -949,8 +860,6 @@ let galleryPhotos = [
 let currentEditingGalleryId = null;
 const MAX_GALLERY_ENTRIES = 5;
 const MAX_PHOTOS_PER_ENTRY = 5;
-
-// Add Gallery Photo
 function addGalleryPhoto() {
     if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
         showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
@@ -962,7 +871,6 @@ function addGalleryPhoto() {
     document.getElementById('galleryTitle').value = '';
     document.getElementById('galleryDescription').value = '';
     
-    // Reset all file inputs and previews
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
@@ -976,12 +884,10 @@ function addGalleryPhoto() {
         if (uploadContent) uploadContent.style.display = 'flex';
     }
     
-    // Show modal
     document.getElementById('galleryPhotoModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-// Edit Gallery Item
 function editGalleryItem(galleryId) {
     const photo = galleryPhotos.find(p => p.id === galleryId);
     if (!photo) return;
@@ -991,22 +897,18 @@ function editGalleryItem(galleryId) {
     document.getElementById('galleryTitle').value = photo.title;
     document.getElementById('galleryDescription').value = photo.description;
     
-    // Show current image in preview
     const preview = document.getElementById('galleryPreview');
     const uploadContent = document.querySelector('.upload-content');
     preview.src = photo.image;
     preview.style.display = 'block';
     uploadContent.style.display = 'none';
     
-    // Hide file upload section for editing
     document.getElementById('galleryImageUpload').style.display = 'none';
     
-    // Show modal
     document.getElementById('galleryPhotoModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
-// Delete Gallery Item
 function deleteGalleryItem(galleryId) {
     if (confirm('Are you sure you want to delete this photo?')) {
         galleryPhotos = galleryPhotos.filter(p => p.id !== galleryId);
@@ -1015,19 +917,16 @@ function deleteGalleryItem(galleryId) {
     }
 }
 
-// Preview Gallery Image
 function previewGalleryImage(event, photoIndex) {
     const file = event.target.files[0];
     if (!file) return;
     
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
         showNotification('File size must be less than 5MB', 'error');
         event.target.value = '';
         return;
     }
     
-    // Validate file type
     if (!file.type.startsWith('image/')) {
         showNotification('Please select a valid image file', 'error');
         event.target.value = '';
@@ -1046,12 +945,10 @@ function previewGalleryImage(event, photoIndex) {
     reader.readAsDataURL(file);
 }
 
-// Save Gallery Photo
 function saveGalleryPhoto() {
     const title = document.getElementById('galleryTitle').value.trim();
     const description = document.getElementById('galleryDescription').value.trim();
     
-    // Validation
     if (!title) {
         showNotification('Please enter a title for the gallery', 'error');
         return;
@@ -1072,7 +969,6 @@ function saveGalleryPhoto() {
         return;
     }
     
-    // Collect uploaded images
     const images = [];
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
@@ -1089,16 +985,13 @@ function saveGalleryPhoto() {
     }
     
     if (currentEditingGalleryId) {
-        // Update existing gallery entry
         const photoIndex = galleryPhotos.findIndex(p => p.id === currentEditingGalleryId);
         if (photoIndex !== -1) {
             galleryPhotos[photoIndex].title = title;
             galleryPhotos[photoIndex].description = description;
-            // Note: In a real app, you'd handle image updates differently
         }
         showNotification('Gallery updated successfully!', 'success');
     } else {
-        // Add new gallery entry
         if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
             showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
             return;
@@ -1119,29 +1012,24 @@ function saveGalleryPhoto() {
     closeGalleryModal();
 }
 
-// Close Gallery Modal
 function closeGalleryModal() {
     document.getElementById('galleryPhotoModal').style.display = 'none';
     document.body.style.overflow = 'auto';
     
-    // Reset form
     document.getElementById('galleryTitle').value = '';
     document.getElementById('galleryDescription').value = '';
     document.getElementById('galleryFileInput').value = '';
     
-    // Reset preview
     const preview = document.getElementById('galleryPreview');
     const uploadContent = document.querySelector('.upload-content');
     preview.style.display = 'none';
     uploadContent.style.display = 'flex';
     
-    // Show file upload section again
     document.getElementById('galleryImageUpload').style.display = 'block';
     
     currentEditingGalleryId = null;
 }
 
-// Render Gallery
 function renderGallery() {
     const galleryGrid = document.getElementById('galleryGrid');
     
@@ -1177,7 +1065,6 @@ function renderGallery() {
     `).join('');
 }
 
-// Character counters for gallery inputs
 document.addEventListener('DOMContentLoaded', function() {
     const titleInput = document.getElementById('galleryTitle');
     const descriptionInput = document.getElementById('galleryDescription');
@@ -1199,7 +1086,6 @@ function updateCharacterCounter(input, maxLength) {
     const currentLength = input.value.length;
     const remainingChars = maxLength - currentLength;
     
-    // Find or create counter element
     let counter = input.parentElement.querySelector('.character-counter');
     if (!counter) {
         counter = document.createElement('div');
@@ -1209,7 +1095,6 @@ function updateCharacterCounter(input, maxLength) {
     
     counter.textContent = `${currentLength}/${maxLength} characters`;
     
-    // Add warning/danger classes
     counter.classList.remove('warning', 'danger');
     if (remainingChars <= 10 && remainingChars > 0) {
         counter.classList.add('warning');
@@ -1218,7 +1103,6 @@ function updateCharacterCounter(input, maxLength) {
     }
 }
 
-// Helper function to escape HTML
 function escapeHtml(text) {
     const map = {
         '&': '&amp;',

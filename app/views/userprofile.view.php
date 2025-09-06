@@ -7,24 +7,23 @@
     <link rel="stylesheet" href="/UniPulse/public/assets/css/userprofile-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <!-- Profile Header -->
         <header class="profile-header">
-            <!-- Cover Photo Section -->
             <div class="cover-photo-section">
+                <!-- Cover Photo -->
                 <div class="cover-photo">
-                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=cover&w=1200&q=80" alt="Cover Photo">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
                     </div>
                 </div>
-                
-                <!-- Profile Avatar positioned to overlap -->
-                <div class="profile-avatar profile-avatar-overlap">
-                    <img src="https://avatars.githubusercontent.com/u/vinujawakishta?v=4" alt="Profile Picture" id="profileImage">
-                    <div class="avatar-overlay" onclick="uploadProfileImage()">
+                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
+                <!-- Profile Photo -->
+                <div class="profile-photo">
+                    <div class="profile-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Photo
                     </div>
@@ -32,10 +31,9 @@
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
             </div>
             
+            <!-- Profile Banner -->
             <div class="profile-banner">
-                <!-- Empty banner section for spacing and design -->
             </div>
-        </header>
         </header>
 
         <!-- Navigation Tabs -->
@@ -63,7 +61,6 @@
                         <h3>Basic Information</h3>
                     </div>
                     <form id="personal-form" class="form">
-                        <!-- First Row: Full Name -->
                         <div class="form-group">
                             <label for="firstname">First Name</label>
                             <input type="text" id="firstname" value="Vinuja">
@@ -73,7 +70,6 @@
                             <input type="text" id="lastname" value="Wakishta">
                         </div>
                         
-                        <!-- Second Row: University and Faculty -->
                         <div class="form-group">
                             <label for="university">University</label>
                             <input type="text" id="university" value="University of Example">
@@ -83,7 +79,6 @@
                             <input type="text" id="faculty" value="Faculty of Engineering">
                         </div>
                         
-                        <!-- Third Row: Date of Birth and Gender -->
                         <div class="form-group">
                             <label for="dob">Date of Birth</label>
                             <input type="date" id="dob" value="1995-06-15">
@@ -97,7 +92,6 @@
                             <input type="hidden" id="gender" value="male">
                         </div>
                         
-                        <!-- Fourth Row: Email and Phone -->
                         <div class="form-group">
                             <label for="email">Email</label>
                             <input type="email" id="email" value="vinuja@unipulse.com">
@@ -107,7 +101,6 @@
                             <input type="tel" id="phone" value="+1 (555) 123-4567">
                         </div>
                         
-                        <!-- Fifth Row: Current Town/City and Home Town -->
                         <div class="form-group">
                             <label for="currentCity">Current Town/City</label>
                             <input type="text" id="currentCity" value="San Francisco, CA">
@@ -117,7 +110,6 @@
                             <input type="text" id="homeTown" value="Los Angeles, CA">
                         </div>
                         
-                        <!-- Sixth Row: Role -->
                         <div class="form-group">
                             <label for="role">Role</label>
                             <div class="role-buttons">
@@ -127,7 +119,6 @@
                             <input type="hidden" id="role" value="student">
                         </div>
                         
-                        <!-- Bio and Location -->
                          <div class="form-group full-width">
                             <label for="headline">Headline</label>
                             <textarea id="headline" rows="1">Uni Student</textarea>
@@ -137,7 +128,6 @@
                             <textarea id="bio" rows="4">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</textarea>
                         </div>
                         
-                        <!-- Save Changes Button -->
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
                                 Save Changes
@@ -164,7 +154,6 @@
                     </div>
                 </div>
 
-                <!-- Gallery Section -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Photo Gallery</h3>
@@ -179,7 +168,6 @@
                             <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 5 photos each. Each gallery entry should include a title and description.</p>
                         </div>
                         <div class="gallery-grid" id="galleryGrid">
-                            <!-- Existing Gallery Items -->
                             <div class="gallery-item editable" data-gallery-id="1">
                                 <div class="gallery-images-container">
                                     <div class="gallery-image-carousel">
@@ -285,7 +273,6 @@
                     </div>
                 </div>
 
-                <!-- Social Links -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Connect With Me</h3>
@@ -352,7 +339,7 @@
                 </div>
             </div>
 
-            <!-- Events Tab -->
+            <!-- Registered Events Tab -->
             <div id="events" class="tab-content">
                 <div class="events-grid" id="eventsContainer">
                     <!-- Events will be populated by JavaScript -->
