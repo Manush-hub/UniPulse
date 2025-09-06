@@ -327,7 +327,7 @@
         </div>
     </div>
 
-    <script src="admin-dashboard.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/dashboard.js"></script>
 </body>
 
 </html>
