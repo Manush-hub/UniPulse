@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Admin Dashboard</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/Dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -13,7 +14,7 @@
     <header class="header">
         <div class="header-container">
             <div class="logo">
-                <a href="index.html">
+                <a href="dashboard.html">
                     <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
                 </a>
             </div>
@@ -40,7 +41,7 @@
                     </div>
                 </div>
                 <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/admin.jpg" alt="Admin" class="admin-avatar">
+                    <img src="/unipulse/public/assets/images/admin.png" alt="Admin" class="admin-avatar">
                     <div class="user-info">
                         <span class="username" id="username">Robert Johnson</span>
                         <span class="user-role" id="userRole">System Administrator</span>

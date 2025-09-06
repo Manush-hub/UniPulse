@@ -178,7 +178,7 @@ body {
     cursor: pointer;
 }
 
-.admin-avatar {
+.moderator-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -410,7 +410,7 @@ body {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: 1f2937;
+    color: #1f2937;
 }
 
 .action-card p {
@@ -444,70 +444,103 @@ body {
     background: #f0f9ff;
 }
 
-/* System Overview */
-.system-overview {
+/* Pending Reviews */
+.pending-reviews {
     padding: 2rem 0;
     background: #f8fafc;
     margin-bottom: 2rem;
 }
 
-.overview-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.overview-card {
+.review-item {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 1rem;
+    transition: all 0.3s ease;
 }
 
-.overview-icon {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #1E3A8A, #F97316);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
+.review-item:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.overview-content h3 {
+.review-info {
+    flex: 1;
+}
+
+.review-title {
     font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 1rem;
     color: #1f2937;
+    margin-bottom: 0.5rem;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.review-meta {
+    display: flex;
     gap: 1rem;
+    font-size: 0.9rem;
+    color: #666;
 }
 
-.stat {
-    text-align: center;
+.review-organizer {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.stat-value {
-    display: block;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1E3A8A;
+.review-actions {
+    display: flex;
+    gap: 0.5rem;
 }
 
-.stat-label {
-    display: block;
-    font-size: 0.8rem;
-    color: #222;
+.review-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.review-btn.approve {
+    background: #dcfce7;
+    color: #16a34a;
+    border-color: #16a34a;
+}
+
+.review-btn.approve:hover {
+    background: #16a34a;
+    color: white;
+}
+
+.review-btn.reject {
+    background: #fef3c7;
+    color: #d97706;
+    border-color: #d97706;
+}
+
+.review-btn.reject:hover {
+    background: #d97706;
+    color: white;
+}
+
+.review-btn.view {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #1e40af;
+}
+
+.review-btn.view:hover {
+    background: #1e40af;
+    color: white;
 }
 
 /* Recent Activity */
@@ -592,122 +625,88 @@ body {
     color: #1f2937;
 }
 
-.approval-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.approval-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem;
-    background: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-}
-
-.approval-info {
-    flex: 1;
-}
-
-.approval-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 0.25rem;
-}
-
-.approval-type {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.approval-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.approval-btn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    border: 2px solid #e5e7eb;
-    background: white;
-}
-
-.approval-btn.approve {
-    color: #16a34a;
-    border-color: #16a34a;
-}
-
-.approval-btn.approve:hover {
-    background: #16a34a;
-    color: white;
-}
-
-.approval-btn.reject {
-    color: #ef4444;
-    border-color: #ef4444;
-}
-
-.approval-btn.reject:hover {
-    background: #ef4444;
-    color: white;
-}
-
-.health-status {
+.stats-container {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.health-metric {
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #1E3A8A, #F97316);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #222;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #222;
+}
+
+.guidelines-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.guideline-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    padding: 0.5rem 0;
 }
 
-.metric-label {
-    font-size: 0.9rem;
-    color: #1f2937;
-    width: 100px;
+.guideline-item i {
+    color: #16a34a;
 }
 
-.metric-bar {
-    flex: 1;
-    height: 8px;
-    background: #e5e7eb;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.metric-fill {
-    height: 100%;
-    background: linear-gradient(135deg, #1E3A8A, #F97316);
-    width: 0%;
-    transition: width 2s ease-in-out;
-    border-radius: 4px;
-}
-
-.metric-value {
-    font-size: 0.9rem;
-    font-weight: 600;
+.view-guidelines {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
     color: #1E3A8A;
-    width: 40px;
-    text-align: right;
+    font-weight: 600;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
 }
 
-/* User Management Preview */
-.user-management-preview {
+.view-guidelines:hover {
+    background: #f0f9ff;
+}
+
+/* User Reports */
+.user-reports {
     padding: 2rem 0;
     background: #f8fafc;
 }
 
-.user-table {
+.reports-table {
     background: white;
     border-radius: 12px;
     padding: 1.5rem;
@@ -715,61 +714,60 @@ body {
     overflow-x: auto;
 }
 
-.user-table table {
+.reports-table table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.user-table th,
-.user-table td {
+.reports-table th,
+.reports-table td {
     padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #f3f4f6;
 }
 
-.user-table th {
+.reports-table th {
     font-weight: 600;
     color: #1f2937;
     background: #f8fafc;
 }
 
-.user-table tr:hover {
+.reports-table tr:hover {
     background: #f8fafc;
 }
 
-.user-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 0.5rem;
-}
-
-.user-info-cell {
-    display: flex;
-    align-items: center;
-}
-
-.user-name {
+.report-content {
     font-weight: 600;
     color: #1f2937;
 }
 
-.user-email {
-    font-size: 0.8rem;
-    color: #666;
-}
-
-.status-badge {
+.report-type {
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 600;
 }
 
-.status-active {
-    background: #dcfce7;
-    color: #16a34a;
+.type-inappropriate {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.type-spam {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.type-misinformation {
+    background: #fecaca;
+    color: #dc2626;
+}
+
+.report-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
 }
 
 .status-pending {
@@ -777,9 +775,14 @@ body {
     color: #d97706;
 }
 
-.status-inactive {
-    background: #f3f4f6;
-    color: #6b7280;
+.status-in-progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-resolved {
+    background: #dcfce7;
+    color: #16a34a;
 }
 
 .table-actions {
@@ -802,7 +805,11 @@ body {
     color: #1E3A8A;
 }
 
-.action-btn.edit:hover {
+.action-btn.view:hover {
+    color: #16a34a;
+}
+
+.action-btn.resolve:hover {
     color: #16a34a;
 }
 
@@ -849,16 +856,6 @@ body {
 .footer-copyright {
     color: #666;
     font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.system-version {
-    background: #f3f4f6;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
 }
 
 /* Modal */
@@ -885,7 +882,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     width: 90%;
-    max-width: 500px;
+    max-width: 600px;
     position: relative;
 }
 
@@ -958,11 +955,39 @@ body {
         grid-template-columns: 1fr;
     }
     
-    .overview-cards {
-        grid-template-columns: 1fr;
+    .review-item {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
     }
     
-    .stats-grid {
-        grid-template-columns: 1fr;
+    .review-actions {
+        width: 100%;
+        justify-content: flex-end;
     }
-}        
+}
+
+@media (max-width: 480px) {
+    .welcome-section {
+        padding: 2rem 0;
+    }
+    
+    .quick-actions {
+        padding: 2rem 0;
+    }
+    
+    .pending-reviews,
+    .recent-activity,
+    .user-reports {
+        padding: 2rem 0;
+    }
+    
+    .user-info {
+        display: none;
+    }
+    
+    .review-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
