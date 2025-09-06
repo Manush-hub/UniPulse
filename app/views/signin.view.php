@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - UniPulse</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/signin-style.css">
+    <link rel="stylesheet" href="assets/css/signin-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="header-container">
             <div class="logo">
                 <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+                    <img src="assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
                 </a>
             </div>
         </div>
@@ -92,7 +92,7 @@
                     <!-- Create Account Link -->
                     <div class="create-account">
                         <span>Don't have an account? </span>
-                        <a href="/unipulse/public/signup">Create Account</a>
+                        <a href="signup">Create Account</a>
                     </div>
                 </form>
             </div>
@@ -124,6 +124,6 @@
         </button>
     </div>
 
-    <script src="/unipulse/public/assets/js/signin-app.js"></script>
+    <script src="assets/js/signin-app.js"></script>
 </body>
 </html>

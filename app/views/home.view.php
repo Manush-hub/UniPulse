@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Unforgettable Events Start Here</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/home-style.css">
+    <link rel="stylesheet" href="assets/css/home-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -13,14 +13,14 @@
         <nav class="navbar">
             <div class="nav-brand">
                 <div class="logo">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+                    <img src="assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
                 </div>
             </div>
                 <div class="unp-nav-group">
                     <a href="#features" class="unp-nav-link">Features</a>
                     <a href="#users" class="unp-nav-link">Users</a>
                     <a href="#events" class="unp-nav-link">Events</a>
-                    <a href="/unipulse/public/signin" class="unp-nav-link">LogIn</a>
+                    <a href="signin" class="unp-nav-link">LogIn</a>
                     <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
                 </div>
             <div class="hamburger">
@@ -299,7 +299,7 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                       <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+                       <img src="assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
                 </div>
                     <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
                 </div>
@@ -334,6 +334,6 @@
         </div>
     </footer>
 
-    <script src="/unipulse/public/assets/js/app.js"></script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>
