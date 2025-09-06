@@ -11,10 +11,6 @@ class ClubProfile {
             address: '123 Tech Lane, Berkeley, CA 94720',
             establishedYear: 2018,
             memberCount: 245,
-            adminisName: 'Sarah Johnson',
-            adminisContact: '+1 (510) 123-4567',
-            adminRole: 'President',
-            adminEmail: 'sarah.johnson@berkeley.edu',
             headline: 'Student Organization',
             bio: 'Leading student organization dedicated to fostering innovation and technological advancement. We organize workshops, hackathons, and networking events to bridge the gap between academia and industry.',
             mission: 'To create a vibrant community of tech enthusiasts, fostering innovation, collaboration, and professional development through hands-on learning experiences and industry partnerships.',
@@ -614,8 +610,6 @@ class ClubProfile {
 
     loadExistingCommitteeData() {
         // This function would load existing committee member data from the database
-        // For now, it's a placeholder for future implementation
-        console.log('Loading existing committee data...');
     }
 
     addAdmin() {
@@ -720,7 +714,6 @@ class ClubProfile {
     }
 
     updateEventPreference(preference, isChecked) {
-        console.log(`Event preference ${preference} set to ${isChecked}`);
         // this.showNotification('Preferences updated!', 'success');
     }
 
@@ -1374,8 +1367,6 @@ function saveExecutiveCommittee() {
     
     // Simulate API call (replace with actual implementation)
     setTimeout(() => {
-        console.log('Committee data to save:', committeeData);
-        
         // Update the executive committee display
         updateExecutiveCommitteeDisplay(committeeData);
         
@@ -1626,8 +1617,6 @@ function saveNewAdmin() {
     
     // Simulate API call (replace with actual implementation)
     setTimeout(() => {
-        console.log('Admin data to save:', adminData);
-        
         // Add admin to the list (in real implementation, this would update the DOM)
         addAdminToList(adminData);
         
@@ -1646,7 +1635,6 @@ function saveNewAdmin() {
 function addAdminToList(adminData) {
     // This function would add the new admin to the admin list in the UI
     // In a real implementation, you would update the DOM here
-    console.log('Adding admin to list:', adminData);
     
     // For demonstration, you could dynamically add to the admin list
     const adminList = document.querySelector('.admin-list');

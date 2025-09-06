@@ -1099,6 +1099,90 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+// Administrator Management Functions
+function openAddAdminModal() {
+    document.getElementById('executiveCommitteeModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset form
+    document.getElementById('addAdminForm').reset();
+    
+    // Clear photo preview
+    const preview = document.getElementById('adminPhotoPreview');
+    const placeholder = document.querySelector('.upload-placeholder');
+    if (preview) {
+        preview.style.display = 'none';
+        preview.src = '';
+    }
+    if (placeholder) {
+        placeholder.style.display = 'flex';
+    }
+}
+
+function saveAdminDetails() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const role = document.getElementById('role').value;
+    const photoFile = document.getElementById('adminPhoto').files[0];
+    
+    // Basic validation
+    if (!firstName || !lastName || !email || !role) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+    
+    const saveBtn = document.querySelector('#executiveCommitteeModal .btn-primary');
+    const originalText = saveBtn.innerHTML;
+    
+    // Show loading state
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    saveBtn.disabled = true;
+    
+    // Simulate API call delay
+    setTimeout(() => {
+        const adminData = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            role: role,
+            hasPhoto: !!photoFile,
+            photo: photoFile
+        };
+        
+        console.log('Admin data to save:', adminData);
+        
+        // Add admin to the list (in real implementation, this would update the DOM)
+        addAdminToList(adminData);
+        
+        // Reset button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+        
+        // Close modal
+        closeExecutiveCommitteeModal();
+        
+        // Show success message
+        alert(`${firstName} ${lastName} has been added as an administrator!`);
+    }, 1000);
+}
+
+function removeAdmin(adminEmail) {
+    if (confirm(`Are you sure you want to remove this administrator?`)) {
+        console.log('Removing admin:', adminEmail);
+        // In a real implementation, this would remove the admin from the backend
+        // and update the UI accordingly
+        alert('Administrator removed successfully!');
+    }
+}
+
 // Executive Committee Management Functions
 function closeExecutiveCommitteeModal() {
     document.getElementById('executiveCommitteeModal').style.display = 'none';
@@ -1516,3 +1600,27 @@ function createAdminItemHTML(adminData) {
         </div>
     `;
 }
+
+// Admin photo preview functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const adminPhotoInput = document.getElementById('adminPhoto');
+    if (adminPhotoInput) {
+        adminPhotoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('adminPhotoPreview');
+                    const placeholder = document.querySelector('.upload-placeholder');
+                    
+                    if (preview && placeholder) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        placeholder.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});

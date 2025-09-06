@@ -14,7 +14,6 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
-                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=cover&w=1200&q=80" alt="Cover Photo">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -23,7 +22,6 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=cover&w=400&q=80" alt="Sponsor Logo" id="profileImage">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
@@ -47,9 +45,6 @@
             <button class="nav-item active" data-tab="about">
                 <i class="fas fa-info-circle"></i> Sponsor Information
             </button>
-            <button class="nav-item" data-tab="sponsorship">
-                <i class="fas fa-handshake"></i> Sponsorship Details
-            </button>
             <button class="nav-item" data-tab="portfolio">
                 <i class="fas fa-trophy"></i> Portfolio & Media
             </button>
@@ -70,26 +65,22 @@
                         <!-- First Row: Sponsor Name and Type -->
                         <div class="form-group">
                             <label for="sponsorName">Sponsor Name</label>
-                            <input type="text" id="sponsorName" value="Tech Innovation Corp" placeholder="Company name or individual sponsor name">
+                            <input type="text" id="sponsorName" placeholder="Company name or individual sponsor name">
                         </div>
                         <div class="form-group">
                             <label for="sponsorType">Sponsor Type</label>
                             <select id="sponsorType">
-                                <option value="company" selected>Company</option>
+                                <option value="">Select sponsor type</option>
+                                <option value="company">Company</option>
                                 <option value="individual">Individual</option>
                                 <option value="organization">Organization</option>
                                 <option value="foundation">Foundation</option>
                             </select>
                         </div>
 
-                        <!-- Second Row: Tagline and Industry -->
-                        <!-- <div class="form-group">
-                            <label for="tagline">Tagline / Short Description</label>
-                            <textarea id="tagline" rows="2" placeholder="1-2 lines summarizing the sponsor">Empowering innovation through strategic partnerships and technology advancement.</textarea>
-                        </div> -->
                         <div class="form-group">
                             <label for="industry">Industry / Sector</label>
-                            <input type="text" id="industry" value="Technology & Software" placeholder="For companies: Industry/Sector">
+                            <input type="text" id="industry" placeholder="For companies: Industry/Sector">
                         </div>
                         <div class="form-group">
                             <label for="companySize">Company Size</label>
@@ -97,7 +88,7 @@
                                 <option value="">Select size (for companies)</option>
                                 <option value="1-10">1-10 employees</option>
                                 <option value="11-50">11-50 employees</option>
-                                <option value="51-200" selected>51-200 employees</option>
+                                <option value="51-200">51-200 employees</option>
                                 <option value="201-500">201-500 employees</option>
                                 <option value="501-1000">501-1000 employees</option>
                                 <option value="1000+">1000+ employees</option>
@@ -107,66 +98,33 @@
                         <!-- Third Row: Email and Phone -->
                         <div class="form-group">
                             <label for="sponsorEmail">Email</label>
-                            <input type="email" id="sponsorEmail" value="partnerships@techinnovation.com" placeholder="Contact email address">
+                            <input type="email" id="sponsorEmail" placeholder="Contact email address">
                         </div>
                         <div class="form-group">
                             <label for="sponsorPhone">Phone Number</label>
-                            <input type="tel" id="sponsorPhone" value="+1 (555) 123-4567" placeholder="Contact phone number">
+                            <input type="tel" id="sponsorPhone" placeholder="Contact phone number">
                         </div>
                         
-                        <!-- Fourth Row: Website and Company Size -->
-                        <!-- <div class="form-group">
-                            <label for="sponsorWebsite">Website</label>
-                            <input type="url" id="sponsorWebsite" value="https://techinnovation.com" placeholder="Official website URL">
-                        </div> -->
-                        <!-- <div class="form-group">
-                            <label for="companySize">Company Size</label>
-                            <select id="companySize">
-                                <option value="">Select size (for companies)</option>
-                                <option value="1-10">1-10 employees</option>
-                                <option value="11-50">11-50 employees</option>
-                                <option value="51-200" selected>51-200 employees</option>
-                                <option value="201-500">201-500 employees</option>
-                                <option value="501-1000">501-1000 employees</option>
-                                <option value="1000+">1000+ employees</option>
-                            </select>
-                        </div> -->
                         
                         <!-- Fifth Row: Address -->
                         <div class="form-group full-width">
                             <label for="sponsorAddress">Address (Optional)</label>
-                            <textarea id="sponsorAddress" rows="2" placeholder="Business address">123 Innovation Drive, Tech Valley, CA 94043</textarea>
+                            <textarea id="sponsorAddress" rows="2" placeholder="Business address"></textarea>
                         </div>
                         
                         <div class="form-group full-width">
                             <label for="headline">Headline</label>
-                            <textarea id="headline" rows="1">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
+                            <textarea id="headline" rows="1" placeholder="Brief description of your mission or purpose"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="about">About Sponsor</label>
-                            <textarea id="about" rows="4">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
+                            <textarea id="about" rows="4" placeholder="Tell us about your organization or yourself"></textarea>
                         </div>
 
                         <!-- Mission/Vision for Companies -->
                         <div class="form-group full-width">
                             <label for="mission">Mission Statement</label>
-                            <textarea id="mission" rows="3" placeholder="Company mission or vision statement">To drive technological advancement and foster innovation through strategic partnerships with educational institutions and emerging talent.</textarea>
-                        </div>
-                        
-                        <!-- Personal Info for Individuals -->
-                        <div class="form-group">
-                            <label for="profession">Profession / Occupation (For Individuals)</label>
-                            <input type="text" id="profession" placeholder="Professional occupation">
-                        </div>
-                        <div class="form-group">
-                            <label for="achievements">Achievements / Credentials (For Individuals)</label>
-                            <input type="text" id="achievements" placeholder="Notable achievements or credentials">
-                        </div>
-                        
-                        <!-- Awards and Recognition -->
-                        <div class="form-group full-width">
-                            <label for="awards">Awards & Recognition</label>
-                            <textarea id="awards" rows="2" placeholder="List any awards, recognitions, or notable achievements">Best Corporate Partner 2024 - University Tech Awards</textarea>
+                            <textarea id="mission" rows="3" placeholder="Company mission or vision statement"></textarea>
                         </div>
                         
                         <div class="form-actions">
@@ -187,97 +145,20 @@
                     </div>
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <button type="button" class="preference-btn active" data-preference="technology">Technology</button>
-                            <button type="button" class="preference-btn active" data-preference="education">Education</button>
-                            <button type="button" class="preference-btn active" data-preference="innovation">Innovation</button>
+                            <button type="button" class="preference-btn" data-preference="technology">Technology</button>
+                            <button type="button" class="preference-btn" data-preference="education">Education</button>
+                            <button type="button" class="preference-btn" data-preference="innovation">Innovation</button>
                             <button type="button" class="preference-btn" data-preference="sports">Sports</button>
                             <button type="button" class="preference-btn" data-preference="arts">Arts & Culture</button>
-                            <button type="button" class="preference-btn active" data-preference="entrepreneurship">Entrepreneurship</button>
+                            <button type="button" class="preference-btn" data-preference="entrepreneurship">Entrepreneurship</button>
                             <button type="button" class="preference-btn" data-preference="healthcare">Healthcare</button>
                             <button type="button" class="preference-btn" data-preference="environment">Environment</button>
                             <button type="button" class="preference-btn" data-preference="community">Community Service</button>
-                            <button type="button" class="preference-btn active" data-preference="research">Research & Development</button>
+                            <button type="button" class="preference-btn" data-preference="research">Research & Development</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Contact Information -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Connect With Us</h3>
-                    </div>
-                    <form id="contact-form" class="form">
-                        <!-- Social Media Links -->
-                        <div class="form-group">
-                            <label for="website">
-                                <i class="fas fa-globe"></i> Organization Website
-                            </label>
-                            <input type="url" id="website" value="https://techinnovationsociety.berkeley.edu" placeholder="https://yourorganization.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="facebook">
-                                <i class="fab fa-facebook"></i> Facebook
-                            </label>
-                            <input type="url" id="facebook" value="https://facebook.com/BerkeleyTechSociety" placeholder="https://facebook.com/orgname">
-                        </div>
-                        
-                        <!-- 2nd Row: Instagram and Telegram -->
-                        <div class="form-group">
-                            <label for="instagram">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </label>
-                            <input type="url" id="instagram" value="https://instagram.com/berkeley_tech_society" placeholder="https://instagram.com/orgname">
-                        </div>
-                        <div class="form-group">
-                            <label for="telegram">
-                                <i class="fab fa-telegram"></i> Telegram
-                            </label>
-                            <input type="url" id="telegram" value="" placeholder="https://t.me/channelname">
-                        </div>
-                        
-                        <!-- 3rd Row: LinkedIn and GitHub -->
-                        <div class="form-group">
-                            <label for="linkedin">
-                                <i class="fab fa-linkedin"></i> LinkedIn
-                            </label>
-                            <input type="url" id="linkedin" value="https://linkedin.com/company/berkeley-tech-innovation-society" placeholder="https://linkedin.com/company/orgname">
-                        </div>
-                        <div class="form-group">
-                            <label for="github">
-                                <i class="fab fa-github"></i> GitHub
-                            </label>
-                            <input type="url" id="github" value="" placeholder="https://github.com/orgname">
-                        </div>
-                        
-                        <!-- 4th Row: X and Discord -->
-                        <div class="form-group">
-                            <label for="twitter">
-                                <i class="fab fa-x-twitter"></i> X (Twitter)
-                            </label>
-                            <input type="url" id="twitter" value="https://twitter.com/BerkeleyTechSoc" placeholder="https://x.com/orgname">
-                        </div>
-                        <div class="form-group">
-                            <label for="discord">
-                                <i class="fab fa-discord"></i> Discord Server
-                            </label>
-                            <input type="url" id="discord" value="https://discord.gg/berkeley-tech" placeholder="https://discord.gg/serverinvite">
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveContactInfo()">
-                                Save Changes
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelContactInfo()">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Sponsorship Details Tab -->
-            <div id="sponsorship" class="tab-content">
-                <!-- Analytics Section -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Sponsorship Analytics</h3>
@@ -321,10 +202,84 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Contact Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Connect With Us</h3>
+                    </div>
+                    <form id="contact-form" class="form">
+                        <!-- Social Media Links -->
+                        <div class="form-group">
+                            <label for="website">
+                                <i class="fas fa-globe"></i> Organization Website
+                            </label>
+                            <input type="url" id="website" placeholder="https://yourorganization.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="facebook">
+                                <i class="fab fa-facebook"></i> Facebook
+                            </label>
+                            <input type="url" id="facebook" placeholder="https://facebook.com/orgname">
+                        </div>
+                        
+                        <!-- 2nd Row: Instagram and Telegram -->
+                        <div class="form-group">
+                            <label for="instagram">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </label>
+                            <input type="url" id="instagram" placeholder="https://instagram.com/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="telegram">
+                                <i class="fab fa-telegram"></i> Telegram
+                            </label>
+                            <input type="url" id="telegram" placeholder="https://t.me/channelname">
+                        </div>
+                        
+                        <!-- 3rd Row: LinkedIn and GitHub -->
+                        <div class="form-group">
+                            <label for="linkedin">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </label>
+                            <input type="url" id="linkedin" placeholder="https://linkedin.com/company/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="github">
+                                <i class="fab fa-github"></i> GitHub
+                            </label>
+                            <input type="url" id="github" placeholder="https://github.com/orgname">
+                        </div>
+                        
+                        <!-- 4th Row: X and Discord -->
+                        <div class="form-group">
+                            <label for="twitter">
+                                <i class="fab fa-x-twitter"></i> X (Twitter)
+                            </label>
+                            <input type="url" id="twitter" placeholder="https://x.com/orgname">
+                        </div>
+                        <div class="form-group">
+                            <label for="discord">
+                                <i class="fab fa-discord"></i> Discord Server
+                            </label>
+                            <input type="url" id="discord" placeholder="https://discord.gg/serverinvite">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" onclick="saveContactInfo()">
+                                Save Changes
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelContactInfo()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
+
             <!-- Portfolio & Media Tab -->
-            <div id="portfolio" class="tab-content"
+            <div id="portfolio" class="tab-content">
                 <!-- Gallery Section -->
                 <div class="card">
                     <div class="card-header">
@@ -786,7 +741,7 @@
                     <form id="security-form" class="form">
                         <div class="form-group">
                             <label for="primaryEmail"><i class="fas fa-user-shield"></i> Primary Contact Email</label>
-                            <input type="email" id="primaryEmail" value="partnerships@techinnovation.com">
+                            <input type="email" id="primaryEmail" placeholder="Enter your primary contact email">
                             <small>This email receives all important notifications</small>
                         </div>
                         <div class="form-group">
@@ -813,6 +768,53 @@
                             </button>
                         </div>
                     </form>
+                </div>
+
+                <!-- Administrator Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Administrator Management</h3>
+                        <button class="btn btn-small" onclick="openAddAdminModal()">
+                            <i class="fas fa-user-plus"></i> Add Admin
+                        </button>
+                    </div>
+                    <div class="admin-list">
+                        <div class="admin-item">
+                            <div class="admin-info">
+                                <div class="admin-avatar">
+                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face" alt="Primary Admin">
+                                </div>
+                                <div class="admin-details">
+                                    <h4>John Anderson</h4>
+                                    <p>Primary Administrator</p>
+                                    <small>john.anderson@techinnovation.com</small>
+                                </div>
+                            </div>
+                            <div class="admin-actions">
+                                <button class="btn btn-small btn-secondary" onclick="openAddAdminModal()">
+                                    <i class="fas fa-exchange-alt"></i> Exchange
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="admin-item">
+                            <div class="admin-info">
+                                <div class="admin-avatar">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Co-Admin">
+                                </div>
+                                <div class="admin-details">
+                                    <h4>Sarah Mitchell</h4>
+                                    <p>Co-Administrator</p>
+                                    <small>sarah.mitchell@techinnovation.com</small>
+                                </div>
+                            </div>
+                            <div class="admin-actions">
+                                <button class="btn btn-small btn-danger" onclick="removeAdmin('sarah.mitchell@techinnovation.com')">
+                                    <i class="fas fa-user-minus"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Danger Zone -->
@@ -1179,6 +1181,74 @@
                         Save Gallery
                     </button>
                     <button type="button" class="btn btn-secondary" onclick="closeGalleryModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Administrator Modal -->
+    <div id="executiveCommitteeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Administrator</h3>
+                <button class="close-modal" onclick="closeExecutiveCommitteeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addAdminForm">
+                    <div class="form-group">
+                        <label for="adminPhoto">Profile Photo (Optional)</label>
+                        <div class="admin-photo-upload">
+                            <input type="file" id="adminPhoto" name="adminPhoto" accept="image/*" style="display: none;">
+                            <div class="photo-upload-area" onclick="document.getElementById('adminPhoto').click()">
+                                <div class="upload-placeholder">
+                                    <i class="fas fa-user-plus"></i>
+                                    <p>Click to upload photo</p>
+                                    <small>JPG, PNG up to 5MB</small>
+                                </div>
+                                <img id="adminPhotoPreview" style="display: none;" alt="Preview">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role">Administrator Role</label>
+                        <select id="role" name="role" required>
+                            <option value="">Select role</option>
+                            <option value="co-admin">Co-Administrator</option>
+                            <option value="moderator">Moderator</option>
+                            <option value="event-manager">Event Manager</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" placeholder="Enter first name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" placeholder="Enter last name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" placeholder="Enter email address" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contactNumber">Contact Number</label>
+                            <input type="tel" id="contactNumber" name="contactNumber" placeholder="Enter contact number">
+                        </div>
+                    </div>
+                </form>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="saveAdminDetails()">
+                        Add
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeExecutiveCommitteeModal()">
                         Cancel
                     </button>
                 </div>

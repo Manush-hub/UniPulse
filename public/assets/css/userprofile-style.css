@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
+    /* background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%); */
     min-height: 100vh;
     color: #333;
     line-height: 1.6;
@@ -86,7 +86,7 @@ body {
     border-radius: 50%;
     border: 6px solid white;
     overflow: hidden;
-    background: white;
+    background: linear-gradient(135deg, #E8B5E8 0%, #8B7ED8 25%, #7ED8B5 50%, #FFB366 75%, #FFD93D 100%);
     box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
 }
 
@@ -983,7 +983,7 @@ input:checked + .slider-small:before {
 .form-group label {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: start;
     width: 100%;
 }
 

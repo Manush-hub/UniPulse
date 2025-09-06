@@ -7,8 +7,6 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #1E3A8A;
-    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
     min-height: 100vh;
     color: #333;
     line-height: 1.6;
@@ -35,7 +33,7 @@ body {
 .cover-photo-section {
     position: relative;
     width: 100%;
-    height: 200px; /* Reduced height to match the design */
+    height: 200px;
     overflow: visible;
     border-radius: 18px 18px 0 0;
 }
@@ -82,54 +80,6 @@ body {
 }
 
 .cover-photo:hover .cover-overlay {
-    opacity: 1;
-}
-
-/* Profile Avatar Overlapping */
-.profile-avatar-overlap {
-    position: absolute;
-    bottom: 100px;
-    left: 30px;
-    z-index: 10;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    border: 6px solid white;
-    overflow: hidden;
-    background: white;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
-}
-
-.profile-avatar-overlap img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.avatar-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    opacity: 0;
-    cursor: pointer;
-    transition: opacity 0.3s ease;
-    z-index: 15;
-    gap: 4px;
-    border-radius: 50%;
-}
-
-.profile-avatar-overlap:hover .avatar-overlay {
     opacity: 1;
 }
 
@@ -226,37 +176,37 @@ body {
     padding: 30px;
 }
 
-/* Organization Form - Custom Grid Layout */
-#organization-form .form-group:nth-child(1) { grid-column: 1; grid-row: 1; } /* Organization Name */
-#organization-form .form-group:nth-child(2) { grid-column: 2; grid-row: 1; } /* Type */
-#organization-form .form-group:nth-child(3) { grid-column: 1; grid-row: 2; } /* University */
-#organization-form .form-group:nth-child(4) { grid-column: 2; grid-row: 2; } /* Faculty */
-#organization-form .form-group:nth-child(5) { grid-column: 1; grid-row: 3; } /* Official Email */
-#organization-form .form-group:nth-child(6) { grid-column: 2; grid-row: 3; } /* Contact Number */
-#organization-form .form-group:nth-child(7) { grid-column: 1 / -1; grid-row: 4; } /* Address */
-#organization-form .form-group:nth-child(8) { grid-column: 1; grid-row: 5; } /* Established Year */
-#organization-form .form-group:nth-child(9) { grid-column: 2; grid-row: 5; } /* Member Count */
-#organization-form .form-group:nth-child(10) { grid-column: 1; grid-row: 6; } /* Administrator Name */
-#organization-form .form-group:nth-child(11) { grid-column: 2; grid-row: 6; } /* Administrator Role */
-#organization-form .form-group:nth-child(12) { grid-column: 1; grid-row: 7; } /* Administrator Contact */
-#organization-form .form-group:nth-child(13) { grid-column: 2; grid-row: 7; } /* Administrator Email */
-#organization-form .form-group.full-width:nth-child(14) { grid-column: 1 / -1; grid-row: 8; } /* Headline */
-#organization-form .form-group.full-width:nth-child(15) { grid-column: 1 / -1; grid-row: 9; } /* Bio */
-#organization-form .form-group.full-width:nth-child(16) { grid-column: 1 / -1; grid-row: 10; } /* Mission */
-#organization-form .form-actions { grid-column: 1 / -1; grid-row: 11; } /* Actions */
+#organization-form .form-group:nth-child(1) { grid-column: 1; grid-row: 1; }
+#organization-form .form-group:nth-child(2) { grid-column: 2; grid-row: 1; }
+#organization-form .form-group:nth-child(3) { grid-column: 1; grid-row: 2; }
+#organization-form .form-group:nth-child(4) { grid-column: 2; grid-row: 2; }
+#organization-form .form-group:nth-child(5) { grid-column: 1; grid-row: 3; }
+#organization-form .form-group:nth-child(6) { grid-column: 2; grid-row: 3; }
+#organization-form .form-group:nth-child(7) { grid-column: 1 / -1; grid-row: 4; }
+#organization-form .form-group:nth-child(8) { grid-column: 1; grid-row: 5; }
+#organization-form .form-group:nth-child(9) { grid-column: 2; grid-row: 5; }
+#organization-form .form-group.full-width:nth-child(10) { grid-column: 1 / -1; grid-row: 6; }
+#organization-form .form-group.full-width:nth-child(11) { grid-column: 1 / -1; grid-row: 7; }
+#organization-form .form-group.full-width:nth-child(12) { grid-column: 1 / -1; grid-row: 8; }
+#organization-form .form-actions { grid-column: 1 / -1; grid-row: 9; }
 
 .profile-avatar-overlap {
     position: absolute;
-    bottom: 100px; /* Increased from 60px to move avatar higher */
-    left: 30px; /* Position from left side */
+    bottom: 100px;
+    left: 30px;
     z-index: 10;
-    width: 200px; /* Increased from 150px to make it bigger */
-    height: 200px; /* Increased from 150px to make it bigger */
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
-    border: 6px solid white; /* Increased border thickness */
+    border: 6px solid white;
     overflow: hidden;
-    background: white;
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+    background: linear-gradient(135deg, 
+        #E8B5E8 0%, 
+        #8B7ED8 25%, 
+        #7ED8B5 50%, 
+        #FFB366 75%, 
+        #FFD93D 100%);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
 }
 
 .profile-avatar-overlap img {
@@ -306,43 +256,9 @@ body {
     border-radius: 0 0 18px 18px;
 }
 
-/* Reset profile info positioning */
-.profile-info-shifted {
-    margin-left: 0; /* Remove the left margin */
-}
-
-/* Responsive Design for Overlapping Avatar */
-@media (max-width: 768px) {
-    .cover-photo-section {
-        height: 150px; /* Smaller cover on mobile */
-    }
-    
-    .profile-avatar-overlap {
-        width: 140px; /* Increased from 110px for mobile */
-        height: 140px; /* Increased from 110px for mobile */
-        bottom: 55px; /* Increased from 45px to move it higher on mobile */
-        left: 20px;
-        border: 4px solid white; /* Smaller border for mobile */
-    }
-    
-    .avatar-overlay {
-        font-size: 10px; /* Smaller text for mobile */
-        gap: 2px;
-    }
-    
-    .profile-info-shifted {
-        margin-left: 0; /* No left margin needed */
-    }
-    
-    .profile-banner {
-        padding: 20px; /* Normal padding for mobile */
-    }
-}
-
-/* Profile Banner */
 .profile-banner {
     background: linear-gradient(135deg, #4A5BCC 0%, #23387f 100%);
-    padding: 0px 0px 0px 0px; /* Reduced top padding from 80px to 60px */
+    padding: 0px 0px 0px 0px;
     color: white;
     display: flex;
     align-items: center;
@@ -351,9 +267,8 @@ body {
     border-radius: 0 0 18px 18px;
 }
 
-/* Shift profile info to account for overlapping avatar */
 .profile-info-shifted {
-    margin-left: 190px; /* Increased space for the larger overlapping avatar */
+    margin-left: 190px;
 }
 .profile-avatar-center {
     display: flex;
@@ -405,7 +320,7 @@ body {
 
 .profile-info {
     flex: 1;
-    margin-top: -10px; /* Move name and bio higher */
+    margin-top: -10px;
 }
 
 .profile-info h1 {
@@ -452,7 +367,7 @@ body {
     margin-bottom: 30px;
     padding: 15px;
     display: flex;
-    gap: 8px; /* Small gap between nav items */
+    gap: 8px;
     overflow-x: auto;
 }
 
@@ -467,8 +382,8 @@ body {
     font-weight: 500;
     color: #666;
     font-size: 1em;
-    flex: 1; /* Make all 4 nav items take equal width */
-    text-align: center; /* Center the text in each nav item */
+    flex: 1;
+    text-align: center;
 }
 
 .nav-item:hover,
@@ -535,7 +450,7 @@ body {
     gap: 25px;
 }
 
-/* Add Admin Form - Custom Layout */
+/* Add Admin Form Layout */
 #addAdminForm {
     display: block;
     padding: 0;
@@ -576,7 +491,7 @@ body {
     margin-bottom: 0;
 }
 
-/* Personal Information Form - Custom Grid Layout */
+/* Personal Information Form Grid Layout */
 #personal-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -584,7 +499,18 @@ body {
     padding: 30px;
 }
 
-/* Security Form - Single Column Layout */
+#personal-form .form-group:nth-child(1) { grid-column: 1 / -1; grid-row: 1; }
+#personal-form .form-group:nth-child(2) { grid-column: 1; grid-row: 2; }
+#personal-form .form-group:nth-child(3) { grid-column: 2; grid-row: 2; }
+#personal-form .form-group:nth-child(4) { grid-column: 1; grid-row: 3; }
+#personal-form .form-group:nth-child(5) { grid-column: 2; grid-row: 3; }
+#personal-form .form-group:nth-child(6) { grid-column: 1; grid-row: 4; }
+#personal-form .form-group:nth-child(7) { grid-column: 2; grid-row: 4; }
+#personal-form .form-group:nth-child(8) { grid-column: 1; grid-row: 5; }
+#personal-form .form-group.full-width:nth-child(9) { grid-column: 1 / -1; grid-row: 6; }
+#personal-form .form-actions { grid-column: 1 / -1; grid-row: 7; }
+
+/* Security Form Layout */
 #security-form {
     display: grid;
     grid-template-columns: 1fr;
@@ -592,42 +518,11 @@ body {
     padding: 30px;
 }
 
-/* Security Form - Four Rows Layout */
-#security-form .form-group:nth-child(1) { grid-column: 1; grid-row: 1; } /* Username */
-#security-form .form-group:nth-child(2) { grid-column: 1; grid-row: 2; } /* Current Password */
-#security-form .form-group:nth-child(3) { grid-column: 1; grid-row: 3; } /* New Password */
-#security-form .form-group:nth-child(4) { grid-column: 1; grid-row: 4; } /* Confirm Password */
-#security-form .form-actions { grid-column: 1; grid-row: 5; } /* Form Actions */
-
-/* First Row: Full Name (full width) */
-#personal-form .form-group:nth-child(1) { grid-column: 1 / -1; grid-row: 1; }
-
-/* Second Row: University and Faculty (half and half) */
-#personal-form .form-group:nth-child(2) { grid-column: 1; grid-row: 2; }
-#personal-form .form-group:nth-child(3) { grid-column: 2; grid-row: 2; }
-
-/* Third Row: Email and Phone (half and half) */
-#personal-form .form-group:nth-child(4) { grid-column: 1; grid-row: 3; }
-#personal-form .form-group:nth-child(5) { grid-column: 2; grid-row: 3; }
-
-/* Fourth Row: Current Town/City and Home Town (half and half) */
-#personal-form .form-group:nth-child(6) { grid-column: 1; grid-row: 4; }
-#personal-form .form-group:nth-child(7) { grid-column: 2; grid-row: 4; }
-
-/* Fifth Row: Role */
-#personal-form .form-group:nth-child(8) { grid-column: 1; grid-row: 5; }
-
-/* Bio - Full Width */
-#personal-form .form-group.full-width:nth-child(9) { 
-    grid-column: 1 / -1; 
-    grid-row: 6;
-}
-
-/* Form Actions */
-#personal-form .form-actions { 
-    grid-column: 1 / -1; 
-    grid-row: 7;
-}
+#security-form .form-group:nth-child(1) { grid-column: 1; grid-row: 1; }
+#security-form .form-group:nth-child(2) { grid-column: 1; grid-row: 2; }
+#security-form .form-group:nth-child(3) { grid-column: 1; grid-row: 3; }
+#security-form .form-group:nth-child(4) { grid-column: 1; grid-row: 4; }
+#security-form .form-actions { grid-column: 1; grid-row: 5; }
 
 .form-group {
     display: flex;
@@ -652,16 +547,16 @@ body {
     width: 20px;
 }
 
-/* Social Links - Reduce gap between icon and text */
+/* Social Links Reduced Gap */
 #social-form .form-group label {
-    gap: 2px; /* Reduced from 8px to 2px for minimal gap */
-    justify-content: flex-start; /* Align items to the left */
+    gap: 2px;
+    justify-content: flex-start;
 }
 
 #social-form .form-group label i {
-    width: 16px; /* Reduced from 20px to 16px */
-    margin-right: 0; /* Remove any additional margin */
-    flex-shrink: 0; /* Prevent icon from shrinking */
+    width: 16px;
+    margin-right: 0;
+    flex-shrink: 0;
 }
 
 .form-group input,
@@ -1318,7 +1213,7 @@ input:checked + .slider:before {
 .form-group label {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: start;
     width: 100%;
 }
 
@@ -1582,12 +1477,33 @@ input:checked + .slider:before {
     animation: fadeIn 0.4s ease;
 }
 
-/* .card {
-    animation: slideInRight 0.3s ease;
-} */
-
 /* Responsive Design */
-/* Medium screens - tablets */
+@media (max-width: 768px) {
+    .cover-photo-section {
+        height: 150px;
+    }
+    
+    .profile-avatar-overlap {
+        width: 140px;
+        height: 140px;
+        bottom: 55px;
+        left: 20px;
+        border: 4px solid white;
+    }
+    
+    .avatar-overlay {
+        font-size: 10px;
+        gap: 2px;
+    }
+    
+    .profile-info-shifted {
+        margin-left: 0;
+    }
+    
+    .profile-banner {
+        padding: 20px;
+    }
+}
 @media (max-width: 1024px) {
     #organization-form {
         grid-template-columns: 1fr 1fr;
@@ -1618,7 +1534,8 @@ input:checked + .slider:before {
     #organization-form .form-group:nth-child(9) { grid-column: 2; grid-row: 5; }
     #organization-form .form-group.full-width:nth-child(10) { grid-column: 1 / -1; grid-row: 6; }
     #organization-form .form-group.full-width:nth-child(11) { grid-column: 1 / -1; grid-row: 7; }
-    #organization-form .form-actions { grid-column: 1 / -1; grid-row: 8; }
+    #organization-form .form-group.full-width:nth-child(12) { grid-column: 1 / -1; grid-row: 8; }
+    #organization-form .form-actions { grid-column: 1 / -1; grid-row: 9; }
 }
 
 @media (max-width: 768px) {
@@ -1683,7 +1600,8 @@ input:checked + .slider:before {
     #organization-form .form-group:nth-child(9) { grid-column: 1; grid-row: 9; }
     #organization-form .form-group.full-width:nth-child(10) { grid-column: 1; grid-row: 10; }
     #organization-form .form-group.full-width:nth-child(11) { grid-column: 1; grid-row: 11; }
-    #organization-form .form-actions { grid-column: 1; grid-row: 12; }
+    #organization-form .form-group.full-width:nth-child(12) { grid-column: 1; grid-row: 12; }
+    #organization-form .form-actions { grid-column: 1; grid-row: 13; }
 
     /* Security Form Mobile Layout - Same as desktop (already single column) */
     #security-form {
@@ -1784,12 +1702,6 @@ input:checked + .slider:before {
     }
 }
 
-/* Dark mode support (for future enhancement) */
-@media (prefers-color-scheme: dark) {
-    /* Add dark mode styles here if needed */
-}
-
-/* Print styles */
 @media print {
     .profile-actions,
     .upload-btn,

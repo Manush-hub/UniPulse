@@ -14,7 +14,6 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
-                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=cover&w=1200&q=80" alt="Cover Photo">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -23,14 +22,9 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=cover&w=400&q=80" alt="Club Logo" id="profileImage">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
-                    </div>
-                    <!-- Verification Badge -->
-                    <div class="verification-badge" title="Verified Organization">
-                        <i class="fas fa-check-circle"></i>
                     </div>
                 </div>
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
@@ -38,7 +32,6 @@
             </div>
             
             <div class="profile-banner">
-                <!-- Empty banner section for spacing and design -->
             </div>
         </header>
 
@@ -49,9 +42,6 @@
             </button>
             <button class="nav-item" data-tab="events">
                 <i class="fas fa-calendar"></i> Events
-            </button>
-            <button class="nav-item" data-tab="members">
-                <i class="fas fa-users"></i> Executive Committee
             </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
@@ -67,15 +57,15 @@
                         <h3>Basic Information</h3>
                     </div>
                     <form id="organization-form" class="form">
-                        <!-- First Row: Organization Name -->
                         <div class="form-group">
                             <label for="orgName">Organization Name</label>
-                            <input type="text" id="orgName" value="Tech Innovation Society">
+                            <input type="text" id="orgName" placeholder="Enter organization name">
                         </div>
                         <div class="form-group">
                             <label for="orgType">Organization Type</label>
                             <select id="orgType">
-                                <option value="student-org" selected>Student Organization</option>
+                                <option value="">Select organization type</option>
+                                <option value="student-org">Student Organization</option>
                                 <option value="academic-club">Academic Club</option>
                                 <option value="sports-club">Sports Club</option>
                                 <option value="cultural-club">Cultural Club</option>
@@ -83,74 +73,51 @@
                             </select>
                         </div>
 
-                        <!-- Second Row: Type and University -->
                         <div class="form-group">
                             <label for="university">University</label>
-                            <input type="text" id="university" value="University of California, Berkeley">
+                            <input type="text" id="university" placeholder="Enter university name">
                         </div>
                         <div class="form-group">
                             <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" value="School of Engineering">
+                            <input type="text" id="faculty" placeholder="Enter faculty or school name">
                         </div>
 
-                        <!-- Third Row: Faculty and Department -->
                         <div class="form-group">
                             <label for="officialEmail">Official Email</label>
-                            <input type="email" id="officialEmail" value="contact@techinnovationsociety.org">
+                            <input type="email" id="officialEmail" placeholder="Enter official email address">
                         </div>
                         <div class="form-group">
                             <label for="contactNumber">Contact Number</label>
-                            <input type="tel" id="contactNumber" value="+1 (510) 642-1000">
+                            <input type="tel" id="contactNumber" placeholder="Enter contact number">
                         </div>
                         
-                        <!-- Fourth Row: Official Email and Phone -->
                         <div class="form-group">
                             <label for="address">Address</label>
-                            <textarea id="address" rows="2">123 Tech Lane, Berkeley, CA 94720</textarea>
+                            <textarea id="address" rows="2" placeholder="Enter organization address"></textarea>
                         </div>
                         
-                        <!-- Fifth Row: Establishment Year and Member Count -->
                         <div class="form-group">
                             <label for="establishedYear">Established Year</label>
-                            <input type="number" id="establishedYear" value="2018" min="1900" max="2024">
+                            <input type="number" id="establishedYear" placeholder="YYYY" min="1900" max="2024">
                         </div>
                         <div class="form-group">
                             <label for="memberCount">Current Members</label>
-                            <input type="number" id="memberCount" value="245" min="0">
+                            <input type="number" id="memberCount" placeholder="Number of members" min="0">
                         </div>
                         
-                        <!-- Organization Responsive Person Details -->
-                        <div class="form-group">
-                            <label for="adminisName">Administrator Name</label>
-                            <input type="text" id="adminisName" value="Sarah Johnson">
-                        </div>
-                        <div class="form-group">
-                            <label for="adminRole">Administrator Role in Organization</label>
-                            <input type="text" id="adminRole" value="President">
-                        </div>
                         
-                        <!-- Administrator Role and Email -->
-                        <div class="form-group">
-                            <label for="adminisContact">Administrator Contact Number</label>
-                            <input type="tel" id="adminisContact" value="+1 (510) 123-4567">
-                        </div>
-                        <div class="form-group">
-                            <label for="adminEmail">Administrator Email</label>
-                            <input type="email" id="adminEmail" value="sarah.johnson@berkeley.edu">
-                        </div>
                         
-                        <!-- Bio and Mission -->
                          <div class="form-group full-width">
                             <label for="headline">Headline</label>
-                            <textarea id="headline" rows="1">Student Organization</textarea>
+                            <textarea id="headline" rows="1" placeholder="Enter a brief headline about your organization"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="bio">About Organization</label>
-                            <textarea id="bio" rows="4">Leading student organization dedicated to fostering innovation and technological advancement. We organize workshops, hackathons, and networking events to bridge</textarea>
+                            <textarea id="bio" rows="4" placeholder="Describe your organization's purpose, activities, and goals"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="mission">Mission Statement</label>
-                            <textarea id="mission" rows="3">To create a vibrant community of tech enthusiasts, fostering innovation, collaboration, and professional development through hands-on learning experiences and industry partnerships.</textarea>
+                            <textarea id="mission" rows="3" placeholder="Enter your organization's mission statement"></textarea>
                         </div>
                         
                         <div class="form-actions">
@@ -171,13 +138,63 @@
                     </div>
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <button type="button" class="preference-btn active" data-preference="technology">Technology</button>
-                            <button type="button" class="preference-btn active" data-preference="innovation">Innovation</button>
-                            <button type="button" class="preference-btn active" data-preference="entrepreneurship">Entrepreneurship</button>
+                            <button type="button" class="preference-btn" data-preference="technology">Technology</button>
+                            <button type="button" class="preference-btn" data-preference="innovation">Innovation</button>
+                            <button type="button" class="preference-btn" data-preference="entrepreneurship">Entrepreneurship</button>
                             <button type="button" class="preference-btn" data-preference="ai-ml">AI & Machine Learning</button>
                             <button type="button" class="preference-btn" data-preference="web-dev">Web Development</button>
-                            <button type="button" class="preference-btn active" data-preference="networking">Networking</button>
+                            <button type="button" class="preference-btn" data-preference="networking">Networking</button>
                             <button type="button" class="preference-btn" data-preference="research">Research</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Executive Committee</h3>
+                        <button class="btn btn-small" onclick="manageExecutiveCommittee()">
+                            <i class="fas fa-user-cog"></i> Manage
+                        </button>
+                    </div>
+                    <div class="leadership-grid">
+                        <div class="member-card leadership">
+                            <div class="member-avatar">
+                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson">
+                            </div>
+                            <div class="member-info">
+                                <h4>Sarah Johnson</h4>
+                                <p class="member-role">President</p>
+                            </div>
+                        </div>
+
+                        <div class="member-card leadership">
+                            <div class="member-avatar">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen">
+                            </div>
+                            <div class="member-info">
+                                <h4>Michael Chen</h4>
+                                <p class="member-role">Vice President</p>
+                            </div>
+                        </div>
+
+                        <div class="member-card leadership">
+                            <div class="member-avatar">
+                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez">
+                            </div>
+                            <div class="member-info">
+                                <h4>Emily Rodriguez</h4>
+                                <p class="member-role">Secretary</p>
+                            </div>
+                        </div>
+
+                        <div class="member-card leadership">
+                            <div class="member-avatar">
+                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Park">
+                            </div>
+                            <div class="member-info">
+                                <h4>David Park</h4>
+                                <p class="member-role">Treasurer</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -197,7 +214,6 @@
                             <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 10 photos each. Each gallery entry should include a title and description.</p>
                         </div>
                         <div class="gallery-grid" id="galleryGrid">
-                            <!-- Existing Gallery Items -->
                             <div class="gallery-item editable" data-gallery-id="1">
                                 <div class="gallery-images-container">
                                     <div class="gallery-image-carousel">
@@ -329,60 +345,56 @@
                         <h3>Connect With Us</h3>
                     </div>
                     <form id="social-form" class="form">
-                        <!-- 1st Row: Personal Website and Facebook -->
                         <div class="form-group">
                             <label for="website">
                                 <i class="fas fa-globe"></i> Organization Website
                             </label>
-                            <input type="url" id="website" value="https://techinnovationsociety.berkeley.edu" placeholder="https://yourorganization.com">
+                            <input type="url" id="website" placeholder="https://yourorganization.com">
                         </div>
                         <div class="form-group">
                             <label for="facebook">
                                 <i class="fab fa-facebook"></i> Facebook
                             </label>
-                            <input type="url" id="facebook" value="https://facebook.com/BerkeleyTechSociety" placeholder="https://facebook.com/orgname">
+                            <input type="url" id="facebook" placeholder="https://facebook.com/orgname">
                         </div>
                         
-                        <!-- 2nd Row: Instagram and Telegram -->
                         <div class="form-group">
                             <label for="instagram">
                                 <i class="fab fa-instagram"></i> Instagram
                             </label>
-                            <input type="url" id="instagram" value="https://instagram.com/berkeley_tech_society" placeholder="https://instagram.com/orgname">
+                            <input type="url" id="instagram" placeholder="https://instagram.com/orgname">
                         </div>
                         <div class="form-group">
                             <label for="telegram">
                                 <i class="fab fa-telegram"></i> Telegram
                             </label>
-                            <input type="url" id="telegram" value="" placeholder="https://t.me/channelname">
+                            <input type="url" id="telegram" placeholder="https://t.me/channelname">
                         </div>
                         
-                        <!-- 3rd Row: LinkedIn and GitHub -->
                         <div class="form-group">
                             <label for="linkedin">
                                 <i class="fab fa-linkedin"></i> LinkedIn
                             </label>
-                            <input type="url" id="linkedin" value="https://linkedin.com/company/berkeley-tech-innovation-society" placeholder="https://linkedin.com/company/orgname">
+                            <input type="url" id="linkedin" placeholder="https://linkedin.com/company/orgname">
                         </div>
                         <div class="form-group">
                             <label for="github">
                                 <i class="fab fa-github"></i> GitHub
                             </label>
-                            <input type="url" id="github" value="" placeholder="https://github.com/orgname">
+                            <input type="url" id="github" placeholder="https://github.com/orgname">
                         </div>
                         
-                        <!-- 4th Row: X and Discord -->
                         <div class="form-group">
                             <label for="twitter">
                                 <i class="fab fa-x-twitter"></i> X (Twitter)
                             </label>
-                            <input type="url" id="twitter" value="https://twitter.com/BerkeleyTechSoc" placeholder="https://x.com/orgname">
+                            <input type="url" id="twitter" placeholder="https://x.com/orgname">
                         </div>
                         <div class="form-group">
                             <label for="discord">
                                 <i class="fab fa-discord"></i> Discord Server
                             </label>
-                            <input type="url" id="discord" value="https://discord.gg/berkeley-tech" placeholder="https://discord.gg/serverinvite">
+                            <input type="url" id="discord" placeholder="https://discord.gg/serverinvite">
                         </div>
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveSocialLinks()">
@@ -398,7 +410,6 @@
 
             <!-- Events Tab -->
             <div id="events" class="tab-content">
-                <!-- Simplified Events Filter -->
                 <div class="events-filter">
                     <div class="filter-buttons">
                         <button class="filter-btn active" data-filter="upcoming">Upcoming Events</button>
@@ -410,63 +421,7 @@
                     </div>
                 </div>
 
-                <!-- Events Grid -->
                 <div class="events-grid" id="eventsContainer">
-                    <!-- Events will be populated by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Members Tab -->
-            <div id="members" class="tab-content">
-                <!-- Executive Committee -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Executive Committee</h3>
-                        <button class="btn btn-small" onclick="manageExecutiveCommittee()">
-                            <i class="fas fa-user-cog"></i> Manage
-                        </button>
-                    </div>
-                    <div class="leadership-grid">
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson">
-                            </div>
-                            <div class="member-info">
-                                <h4>Sarah Johnson</h4>
-                                <p class="member-role">President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen">
-                            </div>
-                            <div class="member-info">
-                                <h4>Michael Chen</h4>
-                                <p class="member-role">Vice President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez">
-                            </div>
-                            <div class="member-info">
-                                <h4>Emily Rodriguez</h4>
-                                <p class="member-role">Secretary</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Park">
-                            </div>
-                            <div class="member-info">
-                                <h4>David Park</h4>
-                                <p class="member-role">Treasurer</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -484,7 +439,6 @@
                                 <i class="fas fa-check-circle"></i>
                                 <span>Verified Organization</span>
                             </div>
-                            <!-- <p class="verification-description">Your organization has been verified and is eligible for premium features.</p> -->
                         </div>
                         <div class="verification-details">
                             <div class="verification-item">
@@ -515,7 +469,7 @@
                                 <p>Get notified when someone joins the organization</p>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" checked>
+                                <input type="checkbox">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -525,7 +479,7 @@
                                 <p>Get notified about event registrations</p>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" checked>
+                                <input type="checkbox">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -545,7 +499,7 @@
                                 <p>Receive weekly analytics and activity reports</p>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" checked>
+                                <input type="checkbox">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -560,7 +514,7 @@
                     <form id="security-form" class="form">
                         <div class="form-group">
                             <label for="adminEmail"><i class="fas fa-user-shield"></i> Primary Admin Email</label>
-                            <input type="email" id="adminEmail" value="admin@techinnovationsociety.org">
+                            <input type="email" id="adminEmail" placeholder="Enter primary admin email">
                             <small>This email has full administrative access</small>
                         </div>
                         <div class="form-group">

@@ -44,9 +44,6 @@
             <button class="nav-item" data-tab="events">
                 <i class="fas fa-calendar"></i> Registered Events
             </button>
-            <button class="nav-item" data-tab="preferences">
-                <i class="fas fa-heart"></i> Preferences
-            </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
             </button>
@@ -63,69 +60,69 @@
                     <form id="personal-form" class="form">
                         <div class="form-group">
                             <label for="firstname">First Name</label>
-                            <input type="text" id="firstname" value="Vinuja">
+                            <input type="text" id="firstname" placeholder="Enter your first name">
                         </div>
                         <div class="form-group">
                             <label for="lastname">Last Name</label>
-                            <input type="text" id="lastname" value="Wakishta">
+                            <input type="text" id="lastname" placeholder="Enter your last name">
                         </div>
                         
                         <div class="form-group">
                             <label for="university">University</label>
-                            <input type="text" id="university" value="University of Example">
+                            <input type="text" id="university" placeholder="Enter your university name">
                         </div>
                         <div class="form-group">
                             <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" value="Faculty of Engineering">
+                            <input type="text" id="faculty" placeholder="Enter your faculty">
                         </div>
                         
                         <div class="form-group">
                             <label for="dob">Date of Birth</label>
-                            <input type="date" id="dob" value="1995-06-15">
+                            <input type="date" id="dob" placeholder="Select your date of birth">
                         </div>
                         <div class="form-group">
                             <label for="gender">Gender</label>
                             <div class="gender-buttons">
-                                <button type="button" class="gender-btn active" data-gender="male">Male</button>
+                                <button type="button" class="gender-btn" data-gender="male">Male</button>
                                 <button type="button" class="gender-btn" data-gender="female">Female</button>
                             </div>
-                            <input type="hidden" id="gender" value="male">
+                            <input type="hidden" id="gender">
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" value="vinuja@unipulse.com">
+                            <input type="email" id="email" placeholder="Enter your email address">
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" value="+1 (555) 123-4567">
+                            <input type="tel" id="phone" placeholder="Enter your phone number">
                         </div>
                         
                         <div class="form-group">
                             <label for="currentCity">Current Town/City</label>
-                            <input type="text" id="currentCity" value="San Francisco, CA">
+                            <input type="text" id="currentCity" placeholder="Enter your current city">
                         </div>
                         <div class="form-group">
                             <label for="homeTown">Home Town</label>
-                            <input type="text" id="homeTown" value="Los Angeles, CA">
+                            <input type="text" id="homeTown" placeholder="Enter your home town">
                         </div>
                         
                         <div class="form-group">
                             <label for="role">Role</label>
                             <div class="role-buttons">
-                                <button type="button" class="role-btn active" data-role="student">Student</button>
+                                <button type="button" class="role-btn" data-role="student">Student</button>
                                 <button type="button" class="role-btn" data-role="staff">Staff</button>
                             </div>
-                            <input type="hidden" id="role" value="student">
+                            <input type="hidden" id="role">
                         </div>
                         
                          <div class="form-group full-width">
                             <label for="headline">Headline</label>
-                            <textarea id="headline" rows="1">Uni Student</textarea>
+                            <textarea id="headline" rows="1" placeholder="Enter a brief headline about yourself"></textarea>
                         </div>
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
-                            <textarea id="bio" rows="4">Passionate about creating amazing events and connecting people through technology. Love organizing tech meetups and networking events.</textarea>
+                            <textarea id="bio" rows="4" placeholder="Tell us about yourself, your interests, and what you're passionate about"></textarea>
                         </div>
                         
                         <div class="form-actions">
@@ -145,9 +142,9 @@
                     </div>
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <button type="button" class="preference-btn active" data-preference="cultural">Cultural</button>
+                            <button type="button" class="preference-btn" data-preference="cultural">Cultural</button>
                             <button type="button" class="preference-btn" data-preference="social">Social</button>
-                            <button type="button" class="preference-btn active" data-preference="academic">Academic</button>
+                            <button type="button" class="preference-btn" data-preference="academic">Academic</button>
                             <button type="button" class="preference-btn" data-preference="technical">Technical</button>
                             <button type="button" class="preference-btn" data-preference="sports">Sports</button>
                         </div>
@@ -288,25 +285,25 @@
                             <label for="facebook">
                                 <i class="fab fa-facebook"></i> Facebook
                             </label>
-                            <input type="url" id="facebook" value="https://facebook.com/vinujawakishta" placeholder="https://facebook.com/username">
+                            <input type="url" id="facebook" placeholder="https://facebook.com/username">
                         </div>
                         <div class="form-group">
                             <label for="instagram">
                                 <i class="fab fa-instagram"></i> Instagram
                             </label>
-                            <input type="url" id="instagram" value="https://instagram.com/vinujawakishta" placeholder="https://instagram.com/username">
+                            <input type="url" id="instagram" placeholder="https://instagram.com/username">
                         </div>
                         <div class="form-group">
                             <label for="telegram">
                                 <i class="fab fa-telegram"></i> Telegram
                             </label>
-                            <input type="url" id="telegram" value="" placeholder="https://t.me/username">
+                            <input type="url" id="telegram" placeholder="https://t.me/username">
                         </div>
                         <div class="form-group">
                             <label for="linkedin">
                                 <i class="fab fa-linkedin"></i> LinkedIn
                             </label>
-                            <input type="url" id="linkedin" value="https://linkedin.com/in/vinujawakishta" placeholder="https://linkedin.com/in/username">
+                            <input type="url" id="linkedin" placeholder="https://linkedin.com/in/username">
                         </div>
                         <div class="form-group">
                             <label for="github">
@@ -346,57 +343,6 @@
                 </div>
             </div>
 
-            <!-- Preferences Tab -->
-            <div id="preferences" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Notification Preferences</h3>
-                    </div>
-                    <div class="preferences-section">
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Email Notifications</h4>
-                                <p>Receive updates about events and activities</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Event Reminders</h4>
-                                <p>Get reminded before upcoming events</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" checked>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>New Event Suggestions</h4>
-                                <p>Receive personalized event recommendations</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Marketing Communications</h4>
-                                <p>Updates about UniPulse features and news</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
                 <div class="card">
@@ -410,7 +356,7 @@
                                 <p>Allow others to view your profile</p>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" checked id="publicProfile">
+                                <input type="checkbox" id="publicProfile">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -420,7 +366,47 @@
                                 <p>Display your attended events on public profile</p>
                             </div>
                             <label class="toggle">
-                                <input type="checkbox" checked id="showEventHistory">
+                                <input type="checkbox" id="showEventHistory">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Email Notifications</h4>
+                                <p>Receive updates about events and activities</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="emailNotifications">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Event Reminders</h4>
+                                <p>Get reminded before upcoming events</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="eventReminders">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>New Event Suggestions</h4>
+                                <p>Receive personalized event recommendations</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="eventSuggestions">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <h4>Marketing Communications</h4>
+                                <p>Updates about UniPulse features and news</p>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="marketingCommunications">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -430,32 +416,29 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Login & Recovery</h3>
-                        <button class="btn btn-small" onclick="toggleEdit('security-form')">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
                     </div>
                     <form id="security-form" class="form">
                         <div class="form-group">
                             <label for="username"><i class="fas fa-user"></i> Username</label>
-                            <input type="text" id="username" value="vinujawakishta" readonly>
+                            <input type="text" id="username" placeholder="Enter your username">
                             <small>This is how others will find you on UniPulse</small>
                         </div>
                         <div class="form-group">
                             <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
-                            <input type="password" id="currentPassword" placeholder="Enter current password" readonly>
+                            <input type="password" id="currentPassword" placeholder="Enter your current password">
                             <small>Required to change your password</small>
                         </div>
                         <div class="form-group">
                             <label for="newPassword"><i class="fas fa-key"></i> New Password</label>
-                            <input type="password" id="newPassword" placeholder="Enter new password" readonly>
+                            <input type="password" id="newPassword" placeholder="Enter your new password">
                             <small>Must be at least 8 characters long</small>
                         </div>
                         <div class="form-group">
                             <label for="confirmPassword"><i class="fas fa-check-circle"></i> Confirm New Password</label>
-                            <input type="password" id="confirmPassword" placeholder="Confirm new password" readonly>
+                            <input type="password" id="confirmPassword" placeholder="Confirm your new password">
                             <small>Must match your new password</small>
                         </div>
-                        <div class="form-actions" style="display: none;">
+                        <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">Save Changes</button>
                             <button type="button" class="btn btn-secondary" onclick="cancelEdit('security-form')">Cancel</button>
                         </div>
