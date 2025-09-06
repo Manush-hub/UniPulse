@@ -133,12 +133,12 @@ try {
 function determineRedirectUrl($userType) {
     switch ($userType) {
         case 'admin':
-            return '/unipulse/public/admin-dashboard.php';
+            return 'admin-dashboard';
         case 'organizer':
-            return '/unipulse/public/organizer-dashboard.php';
+            return 'organizer-dashboard';
         case 'student':
         default:
-            return '/unipulse/public/dashboard.php';
+            return 'dashboard';
     }
 }
 

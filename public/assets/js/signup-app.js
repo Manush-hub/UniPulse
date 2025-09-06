@@ -571,7 +571,7 @@ function initFormSubmission() {
                 showToast('Account created successfully! Please check your email for verification.', 'success');
                 
                 setTimeout(() => {
-                    window.location.href = response.redirectUrl || 'signin.php';
+                    window.location.href = response.redirectUrl || 'signin';
                 }, 2000);
             } else {
                 throw new Error(response.message || 'Registration failed');
@@ -597,21 +597,30 @@ function initFormSubmission() {
     }
 }
 
-// Simulate backend signup
+// Backend signup using real API
 async function submitSignup(data) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Simulate successful registration
-    return {
-        success: true,
-        message: 'Account created successfully',
-        redirectUrl: 'signin.php',
-        user: {
-            id: Date.now(),
-            email: data.email,
-            userType: data.userType
+    try {
+        const response = await fetch('/backend/api/register.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Registration failed');
         }
-    };
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Registration API error:', error);
+        throw error;
+    }
 }
 
 // Keyboard Shortcuts

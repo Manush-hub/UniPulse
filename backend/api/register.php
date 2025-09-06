@@ -113,7 +113,7 @@ try {
                 'success' => true,
                 'message' => $result['message'],
                 'user' => $result['user'],
-                'redirectUrl' => '/unipulse/public/dashboard.php'
+                'redirectUrl' => 'dashboard'
             ]);
         } else {
             // Registration successful but session creation failed
@@ -122,7 +122,7 @@ try {
                 'success' => true,
                 'message' => $result['message'] . ' Please sign in.',
                 'user' => $result['user'],
-                'redirectUrl' => '/unipulse/public/signin.php'
+                'redirectUrl' => 'signin'
             ]);
         }
     } else {

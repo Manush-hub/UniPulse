@@ -34,14 +34,14 @@ try {
         echo json_encode([
             'success' => true,
             'message' => 'Logout successful',
-            'redirectUrl' => '/unipulse/public/index.php'
+            'redirectUrl' => 'index'
         ]);
     } else {
         http_response_code(200);
         echo json_encode([
             'success' => true,
             'message' => 'No active session',
-            'redirectUrl' => '/unipulse/public/index.php'
+            'redirectUrl' => 'index'
         ]);
     }
     

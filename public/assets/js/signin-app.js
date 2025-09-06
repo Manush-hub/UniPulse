@@ -167,7 +167,7 @@ function initFormSubmission() {
                 
                 // Redirect after success
                 setTimeout(() => {
-                    window.location.href = response.redirectUrl || 'dashboard.php';
+                    window.location.href = response.redirectUrl || 'dashboard';
                 }, 1500);
             } else {
                 throw new Error(response.message || 'Sign in failed');
@@ -194,25 +194,29 @@ function initFormSubmission() {
     }
 }
 
-// Simulate backend signin
+// Backend signin using real API
 async function submitSignin(data) {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulate validation
-    if (data.email === 'demo@unipulse.lk' && data.password === 'password123') {
-        return {
-            success: true,
-            message: 'Sign in successful',
-            redirectUrl: 'dashboard.php',
-            user: {
-                id: 1,
-                email: data.email,
-                name: 'Demo User'
-            }
-        };
-    } else {
-        throw new Error('Invalid email or password');
+    try {
+        const response = await fetch('/backend/api/login.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.message || 'Sign in failed');
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Sign in API error:', error);
+        throw error;
     }
 }
 
