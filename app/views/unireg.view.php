@@ -205,7 +205,7 @@
 
                 <button type="submit" class="button">Create Account</button>
 
-                <div class="toggle-form">Already have an account? <a href="#">Log in</a></div>
+                <div class="toggle-form">Already have an account? <a href="/unipulse/public/signin">Log in</a></div>
             </form>
         </div>
     </div>

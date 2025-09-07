@@ -60,7 +60,7 @@
                         <a href="billing.html">Billing & Payments</a>
                         <a href="help.html">Help & Support</a>
                         <hr>
-                        <a href="logout.php" class="logout">Logout</a>
+                        <a href="/unipulse/public/logout" class="logout">Logout</a>
                     </div>
                 </div>
             </div>
