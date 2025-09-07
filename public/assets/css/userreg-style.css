@@ -219,16 +219,48 @@ body {
 .terms {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 1.5rem;
     margin-top: 1.5rem;
+    padding: 8px 0;
 }
 
 .terms input[type="checkbox"] {
-    width: auto;
+    width: 18px;
+    height: 18px;
     margin: 0;
     margin-top: 2px;
     accent-color: #1E3A8A;
+    cursor: pointer;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+    background-color: white;
+}
+
+.terms input[type="checkbox"]:checked {
+    background-color: #1E3A8A;
+    border-color: #1E3A8A;
+}
+
+.terms input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+}
+
+.terms input[type="checkbox"]:focus {
+    outline: 2px solid #F97316;
+    outline-offset: 2px;
 }
 
 .terms label {
@@ -236,6 +268,8 @@ body {
     font-size: 0.85rem;
     color: #666;
     line-height: 1.4;
+    cursor: pointer;
+    flex: 1;
 }
 
 .terms a {
