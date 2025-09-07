@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms & Conditions | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/terms.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/terms-style.css">
 </head>
 <body>
 

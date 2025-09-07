@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Find Events | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/Find-Events.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/find_events-style.css">
 </head>
 <body>
 <header class="header">
@@ -142,6 +142,6 @@
       </div>
       <p>&copy; 2025 UniPulse. All rights reserved.</p>           
   </footer>
-  <script src="/unipulse/public/assets/js/Find-Events.js"></script>
+  <script src="/unipulse/public/assets/js/find_events.js"></script>
 </body>
 </html>

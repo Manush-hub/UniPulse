@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Us | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/Contact.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/contact-style.css">
 </head>
 <body>
 <header class="header">

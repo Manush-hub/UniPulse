@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FAQ | UniPulse</title>
-  <link rel="stylesheet" href="/unipulse/public/assets/css/faq.css">
+  <link rel="stylesheet" href="/unipulse/public/assets/css/faq-style.css">
 </head>
 <body>
 
@@ -103,7 +103,7 @@
     </div>
     <p>&copy; 2025 UniPulse. All rights reserved.</p>           
     </footer>
-    <script src="/unipulse/public/assets/js/FAQ.js"></script>
+    <script src="/unipulse/public/assets/js/faq.js"></script>
 </body>
 </html>
 

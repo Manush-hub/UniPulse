@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+<!DO  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | UniPulse</title>
+  <link rel="stylesheet" href="/unipulse/public/assets/css/privacy_policy-style.css">
+</head>E html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
