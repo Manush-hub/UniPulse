@@ -75,6 +75,15 @@
                             <label for="faculty">Faculty</label>
                             <input type="text" id="faculty" placeholder="Enter your faculty">
                         </div>
+
+                        <div class="form-group">
+                            <label for="student/staffid">Student/Staff ID</label>
+                            <input type="text" id="student/staffid" placeholder="Enter your student/staff id">
+                        </div>
+                        <div class="form-group">
+                            <label for="academicyear">Academic Year</label>
+                            <input type="text" id="academicyear" placeholder="Enter your academic year">
+                        </div>
                         
                         <div class="form-group">
                             <label for="dob">Date of Birth</label>
@@ -112,11 +121,16 @@
                             <div class="role-buttons">
                                 <button type="button" class="role-btn" data-role="student">Student</button>
                                 <button type="button" class="role-btn" data-role="staff">Staff</button>
+                                <button type="button" class="role-btn" data-role="public">Public</button>
                             </div>
                             <input type="hidden" id="role">
                         </div>
+                        <div class="form-group">
+                            <label for="nic">NIC</label>
+                            <input type="text" id="nic" placeholder="Enter your NIC">
+                        </div>
                         
-                         <div class="form-group full-width">
+                        <div class="form-group full-width">
                             <label for="headline">Headline</label>
                             <textarea id="headline" rows="1" placeholder="Enter a brief headline about yourself"></textarea>
                         </div>

@@ -272,9 +272,12 @@ body {
 #personal-form .form-group:nth-child(9) { grid-column: 1; grid-row: 5; }
 #personal-form .form-group:nth-child(10) { grid-column: 2; grid-row: 5; }
 #personal-form .form-group:nth-child(11) { grid-column: 1; grid-row: 6; }
-#personal-form .form-group.full-width:nth-child(12) { grid-column: 1 / -1; grid-row: 7; }
-#personal-form .form-group.full-width:nth-child(13) { grid-column: 1 / -1; grid-row: 8; }
-#personal-form .form-actions { grid-column: 1 / -1; grid-row: 9; }
+#personal-form .form-group:nth-child(12) { grid-column: 2; grid-row: 6; }
+#personal-form .form-group:nth-child(13) { grid-column: 1; grid-row: 7; }
+#personal-form .form-group:nth-child(14) { grid-column: 2; grid-row: 7; }
+#personal-form .form-group.full-width:nth-child(15) { grid-column: 1 / -1; grid-row: 8; }
+#personal-form .form-group.full-width:nth-child(16) { grid-column: 1 / -1; grid-row: 9; }
+#personal-form .form-actions { grid-column: 1 / -1; grid-row: 10; }
 
 .form-group {
     display: flex;
