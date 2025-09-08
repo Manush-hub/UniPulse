@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/home-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -17,10 +19,7 @@
                 </div>
             </div>
                 <div class="unp-nav-group">
-                    <a href="#features" class="unp-nav-link">Features</a>
-                    <a href="#users" class="unp-nav-link">Users</a>
-                    <a href="#events" class="unp-nav-link">Events</a>
-                    <a href="/unipulse/public/signin" class="unp-nav-link">LogIn</a>
+                    <button onclick="location.href='/unipulse/public/signin'" class="login-btn">LogIn</button>
                     <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
                 </div>
             <div class="hamburger">
@@ -268,27 +267,27 @@
             <h2>Ready to Transform Your University Event Experience?</h2>
             <p>Join thousands of students, organizers, and sponsors who are already using UniPulse to discover and create amazing university events.</p>
             <div class="cta-buttons">
-                <button class="btn btn-cta">
+                <a href="/unipulse/public/usersignup" class="btn btn-cta">
                     <i class="fas fa-user-graduate"></i>
                     <div>
-                        <span class="btn-title">Students</span>
+                        <span class="btn-title">Users</span>
                         <span class="btn-subtitle">Discover Events</span>
                     </div>
-                </button>
-                <button class="btn btn-cta">
+                </a>
+                <a href="/unipulse/public/publisherreg" class="btn btn-cta">
                     <i class="fas fa-users-cog"></i>
                     <div>
                         <span class="btn-title">Event Organizers</span>
                         <span class="btn-subtitle">Create Events</span>
                     </div>
-                </button>
-                <button class="btn btn-cta">
+                </a>
+                <a href="/unipulse/public/sponsorreg" class="btn btn-cta">
                     <i class="fas fa-building"></i>
                     <div>
                         <span class="btn-title">Sponsors</span>
                         <span class="btn-subtitle">Partner with Us</span>
                     </div>
-                </button>
+                </a>
             </div>
         </div>
     </section>
@@ -299,8 +298,8 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                       <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </div>
+                        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+                    </div>
                     <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
                 </div>
                 <div class="footer-section">
@@ -334,6 +333,7 @@
         </div>
     </footer>
 
-    <script src="/unipulse/public/assets/js/app.js"></script>
+    <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
+
 </html>
