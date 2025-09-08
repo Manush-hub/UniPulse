@@ -53,7 +53,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <a href="preferences.html">Preferences</a>
                         <a href="help.html">Help & Support</a>
                         <hr>
-                        <a href="/unipulse/public/" class="logout">Logout</a>
+                        <a href="/unipulse/public/logout" class="logout">Logout</a>
                     </div>
                 </div>
             </div>
