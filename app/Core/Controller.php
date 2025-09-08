@@ -8,6 +8,11 @@ class Controller {
         $this->userRole = $this->getUserRole();
     }
     
+    // Method to set user role (called from App.php)
+    public function setUserRole($role) {
+        $this->userRole = $role;
+    }
+    
     public function view($name, $data = [], $role = null) {
         
         if (!empty($data))

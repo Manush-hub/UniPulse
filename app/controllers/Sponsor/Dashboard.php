@@ -1,6 +1,6 @@
 <?php
 
-class UserDashboard extends Controller{
+class SponsorDashboard extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
         $this->view('dashboard');

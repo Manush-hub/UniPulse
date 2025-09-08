@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/home-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -296,8 +298,8 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="logo">
-                       <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </div>
+                        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
+                    </div>
                     <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
                 </div>
                 <div class="footer-section">
@@ -333,4 +335,5 @@
 
     <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
+
 </html>

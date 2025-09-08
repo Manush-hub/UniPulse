@@ -17,7 +17,7 @@ body {
 
 a:any-link {
     color: none;
-    text-decoration-line:none;
+    text-decoration-line: none;
     cursor: auto;
 }
 
@@ -31,6 +31,7 @@ a:any-link {
     justify-content: center;
     padding: 2rem;
     min-height: calc(100vh - 140px);
+    margin-top: 80px;
 }
 
 .signup-container {
@@ -90,11 +91,11 @@ a:any-link {
     align-items: center;
     justify-content: flex-start;
     box-sizing: border-box;
-    box-shadow: 0 2px 18px rgba(60,80,180,0.05);
+    box-shadow: 0 2px 18px rgba(60, 80, 180, 0.05);
 }
 
 .user-type-card:hover {
-    box-shadow: 0 8px 32px rgba(60,80,180,0.15);
+    box-shadow: 0 8px 32px rgba(60, 80, 180, 0.15);
     border-color: #e87c2b;
     transform: translateY(-6px) scale(1.02);
 }
@@ -133,6 +134,7 @@ a:any-link {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -144,25 +146,25 @@ a:any-link {
     .main-content {
         padding: 1rem;
     }
-    
+
     .user-type-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-    
+
     .user-type-card {
         padding: 2rem 1.5rem;
         min-height: 150px;
     }
-    
+
     .registration-form-container {
         padding: 2rem 1.5rem;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .welcome-section h1 {
         font-size: 2rem;
     }
@@ -172,24 +174,24 @@ a:any-link {
     .registration-form-container {
         padding: 1.5rem 1rem;
     }
-    
+
     .welcome-section h1 {
         font-size: 1.75rem;
     }
-    
+
     .user-type-card {
         padding: 1.5rem 1rem;
         min-height: 120px;
     }
-    
+
     .card-icon {
         font-size: 2rem;
     }
-    
+
     .user-type-card h3 {
         font-size: 1.1rem;
     }
-    
+
 }
 
 /* Focus visible for accessibility */

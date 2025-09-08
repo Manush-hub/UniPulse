@@ -13,7 +13,12 @@ a {
 }
 
 /* Remove default form element styles */
-input, select, button, textarea {
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+button,
+textarea {
     font-family: inherit;
     font-size: inherit;
     background: none;
@@ -104,7 +109,7 @@ body {
 .content-wrapper {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     padding: 2.5rem;
     max-width: 800px;
     width: 100%;
@@ -280,7 +285,7 @@ body {
     .main-container {
         padding: 2rem 1rem;
     }
-    
+
     .content-wrapper {
         padding: 2rem 1.5rem;
     }

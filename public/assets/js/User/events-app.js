@@ -315,10 +315,10 @@ function loadMoreEvents() {
     loadEvents();
 }
 
-// View event details (placeholder function)
+// View event details - redirect to event view page
 function viewEventDetails(eventId) {
-    // Redirect to event details page or open modal
-    window.location.href = `event-details.php?id=${eventId}`;
+    // Redirect to event view page using MVC routing
+    window.location.href = `/unipulse/public/user/eventview?id=${eventId}`;
 }
 
 // Utility functions
