@@ -3,7 +3,7 @@
 class Userprofile extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
-        $this->view('Userprofile');
+        $this->view('userprofile');
     }
 
 }

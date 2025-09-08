@@ -3,7 +3,7 @@
 class Publisherpublic extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
-        $this->view('Publisherpublic');
+        $this->view('public');
     }
 
 }

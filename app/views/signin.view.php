@@ -6,33 +6,6 @@
     <title>Sign In - UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/signin-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .error-message-box, .success-message-box {
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            font-weight: 500;
-        }
-        
-        .error-message-box {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .success-message-box {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .error-message-box i, .success-message-box i {
-            margin-right: 10px;
-            font-size: 16px;
-        }
-    </style>
 </head>
 <body>
     <!-- Header -->

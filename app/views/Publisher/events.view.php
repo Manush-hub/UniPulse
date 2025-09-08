@@ -20,14 +20,8 @@
         <!-- Page Header -->
         <div class="page-header">
             <div class="container">
-                <div class="header-content">
-                    <h1>My Events</h1>
-                    <p>Manage and monitor your published events</p>
-                    <a href="/unipulse/public/createevent" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Create New Event
-                    </a>
-                </div>
+                <h1>All Events</h1>
+                <p>Discover and participate in university events across Sri Lanka</p>
             </div>
         </div>
 
@@ -36,7 +30,7 @@
             <div class="container">
                 <div class="filter-controls">
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search your events..." class="search-input">
+                        <input type="text" id="searchInput" placeholder="Search events..." class="search-input">
                         <button class="search-btn" onclick="searchEvents()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -46,15 +40,6 @@
                     </div>
                     
                     <div class="filter-group">
-                        <select id="statusFilter" onchange="filterEvents()">
-                            <option value="">All Status</option>
-                            <option value="draft">Draft</option>
-                            <option value="published">Published</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        
                         <select id="categoryFilter" onchange="filterEvents()">
                             <option value="">All Categories</option>
                             <option value="academic">Academic</option>
@@ -63,6 +48,22 @@
                             <option value="technology">Technology</option>
                             <option value="social">Social</option>
                             <option value="workshop">Workshop</option>
+                        </select>
+                        
+                        <select id="universityFilter" onchange="filterEvents()">
+                            <option value="">All Universities</option>
+                            <option value="university-of-colombo">University of Colombo</option>
+                            <option value="university-of-peradeniya">University of Peradeniya</option>
+                            <option value="university-of-kelaniya">University of Kelaniya</option>
+                            <option value="university-of-moratuwa">University of Moratuwa</option>
+                            <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
+                        </select>
+                        
+                        <select id="statusFilter" onchange="filterEvents()">
+                            <option value="">All Status</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
                         </select>
                         
                         <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
@@ -81,7 +82,7 @@
                 <!-- Loading Spinner -->
                 <div class="loading-spinner" id="loadingSpinner">
                     <div class="spinner"></div>
-                    <p>Loading your events...</p>
+                    <p>Loading events...</p>
                 </div>
                 
                 <!-- No Events Found -->
@@ -95,16 +96,20 @@
                         </svg>
                     </div>
                     <h3>No Events Found</h3>
-                    <p>Create your first event to get started</p>
-                    <a href="/unipulse/public/createevent" class="btn btn-primary">Create Event</a>
+                    <p>Try adjusting your search criteria or filters</p>
+                </div>
+                
+                <!-- Load More Button -->
+                <div class="load-more-section" id="loadMoreSection">
+                    <button class="btn btn-outline" onclick="loadMoreEvents()">Load More Events</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php include __DIR__ . '/../user/components/footer.php'; ?>
 
-    <script src="<?php echo $controller->loadJS('events-app.js'); ?>"></script>
+    <script src="/unipulse/public/assets/js/User/events-app.js"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
 <header class="header">
         <div class="header-container">
             <div class="logo">
-                <a href="/unipulse/public/userlanding">
+                <a href="/unipulse/public/user/landing">
                     <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
                 </a>
             </div>
