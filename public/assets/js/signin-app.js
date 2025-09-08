@@ -196,23 +196,25 @@ function initFormSubmission() {
 
 // Simulate backend signin
 async function submitSignin(data) {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Simulate validation
-    if (data.email === 'demo@unipulse.lk' && data.password === 'password123') {
-        return {
-            success: true,
-            message: 'Sign in successful',
-            redirectUrl: 'dashboard.php',
-            user: {
-                id: 1,
-                email: data.email,
-                name: 'Demo User'
-            }
-        };
-    } else {
-        throw new Error('Invalid email or password');
+    try {
+        const response = await fetch('/unipulse/public/signin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+        
+    } catch (error) {
+        console.error('Network error:', error);
+        throw new Error('Network error occurred. Please try again.');
     }
 }
 

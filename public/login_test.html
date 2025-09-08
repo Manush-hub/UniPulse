@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login - UniPulse</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 500px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button { 
+            width: 100%;
+            background: #4A5BCC; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover { background: #3a4ba3; }
+        .test-users {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .test-users h3 { margin-top: 0; color: #1565c0; }
+        .user-option {
+            background: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #bbdefb;
+            transition: all 0.2s;
+        }
+        .user-option:hover {
+            background: #f3e5f5;
+            border-color: #9c27b0;
+        }
+        .user-type { 
+            font-weight: bold; 
+            color: #4A5BCC; 
+        }
+        .user-email { 
+            color: #666; 
+            font-family: monospace; 
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔐 UniPulse Login Test</h1>
+        
+        <div class="test-users">
+            <h3>Click to auto-fill credentials:</h3>
+            
+            <div class="user-option" onclick="fillCredentials('mansss@gmail.com', '1142119112')">
+                <div class="user-type">Sponsor</div>
+                <div class="user-email">mansss@gmail.com</div>
+            </div>
+            
+            <div class="user-option" onclick="fillCredentials('public.test.1757174163@gmail.com', 'password')">
+                <div class="user-type">Public User</div>
+                <div class="user-email">public.test.1757174163@gmail.com</div>
+            </div>
+            
+            <div class="user-option" onclick="fillCredentials('university.test.1757174162@student.uoc.lk', 'password')">
+                <div class="user-type">University User</div>
+                <div class="user-email">university.test.1757174162@student.uoc.lk</div>
+            </div>
+            
+            <div class="user-option" onclick="fillCredentials('publisher.test.1757174163@society.uoc.lk', 'password')">
+                <div class="user-type">Publisher</div>
+                <div class="user-email">publisher.test.1757174163@society.uoc.lk</div>
+            </div>
+        </div>
+
+        <form method="POST" action="/signin">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit">Sign In</button>
+        </form>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="/signin" style="color: #4A5BCC; text-decoration: none;">
+                ← Go to Regular Signin Page
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function fillCredentials(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        }
+    </script>
+</body>
+</html>

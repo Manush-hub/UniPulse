@@ -11,275 +11,232 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // User Type Selection - Updated for Direct Navigation
-function initUserTypeSelection() {
-    const userTypeCards = document.querySelectorAll('.user-type-card');
-    const userTypeSelection = document.getElementById('userTypeSelection');
-    const registrationForm = document.getElementById('registrationForm');
-    const backBtn = document.getElementById('backBtn');
+// function initUserTypeSelection() {
+//     const userTypeCards = document.querySelectorAll('.user-type-card');
+//     const userTypeSelection = document.getElementById('userTypeSelection');
+//     const registrationForm = document.getElementById('registrationForm');
+//     const backBtn = document.getElementById('backBtn');
 
-    // Handle card selection - Direct navigation
-    userTypeCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Get selected type
-            const selectedType = this.getAttribute('data-type');
+//     // Handle card selection - Direct navigation
+//     userTypeCards.forEach(card => {
+//         card.addEventListener('click', function() {
+//             // Get selected type
+//             const selectedType = this.getAttribute('data-type');
             
-            console.log('Selected user type:', selectedType);
+//             console.log('Selected user type:', selectedType);
             
-            // Immediately navigate to form
-            navigateToForm(selectedType);
-        });
+//             // Immediately navigate to form
+//             navigateToForm(selectedType);
+//         });
         
-        // Add hover effect
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px)';
-            this.style.boxShadow = '0 15px 40px rgba(74, 91, 204, 0.4)';
-        });
+//         // Add hover effect
+//         card.addEventListener('mouseenter', function() {
+//             this.style.transform = 'translateY(-8px)';
+//             this.style.boxShadow = '0 15px 40px rgba(74, 91, 204, 0.4)';
+//         });
         
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 10px 30px rgba(74, 91, 204, 0.3)';
-        });
-    });
+//         card.addEventListener('mouseleave', function() {
+//             this.style.transform = 'translateY(0)';
+//             this.style.boxShadow = '0 10px 30px rgba(74, 91, 204, 0.3)';
+//         });
+//     });
 
-    // Handle back button
-    backBtn.addEventListener('click', function() {
-        // Show user type selection
-        userTypeSelection.style.display = 'block';
+//     // Handle back button
+//     backBtn.addEventListener('click', function() {
+//         // Show user type selection
+//         userTypeSelection.style.display = 'block';
         
-        // Hide registration form
-        registrationForm.style.display = 'none';
+//         // Hide registration form
+//         registrationForm.style.display = 'none';
         
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+//         // Scroll to top
+//         window.scrollTo({ top: 0, behavior: 'smooth' });
+//     });
 
-    // Navigate to form function
-    function navigateToForm(selectedType) {
-        // Hide user type selection with animation
-        userTypeSelection.style.opacity = '0';
-        userTypeSelection.style.transform = 'translateY(-20px)';
+//     // Navigate to form function
+//     function navigateToForm(selectedType) {
+//         // Hide user type selection with animation
+//         userTypeSelection.style.opacity = '0';
+//         userTypeSelection.style.transform = 'translateY(-20px)';
         
-        setTimeout(() => {
-            userTypeSelection.style.display = 'none';
+//         setTimeout(() => {
+//             userTypeSelection.style.display = 'none';
             
-            // Show registration form
-            registrationForm.style.display = 'block';
-            registrationForm.style.opacity = '0';
-            registrationForm.style.transform = 'translateY(20px)';
+//             // Show registration form
+//             registrationForm.style.display = 'block';
+//             registrationForm.style.opacity = '0';
+//             registrationForm.style.transform = 'translateY(20px)';
             
-            // Set user type in hidden field
-            document.getElementById('userType').value = selectedType;
+//             // Set user type in hidden field
+//             document.getElementById('userType').value = selectedType;
             
-            // Update form title based on user type
-            updateFormTitle(selectedType);
+//             // Update form title based on user type
+//             updateFormTitle(selectedType);
             
-            // Load user type specific fields
-            loadSpecificFields(selectedType);
+//             // Load user type specific fields
+//             loadSpecificFields(selectedType);
             
-            // Animate form in
-            setTimeout(() => {
-                registrationForm.style.opacity = '1';
-                registrationForm.style.transform = 'translateY(0)';
-            }, 50);
+//             // Animate form in
+//             setTimeout(() => {
+//                 registrationForm.style.opacity = '1';
+//                 registrationForm.style.transform = 'translateY(0)';
+//             }, 50);
             
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+//             // Scroll to top
+//             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            // Focus on first input
-            setTimeout(() => {
-                const firstInput = registrationForm.querySelector('input');
-                if (firstInput) {
-                    firstInput.focus();
-                }
-            }, 300);
+//             // Focus on first input
+//             setTimeout(() => {
+//                 const firstInput = registrationForm.querySelector('input');
+//                 if (firstInput) {
+//                     firstInput.focus();
+//                 }
+//             }, 300);
             
-        }, 300);
-    }
+//         }, 300);
+//     }
 
-    // Update form title based on user type
-    function updateFormTitle(type) {
-        const formTitle = document.getElementById('formTitle');
-        const formSubtitle = document.getElementById('formSubtitle');
+//     // Update form title based on user type
+//     function updateFormTitle(type) {
+//         const formTitle = document.getElementById('formTitle');
+//         const formSubtitle = document.getElementById('formSubtitle');
         
-        const titles = {
-            student: {
-                title: 'Create Student Account',
-                subtitle: 'Join thousands of students discovering amazing events'
-            },
-            organizer: {
-                title: 'Create Organizer Account',
-                subtitle: 'Start organizing and managing incredible events'
-            },
-            sponsor: {
-                title: 'Create Sponsor Account',
-                subtitle: 'Partner with universities and support great events'
-            }
-        };
+//         const titles = {
+//             student: {
+//                 title: 'Create Student Account',
+//                 subtitle: 'Join thousands of students discovering amazing events'
+//             },
+//             organizer: {
+//                 title: 'Create Organizer Account',
+//                 subtitle: 'Start organizing and managing incredible events'
+//             },
+//             sponsor: {
+//                 title: 'Create Sponsor Account',
+//                 subtitle: 'Partner with universities and support great events'
+//             }
+//         };
         
-        if (titles[type]) {
-            formTitle.textContent = titles[type].title;
-            formSubtitle.textContent = titles[type].subtitle;
-        }
-    }
+//         if (titles[type]) {
+//             formTitle.textContent = titles[type].title;
+//             formSubtitle.textContent = titles[type].subtitle;
+//         }
+//     }
 
-    // Load user type specific fields
-    function loadSpecificFields(type) {
-        const specificFields = document.getElementById('specificFields');
+//     // Load user type specific fields
+//     function loadSpecificFields(type) {
+//         const specificFields = document.getElementById('specificFields');
         
-        const fieldTemplates = {
-            student: `
-                <h3>Academic Information</h3>
-                <div class="form-group">
-                    <label for="university">University</label>
-                    <div class="input-container">
-                        <i class="fas fa-university"></i>
-                        <select id="university" name="university" required>
-                            <option value="">Select your university</option>
-                            <option value="university-of-colombo">University of Colombo</option>
-                            <option value="university-of-peradeniya">University of Peradeniya</option>
-                            <option value="university-of-moratuwa">University of Moratuwa</option>
-                            <option value="university-of-kelaniya">University of Kelaniya</option>
-                            <option value="university-of-jaffna">University of Jaffna</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <span class="error-message" id="universityError"></span>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="studentId">Student ID</label>
-                        <div class="input-container">
-                            <i class="fas fa-id-card"></i>
-                            <input type="text" id="studentId" name="studentId" placeholder="e.g., 2021/CS/001" required>
-                        </div>
-                        <span class="error-message" id="studentIdError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="year">Academic Year</label>
-                        <div class="input-container">
-                            <i class="fas fa-calendar"></i>
-                            <select id="year" name="year" required>
-                                <option value="">Select year</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                                <option value="postgrad">Postgraduate</option>
-                            </select>
-                        </div>
-                        <span class="error-message" id="yearError"></span>
-                    </div>
-                </div>
-            `,
-            organizer: `
-                <h3>Organization Information</h3>
-                <div class="form-group">
-                    <label for="organization">Organization/Department</label>
-                    <div class="input-container">
-                        <i class="fas fa-building"></i>
-                        <input type="text" id="organization" name="organization" placeholder="e.g., Computer Science Society" required>
-                    </div>
-                    <span class="error-message" id="organizationError"></span>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="position">Position</label>
-                        <div class="input-container">
-                            <i class="fas fa-user-tie"></i>
-                            <input type="text" id="position" name="position" placeholder="e.g., President, Secretary" required>
-                        </div>
-                        <span class="error-message" id="positionError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="experience">Experience Level</label>
-                        <div class="input-container">
-                            <i class="fas fa-star"></i>
-                            <select id="experience" name="experience" required>
-                                <option value="">Select experience</option>
-                                <option value="beginner">Beginner (0-1 years)</option>
-                                <option value="intermediate">Intermediate (2-5 years)</option>
-                                <option value="expert">Expert (5+ years)</option>
-                            </select>
-                        </div>
-                        <span class="error-message" id="experienceError"></span>
-                    </div>
-                </div>
-            `,
-            sponsor: `
-                <h3>Company Information</h3>
-                <div class="form-group">
-                    <label for="companyName">Company Name</label>
-                    <div class="input-container">
-                        <i class="fas fa-building"></i>
-                        <input type="text" id="companyName" name="companyName" placeholder="Enter company name" required>
-                    </div>
-                    <span class="error-message" id="companyNameError"></span>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="industry">Industry</label>
-                        <div class="input-container">
-                            <i class="fas fa-industry"></i>
-                            <select id="industry" name="industry" required>
-                                <option value="">Select industry</option>
-                                <option value="technology">Technology</option>
-                                <option value="finance">Finance</option>
-                                <option value="healthcare">Healthcare</option>
-                                <option value="education">Education</option>
-                                <option value="retail">Retail</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <span class="error-message" id="industryError"></span>
-                    </div>
-                    <div class="form-group">
-                        <label for="companySize">Company Size</label>
-                        <div class="input-container">
-                            <i class="fas fa-users"></i>
-                            <select id="companySize" name="companySize" required>
-                                <option value="">Select size</option>
-                                <option value="startup">Startup (1-50)</option>
-                                <option value="medium">Medium (51-500)</option>
-                                <option value="large">Large (500+)</option>
-                            </select>
-                        </div>
-                        <span class="error-message" id="companySizeError"></span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="website">Company Website</label>
-                    <div class="input-container">
-                        <i class="fas fa-globe"></i>
-                        <input type="url" id="website" name="website" placeholder="https://www.company.com">
-                    </div>
-                    <span class="error-message" id="websiteError"></span>
-                </div>
-            `
-        };
+//         const fieldTemplates = {
+//             student: window.location.href = "/unipulse/public/usersignup",
+//             organizer: `
+//                 <h3>Organization Information</h3>
+//                 <div class="form-group">
+//                     <label for="organization">Organization/Department</label>
+//                     <div class="input-container">
+//                         <i class="fas fa-building"></i>
+//                         <input type="text" id="organization" name="organization" placeholder="e.g., Computer Science Society" required>
+//                     </div>
+//                     <span class="error-message" id="organizationError"></span>
+//                 </div>
+//                 <div class="form-row">
+//                     <div class="form-group">
+//                         <label for="position">Position</label>
+//                         <div class="input-container">
+//                             <i class="fas fa-user-tie"></i>
+//                             <input type="text" id="position" name="position" placeholder="e.g., President, Secretary" required>
+//                         </div>
+//                         <span class="error-message" id="positionError"></span>
+//                     </div>
+//                     <div class="form-group">
+//                         <label for="experience">Experience Level</label>
+//                         <div class="input-container">
+//                             <i class="fas fa-star"></i>
+//                             <select id="experience" name="experience" required>
+//                                 <option value="">Select experience</option>
+//                                 <option value="beginner">Beginner (0-1 years)</option>
+//                                 <option value="intermediate">Intermediate (2-5 years)</option>
+//                                 <option value="expert">Expert (5+ years)</option>
+//                             </select>
+//                         </div>
+//                         <span class="error-message" id="experienceError"></span>
+//                     </div>
+//                 </div>
+//             `,
+//             sponsor: `
+//                 <h3>Company Information</h3>
+//                 <div class="form-group">
+//                     <label for="companyName">Company Name</label>
+//                     <div class="input-container">
+//                         <i class="fas fa-building"></i>
+//                         <input type="text" id="companyName" name="companyName" placeholder="Enter company name" required>
+//                     </div>
+//                     <span class="error-message" id="companyNameError"></span>
+//                 </div>
+//                 <div class="form-row">
+//                     <div class="form-group">
+//                         <label for="industry">Industry</label>
+//                         <div class="input-container">
+//                             <i class="fas fa-industry"></i>
+//                             <select id="industry" name="industry" required>
+//                                 <option value="">Select industry</option>
+//                                 <option value="technology">Technology</option>
+//                                 <option value="finance">Finance</option>
+//                                 <option value="healthcare">Healthcare</option>
+//                                 <option value="education">Education</option>
+//                                 <option value="retail">Retail</option>
+//                                 <option value="other">Other</option>
+//                             </select>
+//                         </div>
+//                         <span class="error-message" id="industryError"></span>
+//                     </div>
+//                     <div class="form-group">
+//                         <label for="companySize">Company Size</label>
+//                         <div class="input-container">
+//                             <i class="fas fa-users"></i>
+//                             <select id="companySize" name="companySize" required>
+//                                 <option value="">Select size</option>
+//                                 <option value="startup">Startup (1-50)</option>
+//                                 <option value="medium">Medium (51-500)</option>
+//                                 <option value="large">Large (500+)</option>
+//                             </select>
+//                         </div>
+//                         <span class="error-message" id="companySizeError"></span>
+//                     </div>
+//                 </div>
+//                 <div class="form-group">
+//                     <label for="website">Company Website</label>
+//                     <div class="input-container">
+//                         <i class="fas fa-globe"></i>
+//                         <input type="url" id="website" name="website" placeholder="https://www.company.com">
+//                     </div>
+//                     <span class="error-message" id="websiteError"></span>
+//                 </div>
+//             `
+//         };
         
-        if (fieldTemplates[type]) {
-            specificFields.innerHTML = fieldTemplates[type];
+//         if (fieldTemplates[type]) {
+//             specificFields.innerHTML = fieldTemplates[type];
             
-            // Style select elements
-            const selects = specificFields.querySelectorAll('select');
-            selects.forEach(select => {
-                select.style.paddingLeft = '2.5rem';
-                select.style.appearance = 'none';
-                select.style.backgroundImage = 'url("data:image/svg+xml;charset=US-ASCII,<svg viewBox=\'0 0 4 5\' xmlns=\'http://www.w3.org/2000/svg\'><path fill=\'%23999\' d=\'M2 0L0 2h4zm0 5L0 3h4z\'/></svg>")';
-                select.style.backgroundRepeat = 'no-repeat';
-                select.style.backgroundPosition = 'right 1rem center';
-                select.style.backgroundSize = '12px';
-            });
+//             // Style select elements
+//             const selects = specificFields.querySelectorAll('select');
+//             selects.forEach(select => {
+//                 select.style.paddingLeft = '2.5rem';
+//                 select.style.appearance = 'none';
+//                 select.style.backgroundImage = 'url("data:image/svg+xml;charset=US-ASCII,<svg viewBox=\'0 0 4 5\' xmlns=\'http://www.w3.org/2000/svg\'><path fill=\'%23999\' d=\'M2 0L0 2h4zm0 5L0 3h4z\'/></svg>")';
+//                 select.style.backgroundRepeat = 'no-repeat';
+//                 select.style.backgroundPosition = 'right 1rem center';
+//                 select.style.backgroundSize = '12px';
+//             });
             
-            // Re-initialize validation for new fields
-            const newInputs = specificFields.querySelectorAll('input[required], select[required]');
-            newInputs.forEach(input => {
-                input.addEventListener('blur', () => validateField(input));
-                input.addEventListener('input', () => clearFieldError(input));
-            });
-        }
-    }
-}
+//             // Re-initialize validation for new fields
+//             const newInputs = specificFields.querySelectorAll('input[required], select[required]');
+//             newInputs.forEach(input => {
+//                 input.addEventListener('blur', () => validateField(input));
+//                 input.addEventListener('input', () => clearFieldError(input));
+//             });
+//         }
+//     }
+// }
 
 // Form Validation
 function initFormValidation() {

@@ -1,0 +1,178 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a:any-link {
+    color: none;
+    text-decoration-line:none;
+    cursor: auto;
+}
+
+.main-container {
+    background: #1E3A8A;
+    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem;
+    min-height: calc(100vh - 140px);
+}
+
+.signup-section {
+    text-align: center;
+    margin-top: 24px;
+    margin-bottom: 38px;
+    flex: 1;
+}
+
+.signup-title {
+    color: #1E3A8A;
+    font-size: 2.1em;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.signup-subtitle {
+    color: #444;
+    font-size: 1.13em;
+    margin-bottom: 32px;
+}
+
+.progress-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+.progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #666;
+    font-size: 0.9em;
+    width: 100%;
+    max-width: 700px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: transparent;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    overflow: visible;
+    max-width: 700px;
+    margin-bottom: 0; 
+}
+
+.progress-bar-left {
+    background: #1E3A8A;
+    width: 50%;
+    height: 100%;
+    border-radius: 4px 0 0 4px;
+}
+
+.progress-bar-right {
+    background: #F97316; 
+    width: 50%;
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+}
+
+.card-grid {
+    display: flex;
+    justify-content: center;
+    gap: 64px;
+    margin-top: 40px;
+}
+
+.user-card {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 1px 12px rgba(60,80,180,0.07);
+    padding: 36px 34px 32px 34px;
+    max-width: 350px;
+    min-width: 270px;
+    cursor: pointer;
+    border: 2.5px solid #eaf0fb;
+    transition: box-shadow 0.3s, border-color 0.3s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.user-card.university {
+    border-color: #1E3A8A;
+}
+
+.user-card.university:hover {
+    box-shadow: 0 8px 32px rgba(60,80,180,0.15);
+    border-color: #F97316;
+    transform: translateY(-6px) scale(1.02);
+}
+
+.user-card.public {
+    border-color: #F97316;
+}
+
+.user-card.public:hover {
+    box-shadow: 0 8px 32px rgba(60,80,180,0.15);
+    border-color: #1c285c;
+    transform: translateY(-6px) scale(1.02);
+}
+
+.card-icon {
+    margin-bottom: 16px;
+}
+
+.card-title {
+    font-size: 1.23em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.university-title {
+    color: #1E3A8A;
+}
+
+.public-title {
+    color: #F97316;
+}
+
+.card-desc {
+    color: #444;
+    font-size: 1.03em;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .progress-section {
+        width: 170px;
+    }
+    .card-grid {
+        flex-direction: column;
+        gap: 28px;
+        align-items: center;
+    }
+    .main-container {
+        width: 98vw;
+    }
+}

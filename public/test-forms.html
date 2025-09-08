@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniPulse - Registration Forms Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-links { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
+        .test-links a { 
+            padding: 15px; 
+            background: #F97316; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            text-align: center;
+        }
+        .test-links a:hover { background: #e5650e; }
+    </style>
+</head>
+<body>
+    <h1>UniPulse Registration Forms Test</h1>
+    <p>Click on any link below to test the registration forms with improved Terms & Conditions checkbox:</p>
+    
+    <div class="test-links">
+        <a href="/sponsorreg">Sponsor Registration</a>
+        <a href="/publisherreg">Publisher/Club Registration</a>
+        <a href="/unireg">University Student Registration</a>
+        <a href="/publicreg">Public User Registration</a>
+        <a href="/volunteerreg">Volunteer Registration</a>
+    </div>
+
+    <h2>Expected Behavior:</h2>
+    <ul>
+        <li>All checkboxes should look identical (18x18px, rounded corners, blue background when checked)</li>
+        <li>Forms cannot be submitted without checking the Terms & Conditions</li>
+        <li>Error alert appears when trying to submit without checking</li>
+        <li>Checkbox gets red border temporarily when validation fails</li>
+        <li>Clicking the label should also check the checkbox</li>
+    </ul>
+</body>
+</html>
