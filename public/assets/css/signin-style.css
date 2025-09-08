@@ -15,7 +15,6 @@ body {
     display: flex;
     flex-direction: column;
 }
-
 /* Main Content */
 .main-content {
     /* margin-top: 50px; Exactly match header height */
