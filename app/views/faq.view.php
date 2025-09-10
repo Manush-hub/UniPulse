@@ -97,13 +97,10 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="logo">
-      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-    </div>
-    <p>&copy; 2025 UniPulse. All rights reserved.</p>           
-    </footer>
-    <script src="/unipulse/public/assets/js/faq.js"></script>
+  <!-- Footer -->
+  <?php include __DIR__ . '/components/footer.php'; ?>
+
+  <script src="/unipulse/public/assets/js/faq.js"></script>
 </body>
 </html>
 

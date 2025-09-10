@@ -288,7 +288,7 @@
     </div>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/../user/components/footer.php'; ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="modal">

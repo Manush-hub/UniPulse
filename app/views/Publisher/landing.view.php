@@ -158,7 +158,7 @@
     </section>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/../user/components/footer.php'; ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="/unipulse/public/assets/js/user/landing-app.js"></script>
 </body>

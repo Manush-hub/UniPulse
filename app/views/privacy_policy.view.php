@@ -1,7 +1,7 @@
 <!DO  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy | UniPulse</title>
   <link rel="stylesheet" href="/unipulse/public/assets/css/privacy_policy-style.css">
-</head>E html>
+</head>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -109,12 +109,8 @@
     </section>
   </main>
 
-  <footer class="footer">
-    <div class="logo">
-      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-    </div>
-    <p>&copy; 2025 UniPulse. All rights reserved.</p>           
-  </footer>
+  <!-- Footer -->
+  <?php include __DIR__ . '/components/footer.php'; ?>
 
 </body>
 </html>
