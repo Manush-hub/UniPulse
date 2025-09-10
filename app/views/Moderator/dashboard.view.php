@@ -54,7 +54,7 @@
                         <a href="moderation-guidelines.html"><i class="fas fa-book"></i> Guidelines</a>
                         <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
                         <hr>
-                        <a href="logout.php" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>

@@ -57,6 +57,12 @@ class Signin extends Controller{
                 
                 // Redirect based on user type
                 switch ($authResult['type']) {
+                    case 'admin':
+                        header('Location: /unipulse/public/admin/dashboard');
+                        break;
+                    case 'moderator':
+                        header('Location: /unipulse/public/moderator/dashboard');
+                        break;
                     case 'public':
                         header('Location: /unipulse/public/user/dashboard');
                         break;

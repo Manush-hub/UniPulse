@@ -89,6 +89,59 @@ try {
     $pdo->exec($usersTable);
     echo "Table 'users' created successfully.\n";
     
+    // Create admins table
+    $adminsTable = "
+        CREATE TABLE IF NOT EXISTS admins (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            last_login TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_email (email)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    
+    $pdo->exec($adminsTable);
+    echo "Table 'admins' created successfully.\n";
+    
+    // Create moderators table
+    $moderatorsTable = "
+        CREATE TABLE IF NOT EXISTS moderators (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            full_name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            phone VARCHAR(20) NULL,
+            assigned_by INT NOT NULL,
+            permissions JSON NULL DEFAULT ('[]'),
+            is_active BOOLEAN DEFAULT TRUE,
+            last_login TIMESTAMP NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_email (email),
+            INDEX idx_assigned_by (assigned_by),
+            FOREIGN KEY (assigned_by) REFERENCES admins(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ";
+    
+    $pdo->exec($moderatorsTable);
+    echo "Table 'moderators' created successfully.\n";
+    
+    // Insert default admin user
+    $defaultAdminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+    $insertAdmin = "
+        INSERT IGNORE INTO admins (full_name, email, password_hash, phone) 
+        VALUES ('System Administrator', 'admin@unipulse.com', :password, '+94712345678')
+    ";
+    
+    $stmt = $pdo->prepare($insertAdmin);
+    $stmt->execute(['password' => $defaultAdminPassword]);
+    echo "Default admin user created (email: admin@unipulse.com, password: admin123)\n";
+    
     echo "\nDatabase setup completed successfully!\n";
     
 } catch(PDOException $e) {

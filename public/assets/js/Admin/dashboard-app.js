@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Sample data for admin dashboard
 const adminData = {
-    username: 'Robert Johnson',
-    displayName: 'Robert',
+    username: 'Admin',
+    displayName: 'Admin',
     role: 'System Administrator',
     totalUsers: 2847,
     activeEvents: 124,

@@ -43,7 +43,7 @@
                 <div class="user-menu">
                     <img src="/unipulse/public/assets/images/admin.png" alt="Admin" class="admin-avatar">
                     <div class="user-info">
-                        <span class="username" id="username">Robert Johnson</span>
+                        <span class="username" id="username"><?php echo isset($user['name']) ? htmlspecialchars($user['name']) : 'Admin'; ?></span>
                         <span class="user-role" id="userRole">System Administrator</span>
                     </div>
                     <button class="user-dropdown-btn" onclick="toggleUserMenu()">
@@ -54,7 +54,7 @@
                         <a href="auditlog.html"><i class="fas fa-clipboard-list"></i> Audit Log</a>
                         <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
                         <hr>
-                        <a href="logout.php" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>
             </div>
@@ -68,7 +68,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">Robert</span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?php echo isset($user['name']) ? htmlspecialchars(explode(' ', $user['name'])[0]) : 'Admin'; ?></span>! 👋</h1>
                         <p>Monitor system performance and manage platform operations from your admin dashboard.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
@@ -76,12 +76,12 @@
                                 <span class="stat-label">Total Users</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number" id="activeEvents">124</span>
-                                <span class="stat-label">Active Events</span>
+                                <span class="stat-number" id="totalModerators"><?php echo isset($stats['total_moderators']) ? $stats['total_moderators'] : 0; ?></span>
+                                <span class="stat-label">Total Moderators</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number" id="pendingApprovals">18</span>
-                                <span class="stat-label">Pending Approvals</span>
+                                <span class="stat-number" id="totalAdmins"><?php echo isset($stats['total_admins']) ? $stats['total_admins'] : 1; ?></span>
+                                <span class="stat-label">Total Admins</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-number" id="systemHealth">98%</span>
@@ -90,13 +90,13 @@
                         </div>
                     </div>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='user-management.html'">
-                            <i class="fas fa-users"></i>
-                            Manage Users
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/moderators'">
+                            <i class="fas fa-user-shield"></i>
+                            Manage Moderators
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='system-reports.html'">
-                            <i class="fas fa-chart-bar"></i>
-                            System Reports
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/admins'">
+                            <i class="fas fa-users-cog"></i>
+                            Manage Admins
                         </button>
                         <button class="btn btn-outline" onclick="window.location.href='settings.html'">
                             <i class="fas fa-cog"></i>
@@ -112,19 +112,19 @@
             <div class="container">
                 <h2>Quick Actions</h2>
                 <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='user-management.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/admin/moderators_list'">
                         <div class="action-icon">
-                            <i class="fas fa-user-cog"></i>
+                            <i class="fas fa-user-shield"></i>
                         </div>
-                        <h3>User Management</h3>
-                        <p>Manage all system users and permissions</p>
+                        <h3>Moderator Management</h3>
+                        <p>Add and manage platform moderators</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='content-moderation.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/admin/admins'">
                         <div class="action-icon">
-                            <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-users-cog"></i>
                         </div>
-                        <h3>Content Moderation</h3>
-                        <p>Review and moderate platform content</p>
+                        <h3>Admin Management</h3>
+                        <p>Manage admin accounts and permissions</p>
                     </div>
                     <div class="action-card" onclick="window.location.href='approval-queue.html'">
                         <div class="action-icon">

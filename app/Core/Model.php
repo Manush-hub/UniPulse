@@ -83,9 +83,11 @@ Trait Model{
         $keys = array_keys($data);
         $query="INSERT INTO $this->table (".implode(",",$keys).") VALUES (:".implode(",:",$keys).") ";
 
-        $this->query($query,$data);
-
-        return false;
+        $conn = $this->connect();
+        $stm = $conn->prepare($query);
+        $result = $stm->execute($data);
+        
+        return $result;
     }
 
     public function update($id,$data,$id_column = 'id'){
@@ -123,6 +125,24 @@ Trait Model{
         $this->query($query,$data);
         
     } 
+    
+    /**
+     * Get all records from table
+     */
+    public function all() {
+        $query = "SELECT * FROM $this->table ORDER BY $this->order_column $this->order_type";
+        $result = $this->query($query);
+        return $result ?: [];
+    }
+    
+    /**
+     * Find record by ID
+     */
+    public function find($id, $id_column = 'id') {
+        $query = "SELECT * FROM $this->table WHERE $id_column = :id LIMIT 1";
+        $result = $this->query($query, ['id' => $id]);
+        return $result ? $result[0] : false;
+    }
     
     // Add this method to your existing Model trait
     public function getTableByRole($baseTable, $role = null) {

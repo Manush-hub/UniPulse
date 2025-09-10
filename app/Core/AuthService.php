@@ -14,6 +14,16 @@ class AuthService {
         error_log("AuthService::authenticate called for email: $email");
         
         $userTables = [
+            'admins' => [
+                'model' => 'Admin',
+                'dashboard' => '/unipulse/public/admin/dashboard',
+                'type' => 'admin'
+            ],
+            'moderators' => [
+                'model' => 'Moderator', 
+                'dashboard' => '/unipulse/public/moderator/dashboard',
+                'type' => 'moderator'
+            ],
             'public_users' => [
                 'model' => 'PublicUser',
                 'dashboard' => '/unipulse/public/user/dashboard',
@@ -101,6 +111,8 @@ class AuthService {
         
         // Set user name based on user type
         switch ($userData['type']) {
+            case 'admin':
+            case 'moderator':
             case 'public':
             case 'university':
                 $_SESSION['user_name'] = $userData['user']->full_name;
@@ -161,6 +173,8 @@ class AuthService {
      */
     public function redirectToDashboard($userType) {
         $dashboards = [
+            'admin' => '/unipulse/public/admin/dashboard',
+            'moderator' => '/unipulse/public/moderator/dashboard',
             'public' => '/unipulse/public/user/dashboard',
             'university' => '/unipulse/public/user/dashboard', 
             'sponsor' => '/unipulse/public/sponsor/dashboard',
