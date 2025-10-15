@@ -6,11 +6,21 @@ if (!isset($_SERVER['SERVER_NAME'])) {
 }
 
 if($_SERVER['SERVER_NAME'] == 'localhost'){
+    // MAMP Configuration (macOS/Windows)
     define('DBNAME','unipulse_db');
     define('DBHOST','localhost');
     define('DBUSER','root');
-    define('DBPASS','root');
-    define('DBPORT','8889');
+    
+    // Check if running on MAMP (macOS) or WAMP (Windows)
+    if (PHP_OS_FAMILY === 'Windows' || strpos(__DIR__, 'wamp') !== false) {
+        // WAMP Configuration (Windows)
+        define('DBPASS','');  // WAMP default is empty password
+        define('DBPORT','3306'); // WAMP default port
+    } else {
+        // MAMP Configuration (macOS)
+        define('DBPASS','root'); // MAMP default password
+        define('DBPORT','8889'); // MAMP default port
+    }
     
     define('ROOT','http://localhost:8080');
 }
