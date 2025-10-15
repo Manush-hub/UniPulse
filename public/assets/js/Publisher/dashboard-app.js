@@ -8,19 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
     animateProgressBars();
 });
 
-// Sample data for event organizer
-// const organizerData = {
-//     username: 'Jennifer King',
-//     displayName: 'Jennifer',
-//     role: 'Event Organizer',
-//     university: 'University of Moratuwa',
-//     upcomingEvents: 7,
-//     ticketsSold: 1280,
-//     totalVolunteers: 45,
-//     confirmedSponsors: 12,
-//     totalRevenue: 25600,
-//     avatar: '/unipulse/public/assets/images/default-avatar.png'
-// };
 
 const eventsData = [
     {

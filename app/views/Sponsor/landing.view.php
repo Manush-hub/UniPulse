@@ -160,6 +160,6 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo $controller->loadJS('landing-app.js'); ?>"></script>
+    <script src="/UniPulse/public/assets/js/sponsor/landing-app.js"></script>
 </body>
 </html>

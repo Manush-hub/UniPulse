@@ -110,6 +110,6 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="/unipulse/public/assets/js/User/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/sponsor/events-app.js"></script>
 </body>
 </html>

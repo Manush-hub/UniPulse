@@ -3,7 +3,7 @@ $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/publisher/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
 
 <header class="header">
         <div class="header-container">
@@ -38,7 +38,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                     </div>
                 </div>
                 <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="oranizer" class="organizer">
+                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar">
                     <div class="user-info">
                         <span class="username" id="username">Jennifer King</span>
                         <span class="user-role" id="userRole">Event Organizer</span>

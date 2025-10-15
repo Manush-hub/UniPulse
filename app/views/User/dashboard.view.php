@@ -159,7 +159,7 @@
     </div>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
