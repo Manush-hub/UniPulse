@@ -1,6 +1,6 @@
 <?php
 
-class PublisherEventview extends Controller {
+class SponsorEventview extends Controller {
     
     private $eventModel;
     
@@ -44,8 +44,8 @@ class PublisherEventview extends Controller {
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
-                                'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
-                                'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
+                                'apiEndpoint' => '/unipulse/public/sponsor/eventview/getEvent',
+                                'joinEndpoint' => '/unipulse/public/sponsor/eventview/joinEvent'
                             ]
                         ];
                     } else {
@@ -54,7 +54,7 @@ class PublisherEventview extends Controller {
                 }
             } catch (Exception $e) {
                 // Log error and show user-friendly message
-                error_log("Database error in PublisherEventview::index: " . $e->getMessage());
+                error_log("Database error in SponsorEventview::index: " . $e->getMessage());
                 $data['error'] = 'Unable to load event details. Please try again later.';
             }
         } else {
@@ -130,7 +130,7 @@ class PublisherEventview extends Controller {
             
         } catch (Exception $e) {
             // Log error and return generic error message
-            error_log("Database error in PublisherEventview::getEvent: " . $e->getMessage());
+            error_log("Database error in SponsorEventview::getEvent: " . $e->getMessage());
             echo json_encode([
                 'success' => false,
                 'error' => 'Unable to retrieve event data. Please try again later.'
@@ -217,7 +217,7 @@ class PublisherEventview extends Controller {
             
         } catch (Exception $e) {
             // Log error and return generic error message
-            error_log("Database error in PublisherEventview::joinEvent: " . $e->getMessage());
+            error_log("Database error in SponsorEventview::joinEvent: " . $e->getMessage());
             echo json_encode([
                 'success' => false,
                 'error' => 'Unable to join event. Please try again later.'

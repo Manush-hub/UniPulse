@@ -2,8 +2,8 @@
 let currentEvent = window.serverData?.event || null;
 let similarEvents = window.serverData?.similarEvents || [];
 const hasError = window.serverData?.error || null;
-const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
-const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
+const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/sponsor/eventview/getEvent';
+const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/sponsor/eventview/joinEvent';
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -195,7 +195,7 @@ function updateStatusStyling(status, participants, maxParticipants) {
 
 // Navigation functions
 function viewEvent(eventId) {
-    window.location.href = `/unipulse/public/user/eventview?id=${eventId}`;
+    window.location.href = `/unipulse/public/sponsor/eventview?id=${eventId}`;
 }
 
 // Modal functions

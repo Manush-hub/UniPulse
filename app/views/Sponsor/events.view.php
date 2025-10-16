@@ -75,6 +75,18 @@
         <!-- Events Grid -->
         <div class="events-section">
             <div class="container">
+                <?php if (isset($error)): ?>
+                    <!-- Error Message -->
+                    <div class="error-message" style="text-align: center; padding: 2rem; background: #fee; border: 1px solid #fcc; border-radius: 8px; margin-bottom: 2rem;">
+                        <i class="fas fa-exclamation-triangle" style="color: #d32f2f; font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <h3 style="color: #d32f2f; margin-bottom: 0.5rem;">Unable to Load Events</h3>
+                        <p style="color: #666;"><?php echo htmlspecialchars($error); ?></p>
+                        <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 1rem;">
+                            <i class="fas fa-refresh"></i> Try Again
+                        </button>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="events-grid" id="eventsGrid">
                     <!-- Events will be loaded here dynamically -->
                 </div>
@@ -109,6 +121,11 @@
 
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
+
+    <!-- Pass server data to JavaScript -->
+    <script>
+        window.serverData = <?php echo json_encode($serverData ?? []); ?>;
+    </script>
 
     <script src="/unipulse/public/assets/js/sponsor/events-app.js"></script>
 </body>
