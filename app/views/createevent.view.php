@@ -12,35 +12,13 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-brand">
-                <div class="logo">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </div>
-            </div>
-            <div class="unp-nav-group">
-                <a href="#features" class="unp-nav-link">Home</a>
-                <a href="#users" class="unp-nav-link">Upcoming Events</a>
-                <a href="#events" class="unp-nav-link">My Events</a>
-            </div>
-            <div class="header-right">
-                <div class="profile">
-                    <div class="profile-avatar">JK</div>
-                    <span>Jennifer King</span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'createevent'];
+    include __DIR__ . '/Publisher/components/header.php';
+    ?>
 
     <div class="main-container">
         <aside class="sidebar">
-            <div style="margin-bottom: 20px;">
-                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Last saved</div>
-                <div style="font-size: 12px; color: #333;">Monday, June 06 | 06:42 AM</div>
-                <div style="font-size: 12px; color: #666; margin-top: 5px;">Status</div>
-                <div style="font-size: 12px; color: #333;">Draft</div>
-            </div>
 
             <h3>EVENT INFORMATION</h3>
             <div class="sidebar-item" data-target="upload-cover">Upload cover</div>
@@ -66,16 +44,6 @@
                     <div class="section-content">
                         <p style="color: #666; margin-bottom: 15px;">Upload the event cover to capture your audience's
                             attention</p>
-
-                        <div class="cover-image" id="coverImageContainer">
-                            <div class="cover-image-placeholder">
-                                <div>
-                                    <div>Rock Revolt</div>
-                                    <div style="font-size: 32px; margin: 10px 0;">Power</div>
-                                    <div style="font-size: 32px;">Passion</div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="album-upload-container" style="margin-top: 20px;">
                             <div class="upload-area" id="coverUploadArea">
@@ -794,7 +762,10 @@
             </main>
         </form>
     </div>
-    <?php include 'footer.php' ?>
+    
+    <!-- Footer -->
+    <?php include __DIR__ . '/components/footer.php'; ?>
+
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
 </body>
 

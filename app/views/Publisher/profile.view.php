@@ -9,6 +9,7 @@
 </head>
 <body>
     <?php include_once(__DIR__ . '/components/header.php'); ?>
+
     <div class="container">
         <!-- Profile Header -->
         <div class="profile-header">
@@ -999,6 +1000,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>
