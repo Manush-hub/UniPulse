@@ -1,20 +1,21 @@
 <?php
 
-class UserDashboard extends Controller{
+class UserDashboard extends BaseUserController {
 
     public function index($a = '', $b = '' , $c = ''){
-        // Require authentication - allow both public and university users
-        $currentUser = AuthService::getCurrentUser();
-        if (!$currentUser || !in_array($currentUser['type'], ['public', 'university'])) {
-            header('Location: /unipulse/public/signin');
-            exit();
-        }
+        // Get events based on user profile
+        $event = new Event();
         
-        // Pass user data to view
-        $data = [
-            'user' => $currentUser
-        ];
+        // Get upcoming events that user can see
+        $upcomingEvents = $event->getEventsForUser($this->currentUser['type'], $this->userUniversity, ['status' => 'upcoming', 'limit' => 5]);
         
-        $this->view('User/dashboard', $data);
+        // Get recent events that user can see
+        $recentEvents = $event->getEventsForUser($this->currentUser['type'], $this->userUniversity, ['limit' => 10]);
+        
+        // Pass data to view using enhanced method
+        $this->userView('User/dashboard', [
+            'upcomingEvents' => $upcomingEvents,
+            'recentEvents' => $recentEvents
+        ]);
     } 
 }

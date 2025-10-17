@@ -39,7 +39,21 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 <div class="user-menu">
                     <img src="/unipulse/public/assets/images/default-avatar.png" alt="User Avatar" class="avatar">
                     <div class="user-info">
-                        <span class="username" id="username">Manush-hub</span>
+                        <?php 
+                        $currentUser = AuthService::getCurrentUser();
+                        $userDetails = AuthService::getCurrentUserDetails();
+                        ?>
+                        <?php if ($userDetails): ?>
+                            <span class="username" id="username"><?= htmlspecialchars($userDetails->full_name) ?></span>
+                            <?php if ($currentUser['type'] === 'university' && isset($userDetails->university)): ?>
+                                <span class="user-university"><?= htmlspecialchars(AuthService::getUserUniversityName($userDetails->university)) ?></span>
+                            <?php elseif ($currentUser['type'] === 'public'): ?>
+                                <span class="user-type">Public User</span>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <span class="username" id="username"><?= htmlspecialchars($currentUser['name']) ?></span>
+                            <span class="user-type"><?= ucfirst($currentUser['type']) ?> User</span>
+                        <?php endif; ?>
                     </div>
                     <button class="user-dropdown-btn" onclick="toggleUserMenu()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

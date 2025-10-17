@@ -210,6 +210,19 @@ textarea {
     font-size: 0.9rem;
 }
 
+.user-university {
+    font-size: 0.75rem;
+    color: #1976d2;
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+.user-type {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 1px;
+}
+
 .user-role {
     font-size: 0.8rem;
     color: #666;

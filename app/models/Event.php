@@ -21,7 +21,8 @@ class Event {
         'max_participants',
         'requirements',
         'schedule',
-        'image_url'
+        'image_url',
+        'visibility'
     ];
     
     /**
@@ -48,8 +49,83 @@ class Event {
         }
         
         if (!empty($filters['search'])) {
-            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
-            $params['search'] = '%' . $filters['search'] . '%';
+            $whereClause[] = '(title LIKE :search1 OR description LIKE :search2 OR university_name LIKE :search3 OR organizer LIKE :search4 OR location LIKE :search5)';
+            $searchTerm = '%' . $filters['search'] . '%';
+            $params['search1'] = $searchTerm;
+            $params['search2'] = $searchTerm;
+            $params['search3'] = $searchTerm;
+            $params['search4'] = $searchTerm;
+            $params['search5'] = $searchTerm;
+        }
+        
+        $sql = "SELECT * FROM {$this->table}";
+        
+        if (!empty($whereClause)) {
+            $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+        }
+        
+        $sql .= ' ORDER BY event_date ASC, event_time ASC';
+        
+        // Add pagination if specified
+        if (isset($filters['limit'])) {
+            $sql .= ' LIMIT :limit';
+            $params['limit'] = $filters['limit'];
+            
+            if (isset($filters['offset'])) {
+                $sql .= ' OFFSET :offset';
+                $params['offset'] = $filters['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
+    
+    /**
+     * Get events accessible to a specific user based on their university affiliation
+     * Public users can see all public events
+     * University users can see their university events + public events
+     */
+    public function getEventsForUser($userType, $userUniversity = null, $filters = []) {
+        $whereClause = [];
+        $params = [];
+        
+        // Base visibility rules
+        if ($userType === 'public') {
+            // Public users can only see public events (events with visibility = 'public')
+            $whereClause[] = "(visibility = 'public' OR visibility IS NULL)";
+        } elseif ($userType === 'university' && !empty($userUniversity)) {
+            // University users can see their university events + public events
+            $whereClause[] = "(university = :user_university OR visibility = 'public' OR visibility IS NULL)";
+            $params['user_university'] = $userUniversity;
+        } else {
+            // Default: only public events if user type/university is unclear
+            $whereClause[] = "(visibility = 'public' OR visibility IS NULL)";
+        }
+        
+        // Apply additional filters
+        if (!empty($filters['category'])) {
+            $whereClause[] = 'category = :category';
+            $params['category'] = $filters['category'];
+        }
+        
+        if (!empty($filters['university'])) {
+            $whereClause[] = 'university = :filter_university';
+            $params['filter_university'] = $filters['university'];
+        }
+        
+        if (!empty($filters['status'])) {
+            $whereClause[] = 'status = :status';
+            $params['status'] = $filters['status'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $whereClause[] = '(title LIKE :search1 OR description LIKE :search2 OR university_name LIKE :search3 OR organizer LIKE :search4 OR location LIKE :search5)';
+            $searchTerm = '%' . $filters['search'] . '%';
+            $params['search1'] = $searchTerm;
+            $params['search2'] = $searchTerm;
+            $params['search3'] = $searchTerm;
+            $params['search4'] = $searchTerm;
+            $params['search5'] = $searchTerm;
         }
         
         $sql = "SELECT * FROM {$this->table}";
@@ -201,6 +277,20 @@ class Event {
         
         $result = $this->query($sql);
         return $result ? $result[0] : null;
+    }
+    
+    /**
+     * Get user university information based on user type and session data
+     */
+    public function getUserUniversity($userId, $userType, $userTable) {
+        if ($userType === 'university') {
+            $sql = "SELECT university FROM {$userTable} WHERE id = :id LIMIT 1";
+            $result = $this->query($sql, ['id' => $userId]);
+            if ($result && count($result) > 0) {
+                return $result[0]->university;
+            }
+        }
+        return null;
     }
     
     /**

@@ -169,6 +169,53 @@ class AuthService {
     }
     
     /**
+     * Get complete user details from database
+     */
+    public static function getCurrentUserDetails() {
+        if (!self::isLoggedIn()) {
+            return false;
+        }
+        
+        $currentUser = self::getCurrentUser();
+        $query = "SELECT * FROM {$currentUser['table']} WHERE id = :id LIMIT 1";
+        
+        $authService = new AuthService();
+        $result = $authService->query($query, ['id' => $currentUser['id']]);
+        
+        if ($result && count($result) > 0) {
+            $userDetails = $result[0];
+            
+            // Add session data to user details
+            $userDetails->user_type = $currentUser['type'];
+            $userDetails->table = $currentUser['table'];
+            
+            // Remove sensitive data
+            unset($userDetails->password_hash);
+            
+            return $userDetails;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get university name for university users
+     */
+    public static function getUserUniversityName($university) {
+        $universityNames = [
+            'university-of-colombo' => 'University of Colombo',
+            'university-of-peradeniya' => 'University of Peradeniya',
+            'university-of-sri-jayewardenepura' => 'University of Sri Jayewardenepura',
+            'university-of-kelaniya' => 'University of Kelaniya',
+            'university-of-moratuwa' => 'University of Moratuwa',
+            'university-of-jaffna' => 'University of Jaffna',
+            'university-of-ruhuna' => 'University of Ruhuna'
+        ];
+        
+        return $universityNames[$university] ?? ucfirst(str_replace('-', ' ', $university));
+    }
+    
+    /**
      * Redirect to appropriate dashboard based on user type
      */
     public function redirectToDashboard($userType) {
