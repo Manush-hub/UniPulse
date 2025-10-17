@@ -36,8 +36,11 @@ class Publisherreg extends Controller{
                             $publisherId
                         );
                         
+                        // Notify moderators of the same university
+                        $this->notifyModerators($userData['university'], $publisherId);
+                        
                         $success = true;
-                        $data['success_message'] = "Registration successful! Your publisher account has been created and is pending verification.";
+                        $data['success_message'] = "Registration successful! Your publisher account has been created and is pending verification by university moderators.";
                         // Clear form data on success
                         $_POST = [];
                         $_FILES = [];
@@ -55,6 +58,27 @@ class Publisherreg extends Controller{
         $data['form_data'] = $_POST;
         
         $this->view('publisherreg', $data);
+    }
+    
+    /**
+     * Notify moderators of new publisher registration
+     */
+    private function notifyModerators($university, $publisherId) {
+        $moderatorModel = new Moderator();
+        $moderators = $moderatorModel->getByUniversity($university);
+        
+        if (!empty($moderators)) {
+            $publisherModel = new Publisher();
+            foreach ($moderators as $moderator) {
+                // Create notification for each moderator
+                $publisherModel->createApprovalNotification(
+                    $publisherId, 
+                    $moderator->id, 
+                    'pending_approval',
+                    'New publisher registration requires approval'
+                );
+            }
+        }
     }
 
 }

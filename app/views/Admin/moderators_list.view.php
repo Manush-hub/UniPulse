@@ -18,8 +18,8 @@
             margin-bottom: 2rem;
         }
         .btn-create {
-            background: var(--primary-color);
-            color: blue;
+            background: #4a90e2;
+            color: white;
             padding: 0.75rem 1.5rem;
             border-radius: 8px;
             text-decoration: none;
@@ -29,7 +29,7 @@
             transition: all 0.3s ease;
         }
         .btn-create:hover {
-            background: var(--primary-dark);
+            background: #357abd;
             transform: translateY(-2px);
         }
         .moderator-table {
@@ -39,7 +39,7 @@
             overflow: hidden;
         }
         .table-header {
-            background: var(--primary-color);
+            background: #4a90e2;
             color: white;
             padding: 1rem;
         }
@@ -56,7 +56,7 @@
         .table-content th {
             background: #f8f9fa;
             font-weight: 600;
-            color: var(--text-primary);
+            color: #333;
         }
         .status-badge {
             padding: 0.25rem 0.75rem;
@@ -186,6 +186,7 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>University</th>
                                     <th>Phone</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -198,6 +199,7 @@
                                         <tr>
                                             <td><?php echo htmlspecialchars($moderator->full_name); ?></td>
                                             <td><?php echo htmlspecialchars($moderator->email); ?></td>
+                                            <td><?php echo htmlspecialchars($moderator->university_name ?? 'N/A'); ?></td>
                                             <td><?php echo htmlspecialchars($moderator->phone ?? 'N/A'); ?></td>
                                             <td>
                                                 <span class="status-badge <?php echo $moderator->is_active ? 'status-active' : 'status-inactive'; ?>">
@@ -213,14 +215,19 @@
                                                     </a>
                                                     <?php if ($moderator->is_active): ?>
                                                         <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
-                                                           class="btn-action btn-delete" title="Deactivate"
-                                                           onclick="return confirm('Are you sure you want to deactivate this moderator?')">
-                                                            <i class="fas fa-ban"></i>
+                                                           class="btn-action btn-delete" title="Delete"
+                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
+                                                            <i class="fas fa-trash"></i>
                                                         </a>
                                                     <?php else: ?>
                                                         <a href="/unipulse/public/admin/moderators/activate/<?php echo $moderator->id; ?>" 
                                                            class="btn-action btn-activate" title="Activate">
                                                             <i class="fas fa-check"></i>
+                                                        </a>
+                                                        <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
+                                                           class="btn-action btn-delete" title="Delete"
+                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
+                                                            <i class="fas fa-trash"></i>
                                                         </a>
                                                     <?php endif; ?>
                                                 </div>

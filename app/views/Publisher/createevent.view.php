@@ -794,7 +794,7 @@
             </main>
         </form>
     </div>
-    <?php include 'footer.php' ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
 </body>
 

@@ -11,55 +11,11 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/adminlanding">Home</a>
-                <a href="/unipulse/public/users">User Management</a>
-                <a href="/unipulse/public/admindashboard" class="active">Dashboard</a>
-                <a href="/unipulse/public/systemsettings">System Settings</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge">5</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/admin.png" alt="Admin" class="admin-avatar">
-                    <div class="user-info">
-                        <span class="username" id="username"><?php echo isset($user['name']) ? htmlspecialchars($user['name']) : 'Admin'; ?></span>
-                        <span class="user-role" id="userRole">System Administrator</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html"><i class="fas fa-user-cog"></i> Profile Settings</a>
-                        <a href="auditlog.html"><i class="fas fa-clipboard-list"></i> Audit Log</a>
-                        <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
-                        <hr>
-                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
+    
 
     <!-- Main Container -->
     <div class="main-container">
@@ -82,10 +38,6 @@
                             <div class="stat-item">
                                 <span class="stat-number" id="totalAdmins"><?php echo isset($stats['total_admins']) ? $stats['total_admins'] : 1; ?></span>
                                 <span class="stat-label">Total Admins</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="systemHealth">98%</span>
-                                <span class="stat-label">System Health</span>
                             </div>
                         </div>
                     </div>
@@ -132,13 +84,6 @@
                         </div>
                         <h3>Approval Queue</h3>
                         <p>Review pending approvals</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='system-health.html'">
-                        <div class="action-icon">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <h3>System Health</h3>
-                        <p>Monitor system performance</p>
                     </div>
                 </div>
             </div>
@@ -196,28 +141,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="overview-card">
-                        <div class="overview-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="overview-content">
-                            <h3>Performance Metrics</h3>
-                            <div class="stats-grid">
-                                <div class="stat">
-                                    <span class="stat-value">98%</span>
-                                    <span class="stat-label">Uptime</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">1.2s</span>
-                                    <span class="stat-label">Avg. Response</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">0.2%</span>
-                                    <span class="stat-label">Error Rate</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -233,7 +156,7 @@
                         </div>
                         <div class="activity-list" id="activityList">
                             <!-- Activity items will be loaded here -->
-                        </div>
+                         </div>
                     </div>
                     <div class="sidebar">
                         <div class="sidebar-widget">
@@ -242,32 +165,6 @@
                                 <!-- Approval items will be loaded here -->
                             </div>
                             <a href="approval-queue.html" class="view-all">View All Pending</a>
-                        </div>
-                        <div class="sidebar-widget">
-                            <h3>System Health</h3>
-                            <div class="health-status">
-                                <div class="health-metric">
-                                    <span class="metric-label">CPU Usage</span>
-                                    <div class="metric-bar">
-                                        <div class="metric-fill" data-width="65%"></div>
-                                    </div>
-                                    <span class="metric-value">65%</span>
-                                </div>
-                                <div class="health-metric">
-                                    <span class="metric-label">Memory Usage</span>
-                                    <div class="metric-bar">
-                                        <div class="metric-fill" data-width="42%"></div>
-                                    </div>
-                                    <span class="metric-value">42%</span>
-                                </div>
-                                <div class="health-metric">
-                                    <span class="metric-label">Storage</span>
-                                    <div class="metric-bar">
-                                        <div class="metric-fill" data-width="78%"></div>
-                                    </div>
-                                    <span class="metric-value">78%</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -302,20 +199,8 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-                <a href="#about">About UniPulse</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-                <span class="system-version">v2.4.1</span>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+    
 
     <!-- Modals -->
     <div id="userModal" class="modal">

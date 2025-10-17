@@ -121,6 +121,8 @@ try {
             email VARCHAR(255) NOT NULL UNIQUE,
             password_hash VARCHAR(255) NOT NULL,
             phone VARCHAR(20) NULL,
+            university VARCHAR(100) NOT NULL,
+            university_name VARCHAR(255) NOT NULL,
             assigned_by INT NOT NULL,
             permissions JSON NULL DEFAULT ('[]'),
             is_active BOOLEAN DEFAULT TRUE,
@@ -128,6 +130,7 @@ try {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_email (email),
+            INDEX idx_university (university),
             INDEX idx_assigned_by (assigned_by),
             FOREIGN KEY (assigned_by) REFERENCES admins(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

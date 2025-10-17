@@ -8,10 +8,10 @@ class Publisher {
     public function create($data) {
         $query = "INSERT INTO publishers (
             society_name, email, phone, country_code, password_hash, 
-            university, faculty, confirmation_document
+            university, faculty, confirmation_document, approval_status
         ) VALUES (
             :society_name, :email, :phone, :country_code, :password_hash,
-            :university, :faculty, :confirmation_document
+            :university, :faculty, :confirmation_document, 'pending'
         )";
         
         $result = $this->query($query, $data);
@@ -136,5 +136,127 @@ class Publisher {
         }
         
         return null;
+    }
+    
+    /**
+     * Get pending publisher registrations for approval by university
+     */
+    public function getPendingByUniversity($university) {
+        $query = "SELECT * FROM publishers WHERE university = :university AND approval_status = 'pending' ORDER BY created_at ASC";
+        return $this->query($query, ['university' => $university]);
+    }
+    
+    /**
+     * Get all pending publisher registrations
+     */
+    public function getAllPending() {
+        $query = "SELECT p.*, u.name as university_name FROM publishers p 
+                  LEFT JOIN universities u ON p.university = u.code 
+                  WHERE p.approval_status = 'pending' 
+                  ORDER BY p.created_at ASC";
+        return $this->query($query);
+    }
+    
+    /**
+     * Approve a publisher registration
+     */
+    public function approve($publisherId, $moderatorId) {
+        $query = "UPDATE publishers SET 
+                  approval_status = 'approved', 
+                  approved_by = :moderator_id, 
+                  approved_at = CURRENT_TIMESTAMP,
+                  is_active = TRUE
+                  WHERE id = :publisher_id";
+        
+        $conn = $this->connect();
+        $stm = $conn->prepare($query);
+        $result = $stm->execute([
+            'publisher_id' => $publisherId,
+            'moderator_id' => $moderatorId
+        ]);
+        
+        if ($result && $stm->rowCount() > 0) {
+            // Create notification
+            $this->createApprovalNotification($publisherId, $moderatorId, 'approved');
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Reject a publisher registration
+     */
+    public function reject($publisherId, $moderatorId, $reason = '') {
+        $query = "UPDATE publishers SET 
+                  approval_status = 'rejected', 
+                  approved_by = :moderator_id, 
+                  approved_at = CURRENT_TIMESTAMP,
+                  rejection_reason = :reason,
+                  is_active = FALSE
+                  WHERE id = :publisher_id";
+        
+        $conn = $this->connect();
+        $stm = $conn->prepare($query);
+        $result = $stm->execute([
+            'publisher_id' => $publisherId,
+            'moderator_id' => $moderatorId,
+            'reason' => $reason
+        ]);
+        
+        if ($result && $stm->rowCount() > 0) {
+            // Create notification
+            $this->createApprovalNotification($publisherId, $moderatorId, 'rejected', $reason);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Get publisher by ID
+     */
+    public function findById($id) {
+        $query = "SELECT * FROM publishers WHERE id = :id LIMIT 1";
+        return $this->getRow($query, ['id' => $id]);
+    }
+    
+    /**
+     * Check if publisher is approved and active
+     */
+    public function isApprovedAndActive($publisherId) {
+        $query = "SELECT approval_status, is_active FROM publishers WHERE id = :id LIMIT 1";
+        $publisher = $this->getRow($query, ['id' => $publisherId]);
+        
+        return $publisher && $publisher['approval_status'] === 'approved' && $publisher['is_active'] == 1;
+    }
+    
+    /**
+     * Create approval notification
+     */
+    public function createApprovalNotification($publisherId, $moderatorId, $type, $message = '') {
+        $query = "INSERT INTO publisher_approval_notifications 
+                  (publisher_id, moderator_id, notification_type, message) 
+                  VALUES (:publisher_id, :moderator_id, :type, :message)";
+        
+        $this->query($query, [
+            'publisher_id' => $publisherId,
+            'moderator_id' => $moderatorId,
+            'type' => $type,
+            'message' => $message
+        ]);
+    }
+    
+    /**
+     * Get publisher statistics for moderator dashboard
+     */
+    public function getStatsByUniversity($university) {
+        $query = "SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN approval_status = 'pending' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN approval_status = 'approved' THEN 1 ELSE 0 END) as approved,
+                    SUM(CASE WHEN approval_status = 'rejected' THEN 1 ELSE 0 END) as rejected
+                  FROM publishers 
+                  WHERE university = :university";
+        
+        return $this->getRow($query, ['university' => $university]);
     }
 }

@@ -113,8 +113,11 @@ Trait Model{
 
         $data[$id_column] = $id;
 
-        $this->query($query,$data);
-        return false;
+        $conn = $this->connect();
+        $stm = $conn->prepare($query);
+        $result = $stm->execute($data);
+        
+        return $result;
     }
 
     public function delete($id,$id_column = 'id'){
@@ -122,8 +125,11 @@ Trait Model{
         $data[$id_column] = $id;
         $query="DELETE FROM $this->table WHERE $id_column = :$id_column ";
 
-        $this->query($query,$data);
+        $conn = $this->connect();
+        $stm = $conn->prepare($query);
+        $result = $stm->execute($data);
         
+        return $result;
     } 
     
     /**

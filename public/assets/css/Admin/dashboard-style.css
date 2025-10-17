@@ -256,9 +256,6 @@ body {
 }
 
 /* Main Container */
-.main-container {
-    padding: 2rem 0;
-}
 
 .container {
     max-width: 1200px;
@@ -965,4 +962,57 @@ body {
     .stats-grid {
         grid-template-columns: 1fr;
     }
-}        
+}
+
+/* Loading, Error, and No Data States */
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    font-style: italic;
+}
+
+.loading::before {
+    content: "⏳ ";
+    margin-right: 0.5rem;
+}
+
+.error {
+    text-align: center;
+    padding: 2rem;
+    color: #e74c3c;
+    font-weight: 500;
+}
+
+.error::before {
+    content: "⚠️ ";
+    margin-right: 0.5rem;
+}
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+    font-style: italic;
+}
+
+.no-data::before {
+    content: "📭 ";
+    margin-right: 0.5rem;
+}
+
+/* Approval item time styling */
+.approval-time {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+/* Table loading state */
+.user-table td.loading,
+.user-table td.error,
+.user-table td.no-data {
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+}

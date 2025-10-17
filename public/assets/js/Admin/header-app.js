@@ -4,39 +4,55 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-const userData = {
-    username: 'Event Publisher',
-    role: 'Event Organizer',
-    avatar: '/unipulse/public/assets/images/default-avatar.png'
+// Admin user data - can be overridden by server data or dashboard data
+let userData = {
+    username: 'Admin',
+    role: 'System Administrator',
+    avatar: '/unipulse/public/assets/images/admin.png'
 };
 
 const notifications = [
     {
         id: 1,
-        title: 'Event Published',
-        message: 'Your event "Tech Conference 2025" has been published successfully',
-        time: '2 hours ago',
+        title: 'System Update',
+        message: 'New system update available for installation',
+        time: '30 min ago',
         unread: true,
-        type: 'success'
+        type: 'warning'
     },
     {
         id: 2,
-        title: 'Registration Update',
-        message: '25 new registrations for AI Workshop',
-        time: '4 hours ago',
+        title: 'New Registration',
+        message: '5 new user registrations in the last hour',
+        time: '1 hour ago',
         unread: true,
         type: 'info'
     },
     {
         id: 3,
-        title: 'Event Approval',
-        message: 'Cultural Night event is pending approval',
-        time: '1 day ago',
+        title: 'High Traffic',
+        message: 'Unusual traffic spike detected',
+        time: '2 hours ago',
         unread: false,
         type: 'warning'
+    },
+    {
+        id: 4,
+        title: 'Backup Completed',
+        message: 'Nightly backup completed successfully',
+        time: '5 hours ago',
+        unread: false,
+        type: 'success'
+    },
+    {
+        id: 5,
+        title: 'Security Alert',
+        message: 'Multiple failed login attempts detected',
+        time: 'Yesterday',
+        unread: true,
+        type: 'error'
     }
 ];
-
 function loadUserData() {
     const usernameElement = document.getElementById('username');
     if (usernameElement) {
