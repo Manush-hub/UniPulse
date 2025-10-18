@@ -12,6 +12,12 @@ class PublisherEvents extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
         
+        // Check if user is logged in and is a publisher
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+        
         $data = [];
         
         try {

@@ -7,31 +7,28 @@
     <title>YourEvent - Create an event</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
+    <style>
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 
 </head>
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-brand">
-                <div class="logo">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </div>
-            </div>
-            <div class="unp-nav-group">
-                <a href="#features" class="unp-nav-link">Home</a>
-                <a href="#users" class="unp-nav-link">Upcoming Events</a>
-                <a href="#events" class="unp-nav-link">My Events</a>
-            </div>
-            <div class="header-right">
-                <div class="profile">
-                    <div class="profile-avatar">JK</div>
-                    <span>Jennifer King</span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => ''];
+    include __DIR__ . '/components/header.php';
+    ?>
+    
 
     <div class="main-container">
         <aside class="sidebar">
@@ -53,8 +50,11 @@
             <div class="sidebar-item" data-target="donation">Donations</div>
 
         </aside>
-        <form action="" id="create-event">
-            <main class="content">
+                <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
+            <!-- Hidden field to help with AJAX detection -->
+            <input type="hidden" name="ajax" value="1" id="ajax-flag">
+            
+            <main class="form-container">
                 <h2 style="margin-bottom: 30px;">Create an event</h2>
 
                 <section class="section" id="upload-cover">
@@ -86,7 +86,7 @@
                                     <h4>Drag & Drop</h4>
                                     <p>Upload your cover photo or click browse</p>
                                 </div>
-                                <input type="file" id="coverFileInput" class="file-input" accept="image/*">
+                                <input type="file" name="cover_image" id="coverFileInput" class="file-input" accept="image/*">
                                 <label for="coverFileInput" class="browse-btn">Browse Files</label>
                             </div>
                         </div>
@@ -103,25 +103,30 @@
                         <div class="form-group">
                             <label class="form-label required">Name</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Make it catchy and memorable</p>
-                            <input type="text" class="form-input" value="Rock Revolt: A Fusion of Power and Passion"
+                            <input type="text" name="event_name" class="form-input" required
                                 placeholder="Enter event name">
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Description</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Provide essential event details</p>
-                            <textarea class="form-textarea" placeholder="Enter event description"></textarea>
+                            <textarea name="event_description" class="form-textarea" placeholder="Enter event description"></textarea>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Category</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Select the category for your event
                             </p>
-                            <select class="form-select">
-                                <option>Music</option>
-                                <option>Sports</option>
-                                <option>Business</option>
-                                <option>Technology</option>
+                            <select name="event_category" class="form-select">
+                                <option value="">Select Category</option>
+                                <option value="academic">Academic</option>
+                                <option value="sports">Sports</option>
+                                <option value="cultural">Cultural</option>
+                                <option value="technology">Technology</option>
+                                <option value="social">Social</option>
+                                <option value="workshop">Workshop</option>
+                                <option value="business">Business</option>
+                                <option value="music">Music</option>
                             </select>
                         </div>
                     </div>
@@ -174,7 +179,7 @@
                                     <div>
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">University</label>
-                                        <select class="form-select">
+                                        <select name="selected_university" class="form-select">
                                             <option value="">Select University</option>
                                             <option value="university-of-colombo">University of Colombo</option>
                                             <option value="university-of-moratuwa">University of Moratuwa</option>
@@ -187,7 +192,7 @@
                                     <div>
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Faculty/Department</label>
-                                        <input type="text" class="form-input"
+                                        <input type="text" name="faculty_department" class="form-input"
                                             placeholder="e.g., Faculty of Engineering, Department of Computer Science">
                                     </div>
                                 </div>
@@ -195,7 +200,7 @@
                                 <div>
                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Exact
                                         Location</label>
-                                    <input type="text" class="form-input"
+                                    <input type="text" name="event_location" class="form-input"
                                         placeholder="e.g., Main Auditorium, Lecture Hall A, Sports Complex">
                                 </div>
                             </div>
@@ -211,23 +216,23 @@
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Venue
                                             Name</label>
-                                        <input type="text" class="form-input" placeholder="e.g., Colombo Convention Center">
+                                        <input type="text" name="venue_name" class="form-input" placeholder="e.g., Colombo Convention Center">
                                     </div>
                                     <div>
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Street
                                             Address</label>
-                                        <input type="text" class="form-input" placeholder="Enter street address">
+                                        <input type="text" name="street_address" class="form-input" placeholder="Enter street address">
                                     </div>
                                     <div>
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">City</label>
-                                        <input type="text" class="form-input" placeholder="Enter city">
+                                        <input type="text" name="city" class="form-input" placeholder="Enter city">
                                     </div>
                                     <div>
                                         <label
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">District/Province</label>
-                                        <input type="text" class="form-input" placeholder="Enter district or province">
+                                        <input type="text" name="district_province" class="form-input" placeholder="Enter district or province">
                                     </div>
                                 </div>
                             </div>
@@ -242,12 +247,12 @@
                                 <div>
                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Event
                                         Date</label>
-                                    <input type="date" class="form-input" value="2023-06-10">
+                                    <input type="date" name="event_date" class="form-input" required>
                                 </div>
                                 <div>
                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
                                         Time</label>
-                                    <input type="time" class="form-input" value="19:00">
+                                    <input type="time" name="event_time" class="form-input" required>
                                 </div>
                             </div>
                         </div>
@@ -294,10 +299,17 @@
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label">Maximum Participants</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set the maximum number of people who can attend</p>
+                            <input type="number" name="max_participants" class="form-input" min="1" required
+                                placeholder="Enter maximum number of participants">
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-label">Additional Requirements</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Any specific requirements for
                                 attendees (optional)</p>
-                            <textarea class="form-textarea"
+                            <textarea name="requirements" class="form-textarea"
                                 placeholder="e.g., Age restrictions, dress code, required documents, etc."
                                 style="min-height: 80px;"></textarea>
                         </div>
@@ -704,7 +716,7 @@
                             </label>
 
                             <label class="switch">
-                                <input type="checkbox" id="volunteerToggle" name="volunteerToggle">
+                                <input type="checkbox" id="volunteerToggle" name="volunteerToggle" value="1">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -748,7 +760,7 @@
                                 <label class="form-label">Number of Volunteers Needed</label>
                                 <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you
                                     need?</p>
-                                <input type="number" class="form-input" placeholder="e.g., 5" min="1"
+                                <input type="number" name="volunteers_needed" class="form-input" placeholder="e.g., 5" min="1"
                                     style="max-width: 200px;">
                             </div>
 
@@ -777,7 +789,7 @@
                                 Do you want to allow participants to make donations to support this event? </label>
 
                             <label class="switch">
-                                <input type="checkbox" id="donationToggle" name="donationToggle">
+                                <input type="checkbox" id="donationToggle" name="donationToggle" value="1">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -785,10 +797,10 @@
                 </section>
 
                 <div class="bottom-actions">
-                    <button class="cancel-btn">Cancel</button>
+                    <button type="button" class="cancel-btn" onclick="window.location.href='/unipulse/public/publisher/events'">Cancel</button>
                     <div class="action-buttons">
-                        <button class="save-draft-btn">Save draft</button>
-                        <button class="publish-btn">Publish Event</button>
+                        <button type="button" class="save-draft-btn">Save draft</button>
+                        <button type="submit" class="publish-btn">Publish Event</button>
                     </div>
                 </div>
             </main>
@@ -796,6 +808,149 @@
     </div>
     <?php include __DIR__ . '/../components/footer.php'; ?>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
+    
+    <script>
+    // Function to show success message
+    function showSuccessMessage(message) {
+        // Remove any existing success messages
+        const existingMessage = document.querySelector('.success-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Create success message element
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.style.cssText = `
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 16px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+        `;
+        successDiv.innerHTML = `
+            <strong>✓ ${message}</strong>
+            <button onclick="this.parentElement.remove()" style="
+                background: none; 
+                border: none; 
+                color: white; 
+                float: right; 
+                cursor: pointer; 
+                font-size: 18px;
+                margin-top: -2px;
+            ">×</button>
+        `;
+        
+        // Insert at the top of the form
+        const form = document.getElementById('create-event');
+        form.insertBefore(successDiv, form.firstChild);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (successDiv.parentElement) {
+                successDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    // Handle form submission
+    document.getElementById('create-event').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.querySelector('.publish-btn');
+        const originalText = submitBtn.textContent;
+        
+        // Show loading state
+        submitBtn.textContent = 'Creating Event...';
+        submitBtn.disabled = true;
+        
+        // Get form data
+        const formData = new FormData(this);
+        
+        // Ensure AJAX detection
+        formData.set('ajax', '1');
+        
+        // Submit form
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers.get('content-type'));
+            
+            if (!response.ok && response.status !== 200) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Check if response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return response.text().then(text => {
+                    console.error('Non-JSON response received:', text);
+                    throw new Error('Server returned non-JSON response: ' + text.substring(0, 200));
+                });
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message with better styling
+                showSuccessMessage('Event created successfully! You can create another event below.');
+                
+                // Reset the form for creating another event
+                const form = document.getElementById('create-event');
+                form.reset();
+                
+                // Reset file input specifically
+                const fileInput = document.getElementById('coverFileInput');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                
+                // Reset any toggle switches to unchecked
+                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Hide any conditional sections that were shown
+                document.querySelectorAll('.volunteer-details').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.donation-details').forEach(el => el.classList.add('hidden'));
+                
+                // Scroll to top of form
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Show error messages
+                let errorMessage = 'Please fix the following errors:\n';
+                if (data.errors) {
+                    for (const [field, message] of Object.entries(data.errors)) {
+                        errorMessage += `- ${message}\n`;
+                    }
+                } else {
+                    errorMessage += data.message || 'Unknown error occurred';
+                }
+                alert(errorMessage);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Network or server error: ' + error.message + '. Please check the console for more details.');
+        })
+        .finally(() => {
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+    </script>
 </body>
 
 </html>

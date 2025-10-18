@@ -37,13 +37,19 @@ class PublisherEventview extends Controller {
                             3
                         );
                         
+                        // Check if current publisher owns this event
+                        $currentPublisherId = $_SESSION['publisher_id'] ?? null;
+                        $isOwner = ($currentPublisherId && $event->publisher_id == $currentPublisherId);
+                        
                         // Pass server data to view for JavaScript
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
+                            'isOwner' => $isOwner,
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
+                                'isOwner' => $isOwner,
                                 'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
                             ]

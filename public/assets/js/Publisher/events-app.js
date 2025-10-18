@@ -151,6 +151,7 @@ function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
     card.onclick = () => viewEventDetails(event.id);
+    card.style.cursor = 'pointer';
     
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
@@ -212,6 +213,14 @@ function createEventCard(event) {
                     </svg>
                     <span>${event.participants}/${maxParticipants}</span>
                 </div>
+            </div>
+            <div class="event-actions">
+                <button type="button" class="edit-btn" onclick="event.stopPropagation(); event.preventDefault(); editEvent(${event.id}); return false;" title="Edit Event">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button type="button" class="delete-btn" onclick="event.stopPropagation(); event.preventDefault(); deleteEvent(${event.id}); return false;" title="Delete Event">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
             </div>
         </div>
     `;
@@ -306,3 +315,132 @@ function addScrollAnimations() {
 
 // Call animation function after events are loaded
 setTimeout(addScrollAnimations, 600);
+
+// Edit event function
+function editEvent(eventId) {
+    window.location.href = `/unipulse/public/publisher/editevent?id=${eventId}`;
+}
+
+// Delete event function
+function deleteEvent(eventId) {
+    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+        // Show loading state
+        const deleteBtn = document.querySelector(`button[onclick*="deleteEvent(${eventId})"]`);
+        if (deleteBtn) {
+            deleteBtn.disabled = true;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        }
+
+        fetch('/unipulse/public/publisher/deleteevent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ id: eventId })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                showMessage('Event deleted successfully!', 'success');
+                
+                // Remove the event from the UI
+                const eventCard = deleteBtn.closest('.event-card');
+                if (eventCard) {
+                    eventCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    eventCard.style.opacity = '0';
+                    eventCard.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        eventCard.remove();
+                        // Update events array
+                        allEvents = allEvents.filter(event => event.id !== eventId);
+                        filteredEvents = filteredEvents.filter(event => event.id !== eventId);
+                        // Check if we need to show "no events" message
+                        if (filteredEvents.length === 0) {
+                            document.getElementById('noEvents').style.display = 'block';
+                        }
+                    }, 300);
+                }
+            } else {
+                // Handle authentication errors
+                if (data.redirect) {
+                    showMessage('Please log in as a publisher to delete events.', 'error');
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 2000);
+                } else {
+                    const errorMessage = data.errors?.general || data.message || 'Failed to delete event';
+                    throw new Error(errorMessage);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            showMessage('Error deleting event: ' + error.message, 'error');
+            
+            // Reset button state
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+            }
+        });
+    }
+}
+
+// Show message function
+function showMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add styles
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-size: 14px;
+        max-width: 400px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    
+    // Add to page
+    document.body.appendChild(messageDiv);
+    
+    // Animate in
+    setTimeout(() => {
+        messageDiv.style.opacity = '1';
+        messageDiv.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        messageDiv.style.opacity = '0';
+        messageDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 4000);
+}

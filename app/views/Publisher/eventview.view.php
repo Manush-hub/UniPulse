@@ -44,7 +44,7 @@
             <!-- Navigation Bar -->
             <div class="navigation-bar">
                 <div class="container">
-                    <a href="/unipulse/public/user/events" class="back-btn">
+                    <a href="/unipulse/public/publisher/events" class="back-btn">
                         <i class="fas fa-arrow-left"></i>
                         <span>Back to All Events</span>
                     </a>
@@ -53,10 +53,24 @@
                             <i class="fas fa-share"></i>
                             Share Event
                         </button>
-                        <button class="btn btn-primary" id="joinBtn">
-                            <i class="fas fa-calendar-plus"></i>
-                            Join Event
-                        </button>
+                        
+                        <?php if (isset($isOwner) && $isOwner): ?>
+                            <!-- Publisher's own event - show edit/delete -->
+                            <button class="btn btn-secondary" id="editBtn" onclick="editEvent()">
+                                <i class="fas fa-edit"></i>
+                                Edit Event
+                            </button>
+                            <button class="btn btn-danger" id="deleteBtn" onclick="deleteEvent()">
+                                <i class="fas fa-trash"></i>
+                                Delete Event
+                            </button>
+                        <?php else: ?>
+                            <!-- Other events - show view only message -->
+                            <button class="btn btn-primary" id="viewOnlyBtn" disabled>
+                                <i class="fas fa-eye"></i>
+                                View Only
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -99,6 +113,20 @@
                                 <div>
                                     <strong>Participants</strong>
                                     <span id="eventParticipants">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-eye"></i>
+                                <div>
+                                    <strong>Target Audience</strong>
+                                    <span id="eventAudience">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="detail-item" id="ticketInfo" style="display: none;">
+                                <i class="fas fa-ticket-alt"></i>
+                                <div>
+                                    <strong>Ticket Type</strong>
+                                    <span id="eventTicketType">Loading...</span>
                                 </div>
                             </div>
                         </div>
@@ -144,6 +172,65 @@
                                 </h3>
                                 <div id="eventRequirements" class="event-requirements">
                                     Loading requirements...
+                                </div>
+                            </div>
+
+                            <!-- Location Details -->
+                            <div class="content-card" id="locationDetailsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Location Details
+                                </h3>
+                                <div id="locationDetails" class="location-details">
+                                    Loading location details...
+                                </div>
+                            </div>
+
+                            <!-- Ticket Information -->
+                            <div class="content-card" id="ticketDetailsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Ticket Information
+                                </h3>
+                                <div id="ticketDetails" class="ticket-details">
+                                    Loading ticket information...
+                                </div>
+                            </div>
+
+                            <!-- Custom Fields -->
+                            <div class="content-card" id="customFieldsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-list-ul"></i>
+                                    Additional Information
+                                </h3>
+                                <div id="customFields" class="custom-fields">
+                                    Loading additional information...
+                                </div>
+                            </div>
+
+                            <!-- Volunteer Information -->
+                            <div class="content-card" id="volunteerCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-hands-helping"></i>
+                                    Volunteer Opportunities
+                                </h3>
+                                <div id="volunteerInfo" class="volunteer-info">
+                                    Loading volunteer information...
+                                </div>
+                            </div>
+
+                            <!-- Donation Information -->
+                            <div class="content-card" id="donationCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-heart"></i>
+                                    Support This Event
+                                </h3>
+                                <div id="donationInfo" class="donation-info">
+                                    <p>This event accepts donations to help cover costs and improve the experience for all participants.</p>
+                                    <button class="btn btn-primary" onclick="openDonationModal()">
+                                        <i class="fas fa-heart"></i>
+                                        Make a Donation
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -238,6 +325,7 @@
     </div>
 
     <!-- Share Event Modal -->
+        <!-- Share Event Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -247,34 +335,60 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>Share this event with others:</p>
                 <div class="share-options">
-                    <button class="share-btn" onclick="shareViaFacebook()">
-                        <i class="fab fa-facebook"></i>
+                    <button class="share-btn facebook">
+                        <i class="fab fa-facebook-f"></i>
                         Facebook
                     </button>
-                    <button class="share-btn" onclick="shareViaTwitter()">
+                    <button class="share-btn twitter">
                         <i class="fab fa-twitter"></i>
                         Twitter
                     </button>
-                    <button class="share-btn" onclick="shareViaWhatsApp()">
+                    <button class="share-btn linkedin">
+                        <i class="fab fa-linkedin-in"></i>
+                        LinkedIn
+                    </button>
+                    <button class="share-btn whatsapp">
                         <i class="fab fa-whatsapp"></i>
                         WhatsApp
                     </button>
-                    <button class="share-btn" onclick="copyEventLink()">
-                        <i class="fas fa-link"></i>
-                        Copy Link
-                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="eventLink">Event Link</label>
-                    <div class="input-group">
-                        <input type="text" id="eventLink" readonly>
-                        <button class="btn btn-outline" onclick="copyEventLink()">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
+                <div class="share-link">
+                    <input type="text" id="shareLink" readonly>
+                    <button onclick="copyShareLink()">Copy Link</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Support This Event</h3>
+                <button class="close-btn" onclick="closeDonationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Your donation helps make this event possible and supports the organizers in creating amazing experiences.</p>
+                <div class="donation-amounts">
+                    <button class="donation-amount" data-amount="500">LKR 500</button>
+                    <button class="donation-amount" data-amount="1000">LKR 1,000</button>
+                    <button class="donation-amount" data-amount="2500">LKR 2,500</button>
+                    <button class="donation-amount" data-amount="5000">LKR 5,000</button>
+                </div>
+                <div class="custom-amount">
+                    <label>Custom Amount:</label>
+                    <input type="number" id="customDonationAmount" placeholder="Enter amount (LKR)" min="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="processDonation()">
+                    <i class="fas fa-heart"></i>
+                    Donate Now
+                </button>
             </div>
         </div>
     </div>

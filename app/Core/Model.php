@@ -87,7 +87,11 @@ Trait Model{
         $stm = $conn->prepare($query);
         $result = $stm->execute($data);
         
-        return $result;
+        if ($result) {
+            return $conn->lastInsertId();
+        }
+        
+        return false;
     }
 
     public function update($id,$data,$id_column = 'id'){

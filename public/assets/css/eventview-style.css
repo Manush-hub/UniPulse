@@ -76,7 +76,6 @@ body {
     background: white;
     border-bottom: 1px solid #e2e8f0;
     padding: 1rem 0;
-    margin-bottom: 2rem;
 }
 
 .navigation-bar .container {
@@ -440,6 +439,15 @@ body {
     color: white;
 }
 
+.btn-danger {
+    background: #dc2626;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
@@ -620,5 +628,152 @@ body {
     .modal-content {
         margin: 1rem;
         width: calc(100% - 2rem);
+    }
+}
+
+/* Additional styles for new event fields */
+
+/* Location details */
+.location-detail-item {
+    padding: 0.5rem 0;
+}
+
+.location-detail-item div {
+    margin-bottom: 0.5rem;
+}
+
+/* Ticket details */
+.ticket-detail-item {
+    padding: 0.5rem 0;
+}
+
+.ticket-types-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.ticket-types-list li {
+    padding: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+/* Custom fields */
+.custom-fields-list {
+    padding: 0.5rem 0;
+}
+
+.custom-field-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.custom-field-item:last-child {
+    border-bottom: none;
+}
+
+/* Volunteer info */
+.volunteer-detail-item {
+    padding: 0.5rem 0;
+}
+
+.volunteer-sources-list,
+.volunteer-positions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.volunteer-sources-list li,
+.volunteer-positions-list li {
+    padding: 0.25rem 0.5rem;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    color: #0369a1;
+}
+
+/* Donation modal */
+.donation-amounts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.donation-amount {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.donation-amount:hover {
+    border-color: #1e3a8a;
+    background: #f0f9ff;
+}
+
+.donation-amount.selected {
+    border-color: #1e3a8a;
+    background: #1e3a8a;
+    color: white;
+}
+
+.custom-amount {
+    margin: 1rem 0;
+}
+
+.custom-amount label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.custom-amount input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.custom-amount input:focus {
+    outline: none;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+/* Donation info card */
+.donation-info {
+    text-align: center;
+    padding: 1rem;
+}
+
+.donation-info p {
+    margin-bottom: 1rem;
+    color: #6b7280;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .donation-amounts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .ticket-types-list li {
+        font-size: 0.9rem;
+    }
+    
+    .volunteer-sources-list li,
+    .volunteer-positions-list li {
+        font-size: 0.9rem;
     }
 }
