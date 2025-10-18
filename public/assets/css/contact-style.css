@@ -1,0 +1,130 @@
+.unp-logo {
+    height: 48px;
+    width: auto;
+    display: block;
+    max-height: 60px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #222;
+  font-weight: bold;
+  padding-bottom: 0; /* prevent footer overlap */ 
+  background: #fff;
+}
+
+/* Header Styles */
+.header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 1rem 0;
+    height: 80px;
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-image {
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+}
+
+
+main {
+  padding: 30px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+h1 {
+  color: #162a71;
+  font-size: 28px;
+  text-align: center;
+  font-size: xx-large;
+}
+
+
+form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: bold;
+  margin-bottom: 0;
+  color: #162a71;
+}
+
+input[type="text"],
+input[type="email"],
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+  background: #fff;
+  color: #222;
+  font-size: 14px;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+textarea {
+  height: 120px;
+}
+
+/* Button */
+button {
+  padding: 12px;
+  background: #FF6B35;
+  color: #fff;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #003080;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.footer{
+  text-align: center;
+  padding: 30px;
+  background: #1a1a1a;
+  font-size: 14px;
+  color: #999;
+  font-weight: normal;
+  width: 100%;
+  margin-top: 20px;
+}

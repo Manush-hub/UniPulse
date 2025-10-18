@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Moderator Creation Form</title>
+</head>
+<body>
+    <h2>Test Moderator Creation Form</h2>
+    <form method="POST" action="http://localhost:8080/admin/moderator_create">
+        <p>
+            <label>Full Name:</label><br>
+            <input type="text" name="full_name" value="Test Moderator" required>
+        </p>
+        <p>
+            <label>Email:</label><br>
+            <input type="email" name="email" value="testmod@example.com" required>
+        </p>
+        <p>
+            <label>Password:</label><br>
+            <input type="password" name="password" value="password123" required>
+        </p>
+        <p>
+            <label>Phone (Optional):</label><br>
+            <input type="tel" name="phone" value="555-1234">
+        </p>
+        <p>
+            <label>Permissions:</label><br>
+            <input type="checkbox" name="permissions[view_events]" value="1" checked> View Events<br>
+            <input type="checkbox" name="permissions[edit_events]" value="1" checked> Edit Events<br>
+            <input type="checkbox" name="permissions[view_users]" value="1" checked> View Users<br>
+            <input type="checkbox" name="permissions[moderate_content]" value="1" checked> Moderate Content<br>
+        </p>
+        <p>
+            <button type="submit">Create Moderator</button>
+        </p>
+    </form>
+</body>
+</html>

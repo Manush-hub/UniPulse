@@ -27,7 +27,21 @@
 
             <!-- Sign In Form -->
             <div class="signin-form-container">
-                <form class="signin-form" id="signinForm">
+                <?php if (isset($error)): ?>
+                    <div class="error-message-box">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php if (isset($success)): ?>
+                    <div class="success-message-box">
+                        <i class="fas fa-check-circle"></i>
+                        <?= htmlspecialchars($success) ?>
+                    </div>
+                <?php endif; ?>
+
+                <form class="signin-form" method="POST" action="/unipulse/public/signin">
                     <div class="form-header">
                         <h2>Sign In</h2>
                         <p>Enter your credentials to access your account</p>
@@ -43,10 +57,10 @@
                                 id="email" 
                                 name="email" 
                                 placeholder="Enter your email address"
+                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                                 required
                             >
                         </div>
-                        <span class="error-message" id="emailError"></span>
                     </div>
 
                     <!-- Password Field -->
@@ -65,7 +79,6 @@
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
-                        <span class="error-message" id="passwordError"></span>
                     </div>
 
                     <!-- Forgot Password Link -->
@@ -74,11 +87,8 @@
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="submit" class="signin-btn" id="signinBtn">
+                    <button type="submit" class="signin-btn">
                         <span class="btn-text">Sign In</span>
-                        <div class="loading-spinner" id="loadingSpinner">
-                            <i class="fas fa-spinner fa-spin"></i>
-                        </div>
                     </button>
 
                     <!-- Create Account Link -->
@@ -94,17 +104,34 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <!-- Success/Error Messages -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <i class="toast-icon"></i>
-            <span class="toast-message"></span>
-        </div>
-        <button class="toast-close" id="toastClose">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-
-    <script src="/unipulse/public/assets/js/signin-app.js"></script>
+    <script>
+        // Password toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordToggle = document.getElementById('passwordToggle');
+            const passwordInput = document.getElementById('password');
+            
+            if (passwordToggle && passwordInput) {
+                passwordToggle.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    const icon = this.querySelector('i');
+                    if (type === 'password') {
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            }
+            
+            // Auto-focus on email field
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.focus();
+            }
+        });
+    </script>
 </body>
 </html>

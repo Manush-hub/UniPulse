@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Event Preferences</title>
+    <link rel="stylesheet" href="assets/css/preferences-style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="progress">
+            <span class="step active"></span>
+            <span class="step"></span>
+        </div>
+        <div class="form-section">
+            <h2>What Are Your Interests?</h2>
+            <p class="subtitle">What is your preferred location?</p>
+            <form id="preferencesForm">
+                <div class="category">
+                    <h3><span class="icon">🎵</span> Music</h3>
+                    <div class="tags">
+                        <label><input type="checkbox" name="music" value="Blues & Jazz">Blues & Jazz</label>
+                        <label><input type="checkbox" name="music" value="Country">Country</label>
+                        <label><input type="checkbox" name="music" value="EDM">EDM</label>
+                        <label><input type="checkbox" name="music" value="Hip Hop">Hip Hop</label>
+                        <label><input type="checkbox" name="music" value="RAP">RAP</label>
+                        <label><input type="checkbox" name="music" value="Pop">Pop</label>
+                        <label><input type="checkbox" name="music" value="R&B">R&B</label>
+                        <label><input type="checkbox" name="music" value="Electronic">Electronic</label>
+                        <label><input type="checkbox" name="music" value="Experimental">Experimental</label>
+                        <label><input type="checkbox" name="music" value="Psychedelic">Psychedelic</label>
+                    </div>
+                </div>
+                <div class="category">
+                    <h3><span class="icon">🏅</span> Sport</h3>
+                    <div class="tags">
+                        <label><input type="checkbox" name="sport" value="Football (soccer)">Football (soccer)</label>
+                        <label><input type="checkbox" name="sport" value="Basketball">Basketball</label>
+                        <label><input type="checkbox" name="sport" value="Tennis">Tennis</label>
+                        <label><input type="checkbox" name="sport" value="Baseball">Baseball</label>
+                        <label><input type="checkbox" name="sport" value="Swimming">Swimming</label>
+                        <label><input type="checkbox" name="sport" value="Volleyball">Volleyball</label>
+                        <label><input type="checkbox" name="sport" value="Athletics">Athletics</label>
+                        <label><input type="checkbox" name="sport" value="Rugby">Rugby</label>
+                        <label><input type="checkbox" name="sport" value="Ice hockey">Ice hockey</label>
+                    </div>
+                </div>
+                <div class="category">
+                    <h3><span class="icon">💼</span> Business</h3>
+                    <div class="tags">
+                        <label><input type="checkbox" name="business" value="Trade Shows">Trade Shows</label>
+                        <label><input type="checkbox" name="business" value="Product Launches">Product Launches</label>
+                        <label><input type="checkbox" name="business" value="Business Seminars">Business Seminars</label>
+                        <label><input type="checkbox" name="business" value="Workshops">Workshops</label>
+                        <label><input type="checkbox" name="business" value="Business Awards">Business Awards</label>
+                        <label><input type="checkbox" name="business" value="Investor Pitch Events">Investor Pitch Events</label>
+                    </div>
+                </div>
+                <div class="category">
+                    <h3><span class="icon">🖼️</span> Exhibition</h3>
+                    <div class="tags">
+                        <label><input type="checkbox" name="exhibition" value="Art">Art</label>
+                        <label><input type="checkbox" name="exhibition" value="Tech">Tech</label>
+                        <label><input type="checkbox" name="exhibition" value="Science">Science</label>
+                        <label><input type="checkbox" name="exhibition" value="Fashion">Fashion</label>
+                    </div>
+                </div>
+                <div class="location-section">
+                    <label for="location">Preferred Location:</label>
+                    <input type="text" id="location" name="location" placeholder="Enter your city or area">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="skipBtn">Skip</button>
+                    <button type="submit" id="nextBtn">Next →</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="assets/js/preferences-app.js"></script>
+</body>
+</html>
