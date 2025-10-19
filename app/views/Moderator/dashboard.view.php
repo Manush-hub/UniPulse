@@ -89,7 +89,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="welcome-actions">
+                    <!-- <div class="welcome-actions">
                         <?php if (isset($permissions['approve_publishers']) && $permissions['approve_publishers']): ?>
                         <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/moderator/publisherapproval'">
                             <i class="fas fa-user-check"></i>
@@ -104,13 +104,13 @@
                             <i class="fas fa-book"></i>
                             Guidelines
                         </button>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </section>
 
         <!-- Quick Actions -->
-        <section class="quick-actions">
+        <!-- <section class="quick-actions">
             <div class="container">
                 <h2>Quick Actions</h2>
                 <div class="actions-grid">
@@ -141,6 +141,101 @@
                         </div>
                         <h3>Publisher Approvals</h3>
                         <p>Scroll to publisher approval section</p>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- Moderation Stats and Guidelines Section -->
+        <section class="moderation-overview">
+            <div class="container">
+                <div class="moderation-grid">
+                    <div class="moderation-card">
+                        <h3><i class="fas fa-chart-bar"></i> Moderation Stats</h3>
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number">64</span>
+                                    <span class="stat-label">Approved Events</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-times-circle"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number">8</span>
+                                    <span class="stat-label">Rejected Events</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number">12</span>
+                                    <span class="stat-label">Events Edited</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number">15</span>
+                                    <span class="stat-label">Organizers Verified</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="moderation-card">
+                        <h3><i class="fas fa-book"></i> Moderation Guidelines</h3>
+                        <div class="guidelines-list">
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure events follow university policies</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify organizer credentials and authenticity</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Check for appropriate and respectful content</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure accurate event information and dates</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify event location and capacity details</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Review event descriptions for clarity</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Check registration requirements are reasonable</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure images and media are appropriate</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify publisher documentation is valid</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Respond to requests within 24-48 hours</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -259,81 +354,28 @@
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">
-                <div class="activity-layout">
-                    <div class="activity-feed">
-                        <div class="section-header">
-                            <h2>Recent Moderation Activity</h2>
-                            <a href="activity-log.html" class="view-all">View Full Log</a>
-                        </div>
-                        <div class="activity-list" id="activityList">
-                            <!-- Activity items will be loaded here -->
-                        </div>
-                    </div>
-                    <div class="sidebar">
-                        <div class="sidebar-widget">
-                            <h3>Moderation Stats</h3>
-                            <div class="stats-container">
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-number">64</span>
-                                        <span class="stat-label">Approved Events</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-times-circle"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-number">8</span>
-                                        <span class="stat-label">Rejected Events</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-edit"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-number">12</span>
-                                        <span class="stat-label">Events Edited</span>
-                                    </div>
-                                </div>
-                                <div class="stat-card">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-user-check"></i>
-                                    </div>
-                                    <div class="stat-info">
-                                        <span class="stat-number">15</span>
-                                        <span class="stat-label">Organizers Verified</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-widget">
-                            <h3>Moderation Guidelines</h3>
-                            <div class="guidelines-list">
-                                <div class="guideline-item">
-                                    <i class="fas fa-check"></i>
-                                    <span>Ensure events follow university policies</span>
-                                </div>
-                                <div class="guideline-item">
-                                    <i class="fas fa-check"></i>
-                                    <span>Verify organizer credentials</span>
-                                </div>
-                                <div class="guideline-item">
-                                    <i class="fas fa-check"></i>
-                                    <span>Check for appropriate content</span>
-                                </div>
-                                <div class="guideline-item">
-                                    <i class="fas fa-check"></i>
-                                    <span>Ensure accurate event information</span>
-                                </div>
-                                <a href="guidelines.html" class="view-guidelines">View Complete Guidelines</a>
-                            </div>
-                        </div>
-                    </div>
+                <div class="section-header">
+                    <h2>Recent Moderation Activity</h2>
+                    <button onclick="toggleActivityLog()" class="view-all expand-btn" id="activityLogBtn">
+                        <span class="btn-text">View Full Log</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </button>
+                </div>
+                <div class="activity-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Activity</th>
+                                <th>Type</th>
+                                <th>Details</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityList">
+                            <!-- Initial 2 activity rows will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
@@ -343,7 +385,10 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Recent User Reports</h2>
-                    <a href="reports.html" class="view-all">View All Reports</a>
+                    <button onclick="toggleUserReports()" class="view-all expand-btn" id="userReportsBtn">
+                        <span class="btn-text">View All Reports</span>
+                        <i class="fas fa-chevron-down expand-icon"></i>
+                    </button>
                 </div>
                 <div class="reports-table">
                     <table>
@@ -357,7 +402,7 @@
                             </tr>
                         </thead>
                         <tbody id="reportsTableBody">
-                            <!-- Report rows will be loaded here -->
+                            <!-- Initial 2 report rows will be loaded here -->
                         </tbody>
                     </table>
                 </div>
@@ -366,7 +411,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
+    <!-- <footer class="footer">
         <div class="footer-container">
             <div class="footer-links">
                 <a href="#terms">Terms of Service</a>
@@ -378,7 +423,10 @@
                 <span>&copy; 2025 UniPulse. All rights reserved.</span>
             </div>
         </div>
-    </footer>
+    </footer> -->
+
+    <!-- Footer -->
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <!-- Modals -->
     <div id="reviewModal" class="modal">
@@ -395,6 +443,52 @@
     <script>
         let currentPublisherId = null;
         let currentAction = null;
+        
+        // Toggle Activity Log - show/hide additional activity items
+        function toggleActivityLog() {
+            const activityList = document.getElementById('activityList');
+            const hiddenRows = activityList.querySelectorAll('tr.hidden-row');
+            const btn = document.getElementById('activityLogBtn');
+            const icon = btn.querySelector('.expand-icon');
+            const btnText = btn.querySelector('.btn-text');
+            
+            if (hiddenRows.length > 0) {
+                hiddenRows.forEach(row => {
+                    if (row.style.display === 'none') {
+                        row.style.display = 'table-row';
+                        icon.style.transform = 'rotate(180deg)';
+                        btnText.textContent = 'Show Less';
+                    } else {
+                        row.style.display = 'none';
+                        icon.style.transform = 'rotate(0deg)';
+                        btnText.textContent = 'View Full Log';
+                    }
+                });
+            }
+        }
+
+        // Toggle User Reports - show/hide additional report items
+        function toggleUserReports() {
+            const reportsTable = document.getElementById('reportsTableBody');
+            const hiddenRows = reportsTable.querySelectorAll('tr.hidden-row');
+            const btn = document.getElementById('userReportsBtn');
+            const icon = btn.querySelector('.expand-icon');
+            const btnText = btn.querySelector('.btn-text');
+            
+            if (hiddenRows.length > 0) {
+                hiddenRows.forEach(row => {
+                    if (row.style.display === 'none') {
+                        row.style.display = 'table-row';
+                        icon.style.transform = 'rotate(180deg)';
+                        btnText.textContent = 'Show Less';
+                    } else {
+                        row.style.display = 'none';
+                        icon.style.transform = 'rotate(0deg)';
+                        btnText.textContent = 'View All Reports';
+                    }
+                });
+            }
+        }
         
         // Publisher approval functions
         function approvePublisher(publisherId) {

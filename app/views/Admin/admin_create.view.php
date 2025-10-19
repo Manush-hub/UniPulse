@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Create Moderator</title>
+    <title>UniPulse - Create Admin</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .create-moderator {
+        .create-admin {
             padding: 2rem 0;
             min-height: calc(100vh - 80px);
         }
@@ -23,7 +23,11 @@
             text-align: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid var(--primary-color);
+            border-bottom: 2px solid #1e3a8a;
+        }
+        .form-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
         }
         .form-group {
             margin-bottom: 1.5rem;
@@ -32,7 +36,7 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: var(--text-primary);
+            color: #333;
         }
         .form-control {
             width: 100%;
@@ -44,30 +48,12 @@
         }
         .form-control:focus {
             outline: none;
-            border-color: var(--primary-color);
-        }
-        select.form-control {
-            background-color: white;
-            cursor: pointer;
+            border-color: #1e3a8a;
         }
         .form-error {
-            color: #d32f2f;
+            color: #dc2626;
             font-size: 0.875rem;
             margin-top: 0.25rem;
-        }
-        .permission-group {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-        .permission-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .permission-item input {
-            margin-right: 0.5rem;
         }
         .form-actions {
             display: flex;
@@ -83,13 +69,14 @@
             transition: all 0.3s ease;
             border: none;
             font-size: 1rem;
+            flex: 1;
         }
         .btn-primary {
-            background: var(--primary-color);
-            color: blue;
+            background: #1e3a8a;
+            color: white;
         }
         .btn-primary:hover {
-            background: var(--primary-dark);
+            background: #1e40af;
             transform: translateY(-2px);
         }
         .btn-secondary {
@@ -98,6 +85,17 @@
         }
         .btn-secondary:hover {
             background: #5a6268;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1e3a8a;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            color: #1e40af;
         }
     </style>
 </head>
@@ -112,8 +110,8 @@
             </div>
             <nav class="nav">
                 <a href="/unipulse/public/admin/dashboard">Dashboard</a>
-                <a href="/unipulse/public/admin/moderators" class="active">Moderators</a>
-                <a href="/unipulse/public/admin/admins">Admins</a>
+                <a href="/unipulse/public/admin/moderators_list">Moderators</a>
+                <a href="/unipulse/public/admin/admins_list" class="active">Admins</a>
             </nav>
             <div class="header-actions">
                 <div class="user-menu">
@@ -129,23 +127,34 @@
 
     <!-- Header -->
     <?php
-    $pageConfig = ['activeNav' => 'moderator_create'];
+    $pageConfig = ['activeNav' => 'admin_create'];
     include __DIR__ . '/components/header.php';
     ?>
 
     <!-- Main Container -->
     <div class="main-container">
-        <section class="create-moderator">
+        <section class="create-admin">
             <div class="container">
+                <a href="/unipulse/public/admin/admins_list" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Admins
+                </a>
+                
                 <div class="form-container">
                     <div class="form-header">
-                        <h1><i class="fas fa-user-shield"></i> Create New Moderator</h1>
-                        <p>Add a new moderator to help manage the platform</p>
+                        <h1><i class="fas fa-users-cog"></i> Create New Admin</h1>
+                        <p>Add a new administrator to manage the platform</p>
                     </div>
 
-                    <form method="POST" action="/unipulse/public/admin/moderator_create">
+                    <?php if (isset($errors['general'])): ?>
+                        <div class="form-error" style="background: #ffebee; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <?php echo $errors['general']; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="/unipulse/public/admin/admin_create">
                         <div class="form-group">
-                            <label for="full_name">Full Name</label>
+                            <label for="full_name">Full Name <span style="color: red;">*</span></label>
                             <input type="text" 
                                    id="full_name" 
                                    name="full_name" 
@@ -158,7 +167,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email Address</label>
+                            <label for="email">Email Address <span style="color: red;">*</span></label>
                             <input type="email" 
                                    id="email" 
                                    name="email" 
@@ -171,83 +180,52 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="phone">Phone Number (Optional)</label>
+                            <label for="phone">Phone Number</label>
                             <input type="tel" 
                                    id="phone" 
                                    name="phone" 
                                    class="form-control" 
-                                   value="<?php echo isset($old_data['phone']) ? htmlspecialchars($old_data['phone']) : ''; ?>">
+                                   value="<?php echo isset($old_data['phone']) ? htmlspecialchars($old_data['phone']) : ''; ?>" 
+                                   placeholder="+1 234 567 8900">
                             <?php if (isset($errors['phone'])): ?>
                                 <div class="form-error"><?php echo $errors['phone']; ?></div>
                             <?php endif; ?>
                         </div>
 
                         <div class="form-group">
-                            <label for="university">University</label>
-                            <select id="university" 
-                                    name="university" 
-                                    class="form-control" 
-                                    required>
-                                <option value="">Select University</option>
-                                <?php if (isset($universities)): ?>
-                                    <?php foreach ($universities as $key => $name): ?>
-                                        <option value="<?php echo htmlspecialchars($key); ?>" 
-                                                <?php echo (isset($old_data['university']) && $old_data['university'] === $key) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($name); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </select>
-                            <?php if (isset($errors['university'])): ?>
-                                <div class="form-error"><?php echo $errors['university']; ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="password">Password</label>
+                            <label for="password">Password <span style="color: red;">*</span></label>
                             <input type="password" 
                                    id="password" 
                                    name="password" 
                                    class="form-control" 
-                                   required>
+                                   required
+                                   minlength="6">
                             <?php if (isset($errors['password'])): ?>
                                 <div class="form-error"><?php echo $errors['password']; ?></div>
                             <?php endif; ?>
+                            <small style="color: #666; font-size: 0.875rem;">Minimum 6 characters</small>
                         </div>
 
                         <div class="form-group">
-                            <label>Permissions</label>
-                            <div class="permission-group">
-                                <div class="permission-item">
-                                    <input type="checkbox" id="view_events" name="permissions[view_events]" value="1" checked>
-                                    <label for="view_events">View Events</label>
-                                </div>
-                                <div class="permission-item">
-                                    <input type="checkbox" id="edit_events" name="permissions[edit_events]" value="1" checked>
-                                    <label for="edit_events">Edit Events</label>
-                                </div>
-                                <div class="permission-item">
-                                    <input type="checkbox" id="view_users" name="permissions[view_users]" value="1" checked>
-                                    <label for="view_users">View Users</label>
-                                </div>
-                                <div class="permission-item">
-                                    <input type="checkbox" id="moderate_content" name="permissions[moderate_content]" value="1" checked>
-                                    <label for="moderate_content">Moderate Content</label>
-                                </div>
-                            </div>
+                            <label for="confirm_password">Confirm Password <span style="color: red;">*</span></label>
+                            <input type="password" 
+                                   id="confirm_password" 
+                                   name="confirm_password" 
+                                   class="form-control" 
+                                   required
+                                   minlength="6">
+                            <?php if (isset($errors['confirm_password'])): ?>
+                                <div class="form-error"><?php echo $errors['confirm_password']; ?></div>
+                            <?php endif; ?>
                         </div>
 
-                        <?php if (isset($errors['general'])): ?>
-                            <div class="form-error" style="margin-bottom: 1rem;"><?php echo $errors['general']; ?></div>
-                        <?php endif; ?>
-
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Create Moderator
-                            </button>
-                            <a href="/unipulse/public/admin/moderators_list" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Cancel
+                            <a href="/unipulse/public/admin/admins_list" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
                             </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Create Admin
+                            </button>
                         </div>
                     </form>
                 </div>

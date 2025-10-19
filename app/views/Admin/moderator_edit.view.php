@@ -133,7 +133,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
+    <!-- <header class="header">
         <div class="header-container">
             <div class="logo">
                 <a href="/unipulse/public/admin/dashboard">
@@ -158,7 +158,13 @@
                 </div>
             </div>
         </div>
-    </header>
+    </header> -->
+
+    <!-- Header -->
+    <?php
+    $pageConfig = ['activeNav' => 'moderator_edit'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">

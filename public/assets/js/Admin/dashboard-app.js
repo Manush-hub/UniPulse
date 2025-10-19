@@ -127,9 +127,16 @@ function displayRecentActivity(activities) {
         return;
     }
     
-    activities.forEach(activity => {
+    activities.forEach((activity, index) => {
         const activityItem = document.createElement('div');
         activityItem.className = 'activity-item';
+        
+        // Hide items after the first 2
+        if (index >= 2) {
+            activityItem.classList.add('hidden-item');
+            activityItem.style.display = 'none';
+        }
+        
         activityItem.innerHTML = `
             <div class="activity-icon">
                 <i class="fas fa-${activity.icon}"></i>
@@ -170,6 +177,22 @@ function getSampleActivity() {
             description: 'Nightly database backup successful',
             time: '2 hours ago',
             icon: 'database'
+        },
+        {
+            id: 4,
+            type: 'user',
+            title: 'User profile updated',
+            description: 'John Doe updated their profile information',
+            time: '3 hours ago',
+            icon: 'user-edit'
+        },
+        {
+            id: 5,
+            type: 'event',
+            title: 'Event registration',
+            description: '25 new registrations for AI Summit 2025',
+            time: '4 hours ago',
+            icon: 'users'
         }
     ];
 }
@@ -209,9 +232,16 @@ function displayPendingApprovals(approvals) {
         return;
     }
     
-    approvals.forEach(approval => {
+    approvals.forEach((approval, index) => {
         const approvalItem = document.createElement('div');
         approvalItem.className = 'approval-item';
+        
+        // Hide items after the first 2
+        if (index >= 2) {
+            approvalItem.classList.add('hidden-item');
+            approvalItem.style.display = 'none';
+        }
+        
         approvalItem.innerHTML = `
             <div class="approval-info">
                 <div class="approval-name">${approval.name}</div>
@@ -241,6 +271,18 @@ function getSampleApprovals() {
             name: 'Tech Innovation Summit',
             type: 'Event Approval',
             submitted: '5 hours ago'
+        },
+        {
+            id: 3,
+            name: 'Startup Meetup 2025',
+            type: 'Event Approval',
+            submitted: '8 hours ago'
+        },
+        {
+            id: 4,
+            name: 'Academic Excellence Awards',
+            type: 'Sponsor Registration',
+            submitted: '1 day ago'
         }
     ];
 }
@@ -280,8 +322,14 @@ function displayUserTable(users) {
         return;
     }
     
-    users.forEach(user => {
+    users.forEach((user, index) => {
         const userRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (index >= 2) {
+            userRow.classList.add('hidden-row');
+            userRow.style.display = 'none';
+        }
         
         // Determine status class
         let statusClass = '';
@@ -358,6 +406,33 @@ function getSampleUsers() {
             registrationDate: '2025-03-14',
             status: 'active',
             avatar: 'MJ'
+        },
+        {
+            id: 3,
+            name: 'Emily Davis',
+            email: 'emily.davis@example.com',
+            role: 'Publisher',
+            registrationDate: '2025-03-13',
+            status: 'active',
+            avatar: 'ED'
+        },
+        {
+            id: 4,
+            name: 'Robert Brown',
+            email: 'robert.brown@example.com',
+            role: 'Sponsor',
+            registrationDate: '2025-03-12',
+            status: 'pending',
+            avatar: 'RB'
+        },
+        {
+            id: 5,
+            name: 'Lisa Wilson',
+            email: 'lisa.wilson@example.com',
+            role: 'Volunteer',
+            registrationDate: '2025-03-11',
+            status: 'active',
+            avatar: 'LW'
         }
     ];
 }
