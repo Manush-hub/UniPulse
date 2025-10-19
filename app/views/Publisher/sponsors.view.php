@@ -200,6 +200,13 @@
             </div>
             <form id="contactForm" method="POST" action="/unipulse/public/publisher/sponsors/contact">
                 <div class="modal-body">
+                    <div class="message-edit-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <div class="notice-content">
+                            <strong>Note:</strong> You can edit your message until the sponsor reads it. 
+                            <a href="/unipulse/public/publisher/messages">View and manage your messages</a>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="subject">Subject</label>
                         <input type="text" id="subject" name="subject" placeholder="Enter subject" required>

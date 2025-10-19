@@ -100,6 +100,52 @@ class Event {
     }
     
     /**
+     * Get events that are seeking sponsors
+     * These are typically upcoming events that accept donations or need funding
+     */
+    public function getEventsSeekingSponsors($filters = []) {
+        $whereClause = ['status = :status'];
+        $params = ['status' => 'upcoming'];
+        
+        // Apply filters
+        if (!empty($filters['category'])) {
+            $whereClause[] = 'category = :category';
+            $params['category'] = $filters['category'];
+        }
+        
+        if (!empty($filters['university'])) {
+            $whereClause[] = 'university = :university';
+            $params['university'] = $filters['university'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        $sql = "SELECT * FROM {$this->table}";
+        
+        if (!empty($whereClause)) {
+            $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+        }
+        
+        $sql .= ' ORDER BY event_date ASC, event_time ASC';
+        
+        // Add pagination if specified
+        if (isset($filters['limit'])) {
+            $sql .= ' LIMIT :limit';
+            $params['limit'] = $filters['limit'];
+            
+            if (isset($filters['offset'])) {
+                $sql .= ' OFFSET :offset';
+                $params['offset'] = $filters['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
+    
+    /**
      * Get event by ID
      */
     public function getEventById($id) {

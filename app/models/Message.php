@@ -181,6 +181,70 @@ class Message {
     }
     
     /**
+     * Update a message (only by sender and only if not read yet)
+     */
+    public function updateMessage($messageId, $userId, $userType, $subject, $messageContent) {
+        // First check if the message exists, belongs to user, and hasn't been read
+        $checkQuery = "SELECT id, is_read FROM messages 
+                       WHERE id = :message_id 
+                       AND from_user_id = :user_id 
+                       AND from_user_type = :user_type";
+        
+        $message = $this->getRow($checkQuery, [
+            'message_id' => $messageId,
+            'user_id' => $userId,
+            'user_type' => $userType
+        ]);
+        
+        if (!$message) {
+            return ['success' => false, 'message' => 'Message not found or you do not have permission to edit it'];
+        }
+        
+        if ($message->is_read) {
+            return ['success' => false, 'message' => 'Cannot edit a message that has already been read'];
+        }
+        
+        // Update the message
+        $updateQuery = "UPDATE messages 
+                        SET subject = :subject, 
+                            message = :message_content,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = :message_id";
+        
+        $conn = $this->connect();
+        $stm = $conn->prepare($updateQuery);
+        $result = $stm->execute([
+            'subject' => $subject,
+            'message_content' => $messageContent,
+            'message_id' => $messageId
+        ]);
+        
+        if ($result && $stm->rowCount() > 0) {
+            return ['success' => true, 'message' => 'Message updated successfully'];
+        } else {
+            return ['success' => false, 'message' => 'Failed to update message'];
+        }
+    }
+    
+    /**
+     * Check if a message can be edited (belongs to user and not read yet)
+     */
+    public function canEditMessage($messageId, $userId, $userType) {
+        $query = "SELECT id, is_read FROM messages 
+                  WHERE id = :message_id 
+                  AND from_user_id = :user_id 
+                  AND from_user_type = :user_type";
+        
+        $message = $this->getRow($query, [
+            'message_id' => $messageId,
+            'user_id' => $userId,
+            'user_type' => $userType
+        ]);
+        
+        return $message && !$message->is_read;
+    }
+
+    /**
      * Delete a message (only by sender or recipient)
      */
     public function deleteMessage($messageId, $userId, $userType) {

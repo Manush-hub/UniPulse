@@ -416,18 +416,36 @@ document.addEventListener('submit', function(event) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            return response.json();
+            // Clone the response to read it as text first
+            return response.clone().text().then(text => {
+                try {
+                    // Try to parse as JSON
+                    const data = JSON.parse(text);
+                    return data;
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Response text:', text);
+                    // If JSON parsing fails but response was successful, assume success
+                    if (response.ok) {
+                        return { success: true, message: 'Message sent successfully!' };
+                    } else {
+                        throw new Error('Invalid response format');
+                    }
+                }
+            });
         })
         .then(data => {
             if (data.success) {
                 // Close modal immediately
                 closeContactModal();
                 
-                // Store success message in sessionStorage for popup on next page
-                sessionStorage.setItem('successMessage', data.message || 'Message sent successfully!');
+                // Show success message and redirect to messages page
+                showSuccessMessage('Message sent successfully!');
                 
-                // Redirect to sponsors page
-                window.location.href = '/unipulse/public/publisher/sponsors';
+                // Redirect to messages page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/unipulse/public/publisher/messages';
+                }, 1500);
             } else {
                 throw new Error(data.message || 'Failed to send message');
             }

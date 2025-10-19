@@ -65,6 +65,9 @@ class PublisherSponsors extends Controller {
             ob_end_clean();
         }
         
+        // Suppress any potential PHP warnings/notices that might interfere with JSON
+        error_reporting(E_ERROR | E_PARSE);
+        
         // Set headers before any output
         http_response_code(200);
         header('Content-Type: application/json; charset=utf-8');
@@ -117,7 +120,7 @@ class PublisherSponsors extends Controller {
             $messageId = $message->sendMessage($messageData);
             
             if ($messageId) {
-                $this->sendJsonResponse(true, 'Message sent successfully to ' . htmlspecialchars($sponsorData['company_name']) . '!');
+                $this->sendJsonResponse(true, 'Message sent successfully!');
             } else {
                 $this->sendJsonResponse(false, 'Failed to send message. Please try again.');
             }
@@ -129,8 +132,18 @@ class PublisherSponsors extends Controller {
     }
     
     private function sendJsonResponse($success, $message) {
-        $response = ['success' => $success, 'message' => $message];
-        echo json_encode($response);
+        // Clean any remaining output buffer
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        // Ensure clean JSON output
+        $response = [
+            'success' => (bool)$success, 
+            'message' => (string)$message
+        ];
+        
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
         exit();
     }
 }

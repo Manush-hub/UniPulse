@@ -588,6 +588,43 @@ body {
     }
 }
 
+/* Message Edit Notice */
+.message-edit-notice {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.message-edit-notice i {
+    color: #1E3A8A;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.notice-content {
+    font-size: 0.875rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+
+.notice-content strong {
+    font-weight: 600;
+}
+
+.notice-content a {
+    color: #1E3A8A;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.notice-content a:hover {
+    color: #1e40af;
+}
+
 /* Container */
 .container {
     max-width: 1200px;

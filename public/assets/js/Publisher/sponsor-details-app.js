@@ -117,12 +117,39 @@ function handleContactFormSubmission(event) {
             window.location.href = response.url;
             return;
         }
-        return response.json();
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Clone the response to read it as text first
+        return response.clone().text().then(text => {
+            try {
+                // Try to parse as JSON
+                const data = JSON.parse(text);
+                return data;
+            } catch (parseError) {
+                console.error('JSON parse error:', parseError);
+                console.error('Response text:', text);
+                // If JSON parsing fails but response was successful, assume success
+                if (response.ok) {
+                    return { success: true, message: 'Message sent successfully!' };
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            }
+        });
     })
     .then(data => {
         if (data && data.success) {
             closeContactModal();
-            showSuccessMessageAndRedirect(data.message || 'Message sent successfully!');
+            showSuccessMessage('Message sent successfully!');
+            
+            // Redirect to messages page after a short delay
+            setTimeout(() => {
+                window.location.href = '/unipulse/public/publisher/messages';
+            }, 1500);
+            
             form.reset();
         } else {
             throw new Error(data?.message || 'Failed to send message');

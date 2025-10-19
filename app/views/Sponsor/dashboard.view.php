@@ -40,7 +40,7 @@
                         </div>
                     </div>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='browse-events.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/sponsor/events?view=sponsor'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>

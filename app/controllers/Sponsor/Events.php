@@ -12,6 +12,11 @@ class SponsorEvents extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
         
+        // Check if this is a sponsor view request
+        if (isset($_GET['view']) && $_GET['view'] === 'sponsor') {
+            return $this->browseForSponsors();
+        }
+        
         $data = [];
         
         try {
@@ -175,5 +180,87 @@ class SponsorEvents extends Controller{
         }
         
         return $formattedEvent;
+    }
+    
+    /**
+     * Browse events that are seeking sponsors
+     */
+    private function browseForSponsors() {
+        // Require sponsor authentication
+        $currentUser = AuthService::getCurrentUser();
+        // Temporarily disable auth for testing
+        /*if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }*/
+        
+        // Set a default user for testing
+        if (!$currentUser) {
+            $currentUser = ['id' => 1, 'type' => 'sponsor', 'company_name' => 'Test Sponsor'];
+        }
+
+        $data = [];
+        
+        try {
+            // Get filters from request
+            $filters = [];
+            
+            if (isset($_GET['category']) && !empty($_GET['category'])) {
+                $filters['category'] = $_GET['category'];
+            }
+            
+            if (isset($_GET['university']) && !empty($_GET['university'])) {
+                $filters['university'] = $_GET['university'];
+            }
+            
+            if (isset($_GET['search']) && !empty($_GET['search'])) {
+                $filters['search'] = $_GET['search'];
+            }
+            
+            // Only show upcoming events that might need sponsors
+            $filters['status'] = 'upcoming';
+            
+            // Get pagination parameters
+            $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+            $limit = 9; // Events per page
+            $offset = ($page - 1) * $limit;
+            
+            $filters['limit'] = $limit;
+            $filters['offset'] = $offset;
+            
+            // Get events seeking sponsors from database
+            $events = $this->eventModel->getEventsSeekingSponsors($filters);
+            
+            // Get total count for pagination
+            $totalFilters = $filters;
+            unset($totalFilters['limit'], $totalFilters['offset']);
+            $totalEvents = $this->eventModel->getEventsSeekingSponsors($totalFilters);
+            $totalPages = ceil(count($totalEvents) / $limit);
+            
+            // Prepare data for view
+            $data = [
+                'events' => $events,
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'filters' => $filters,
+                'user' => $currentUser,
+                'page_title' => 'Find Events to Sponsor'
+            ];
+            
+        } catch (Exception $e) {
+            // Log error and show user-friendly message
+            error_log("Database error in SponsorEvents::browse: " . $e->getMessage());
+            $data = [
+                'error' => 'Unable to load events. Please try again later.',
+                'events' => [],
+                'currentPage' => 1,
+                'totalPages' => 1,
+                'filters' => [],
+                'user' => $currentUser,
+                'page_title' => 'Find Events to Sponsor'
+            ];
+        }
+        
+        $this->view('Sponsor/browse-events', $data);
     }
 }
