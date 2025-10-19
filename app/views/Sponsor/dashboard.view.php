@@ -22,7 +22,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">TechCorp Ltd</span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($user['company_name'] ?? 'Sponsor') ?></span>! 👋</h1>
                         <p>Manage your sponsorships and discover new opportunities to support university events.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
@@ -96,16 +96,60 @@
                         <h3>Performance Analytics</h3>
                         <p>View sponsorship ROI and metrics</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='messages.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/sponsor/messages'">
                         <div class="action-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                             </svg>
                         </div>
-                        <h3>Messages</h3>
+                        <h3>Messages <?php if (isset($unread_count) && $unread_count > 0): ?><span class="notification-badge"><?= $unread_count ?></span><?php endif; ?></h3>
                         <p>Communicate with event organizers</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Messages -->
+        <section class="recent-messages">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Recent Messages from Publishers</h2>
+                    <a href="/unipulse/public/sponsor/messages" class="view-all">View All</a>
+                </div>
+                <div class="messages-container">
+                    <?php if (isset($recent_messages) && !empty($recent_messages)): ?>
+                        <?php foreach ($recent_messages as $message): ?>
+                            <div class="message-card <?= !$message->is_read ? 'unread' : '' ?>" onclick="window.location.href='/unipulse/public/sponsor/messages/details/<?= $message->id ?>'">
+                                <div class="message-header">
+                                    <div class="sender-info">
+                                        <h4><?= htmlspecialchars($message->sender_name) ?></h4>
+                                        <span class="message-date"><?= date('M j, Y g:i A', strtotime($message->created_at)) ?></span>
+                                    </div>
+                                    <?php if (!$message->is_read): ?>
+                                        <span class="unread-indicator"></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="message-preview">
+                                    <h5><?= htmlspecialchars($message->subject) ?></h5>
+                                    <p><?= htmlspecialchars(substr($message->message, 0, 150)) ?><?= strlen($message->message) > 150 ? '...' : '' ?></p>
+                                </div>
+                                <div class="message-footer">
+                                    <span class="message-type">From: <?= ucfirst($message->from_user_type) ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="no-messages">
+                            <div class="no-messages-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3>No Messages Yet</h3>
+                            <p>When publishers send you messages, they'll appear here.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
