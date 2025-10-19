@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
     <style>
+        /* Remove background gradient and make it white */
+        body {
+            background: #ffffff !important;
+            background-image: none !important;
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -48,9 +54,9 @@
     
     <div class="container">
         <!-- Back button -->
-        <a href="/unipulse/public/publisher/events" class="back-button">
+        <a href="/unipulse/public/publisher/dashboard" class="back-button">
             <i class="fas fa-arrow-left"></i>
-            Back to My Events
+            Back to Dashboard
         </a>
         
         <!-- Display success message if exists -->
@@ -467,7 +473,8 @@
         fetch(this.action, {
             method: 'POST',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             },
             body: formData
         })

@@ -38,8 +38,9 @@ class PublisherEventview extends Controller {
                         );
                         
                         // Check if current publisher owns this event
-                        $currentPublisherId = $_SESSION['publisher_id'] ?? null;
-                        $isOwner = ($currentPublisherId && $event->publisher_id == $currentPublisherId);
+                        $currentUser = AuthService::getCurrentUser();
+                        $currentPublisherId = ($currentUser && $currentUser['type'] === 'publisher') ? $currentUser['id'] : null;
+                        $isOwner = ($currentPublisherId && $event->created_by == $currentPublisherId && $event->created_by_type == 'publisher');
                         
                         // Pass server data to view for JavaScript
                         $data = [

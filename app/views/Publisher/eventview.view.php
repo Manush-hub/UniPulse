@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details - UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/eventview-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/comments-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -361,6 +362,154 @@
         </div>
     </div>
 
+    <!-- Comments Section -->
+    <div class="comments-section" id="commentsSection" style="display: none;">
+        <div class="container">
+            <div class="content-card">
+                <div class="comments-header">
+                    <h3>
+                        <i class="fas fa-comments"></i>
+                        Event Reviews & Comments
+                    </h3>
+                    <div class="comments-stats" id="commentsStats">
+                        <span class="stat-item">
+                            <i class="fas fa-comment"></i>
+                            <span id="totalCommentsCount">0</span> comments
+                        </span>
+                        <span class="stat-item" id="averageRatingDisplay" style="display: none;">
+                            <i class="fas fa-star"></i>
+                            <span id="averageRatingValue">0</span> average rating
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Add Comment Form (For Publishers/Admins/Moderators) -->
+                <div class="add-comment-section" id="addCommentSection" style="display: none;">
+                    <div class="comment-form">
+                        <div class="form-group">
+                            <label for="commentText">Share your thoughts</label>
+                            <textarea id="commentText" placeholder="Share your thoughts about this event..." maxlength="1000"></textarea>
+                            <div class="char-count">
+                                <span id="charCount">0</span>/1000
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="eventRating">Rate this event (optional)</label>
+                            <div class="rating-input" id="ratingInput">
+                                <span class="star" data-rating="1">☆</span>
+                                <span class="star" data-rating="2">☆</span>
+                                <span class="star" data-rating="3">☆</span>
+                                <span class="star" data-rating="4">☆</span>
+                                <span class="star" data-rating="5">☆</span>
+                            </div>
+                            <div class="rating-text" id="ratingText">Click stars to rate</div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" id="cancelCommentBtn">Cancel</button>
+                            <button class="btn btn-primary" id="submitCommentBtn">
+                                <i class="fas fa-paper-plane"></i>
+                                Post Comment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Prompt -->
+                <div class="login-prompt" id="loginPrompt" style="display: none;">
+                    <div class="prompt-content">
+                        <i class="fas fa-lock"></i>
+                        <h4>Sign in to comment</h4>
+                        <p>Please sign in to share your experience and rate this event.</p>
+                        <a href="/unipulse/public/signin" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Sign In
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Add Comment Button -->
+                <div class="add-comment-trigger" id="addCommentTrigger" style="display: none;">
+                    <button class="btn btn-outline" onclick="showCommentForm()">
+                        <i class="fas fa-plus"></i>
+                        Add Your Review
+                    </button>
+                </div>
+
+                <!-- Comments List -->
+                <div class="comments-list" id="commentsList">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading comments...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Comment Modal -->
+    <div id="editCommentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Comment</h3>
+                <button class="close-btn" onclick="closeEditCommentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editCommentText">Update your comment</label>
+                    <textarea id="editCommentText" maxlength="1000"></textarea>
+                    <div class="char-count">
+                        <span id="editCharCount">0</span>/1000
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editEventRating">Update your rating (optional)</label>
+                    <div class="rating-input" id="editRatingInput">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-text" id="editRatingText">Click stars to rate</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditCommentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="updateComment()">
+                    <i class="fas fa-save"></i>
+                    Update Comment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Comment Modal -->
+    <div id="deleteCommentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Comment</h3>
+                <button class="close-btn" onclick="closeDeleteCommentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDeleteComment()">
+                    <i class="fas fa-trash"></i>
+                    Delete Comment
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Donation Modal -->
     <div id="donationModal" class="modal">
         <div class="modal-content">
@@ -401,6 +550,6 @@
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
     </script>
 
-    <script src="<?php echo $controller->loadJS('eventview-app.js'); ?>"></script>
+    <script src="/unipulse/public/assets/js/Publisher/eventview-app.js"></script>
 </body>
 </html>

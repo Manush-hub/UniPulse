@@ -1,6 +1,6 @@
 <?php
 
-class PublisherEditevent extends Controller{
+class Editevent extends Controller{
 
     private $eventModel;
     
@@ -10,19 +10,23 @@ class PublisherEditevent extends Controller{
     }
 
     public function index($eventId = '', $b = '' , $c = ''){
-        // Check if user is logged in and is a publisher
-        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
-            // For AJAX requests, return JSON error instead of redirect
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => false,
-                    'errors' => ['general' => 'You must be logged in as a publisher to edit events. Please login and try again.'],
-                    'redirect' => '/unipulse/public/signin'
-                ]);
-                exit();
-            }
-            
+        // Handle POST requests (form submissions) separately with JSON response
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->handleFormSubmission($eventId);
+            return;
+        }
+        
+        // Check if user is logged in (for GET requests)
+        if (!AuthService::isLoggedIn()) {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+        
+        // Check if user has appropriate role (publisher, admin, moderator)
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!in_array($currentUser['type'], $allowedRoles)) {
             header('Location: /unipulse/public/signin');
             exit();
         }
@@ -30,7 +34,11 @@ class PublisherEditevent extends Controller{
         // Get current user
         $currentUser = AuthService::getCurrentUser();
         
-        // Check if event ID is provided
+        // Check if event ID is provided (URL parameter or query parameter)
+        if (empty($eventId)) {
+            $eventId = $_GET['id'] ?? '';
+        }
+        
         if (empty($eventId) || !is_numeric($eventId)) {
             header('Location: /unipulse/public/publisher/events?error=Invalid event ID');
             exit();
@@ -44,19 +52,32 @@ class PublisherEditevent extends Controller{
             exit();
         }
         
-        // Check if current user owns this event
-        if ($event->created_by != $currentUser['id']) {
-            header('Location: /unipulse/public/publisher/events?error=You can only edit your own events');
+        // Check if current user can edit this event
+        $canEdit = false;
+        $userRole = $currentUser['type'];
+        
+        // Admins and moderators can edit any event
+        if (in_array($userRole, ['admin', 'moderator'])) {
+            $canEdit = true;
+        } 
+        // Publishers can edit their own events or legacy events without ownership
+        else if ($userRole === 'publisher') {
+            if ($event->created_by && $event->created_by_type) {
+                // New events with proper ownership tracking
+                $canEdit = ($event->created_by == $currentUser['id'] && $event->created_by_type == 'publisher');
+            } else {
+                // Legacy events without ownership tracking - allow any publisher to edit
+                $canEdit = true;
+            }
+        }
+        
+        if (!$canEdit) {
+            $errorMsg = $userRole === 'publisher' ? 'You can only edit your own events' : 'You do not have permission to edit this event';
+            header("Location: /unipulse/public/publisher/events?error=" . urlencode($errorMsg));
             exit();
         }
         
         $data = [];
-        
-        // Check if form was submitted
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->handleFormSubmission($eventId);
-            return;
-        }
         
         // Pass event data to view
         $data['event'] = $event;
@@ -69,18 +90,44 @@ class PublisherEditevent extends Controller{
         // Start output buffering to prevent any accidental output
         ob_start();
         
-        // More robust AJAX detection
-        $isAjax = (
-            (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ||
-            (!empty($_SERVER['CONTENT_TYPE']) && strpos($_SERVER['CONTENT_TYPE'], 'application/json') !== false) ||
-            (isset($_POST['ajax']) && $_POST['ajax'] == '1')
-        );
+        // Clear any previous output and set JSON header immediately
+        if (ob_get_level()) ob_clean();
+        header('Content-Type: application/json');
         
-        // Set JSON header early for AJAX requests
-        if ($isAjax) {
-            // Clear any previous output
-            if (ob_get_level()) ob_clean();
-            header('Content-Type: application/json');
+        // Check authentication first
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode([
+                'success' => false,
+                'errors' => ['general' => 'You must be logged in to edit events. Please login and try again.'],
+                'redirect' => '/unipulse/public/signin'
+            ]);
+            exit();
+        }
+        
+        // Check user role
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode([
+                'success' => false,
+                'errors' => ['general' => 'You do not have permission to edit events.'],
+                'redirect' => '/unipulse/public/signin'
+            ]);
+            exit();
+        }
+        
+        // Get event ID (URL parameter or query parameter)
+        if (empty($eventId)) {
+            $eventId = $_GET['id'] ?? '';
+        }
+        
+        if (empty($eventId) || !is_numeric($eventId)) {
+            echo json_encode([
+                'success' => false,
+                'errors' => ['general' => 'Invalid event ID']
+            ]);
+            exit();
         }
         
         try {
@@ -88,8 +135,38 @@ class PublisherEditevent extends Controller{
             
             // Verify ownership again
             $event = $this->eventModel->getEventById($eventId);
-            if (!$event || $event->created_by != $user['id']) {
-                throw new Exception('You can only edit your own events');
+            if (!$event) {
+                echo json_encode([
+                    'success' => false,
+                    'errors' => ['general' => 'Event not found']
+                ]);
+                exit();
+            }
+            
+            // Check ownership (same logic as in index method)
+            $canEdit = false;
+            $userRole = $user['type'];
+            
+            // Admins and moderators can edit any event
+            if (in_array($userRole, ['admin', 'moderator'])) {
+                $canEdit = true;
+            } 
+            // Publishers can edit their own events or legacy events without ownership
+            else if ($userRole === 'publisher') {
+                if ($event->created_by && $event->created_by_type) {
+                    $canEdit = ($event->created_by == $user['id'] && $event->created_by_type == 'publisher');
+                } else {
+                    // Legacy events without ownership tracking
+                    $canEdit = true;
+                }
+            }
+            
+            if (!$canEdit) {
+                echo json_encode([
+                    'success' => false,
+                    'errors' => ['general' => $userRole === 'publisher' ? 'You can only edit your own events' : 'You do not have permission to edit this event']
+                ]);
+                exit();
             }
             
             // Get form data (same structure as create event)
@@ -117,7 +194,12 @@ class PublisherEditevent extends Controller{
                 'needs_volunteers' => isset($_POST['volunteerToggle']) && $_POST['volunteerToggle'] == '1' ? 1 : 0,
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
-                'visibility' => $_POST['visibility'] ?? 'public'
+                'visibility' => $_POST['visibility'] ?? 'public',
+                // Preserve existing values for required fields not in the form
+                'organizer' => $event->organizer,
+                'university' => $event->university,
+                'university_name' => $event->university_name,
+                'organizer_email' => $event->organizer_email ?? null
             ];
             
             // Handle requirements if provided
@@ -173,67 +255,33 @@ class PublisherEditevent extends Controller{
             $result = $this->eventModel->updateEvent($eventId, $formData);
             
             if ($result['success']) {
-                // Return JSON response for AJAX requests
-                if ($isAjax) {
-                    echo json_encode([
-                        'success' => true,
-                        'message' => 'Event updated successfully!',
-                        'event_id' => $eventId
-                    ]);
-                    exit();
-                } else {
-                    // Show success message and stay on the same page
-                    $event = $this->eventModel->getEventById($eventId);
-                    $data = [
-                        'success' => 'Event updated successfully!',
-                        'event' => $event,
-                        'event_id' => $eventId
-                    ];
-                    $this->view('editevent', $data);
-                    return;
-                }
+                // Always return JSON response for POST requests
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Event updated successfully!',
+                    'event_id' => $eventId
+                ]);
+                exit();
             } else {
-                // Return error response
-                if ($isAjax) {
-                    echo json_encode([
-                        'success' => false,
-                        'errors' => $result['errors'] ?? ['general' => 'Unknown error occurred']
-                    ]);
-                    exit();
-                } else {
-                    // Show form with errors
-                    $event = $this->eventModel->getEventById($eventId);
-                    $data = [
-                        'errors' => $result['errors'] ?? ['general' => 'Unknown error occurred'],
-                        'event' => $event,
-                        'event_id' => $eventId,
-                        'old_data' => $formData
-                    ];
-                    $this->view('editevent', $data);
-                }
+                // Always return JSON error response for POST requests
+                echo json_encode([
+                    'success' => false,
+                    'errors' => $result['errors'] ?? ['general' => 'Unknown error occurred']
+                ]);
+                exit();
             }
             
         } catch (Exception $e) {
             error_log("Error updating event: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
             
-            if ($isAjax) {
-                echo json_encode([
-                    'success' => false,
-                    'errors' => ['general' => 'Server error: ' . $e->getMessage()],
-                    'message' => 'Server error: ' . $e->getMessage()
-                ]);
-                exit();
-            } else {
-                $event = $this->eventModel->getEventById($eventId);
-                $data = [
-                    'errors' => ['general' => 'Server error: ' . $e->getMessage()],
-                    'event' => $event,
-                    'event_id' => $eventId,
-                    'old_data' => $_POST
-                ];
-                $this->view('editevent', $data);
-            }
+            // Always return JSON error response for POST requests
+            echo json_encode([
+                'success' => false,
+                'errors' => ['general' => 'Server error: ' . $e->getMessage()],
+                'message' => 'Server error: ' . $e->getMessage()
+            ]);
+            exit();
         }
     }
     

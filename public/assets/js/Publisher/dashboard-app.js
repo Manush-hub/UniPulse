@@ -1,11 +1,25 @@
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
-    initializeDashboard();
-    loadEventsManagement();
-    loadVolunteerData();
-    loadRecentActivity();
-    setupEventListeners();
-    animateProgressBars();
+    try {
+        initializeDashboard();
+        loadEventsManagement();
+        loadVolunteerData();
+        loadRecentActivity();
+        setupEventListeners();
+        animateProgressBars();
+        
+        // Load comments last and independently
+        setTimeout(() => {
+            try {
+                loadRecentComments();
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
 });
 
 
@@ -171,8 +185,111 @@ function initializeDashboard() {
 // Load events management
 function loadEventsManagement() {
     const eventsList = document.querySelector('.events-list');
-    if (!eventsList) return;
+    if (!eventsList) {
+        console.log('Events list container not found');
+        return;
+    }
 
+    // Show loading state
+    eventsList.innerHTML = `
+        <div class="loading-events">
+            <div class="spinner"></div>
+            <p>Loading your events...</p>
+        </div>
+    `;
+
+    fetch('/unipulse/public/publisher/dashboard/getMyEvents')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayEvents(data.events);
+            } else {
+                console.error('Events API error:', data.error);
+                eventsList.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load events: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading events:', error);
+            // Fallback to static data for now
+            displayStaticEvents();
+        });
+}
+
+// Display events from API
+function displayEvents(events) {
+    const eventsList = document.querySelector('.events-list');
+    
+    if (events.length === 0) {
+        eventsList.innerHTML = `
+            <div class="no-events">
+                <div class="no-events-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <h3>No Events Yet</h3>
+                <p>Start creating events to manage them from your dashboard.</p>
+                <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">
+                    Create Your First Event
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    eventsList.innerHTML = '';
+    events.forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.className = 'event-item';
+        
+        const statusClass = getStatusClass(event.status);
+        const eventImage = event.image_url || '/unipulse/public/assets/images/default-event.jpg';
+        
+        eventItem.innerHTML = `
+            <div class="event-image" style="background-image: url('${eventImage}'); background-size: cover; background-position: center;"></div>
+            <div class="event-details">
+                <h3 class="event-title">${event.title}</h3>
+                <div class="event-meta">
+                    <span><i class="fas fa-calendar"></i> ${event.formatted_date}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${event.location}</span>
+                </div>
+                <div class="event-stats">
+                    <span><i class="fas fa-comments"></i> ${event.comment_count} comments</span>
+                    ${event.avg_rating ? `<span><i class="fas fa-star"></i> ${event.avg_rating}/5</span>` : ''}
+                </div>
+                <span class="event-status ${statusClass}">${capitalizeFirstLetter(event.status)}</span>
+            </div>
+            <div class="event-actions">
+                <button class="action-btn" onclick="viewEvent(${event.id})">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <button class="action-btn" onclick="editEvent(${event.id})">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="action-btn delete" onclick="showDeleteModal(${event.id})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        `;
+        eventsList.appendChild(eventItem);
+    });
+}
+
+// Fallback to display static events
+function displayStaticEvents() {
+    const eventsList = document.querySelector('.events-list');
     eventsList.innerHTML = '';
 
     eventsData.forEach(event => {
@@ -195,6 +312,19 @@ function loadEventsManagement() {
         `;
         eventsList.appendChild(eventItem);
     });
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    const statusClasses = {
+        'active': 'status-active',
+        'upcoming': 'status-upcoming',
+        'ongoing': 'status-ongoing',
+        'completed': 'status-completed',
+        'cancelled': 'status-cancelled',
+        'draft': 'status-draft'
+    };
+    return statusClasses[status] || 'status-unknown';
 }
 
 // Load volunteer data
@@ -376,13 +506,22 @@ function deleteEvent(eventId) {
     loadEventsManagement();
 }
 
+function viewEvent(eventId) {
+    console.log('Viewing event with ID:', eventId);
+    if (typeof showToast === 'function') {
+        showToast('Loading event details...', 'info');
+    }
+    // Redirect to event view page
+    window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
+}
+
 function editEvent(eventId) {
     console.log('Editing event with ID:', eventId);
-    // In a real application, this would redirect to the edit page
     if (typeof showToast === 'function') {
-        showToast('Redirecting to edit event page', 'info');
+        showToast('Loading event editor...', 'info');
     }
-    // window.location.href = `/unipulse/organizer/edit-event.html?id=${eventId}`;
+    // Redirect to edit event page
+    window.location.href = `/unipulse/public/publisher/editevent/${eventId}`;
 }
 
 
@@ -641,12 +780,164 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
+// Load recent comments on publisher's events
+function loadRecentComments() {
+    const container = document.getElementById('recentCommentsContainer');
+    if (!container) {
+        console.log('Recent comments container not found, skipping comments load');
+        return;
+    }
 
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-comments">
+            <div class="spinner"></div>
+            <p>Loading recent comments...</p>
+        </div>
+    `;
+
+    fetch('/unipulse/public/publisher/dashboard/getRecentComments')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayRecentComments(data.comments, data.stats);
+            } else {
+                console.error('Comments API error:', data.error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load comments: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading comments:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <p>Unable to load comments at this time.</p>
+                </div>
+            `;
+        });
+}
+
+// Display recent comments
+function displayRecentComments(comments, stats) {
+    const container = document.getElementById('recentCommentsContainer');
+    const totalCommentsEl = document.getElementById('totalComments');
+    const averageRatingEl = document.getElementById('averageRating');
+
+    // Update stats
+    if (totalCommentsEl) totalCommentsEl.textContent = stats.total_comments;
+    if (averageRatingEl) averageRatingEl.textContent = stats.average_rating.toFixed(1);
+
+    if (comments.length === 0) {
+        container.innerHTML = `
+            <div class="no-comments">
+                <div class="no-comments-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <h3>No Comments Yet</h3>
+                <p>Comments from users, publishers, admins, and moderators on your events will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const commentsHtml = comments.map(comment => {
+        const userTypeIcon = getUserTypeIcon(comment.user_type);
+        const ratingStars = comment.rating > 0 ? generateStarRating(comment.rating) : '';
+        
+        return `
+            <div class="comment-item" data-user-type="${comment.user_type}">
+                <div class="comment-header">
+                    <div class="comment-user">
+                        <div class="user-avatar">
+                            ${userTypeIcon}
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">${comment.user_name}</span>
+                            <span class="user-type">${formatUserType(comment.user_type)}</span>
+                        </div>
+                    </div>
+                    <div class="comment-meta">
+                        <span class="comment-date">${comment.formatted_date}</span>
+                        ${ratingStars}
+                    </div>
+                </div>
+                <div class="comment-content">
+                    <div class="comment-event">
+                        <span class="event-label">Event:</span>
+                        <span class="event-title">${comment.event_title}</span>
+                    </div>
+                    <p class="comment-text">${comment.comment_text}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `<div class="comments-list">${commentsHtml}</div>`;
+}
+
+// Get user type icon
+function getUserTypeIcon(userType) {
+    const icons = {
+        'university': '<i class="fas fa-graduation-cap"></i>',
+        'public': '<i class="fas fa-user"></i>',
+        'publisher': '<i class="fas fa-users"></i>',
+        'sponsor': '<i class="fas fa-handshake"></i>',
+        'admin': '<i class="fas fa-user-shield"></i>',
+        'moderator': '<i class="fas fa-user-check"></i>'
+    };
+    return icons[userType] || '<i class="fas fa-user"></i>';
+}
+
+// Format user type for display
+function formatUserType(userType) {
+    const types = {
+        'university': 'University Student',
+        'public': 'Public User',
+        'publisher': 'Event Publisher',
+        'sponsor': 'Sponsor',
+        'admin': 'Administrator',
+        'moderator': 'Moderator'
+    };
+    return types[userType] || 'User';
+}
+
+// Generate star rating display
+function generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating - fullStars >= 0.5;
+    let starsHtml = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<i class="fas fa-star"></i>';
+    }
+    
+    if (hasHalfStar) {
+        starsHtml += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<i class="far fa-star"></i>';
+    }
+    
+    return `<div class="rating-stars">${starsHtml}</div>`;
+}
 
 // Export functions for use in other modules
 window.EventOrganizerDashboard = {
     exportReport,
     showDeleteModal,
+    viewEvent,
     editEvent,
     changeVolunteerStatus,
     updateSponsorship,

@@ -142,6 +142,69 @@ class Event {
     }
     
     /**
+     * Get events based on user role and permissions
+     * Non-user roles (publisher, admin, moderator, sponsor) can see completed events
+     * Regular users cannot see completed events unless specifically requested
+     */
+    public function getEventsByRole($userRole = 'user', $filters = []) {
+        $allowCompletedEvents = in_array($userRole, ['publisher', 'admin', 'moderator', 'sponsor']);
+        
+        // If user role can't see completed events and no specific status filter is set
+        if (!$allowCompletedEvents && !isset($filters['status'])) {
+            // Add filter to exclude completed events
+            $whereClause = [];
+            $params = [];
+            
+            // Apply existing filters
+            foreach ($filters as $key => $value) {
+                if (!empty($value)) {
+                    switch ($key) {
+                        case 'category':
+                            $whereClause[] = 'category = :category';
+                            $params['category'] = $value;
+                            break;
+                        case 'university':
+                            $whereClause[] = 'university = :university';
+                            $params['university'] = $value;
+                            break;
+                        case 'search':
+                            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+                            $params['search'] = '%' . $value . '%';
+                            break;
+                    }
+                }
+            }
+            
+            // Exclude completed events for regular users
+            $whereClause[] = "status != 'completed'";
+            
+            $sql = "SELECT * FROM {$this->table}";
+            
+            if (!empty($whereClause)) {
+                $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+            }
+            
+            $sql .= ' ORDER BY event_date ASC, event_time ASC';
+            
+            // Add pagination if specified
+            if (isset($filters['limit'])) {
+                $sql .= ' LIMIT :limit';
+                $params['limit'] = $filters['limit'];
+                
+                if (isset($filters['offset'])) {
+                    $sql .= ' OFFSET :offset';
+                    $params['offset'] = $filters['offset'];
+                }
+            }
+            
+            return $this->query($sql, $params);
+        } else {
+            // Use existing getAllEvents method for non-users roles or when status is specifically requested
+            return $this->getAllEvents($filters);
+        }
+    }
+
+    /**
      * Get events by university
      */
     public function getEventsByUniversity($university, $limit = null) {

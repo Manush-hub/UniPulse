@@ -48,11 +48,15 @@ class PublisherEvents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
-            // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            // Get current user role
+            $currentUser = AuthService::getCurrentUser();
+            $userRole = $currentUser ? $currentUser['type'] : 'user';
+            
+            // Get events from database based on user role
+            $events = $this->eventModel->getEventsByRole($userRole, $filters);
             
             // Get total count for pagination (without limit)
-            $totalEvents = $this->eventModel->getAllEvents();
+            $totalEvents = $this->eventModel->getEventsByRole($userRole);
             $totalPages = ceil(count($totalEvents) / $limit);
             
             // Prepare data for view with server data for JavaScript
@@ -126,8 +130,12 @@ class PublisherEvents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
-            // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            // Get current user role
+            $currentUser = AuthService::getCurrentUser();
+            $userRole = $currentUser ? $currentUser['type'] : 'user';
+            
+            // Get events from database based on user role
+            $events = $this->eventModel->getEventsByRole($userRole, $filters);
             
             // Format events for JSON response
             $formattedEvents = [];

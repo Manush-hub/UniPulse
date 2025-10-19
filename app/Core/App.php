@@ -25,14 +25,19 @@ class App {
                 $this->userRole = ucfirst(strtolower($url[0]));
                 $this->controller = isset($url[1]) ? ucfirst($url[1]) : 'Dashboard'; // Default to Dashboard
                 
-                if (isset($url[2])) {
+                // For role-based URLs, keep method as 'index' and treat everything after controller as params
+                // Only set method if it looks like a method name (starts with letter, not numeric)
+                if (isset($url[2]) && !is_numeric($url[2]) && preg_match('/^[a-zA-Z]/', $url[2])) {
                     $this->method = $url[2];
                     unset($url[2]);
+                    // Remove role, controller, and method from params
+                    unset($url[0], $url[1]);
+                    $this->params = $url ? array_values($url) : [];
+                } else {
+                    // Treat everything after controller as parameters
+                    unset($url[0], $url[1]); // Remove role and controller
+                    $this->params = $url ? array_values($url) : [];
                 }
-                
-                // Remove role and controller from params
-                unset($url[0], $url[1]);
-                $this->params = $url ? array_values($url) : [];
             } else {
                 // Regular URL: /home or /signin
                 $this->controller = isset($url[0]) ? ucfirst($url[0]) : 'Home';

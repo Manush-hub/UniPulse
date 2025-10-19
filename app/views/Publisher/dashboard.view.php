@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Publisher Dashboard</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/dashboard-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 </head>
 
@@ -225,6 +226,32 @@
             </div>
         </section>
 
+        <!-- Recent Comments -->
+        <section class="recent-comments">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Recent Comments on Your Events</h2>
+                    <div class="comment-stats">
+                        <span class="stat-item">
+                            <span class="stat-number" id="totalComments">0</span>
+                            <span class="stat-label">Total Comments</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-number" id="averageRating">0.0</span>
+                            <span class="stat-label">Avg Rating</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="comments-container" id="recentCommentsContainer">
+                    <!-- Comments will be loaded here -->
+                    <div class="loading-comments">
+                        <div class="spinner"></div>
+                        <p>Loading recent comments...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">
@@ -303,7 +330,7 @@
         </div>
     </div>
 
-    <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
+    <script src="/unipulse/public/assets/js/Publisher/dashboard-app.js"></script>
 </body>
 
 </html>

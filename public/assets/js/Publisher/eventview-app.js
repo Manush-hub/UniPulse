@@ -152,6 +152,9 @@ function displayEventDetails(event) {
     
     // Update status styling
     updateStatusStyling(event.status, event.participants, maxParticipants);
+    
+    // Initialize comments for completed events
+    initializeComments();
 }
 
 // Display event schedule
@@ -694,4 +697,433 @@ function showMessage(message, type = 'info') {
             }
         }, 300);
     }, 4000);
+}
+
+// ======================
+// Comment Functionality
+// ======================
+
+let currentRating = 0;
+let editingCommentId = null;
+let editingRating = 0;
+
+// Initialize comment functionality when event is displayed
+function initializeComments() {
+    if (!currentEvent) return;
+    
+    // Show comments section for completed events
+    if (currentEvent.status === 'completed') {
+        document.getElementById('commentsSection').style.display = 'block';
+        loadComments();
+        setupCommentForm();
+    }
+}
+
+// Setup comment form functionality
+function setupCommentForm() {
+    const commentText = document.getElementById('commentText');
+    const charCount = document.getElementById('charCount');
+    const submitBtn = document.getElementById('submitCommentBtn');
+    const cancelBtn = document.getElementById('cancelCommentBtn');
+    const ratingStars = document.querySelectorAll('#ratingInput .star');
+    
+    // Character count
+    if (commentText && charCount) {
+        commentText.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+    }
+    
+    // Rating stars
+    ratingStars.forEach(star => {
+        star.addEventListener('click', function() {
+            currentRating = parseInt(this.dataset.rating);
+            updateRatingDisplay(ratingStars, currentRating);
+        });
+        
+        star.addEventListener('mouseover', function() {
+            const hoverRating = parseInt(this.dataset.rating);
+            updateRatingDisplay(ratingStars, hoverRating);
+        });
+    });
+    
+    document.getElementById('ratingInput').addEventListener('mouseleave', function() {
+        updateRatingDisplay(ratingStars, currentRating);
+    });
+    
+    // Submit button
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitComment);
+    }
+    
+    // Cancel button
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', hideCommentForm);
+    }
+}
+
+// Update rating display
+function updateRatingDisplay(stars, rating) {
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.textContent = '★';
+            star.classList.add('active');
+        } else {
+            star.textContent = '☆';
+            star.classList.remove('active');
+        }
+    });
+    
+    const ratingText = document.getElementById('ratingText');
+    if (ratingText) {
+        const ratingTexts = ['Click stars to rate', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+        ratingText.textContent = ratingTexts[rating] || ratingTexts[0];
+    }
+}
+
+// Show comment form
+function showCommentForm() {
+    document.getElementById('addCommentTrigger').style.display = 'none';
+    document.getElementById('addCommentSection').style.display = 'block';
+    document.getElementById('commentText').focus();
+}
+
+// Hide comment form
+function hideCommentForm() {
+    document.getElementById('addCommentTrigger').style.display = 'block';
+    document.getElementById('addCommentSection').style.display = 'none';
+    
+    // Reset form
+    document.getElementById('commentText').value = '';
+    document.getElementById('charCount').textContent = '0';
+    currentRating = 0;
+    updateRatingDisplay(document.querySelectorAll('#ratingInput .star'), 0);
+}
+
+// Submit comment
+function submitComment() {
+    const commentText = document.getElementById('commentText').value.trim();
+    
+    if (!commentText) {
+        showMessage('Please enter a comment', 'error');
+        return;
+    }
+    
+    const submitBtn = document.getElementById('submitCommentBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    submitBtn.disabled = true;
+    
+    const commentData = {
+        event_id: currentEvent.id,
+        comment: commentText,
+        rating: currentRating
+    };
+    
+    fetch('/unipulse/public/publisher/comments/addComment', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(commentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage('Comment posted successfully!', 'success');
+            hideCommentForm();
+            loadComments(); // Reload comments
+        } else {
+            showMessage(data.errors ? Object.values(data.errors)[0] : 'Failed to post comment', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Network error occurred', 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
+// Load comments
+function loadComments() {
+    if (!currentEvent) return;
+    
+    const commentsList = document.getElementById('commentsList');
+    
+    commentsList.innerHTML = `
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading comments...</p>
+        </div>
+    `;
+    
+    fetch(`/unipulse/public/publisher/comments/getComments?event_id=${currentEvent.id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayComments(data.comments, data.statistics);
+                
+                // Show add comment button if user is logged in and event is completed
+                if (data.canComment && currentEvent.status === 'completed') {
+                    document.getElementById('addCommentTrigger').style.display = 'block';
+                } else if (!data.canComment) {
+                    document.getElementById('loginPrompt').style.display = 'block';
+                }
+            } else {
+                commentsList.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load comments</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading comments:', error);
+            commentsList.innerHTML = `
+                <div class="error-message">
+                    <p>Failed to load comments</p>
+                </div>
+            `;
+        });
+}
+
+// Display comments
+function displayComments(comments, statistics) {
+    const commentsList = document.getElementById('commentsList');
+    const totalCommentsCount = document.getElementById('totalCommentsCount');
+    const averageRatingDisplay = document.getElementById('averageRatingDisplay');
+    const averageRatingValue = document.getElementById('averageRatingValue');
+    
+    // Update statistics
+    if (totalCommentsCount) {
+        totalCommentsCount.textContent = statistics.total || 0;
+    }
+    
+    if (statistics.averageRating && statistics.averageRating > 0) {
+        averageRatingDisplay.style.display = 'inline-block';
+        averageRatingValue.textContent = statistics.averageRating.toFixed(1);
+    }
+    
+    if (comments.length === 0) {
+        commentsList.innerHTML = `
+            <div class="no-comments">
+                <i class="fas fa-comments"></i>
+                <h4>No comments yet</h4>
+                <p>Be the first to share your experience with this event!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let commentsHTML = '';
+    
+    comments.forEach(comment => {
+        const userAvatar = comment.user_name ? comment.user_name.charAt(0).toUpperCase() : 'U';
+        const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : '';
+        
+        commentsHTML += `
+            <div class="comment-item" data-comment-id="${comment.id}">
+                <div class="comment-header">
+                    <div class="user-info">
+                        <div class="user-avatar">${userAvatar}</div>
+                        <div class="user-details">
+                            <span class="user-name">${comment.user_name || 'Anonymous'}</span>
+                            <span class="user-type">${comment.user_type || 'user'}</span>
+                            <span class="comment-date">${formatCommentDate(comment.created_at)}</span>
+                        </div>
+                    </div>
+                    ${comment.rating ? `<div class="comment-rating">${ratingStars}</div>` : ''}
+                </div>
+                <div class="comment-content">
+                    <p>${comment.comment}</p>
+                </div>
+                ${comment.canEdit ? `
+                    <div class="comment-actions">
+                        <button class="action-btn edit-btn" onclick="editComment(${comment.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteComment(${comment.id})">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    commentsList.innerHTML = commentsHTML;
+}
+
+// Format comment date
+function formatCommentDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) {
+        return 'Yesterday';
+    } else if (diffDays < 7) {
+        return `${diffDays} days ago`;
+    } else {
+        return date.toLocaleDateString();
+    }
+}
+
+// Edit comment
+function editComment(commentId) {
+    // Find the comment
+    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!commentCard) return;
+    
+    const commentContent = commentCard.querySelector('.comment-content').textContent.trim();
+    const ratingElement = commentCard.querySelector('.rating-value');
+    const currentRating = ratingElement ? parseInt(ratingElement.textContent.split('/')[0]) : 0;
+    
+    // Set editing state
+    editingCommentId = commentId;
+    editingRating = currentRating;
+    
+    // Populate edit form (if edit modal exists)
+    const editCommentText = document.getElementById('editCommentText');
+    const editCharCount = document.getElementById('editCharCount');
+    
+    if (editCommentText) {
+        editCommentText.value = commentContent;
+        editCharCount.textContent = commentContent.length;
+    }
+    
+    // Show modal (if exists)
+    const editModal = document.getElementById('editCommentModal');
+    if (editModal) {
+        editModal.style.display = 'flex';
+    }
+}
+
+// Update comment
+async function updateComment() {
+    const commentText = document.getElementById('editCommentText').value.trim();
+    
+    if (!commentText) {
+        showMessage('Please enter a comment', 'error');
+        return;
+    }
+    
+    if (commentText.length < 5) {
+        showMessage('Comment must be at least 5 characters long', 'error');
+        return;
+    }
+    
+    const updateBtn = document.getElementById('updateCommentBtn');
+    const originalText = updateBtn.innerHTML;
+    updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    updateBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`/unipulse/public/publisher/comments/updateComment/${editingCommentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                comment_text: commentText,
+                rating: editingRating || null
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage('Comment updated successfully!', 'success');
+            closeEditCommentModal();
+            loadComments(); // Reload comments
+        } else {
+            showMessage(data.error || 'Failed to update comment', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating comment:', error);
+        showMessage('Failed to update comment', 'error');
+    } finally {
+        updateBtn.innerHTML = originalText;
+        updateBtn.disabled = false;
+    }
+}
+
+// Delete comment
+function deleteComment(commentId) {
+    editingCommentId = commentId;
+    const deleteModal = document.getElementById('deleteCommentModal');
+    if (deleteModal) {
+        deleteModal.style.display = 'flex';
+    } else {
+        // If no modal, confirm directly
+        if (confirm('Are you sure you want to delete this comment?')) {
+            confirmDeleteComment();
+        }
+    }
+}
+
+// Confirm delete comment
+async function confirmDeleteComment() {
+    const deleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    if (deleteBtn) {
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        deleteBtn.disabled = true;
+    }
+    
+    try {
+        const response = await fetch(`/unipulse/public/publisher/comments/deleteComment/${editingCommentId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage('Comment deleted successfully!', 'success');
+            closeDeleteCommentModal();
+            loadComments(); // Reload comments
+        } else {
+            showMessage(data.error || 'Failed to delete comment', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        showMessage('Failed to delete comment', 'error');
+    } finally {
+        if (deleteBtn) {
+            deleteBtn.innerHTML = 'Delete Comment';
+            deleteBtn.disabled = false;
+        }
+    }
+}
+
+// Modal functions for comments
+function closeEditCommentModal() {
+    const editModal = document.getElementById('editCommentModal');
+    if (editModal) {
+        editModal.style.display = 'none';
+    }
+    editingCommentId = null;
+    editingRating = 0;
+}
+
+function closeDeleteCommentModal() {
+    const deleteModal = document.getElementById('deleteCommentModal');
+    if (deleteModal) {
+        deleteModal.style.display = 'none';
+    }
+    editingCommentId = null;
 }
