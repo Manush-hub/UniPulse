@@ -18,7 +18,7 @@
                 </a>
             </div>
             <nav class="nav">
-                <a href="/unipulse/public/userlanding">Home</a>
+                <a href="/unipulse/public/user/landing">Home</a>
                 <a href="/unipulse/public/events">All Events</a>
                 <a href="/unipulse/public/sponsordashboard" class="active">Dashboard</a>
             </nav>
@@ -55,7 +55,7 @@
                         </svg>
                     </button>
                     <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html">Profile Settings</a>
+                        <a href="/unipulse/public/sponsor/profile">Profile Settings</a>
                         <a href="preferences.html">Preferences</a>
                         <a href="billing.html">Billing & Payments</a>
                         <a href="help.html">Help & Support</a>

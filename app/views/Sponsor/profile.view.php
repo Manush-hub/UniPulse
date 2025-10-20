@@ -8,6 +8,11 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Header -->
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
     <div class="container">
         <!-- Profile Header -->
         <header class="profile-header">
