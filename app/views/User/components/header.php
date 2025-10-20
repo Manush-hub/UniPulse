@@ -48,9 +48,9 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                     </button>
                     <div class="user-dropdown" id="userDropdown">
                         <a href="/unipulse/public/user/profile">Profile Settings</a>
-                        <a href="/unipulse/public/user/preferences">Preferences</a>
+                        <!-- <a href="/unipulse/public/user/preferences">Preferences</a>
                         <a href="/unipulse/public/user/help">Help & Support</a>
-                        <hr>
+                        <hr> -->
                         <a href="/unipulse/public/logout" class="logout">Logout</a>
                     </div>
                 </div>

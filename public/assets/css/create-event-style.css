@@ -80,22 +80,18 @@ body {
 
 /* Main Layout - WIDER VERSION */
 .main-container {
-    max-width: 1800px;
-    /* Increased from 1500px */
+    width: 1040px;
     margin: 0 auto;
     display: flex;
     gap: 24px;
-    padding: 20px;
+    padding: 24px;
     justify-content: center;
     align-items: flex-start;
-    width: 95%;
-    /* Added to ensure it doesn't touch screen edges */
 }
 
 /* Sidebar */
 .sidebar {
     width: 280px;
-    /* Increased from 240px */
     background: white;
     border-radius: 12px;
     padding: 24px;
@@ -141,12 +137,9 @@ body {
     flex: 1;
     background: white;
     border-radius: 12px;
-    padding: 32px;
+    padding: 24px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    max-width: 1200px;
-    /* Increased from 800px */
-    width: 100%;
-    /* Added to ensure it uses available space */
+    width: 1040px;
 }
 
 .content h2 {
@@ -155,6 +148,25 @@ body {
     margin-bottom: 32px;
     color: #1a1a1a;
 }
+
+/* Form Container - fits main container */
+.form-container {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 100%;
+}
+
+.form-container h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 32px;
+    color: #1a1a1a;
+}
+
 
 /* Sections */
 .section {
@@ -224,6 +236,8 @@ body {
 }
 
 /* Form Elements */
+
+
 .form-group {
     margin-bottom: 24px;
 }
@@ -294,6 +308,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
     color: white;
     font-size: 24px;
     font-weight: bold;
