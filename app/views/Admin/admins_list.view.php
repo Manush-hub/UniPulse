@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Moderator Management</title>
+    <title>UniPulse - Admin Management</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .moderator-management {
+        .admin-management {
             padding: 2rem 0;
             min-height: calc(100vh - 80px);
         }
@@ -32,7 +32,7 @@
             background: #1e40af;
             transform: translateY(-2px);
         }
-        .moderator-table {
+        .admin-table {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -150,8 +150,8 @@
             </div>
             <nav class="nav">
                 <a href="/unipulse/public/admin/dashboard">Dashboard</a>
-                <a href="/unipulse/public/admin/moderators" class="active">Moderators</a>
-                <a href="/unipulse/public/admin/admins">Admins</a>
+                <a href="/unipulse/public/admin/moderators_list">Moderators</a>
+                <a href="/unipulse/public/admin/admins_list" class="active">Admins</a>
             </nav>
             <div class="header-actions">
                 <div class="user-menu">
@@ -170,13 +170,13 @@
 
     <!-- Header -->
     <?php
-    $pageConfig = ['activeNav' => 'moderators_list'];
+    $pageConfig = ['activeNav' => 'admins_list'];
     include __DIR__ . '/components/header.php';
     ?>
 
     <!-- Main Container -->
     <div class="main-container">
-        <section class="moderator-management">
+        <section class="admin-management">
             <div class="container">
                 <a href="/unipulse/public/admin/dashboard" class="back-link">
                     <i class="fas fa-arrow-left"></i>
@@ -185,12 +185,12 @@
                 
                 <div class="management-header">
                     <div>
-                        <h1>Moderator Management</h1>
-                        <p>Manage platform moderators and their permissions</p>
+                        <h1>Admin Management</h1>
+                        <p>Manage admin accounts and their permissions</p>
                     </div>
-                    <a href="/unipulse/public/admin/moderator_create" class="btn-create">
+                    <a href="/unipulse/public/admin/admin_create" class="btn-create">
                         <i class="fas fa-plus"></i>
-                        Add New Moderator
+                        Add New Admin
                     </a>
                 </div>
 
@@ -200,9 +200,9 @@
                     </div>
                 <?php endif; ?>
 
-                <div class="moderator-table">
+                <div class="admin-table">
                     <div class="table-header">
-                        <h3>All Moderators</h3>
+                        <h3>All Administrators</h3>
                     </div>
                     <div class="table-content">
                         <table>
@@ -210,7 +210,6 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>University</th>
                                     <th>Phone</th>
                                     <th>Status</th>
                                     <th>Created</th>
@@ -218,42 +217,41 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php if (isset($moderators) && !empty($moderators)): ?>
-                                    <?php foreach ($moderators as $moderator): ?>
+                                <?php if (isset($admins) && !empty($admins)): ?>
+                                    <?php foreach ($admins as $admin): ?>
                                         <tr>
-                                            <td><?php echo htmlspecialchars($moderator->full_name); ?></td>
-                                            <td><?php echo htmlspecialchars($moderator->email); ?></td>
-                                            <td><?php echo htmlspecialchars($moderator->university_name ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($moderator->phone ?? 'N/A'); ?></td>
+                                            <td><?php echo htmlspecialchars($admin->full_name); ?></td>
+                                            <td><?php echo htmlspecialchars($admin->email); ?></td>
+                                            <td><?php echo htmlspecialchars($admin->phone ?? 'N/A'); ?></td>
                                             <td>
-                                                <span class="status-badge <?php echo $moderator->is_active ? 'status-active' : 'status-inactive'; ?>">
-                                                    <?php echo $moderator->is_active ? 'Active' : 'Inactive'; ?>
+                                                <span class="status-badge <?php echo $admin->is_active ? 'status-active' : 'status-inactive'; ?>">
+                                                    <?php echo $admin->is_active ? 'Active' : 'Inactive'; ?>
                                                 </span>
                                             </td>
-                                            <td><?php echo date('M j, Y', strtotime($moderator->created_at)); ?></td>
+                                            <td><?php echo date('M j, Y', strtotime($admin->created_at)); ?></td>
                                             <td>
                                                 <div class="action-buttons">
-                                                    <a href="/unipulse/public/admin/moderators/edit/<?php echo $moderator->id; ?>" 
+                                                    <a href="/unipulse/public/admin/admin_edit/<?php echo $admin->id; ?>" 
                                                        class="btn-action btn-edit" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <?php if ($moderator->is_active): ?>
-                                                        <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
-                                                           class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
-                                                            <i class="fas fa-trash"></i>
+                                                    <?php if ($admin->is_active): ?>
+                                                        <a href="/unipulse/public/admin/admins_list/deactivate/<?php echo $admin->id; ?>" 
+                                                           class="btn-action btn-delete" title="Deactivate"
+                                                           onclick="return confirm('Are you sure you want to deactivate this admin?')">
+                                                            <i class="fas fa-ban"></i>
                                                         </a>
                                                     <?php else: ?>
-                                                        <a href="/unipulse/public/admin/moderators/activate/<?php echo $moderator->id; ?>" 
+                                                        <a href="/unipulse/public/admin/admins_list/activate/<?php echo $admin->id; ?>" 
                                                            class="btn-action btn-activate" title="Activate">
                                                             <i class="fas fa-check"></i>
                                                         </a>
-                                                        <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
-                                                           class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a>
                                                     <?php endif; ?>
+                                                    <a href="/unipulse/public/admin/admins_list/delete/<?php echo $admin->id; ?>" 
+                                                       class="btn-action btn-delete" title="Delete"
+                                                       onclick="return confirm('Are you sure you want to delete this admin? This action cannot be undone.')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -261,7 +259,7 @@
                                 <?php else: ?>
                                     <tr>
                                         <td colspan="6" style="text-align: center; padding: 2rem;">
-                                            No moderators found. <a href="/unipulse/public/admin/moderator_create">Add the first moderator</a>
+                                            No admins found. <a href="/unipulse/public/admin/admin_create">Add the first admin</a>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
