@@ -26,7 +26,7 @@ class Publisherreg extends Controller{
                     // Insert publisher data
                     $publisherId = $publisher->create($userData);
                     
-                    if ($publisherId) {
+                    if (!$publisherId) {
                         // Also create entry in main users table
                         $user = new User();
                         $user->createFromRegistration(
@@ -41,6 +41,8 @@ class Publisherreg extends Controller{
                         
                         $success = true;
                         $data['success_message'] = "Registration successful! Your publisher account has been created and is pending verification by university moderators.";
+                        header("Location: signin");
+                        exit();
                         // Clear form data on success
                         $_POST = [];
                         $_FILES = [];

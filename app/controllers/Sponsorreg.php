@@ -26,7 +26,7 @@ class Sponsorreg extends Controller{
                     // Insert sponsor data
                     $sponsorId = $sponsor->create($userData);
                     
-                    if ($sponsorId) {
+                    if (!$sponsorId) {
                         // Also create entry in main users table
                         $user = new User();
                         $user->createFromRegistration(
@@ -38,6 +38,8 @@ class Sponsorreg extends Controller{
                         
                         $success = true;
                         $data['success_message'] = "Registration successful! Your sponsor account has been created.";
+                        header("Location: signin");
+                        exit();
                         // Clear form data on success
                         $_POST = [];
                     } else {
