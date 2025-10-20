@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Discover University Events</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('landing-style.css'); ?>">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/landing-style.css">
 </head>
 
 <body>
     <!-- Header -->
-    <?php
+    <?php 
     $pageConfig = ['activeNav' => 'home'];
-    include __DIR__ . '/components/header.php';
+    include __DIR__ .'/components/header.php'; 
     ?>
 
     <!-- Hero Section with Boosted Event Carousel -->
@@ -20,7 +20,7 @@
         <div class="hero-carousel" id="heroCarousel">
             <!-- Hero slides will be dynamically loaded here -->
         </div>
-
+        
         <!-- Hero Controls -->
         <div class="hero-controls">
             <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
@@ -34,12 +34,12 @@
                 </svg>
             </button>
         </div>
-
+        
         <!-- Hero Indicators -->
         <div class="hero-indicators" id="heroIndicators">
             <!-- Indicators will be dynamically created -->
         </div>
-
+        
         <!-- Hero Progress Bar -->
         <div class="hero-progress">
             <div class="progress-bar" id="progressBar"></div>
@@ -159,7 +159,7 @@
 
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
+
     <script src="<?php echo $controller->loadJS('landing-app.js'); ?>"></script>
 </body>
-
 </html>

@@ -1,3 +1,9 @@
+document.addEventListener('DOMContentLoaded', function () {
+    loadOrganizerData();
+    loadNotifications();
+    setupEventListeners();
+});
+
 const organizerData = {
     username: 'Jennifer King',
     displayName: 'Jennifer',
@@ -8,7 +14,7 @@ const organizerData = {
     totalVolunteers: 45,
     confirmedSponsors: 12,
     totalRevenue: 25600,
-    avatar: '/unipulse/public/assets/images/default-avatar.png'
+    avatar: '/unipulse/public/assets/images/organizer.jpg'
 };
 
 const notifications = [
