@@ -11,55 +11,10 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/moderator/dashboard" class="active">Dashboard</a>
-                <a href="/unipulse/public/moderator/publisherapproval">Publisher Approvals</a>
-                <a href="/unipulse/public/moderator/events">Events</a>
-                <a href="/unipulse/public/moderator/reports">Reports</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge">3</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/moderator.png" alt="Moderator" class="moderator-avatar">
-                    <div class="user-info">
-                        <span class="username" id="username"><?= htmlspecialchars($user['full_name'] ?? $moderator->full_name ?? 'Moderator') ?></span>
-                        <span class="user-role" id="userRole">Moderator</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html"><i class="fas fa-user-cog"></i> Profile Settings</a>
-                        <a href="moderation-guidelines.html"><i class="fas fa-book"></i> Guidelines</a>
-                        <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
-                        <hr>
-                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -110,30 +65,30 @@
         </section>
 
         <!-- Quick Actions -->
-        <!-- <section class="quick-actions">
+        <section class="quick-actions">
             <div class="container">
                 <h2>Quick Actions</h2>
                 <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='content-moderation.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/contentmoderation'">
                         <div class="action-icon">
                             <i class="fas fa-clipboard-check"></i>
                         </div>
                         <h3>Content Moderation</h3>
                         <p>Review and approve events</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='reports.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/userreports'">
                         <div class="action-icon">
                             <i class="fas fa-flag"></i>
                         </div>
                         <h3>User Reports</h3>
                         <p>Handle user-reported content</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='comments-moderation.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/comments'">
                         <div class="action-icon">
                             <i class="fas fa-comments"></i>
                         </div>
                         <h3>Comments Moderation</h3>
-                        <p>Review user comments</p>
+                        <p>Review user comments and manage feedback</p>
                     </div>
                     <div class="action-card" onclick="scrollToPublisherApprovals()">
                         <div class="action-icon">
@@ -144,7 +99,7 @@
                     </div>
                 </div>
             </div>
-        </section> -->
+        </section>
 
         <!-- Moderation Stats and Guidelines Section -->
         <section class="moderation-overview">

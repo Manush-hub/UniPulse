@@ -632,4 +632,106 @@ class Event {
             return ['success' => false, 'errors' => ['general' => 'Database error: ' . $e->getMessage()]];
         }
     }
+    
+    /**
+     * Get pending events for moderation by university
+     */
+    public function getPendingEventsForUniversity($university, $limit = 20) {
+        $query = "SELECT e.*, 
+                         p.society_name as organizer_name,
+                         p.email as organizer_email
+                  FROM events e
+                  LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                  WHERE e.university = :university 
+                  AND e.status = 'pending'
+                  ORDER BY e.created_at DESC
+                  LIMIT :limit";
+        
+        return $this->query($query, [
+            'university' => $university,
+            'limit' => $limit
+        ]);
+    }
+    
+    /**
+     * Get moderation statistics for a university
+     */
+    public function getModerationStatsForUniversity($university) {
+        $query = "SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN status = 'approved' OR status = 'upcoming' THEN 1 ELSE 0 END) as approved,
+                    SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
+                    SUM(CASE WHEN (status = 'approved' OR status = 'rejected') AND DATE(updated_at) = CURDATE() THEN 1 ELSE 0 END) as reviewed_today
+                  FROM events 
+                  WHERE university = :university";
+        
+        return $this->getRow($query, ['university' => $university]);
+    }
+    
+    /**
+     * Approve an event
+     */
+    public function approve($eventId, $moderatorId) {
+        $query = "UPDATE events 
+                  SET status = 'approved',
+                      moderated_by = :moderator_id,
+                      moderated_at = NOW(),
+                      updated_at = NOW()
+                  WHERE id = :event_id";
+        
+        $result = $this->query($query, [
+            'event_id' => $eventId,
+            'moderator_id' => $moderatorId
+        ]);
+        
+        if ($result !== false) {
+            // Create notification for event organizer
+            $this->createModerationNotification($eventId, $moderatorId, 'approved');
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Reject an event
+     */
+    public function reject($eventId, $moderatorId, $reason = '') {
+        $query = "UPDATE events 
+                  SET status = 'rejected',
+                      moderated_by = :moderator_id,
+                      moderation_reason = :reason,
+                      moderated_at = NOW(),
+                      updated_at = NOW()
+                  WHERE id = :event_id";
+        
+        $result = $this->query($query, [
+            'event_id' => $eventId,
+            'moderator_id' => $moderatorId,
+            'reason' => $reason
+        ]);
+        
+        if ($result !== false) {
+            // Create notification for event organizer
+            $this->createModerationNotification($eventId, $moderatorId, 'rejected', $reason);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Create moderation notification
+     */
+    private function createModerationNotification($eventId, $moderatorId, $type, $message = '') {
+        $query = "INSERT INTO event_moderation_notifications 
+                  (event_id, moderator_id, notification_type, message) 
+                  VALUES (:event_id, :moderator_id, :type, :message)";
+        
+        $this->query($query, [
+            'event_id' => $eventId,
+            'moderator_id' => $moderatorId,
+            'type' => $type,
+            'message' => $message
+        ]);
+    }
 }

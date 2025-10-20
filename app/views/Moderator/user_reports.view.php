@@ -58,55 +58,10 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/moderatorlanding">Home</a>
-                <a href="/unipulse/public/events">All Events</a>
-                <a href="/unipulse/public/moderatordashboard">Dashboard</a>
-                <a href="/unipulse/public/reports" class="active">Reports</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge">5</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/moderator.png" alt="Moderator" class="moderator-avatar">
-                    <div class="user-info">
-                        <span class="username" id="username">Lisa Chen</span>
-                        <span class="user-role" id="userRole">Moderator</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html"><i class="fas fa-user-cog"></i> Profile Settings</a>
-                        <a href="moderation-guidelines.html"><i class="fas fa-book"></i> Guidelines</a>
-                        <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
-                        <hr>
-                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -302,19 +257,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-                <a href="#about">About UniPulse</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <!-- Report Details Modal -->
     <div id="reportModal" class="modal">

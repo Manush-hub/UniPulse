@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Test</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; margin: 2px; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Test - Recent Activities and User Reports</h1>
+    
+    <h2>Recent Moderation Activity</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Type</th>
+                <th>Details</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="activityList">
+            <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+    </table>
+    
+    <h2>Recent User Reports</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Reported Content</th>
+                <th>Report Type</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+            <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+    </table>
+    
+    <script src="test_simple_dashboard.js"></script>
+</body>
+</html>

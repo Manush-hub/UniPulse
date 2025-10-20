@@ -64,10 +64,10 @@ class Signin extends Controller{
                         header('Location: /unipulse/public/moderator/dashboard');
                         break;
                     case 'public':
-                        header('Location: /unipulse/public/user/dashboard');
+                        header('Location: /unipulse/public/user/landing');
                         break;
                     case 'university':
-                        header('Location: /unipulse/public/user/dashboard');
+                        header('Location: /unipulse/public/user/landing');
                         break;
                     case 'sponsor':
                         header('Location: /unipulse/public/sponsor/dashboard');
@@ -76,7 +76,7 @@ class Signin extends Controller{
                         header('Location: /unipulse/public/publisher/dashboard');
                         break;
                     default:
-                        header('Location: /unipulse/public/user/dashboard');
+                        header('Location: /unipulse/public/user/landing');
                 }
                 exit();
             } else {

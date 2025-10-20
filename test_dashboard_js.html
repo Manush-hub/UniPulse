@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard JS</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .log-container { margin: 20px 0; padding: 10px; background: #f5f5f5; }
+        .log-container div { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard JavaScript Test</h1>
+    
+    <h2>Recent Activity Section</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Type</th>
+                <th>Details</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="activityList">
+            <!-- Should be populated by JavaScript -->
+        </tbody>
+    </table>
+    
+    <h2>User Reports Section</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Reported Content</th>
+                <th>Report Type</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+            <!-- Should be populated by JavaScript -->
+        </tbody>
+    </table>
+    
+    <div class="log-container">
+        <h2>Console Output</h2>
+        <div id="log-container"></div>
+    </div>
+    
+    <script>
+        // Override console.log to show output on the page
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logContainer = document.getElementById('log-container');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const logDiv = document.createElement('div');
+            logDiv.textContent = 'LOG: ' + args.join(' ');
+            logDiv.style.color = 'blue';
+            logContainer.appendChild(logDiv);
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const logDiv = document.createElement('div');
+            logDiv.textContent = 'ERROR: ' + args.join(' ');
+            logDiv.style.color = 'red';
+            logContainer.appendChild(logDiv);
+        };
+    </script>
+    
+    <script src="/unipulse/public/assets/js/Moderator/dashboard-app.js"></script>
+</body>
+</html>

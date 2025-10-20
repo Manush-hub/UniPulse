@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple JS Test</title>
+</head>
+<body>
+    <h1>Simple JavaScript Functions Test</h1>
+    
+    <button onclick="testFunctions()">Test Functions</button>
+    
+    <div id="results"></div>
+    
+    <h2>Recent Activity Table</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Type</th>
+                <th>Details</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="activityList">
+        </tbody>
+    </table>
+    
+    <h2>User Reports Table</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Reported Content</th>
+                <th>Report Type</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="reportsTableBody">
+        </tbody>
+    </table>
+    
+    <script>
+        function testFunctions() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h3>Test Results:</h3>';
+            
+            // Test if elements exist
+            const activityList = document.getElementById('activityList');
+            const reportsTableBody = document.getElementById('reportsTableBody');
+            
+            if (activityList) {
+                results.innerHTML += '<p>✅ activityList element found</p>';
+            } else {
+                results.innerHTML += '<p>❌ activityList element NOT found</p>';
+            }
+            
+            if (reportsTableBody) {
+                results.innerHTML += '<p>✅ reportsTableBody element found</p>';
+            } else {
+                results.innerHTML += '<p>❌ reportsTableBody element NOT found</p>';
+            }
+            
+            // Try to call the functions directly
+            try {
+                loadRecentActivity();
+                results.innerHTML += '<p>✅ loadRecentActivity() called successfully</p>';
+            } catch (error) {
+                results.innerHTML += '<p>❌ loadRecentActivity() failed: ' + error.message + '</p>';
+            }
+            
+            try {
+                loadUserReports();
+                results.innerHTML += '<p>✅ loadUserReports() called successfully</p>';
+            } catch (error) {
+                results.innerHTML += '<p>❌ loadUserReports() failed: ' + error.message + '</p>';
+            }
+        }
+    </script>
+    
+    <script src="/unipulse/public/assets/js/Moderator/dashboard-app.js"></script>
+</body>
+</html>

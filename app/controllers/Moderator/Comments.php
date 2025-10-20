@@ -11,6 +11,50 @@ class ModeratorComments extends Controller {
         $this->commentModel = new Comment();
         $this->eventModel = new Event();
     }
+
+    /**
+     * Comments moderation page
+     */
+    public function index() {
+        // Check authentication
+        if (!AuthService::isLoggedIn()) {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        if ($currentUser['type'] !== 'moderator') {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+
+        try {
+            // Get moderator details
+            $moderator = new Moderator();
+            $moderatorData = $moderator->find($currentUser['id']);
+
+            $data = [
+                'title' => 'Comments Moderation',
+                'page' => 'comments_moderation',
+                'moderator' => $moderatorData,
+                'user' => $currentUser,
+                'page_title' => 'Comments Moderation'
+            ];
+
+            parent::view('comments_moderation', $data);
+
+        } catch (Exception $e) {
+            error_log("Error loading comments moderation page: " . $e->getMessage());
+            
+            $data = [
+                'title' => 'Comments Moderation',
+                'page' => 'comments_moderation',
+                'error' => 'Unable to load comments data'
+            ];
+
+            parent::view('comments_moderation', $data);
+        }
+    }
     
     /**
      * Get comments for events in moderator's university

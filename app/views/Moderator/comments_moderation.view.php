@@ -128,60 +128,130 @@
         .sentiment-neutral {
             color: #6b7280;
         }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .loading-state i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #1E3A8A;
+        }
+
+        .no-comments {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+
+        .no-comments-content i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #d1d5db;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-left: 4px solid #10b981;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1000;
+            min-width: 300px;
+        }
+
+        .notification-error {
+            border-left-color: #ef4444;
+        }
+
+        .notification-success {
+            border-left-color: #10b981;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            margin-left: auto;
+        }
+
+        .notification-close:hover {
+            color: #374151;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .edited-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #d97706;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .event-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-rejected {
+            background: #fecaca;
+            color: #dc2626;
+        }
+
+        .comment-card.approved {
+            border-left-color: #10b981;
+            background: #f0fdfa;
+        }
+
+        .review-btn.approved {
+            background: #10b981;
+            color: white;
+        }
     </style>
 </head>
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/moderatorlanding">Home</a>
-                <a href="/unipulse/public/events">All Events</a>
-                <a href="/unipulse/public/moderatordashboard">Dashboard</a>
-                <a href="/unipulse/public/reports">Reports</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notificationBadge">7</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/moderator.png" alt="Moderator" class="moderator-avatar">
-                    <div class="user-info">
-                        <span class="username" id="username">Lisa Chen</span>
-                        <span class="user-role" id="userRole">Moderator</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html"><i class="fas fa-user-cog"></i> Profile Settings</a>
-                        <a href="moderation-guidelines.html"><i class="fas fa-book"></i> Guidelines</a>
-                        <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a>
-                        <hr>
-                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -399,19 +469,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-                <a href="#about">About UniPulse</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <!-- Comment Context Modal -->
     <div id="commentModal" class="modal">

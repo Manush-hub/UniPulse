@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderator Features Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .card { border: 1px solid #ddd; padding: 20px; margin: 10px 0; border-radius: 8px; }
+        .button { padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; display: inline-block; margin: 5px; }
+        .success { background: #28a745; }
+        .info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>Moderator Features Test Page</h1>
+    
+    <div class="card">
+        <h2>🎯 Action Cards - Dashboard Links</h2>
+        <p>Test the moderator dashboard action cards:</p>
+        <a href="/unipulse/public/moderator" class="button">Moderator Dashboard</a>
+        <a href="/unipulse/public/moderator/contentmoderation" class="button success">Content Moderation</a>
+        <a href="/unipulse/public/moderator/userreports" class="button info">User Reports</a>
+    </div>
+    
+    <div class="card">
+        <h2>🔧 API Endpoints Test</h2>
+        <p>Test the API endpoints (these will require authentication):</p>
+        <button onclick="testApproveEvent()" class="button">Test Approve Event</button>
+        <button onclick="testRejectEvent()" class="button">Test Reject Event</button>
+        <button onclick="testAssignReport()" class="button">Test Assign Report</button>
+        <button onclick="testResolveReport()" class="button">Test Resolve Report</button>
+    </div>
+    
+    <div class="card">
+        <h2>📊 Database Tables</h2>
+        <p>The following tables should have been created:</p>
+        <ul>
+            <li>✅ <code>reports</code> - For user reports</li>
+            <li>✅ <code>event_moderation_notifications</code> - For event moderation notifications</li>
+            <li>✅ <code>events</code> - Updated with moderation columns</li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>🎮 Controllers Created</h2>
+        <ul>
+            <li>✅ <code>ContentModeration</code> - Handles event approval/rejection</li>
+            <li>✅ <code>UserReports</code> - Handles user report management</li>
+        </ul>
+    </div>
+    
+    <div class="card">
+        <h2>📝 Models Created</h2>
+        <ul>
+            <li>✅ <code>Report</code> - New model for handling reports</li>
+            <li>✅ <code>Event</code> - Updated with moderation methods</li>
+        </ul>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <script>
+        function testApproveEvent() {
+            testEndpoint('/unipulse/public/moderator/contentmoderation/approve/1', 'POST', 'Approve Event');
+        }
+        
+        function testRejectEvent() {
+            testEndpoint('/unipulse/public/moderator/contentmoderation/reject/1', 'POST', 'Reject Event');
+        }
+        
+        function testAssignReport() {
+            testEndpoint('/unipulse/public/moderator/userreports/assign/1', 'POST', 'Assign Report');
+        }
+        
+        function testResolveReport() {
+            testEndpoint('/unipulse/public/moderator/userreports/resolve/1', 'POST', 'Resolve Report');
+        }
+        
+        function testEndpoint(url, method, name) {
+            fetch(url, { method: method })
+            .then(response => response.json())
+            .then(data => {
+                showResult(name, data);
+            })
+            .catch(error => {
+                showResult(name, { success: false, message: error.message });
+            });
+        }
+        
+        function showResult(name, data) {
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'card';
+            resultDiv.innerHTML = `
+                <h3>${name} Test Result</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ let currentPage = window.serverData?.currentPage || 1;
 let totalPages = window.serverData?.totalPages || 1;
 let activeFilters = window.serverData?.filters || {};
 const eventsPerPage = 6;
-const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/admin/allevents/getEvents';
+const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/moderator/events/getEvents';
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -214,14 +214,6 @@ function createEventCard(event) {
                     <span>${event.participants}/${maxParticipants}</span>
                 </div>
             </div>
-            <div class="event-actions">
-                <button type="button" class="hide-btn" onclick="event.stopPropagation(); event.preventDefault(); hideEvent(${event.id}); return false;" title="Hide Event">
-                    <i class="fas fa-eye-slash"></i> Hide
-                </button>
-                <button type="button" class="delete-btn" onclick="event.stopPropagation(); event.preventDefault(); deleteEvent(${event.id}); return false;" title="Delete Event">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
         </div>
     `;
     
@@ -270,8 +262,8 @@ function loadMoreEvents() {
 
 // View event details - redirect to event view page
 function viewEventDetails(eventId) {
-    // Redirect to admin event view page using MVC routing
-    window.location.href = `/unipulse/public/admin/eventview?id=${eventId}`;
+    // Redirect to event view page using MVC routing
+    window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
 }
 
 // Utility functions
@@ -315,220 +307,6 @@ function addScrollAnimations() {
 
 // Call animation function after events are loaded
 setTimeout(addScrollAnimations, 600);
-
-// Hide event function for admin
-function hideEvent(eventId) {
-    if (confirm('Are you sure you want to hide this event? The publisher will be notified.')) {
-        // Show loading state
-        const hideBtn = document.querySelector(`button[onclick*="hideEvent(${eventId})"]`);
-        if (hideBtn) {
-            hideBtn.disabled = true;
-            hideBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding...';
-        }
-
-        fetch('/unipulse/public/admin/hideevent', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ id: eventId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showMessage('Event hidden successfully! Publisher has been notified.', 'success');
-                
-                // Update the event card to show hidden status
-                const eventCard = hideBtn.closest('.event-card');
-                if (eventCard) {
-                    eventCard.style.opacity = '0.6';
-                    eventCard.classList.add('hidden-event');
-                    const statusElement = eventCard.querySelector('.event-status');
-                    if (statusElement) {
-                        statusElement.textContent = 'Hidden';
-                        statusElement.className = 'event-status hidden';
-                    }
-                }
-                
-                // Reset button
-                if (hideBtn) {
-                    hideBtn.disabled = false;
-                    hideBtn.innerHTML = '<i class="fas fa-eye"></i> Show';
-                    hideBtn.onclick = () => { event.stopPropagation(); event.preventDefault(); showEvent(eventId); return false; };
-                    hideBtn.title = 'Show Event';
-                    hideBtn.className = 'show-btn';
-                }
-            } else {
-                // Handle authentication errors
-                if (data.redirect) {
-                    showMessage('Please log in as an admin to hide events.', 'error');
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 2000);
-                } else {
-                    const errorMessage = data.errors?.general || data.message || 'Failed to hide event';
-                    throw new Error(errorMessage);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Hide error:', error);
-            showMessage('Error hiding event: ' + error.message, 'error');
-            
-            // Reset button state
-            if (hideBtn) {
-                hideBtn.disabled = false;
-                hideBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide';
-            }
-        });
-    }
-}
-
-// Show event function for admin
-function showEvent(eventId) {
-    if (confirm('Are you sure you want to show this event again?')) {
-        // Show loading state
-        const showBtn = document.querySelector(`button[onclick*="showEvent(${eventId})"]`);
-        if (showBtn) {
-            showBtn.disabled = true;
-            showBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Showing...';
-        }
-
-        fetch('/unipulse/public/admin/showevent', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ id: eventId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showMessage('Event is now visible again!', 'success');
-                
-                // Update the event card to show visible status
-                const eventCard = showBtn.closest('.event-card');
-                if (eventCard) {
-                    eventCard.style.opacity = '1';
-                    eventCard.classList.remove('hidden-event');
-                    const statusElement = eventCard.querySelector('.event-status');
-                    if (statusElement) {
-                        statusElement.textContent = 'Active';
-                        statusElement.className = 'event-status active';
-                    }
-                }
-                
-                // Reset button
-                if (showBtn) {
-                    showBtn.disabled = false;
-                    showBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide';
-                    showBtn.onclick = () => { event.stopPropagation(); event.preventDefault(); hideEvent(eventId); return false; };
-                    showBtn.title = 'Hide Event';
-                    showBtn.className = 'hide-btn';
-                }
-            } else {
-                const errorMessage = data.errors?.general || data.message || 'Failed to show event';
-                throw new Error(errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Show error:', error);
-            showMessage('Error showing event: ' + error.message, 'error');
-            
-            // Reset button state
-            if (showBtn) {
-                showBtn.disabled = false;
-                showBtn.innerHTML = '<i class="fas fa-eye"></i> Show';
-            }
-        });
-    }
-}
-
-// Delete event function
-function deleteEvent(eventId) {
-    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-        // Show loading state
-        const deleteBtn = document.querySelector(`button[onclick*="deleteEvent(${eventId})"]`);
-        if (deleteBtn) {
-            deleteBtn.disabled = true;
-            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
-        }
-
-        fetch('/unipulse/public/admin/deleteevent', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ id: eventId })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message
-                showMessage('Event deleted successfully!', 'success');
-                
-                // Remove the event from the UI
-                const eventCard = deleteBtn.closest('.event-card');
-                if (eventCard) {
-                    eventCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    eventCard.style.opacity = '0';
-                    eventCard.style.transform = 'scale(0.8)';
-                    setTimeout(() => {
-                        eventCard.remove();
-                        // Update events array
-                        allEvents = allEvents.filter(event => event.id !== eventId);
-                        filteredEvents = filteredEvents.filter(event => event.id !== eventId);
-                        // Check if we need to show "no events" message
-                        if (filteredEvents.length === 0) {
-                            document.getElementById('noEvents').style.display = 'block';
-                        }
-                    }, 300);
-                }
-            } else {
-                // Handle authentication errors
-                if (data.redirect) {
-                    showMessage('Please log in as an admin to delete events.', 'error');
-                    setTimeout(() => {
-                        window.location.href = data.redirect;
-                    }, 2000);
-                } else {
-                    const errorMessage = data.errors?.general || data.message || 'Failed to delete event';
-                    throw new Error(errorMessage);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Delete error:', error);
-            showMessage('Error deleting event: ' + error.message, 'error');
-            
-            // Reset button state
-            if (deleteBtn) {
-                deleteBtn.disabled = false;
-                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
-            }
-        });
-    }
-}
 
 // Show message function
 function showMessage(message, type = 'info') {

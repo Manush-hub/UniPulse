@@ -1,6 +1,5 @@
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Dashboard script loaded successfully');
     initializeDashboard();
     loadAdminData();
     loadRecentActivity();
@@ -27,7 +26,6 @@ const adminData = {
 
 // Dashboard initialization
 function initializeDashboard() {
-    console.log('Admin Dashboard initialized');
     setupModals();
 }
 

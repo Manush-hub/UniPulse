@@ -259,4 +259,20 @@ class Publisher {
         
         return $this->getRow($query, ['university' => $university]);
     }
+    
+    /**
+     * Get recent pending publishers for moderator dashboard
+     */
+    public function getRecentPendingForUniversity($university, $limit = 5) {
+        $query = "SELECT * FROM publishers 
+                  WHERE university = :university 
+                  AND approval_status = 'pending' 
+                  ORDER BY created_at DESC 
+                  LIMIT :limit";
+        
+        return $this->query($query, [
+            'university' => $university,
+            'limit' => $limit
+        ]);
+    }
 }

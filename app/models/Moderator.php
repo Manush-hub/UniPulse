@@ -309,4 +309,12 @@ class Moderator {
             'permissions' => $this->getPermissions($moderatorId)
         ];
     }
+    
+    /**
+     * Find moderator by ID
+     */
+    public function findById($id) {
+        $query = "SELECT * FROM moderators WHERE id = :id LIMIT 1";
+        return $this->getRow($query, ['id' => $id]);
+    }
 }
