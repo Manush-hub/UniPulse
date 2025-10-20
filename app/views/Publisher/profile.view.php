@@ -9,6 +9,7 @@
 </head>
 <body>
     <?php include_once(__DIR__ . '/components/header.php'); ?>
+
     <div class="container">
         <!-- Profile Header -->
         <div class="profile-header">
