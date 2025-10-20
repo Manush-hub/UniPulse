@@ -1,6 +1,8 @@
 <?php
 
-class User extends BaseModel {
+class User {
+    
+    use Model;
     
     protected $table = 'users';
 
@@ -167,18 +169,18 @@ class User extends BaseModel {
     
     public function createFromRegistration($email, $password, $user_type, $user_id) {
         try {
+            $query = "INSERT INTO users (email, password_hash, user_type, user_id, is_active) 
+                      VALUES (:email, :password_hash, :user_type, :user_id, :is_active)";
+            
             $data = [
                 'email' => strtolower(trim($email)),
                 'password_hash' => password_hash($password, PASSWORD_DEFAULT),
                 'user_type' => $user_type,
                 'user_id' => $user_id,
-                'is_active' => 1,
-                'is_verified' => 0,
-                'verification_token' => bin2hex(random_bytes(32)),
-                'created_at' => date('Y-m-d H:i:s')
+                'is_active' => 1
             ];
             
-            return parent::create($data);
+            return $this->query($query, $data);
         } catch (Exception $e) {
             error_log("Error creating user from registration: " . $e->getMessage());
             return false;

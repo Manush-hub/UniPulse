@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - All Events</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('events-style.css'); ?>">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/events-style.css">
 </head>
 
 <body>
@@ -75,6 +75,15 @@
         <!-- Events Grid -->
         <div class="events-section">
             <div class="container">
+                <?php if (isset($error)): ?>
+                    <!-- Error Message -->
+                    <div class="error-message" style="text-align: center; padding: 2rem; background: #fee; border: 1px solid #fcc; border-radius: 8px; margin-bottom: 2rem;">
+                        <h3 style="color: #c33;">Database Error</h3>
+                        <p style="color: #666;"><?php echo htmlspecialchars($error); ?></p>
+                        <p style="color: #666;">Please try refreshing the page or contact support if the problem persists.</p>
+                    </div>
+                <?php endif; ?>
+                
                 <div class="events-grid" id="eventsGrid">
                     <!-- Events will be loaded here dynamically -->
                 </div>
@@ -108,8 +117,13 @@
     </div>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Pass server data to JavaScript
+        window.serverData = <?php echo json_encode($serverData ?? []); ?>;
+    </script>
     <script src="/unipulse/public/assets/js/User/events-app.js"></script>
 </body>
 </html>

@@ -253,20 +253,59 @@ function loadRecentActivity() {
     
     activityList.innerHTML = '';
     
-    recentActivity.forEach(activity => {
-        const activityItem = document.createElement('div');
-        activityItem.className = 'activity-item';
-        activityItem.innerHTML = `
-            <div class="activity-icon">
+    recentActivity.forEach((activity, index) => {
+        const activityRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (index >= 2) {
+            activityRow.classList.add('hidden-row');
+            activityRow.style.display = 'none';
+        }
+        
+        // Determine type class and status
+        let typeClass = '';
+        let statusClass = '';
+        let statusText = '';
+        
+        switch(activity.type) {
+            case 'approval':
+                typeClass = 'type-approval';
+                statusClass = 'status-completed';
+                statusText = 'Completed';
+                break;
+            case 'rejection':
+                typeClass = 'type-rejection';
+                statusClass = 'status-completed';
+                statusText = 'Completed';
+                break;
+            case 'edit':
+                typeClass = 'type-edit';
+                statusClass = 'status-completed';
+                statusText = 'Completed';
+                break;
+            case 'verification':
+                typeClass = 'type-verification';
+                statusClass = 'status-completed';
+                statusText = 'Completed';
+                break;
+            case 'report':
+                typeClass = 'type-report';
+                statusClass = 'status-resolved';
+                statusText = 'Resolved';
+                break;
+        }
+        
+        activityRow.innerHTML = `
+            <td class="activity-title">
                 <i class="fas fa-${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <h4>${activity.title}</h4>
-                <p>${activity.description}</p>
-                <span class="activity-time">${activity.time}</span>
-            </div>
+                ${activity.title}
+            </td>
+            <td><span class="activity-type ${typeClass}">${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}</span></td>
+            <td>${activity.description}</td>
+            <td>${activity.time}</td>
+            <td><span class="activity-status ${statusClass}">${statusText}</span></td>
         `;
-        activityList.appendChild(activityItem);
+        activityList.appendChild(activityRow);
     });
 }
 
@@ -277,8 +316,14 @@ function loadUserReports() {
     
     reportsTableBody.innerHTML = '';
     
-    userReports.forEach(report => {
+    userReports.forEach((report, index) => {
         const reportRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (index >= 2) {
+            reportRow.classList.add('hidden-row');
+            reportRow.style.display = 'none';
+        }
         
         // Determine type and status classes
         let typeClass = '';

@@ -17,6 +17,7 @@ class Moderator_create extends Controller{
         
         $data = [];
         $data['user'] = AuthService::getCurrentUser();
+        $data['universities'] = Moderator::getAvailableUniversities();
         
         $this->view('Admin/moderator_create', $data);
     }
@@ -24,6 +25,7 @@ class Moderator_create extends Controller{
     private function createModerator() {
         $data = [];
         $data['user'] = AuthService::getCurrentUser();
+        $data['universities'] = Moderator::getAvailableUniversities();
         $errors = [];
         $old_data = $_POST;
         
@@ -42,6 +44,12 @@ class Moderator_create extends Controller{
             $errors['password'] = 'Password is required';
         } elseif (strlen($_POST['password']) < 6) {
             $errors['password'] = 'Password must be at least 6 characters';
+        }
+        
+        if (empty($_POST['university'])) {
+            $errors['university'] = 'University is required';
+        } elseif (!array_key_exists($_POST['university'], $data['universities'])) {
+            $errors['university'] = 'Please select a valid university';
         }
         
         // Check if email already exists in any user table
@@ -67,6 +75,8 @@ class Moderator_create extends Controller{
             'email' => trim($_POST['email']),
             'password' => $_POST['password'],
             'phone' => !empty($_POST['phone']) ? trim($_POST['phone']) : null,
+            'university' => $_POST['university'],
+            'university_name' => $data['universities'][$_POST['university']],
             'assigned_by' => $data['user']['id'], // Current admin's ID
             'is_active' => 1
         ];

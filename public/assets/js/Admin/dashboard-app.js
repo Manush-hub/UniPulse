@@ -1,20 +1,17 @@
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard script loaded successfully');
     initializeDashboard();
     loadAdminData();
     loadRecentActivity();
     loadPendingApprovals();
     loadUserTable();
-    loadNotifications();
     setupEventListeners();
     animateProgressBars();
 });
 
-// Sample data for admin dashboard
+// Sample data for admin dashboard (fallback)
 const adminData = {
-    username: 'Admin',
-    displayName: 'Admin',
-    role: 'System Administrator',
     totalUsers: 2847,
     activeEvents: 124,
     pendingApprovals: 18,
@@ -28,178 +25,37 @@ const adminData = {
     errorRate: '0.2%'
 };
 
-const recentActivity = [
-    {
-        id: 1,
-        type: 'user',
-        title: 'New user registration',
-        description: 'Sarah Connor registered as Event Organizer',
-        time: '10 minutes ago',
-        icon: 'user-plus'
-    },
-    {
-        id: 2,
-        type: 'event',
-        title: 'Event published',
-        description: 'Tech Workshop 2025 published by UCSC IEEE',
-        time: '45 minutes ago',
-        icon: 'calendar'
-    },
-    {
-        id: 3,
-        type: 'moderation',
-        title: 'Content flagged for review',
-        description: 'Event "Summer Festival" flagged by user',
-        time: '1 hour ago',
-        icon: 'flag'
-    },
-    {
-        id: 4,
-        type: 'system',
-        title: 'System backup completed',
-        description: 'Nightly database backup successful',
-        time: '2 hours ago',
-        icon: 'database'
-    },
-    {
-        id: 5,
-        type: 'security',
-        title: 'Security update installed',
-        description: 'Applied latest security patches',
-        time: '5 hours ago',
-        icon: 'shield'
-    }
-];
-
-const pendingApprovals = [
-    {
-        id: 1,
-        name: 'UCSC Coding Club',
-        type: 'Organization Verification',
-        submitted: '2 hours ago'
-    },
-    {
-        id: 2,
-        name: 'Tech Innovation Summit',
-        type: 'Event Approval',
-        submitted: '5 hours ago'
-    },
-    {
-        id: 3,
-        name: 'John Smith',
-        type: 'Moderator Application',
-        submitted: '1 day ago'
-    },
-    {
-        id: 4,
-        name: 'Annual Music Festival',
-        type: 'Event Approval',
-        submitted: '1 day ago'
-    }
-];
-
-const userData = [
-    {
-        id: 1,
-        name: 'Sarah Connor',
-        email: 'sarah.connor@example.com',
-        role: 'Event Organizer',
-        registrationDate: '2025-03-15',
-        status: 'active',
-        avatar: 'SC'
-    },
-    {
-        id: 2,
-        name: 'Mike Johnson',
-        email: 'mike.johnson@example.com',
-        role: 'Student',
-        registrationDate: '2025-03-14',
-        status: 'active',
-        avatar: 'MJ'
-    },
-    {
-        id: 3,
-        name: 'Lisa Chen',
-        email: 'lisa.chen@example.com',
-        role: 'Sponsor',
-        registrationDate: '2025-03-13',
-        status: 'pending',
-        avatar: 'LC'
-    },
-    {
-        id: 4,
-        name: 'David Wilson',
-        email: 'david.wilson@example.com',
-        role: 'Moderator',
-        registrationDate: '2025-03-12',
-        status: 'active',
-        avatar: 'DW'
-    },
-    {
-        id: 5,
-        name: 'Emma Thompson',
-        email: 'emma.thompson@example.com',
-        role: 'Event Organizer',
-        registrationDate: '2025-03-11',
-        status: 'inactive',
-        avatar: 'ET'
-    }
-];
-
-const notifications = [
-    {
-        id: 1,
-        title: 'System Update',
-        message: 'New system update available for installation',
-        time: '30 min ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'New Registration',
-        message: '5 new user registrations in the last hour',
-        time: '1 hour ago',
-        read: false
-    },
-    {
-        id: 3,
-        title: 'High Traffic',
-        message: 'Unusual traffic spike detected',
-        time: '2 hours ago',
-        read: true
-    },
-    {
-        id: 4,
-        title: 'Backup Completed',
-        message: 'Nightly backup completed successfully',
-        time: '5 hours ago',
-        read: true
-    },
-    {
-        id: 5,
-        title: 'Security Alert',
-        message: 'Multiple failed login attempts detected',
-        time: 'Yesterday',
-        read: false
-    }
-];
-
 // Dashboard initialization
 function initializeDashboard() {
     console.log('Admin Dashboard initialized');
-    updateAdminProfile();
-    setupDropdowns();
     setupModals();
 }
 
 // Load admin data
 function loadAdminData() {
-    // Update welcome section
-    const welcomeUsername = document.getElementById('welcomeUsername');
-    if (welcomeUsername) {
-        welcomeUsername.textContent = adminData.displayName;
-    }
-    
+    console.log('Loading admin data...');
+    // Fetch real data from the server
+    fetch('/unipulse/public/admin/dashboard/getStats')
+        .then(response => {
+            console.log('Stats response status:', response.status);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Stats data received:', data);
+            updateDashboardStats(data);
+        })
+        .catch(error => {
+            console.error('Error loading admin data:', error);
+            console.log('Loading static fallback data...');
+            updateDashboardStats(adminData);
+        });
+}
+
+// Update dashboard statistics
+function updateDashboardStats(data) {
     // Update quick stats
     const statElements = {
         totalUsers: document.getElementById('totalUsers'),
@@ -208,31 +64,31 @@ function loadAdminData() {
         systemHealth: document.getElementById('systemHealth')
     };
     
-    if (statElements.totalUsers) statElements.totalUsers.textContent = adminData.totalUsers.toLocaleString();
-    if (statElements.activeEvents) statElements.activeEvents.textContent = adminData.activeEvents;
-    if (statElements.pendingApprovals) statElements.pendingApprovals.textContent = adminData.pendingApprovals;
-    if (statElements.systemHealth) statElements.systemHealth.textContent = `${adminData.systemHealth}%`;
+    if (statElements.totalUsers) statElements.totalUsers.textContent = data.totalUsers.toLocaleString();
+    if (statElements.activeEvents) statElements.activeEvents.textContent = data.activeEvents;
+    if (statElements.pendingApprovals) statElements.pendingApprovals.textContent = data.pendingApprovals;
+    if (statElements.systemHealth) statElements.systemHealth.textContent = `${data.systemHealth}%`;
     
     // Update system overview cards
     const userStats = document.querySelectorAll('.overview-card:nth-child(1) .stat-value');
     if (userStats.length >= 3) {
-        userStats[0].textContent = adminData.totalUsers.toLocaleString();
-        userStats[1].textContent = adminData.newUsersThisWeek;
-        userStats[2].textContent = `${adminData.userActiveRate}%`;
+        userStats[0].textContent = data.totalUsers.toLocaleString();
+        userStats[1].textContent = data.newUsersThisWeek;
+        userStats[2].textContent = `${data.userActiveRate}%`;
     }
     
     const eventStats = document.querySelectorAll('.overview-card:nth-child(2) .stat-value');
     if (eventStats.length >= 3) {
-        eventStats[0].textContent = adminData.activeEvents;
-        eventStats[1].textContent = adminData.eventsThisWeek;
-        eventStats[2].textContent = `${adminData.attendanceRate}%`;
+        eventStats[0].textContent = data.activeEvents;
+        eventStats[1].textContent = data.eventsThisWeek;
+        eventStats[2].textContent = `${data.attendanceRate}%`;
     }
     
     const performanceStats = document.querySelectorAll('.overview-card:nth-child(3) .stat-value');
     if (performanceStats.length >= 3) {
-        performanceStats[0].textContent = `${adminData.systemUptime}%`;
-        performanceStats[1].textContent = adminData.avgResponseTime;
-        performanceStats[2].textContent = adminData.errorRate;
+        performanceStats[0].textContent = `${data.systemUptime}%`;
+        performanceStats[1].textContent = data.avgResponseTime;
+        performanceStats[2].textContent = data.errorRate;
     }
 }
 
@@ -241,11 +97,46 @@ function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
     
+    activityList.innerHTML = '<div class="loading">Loading activities...</div>';
+    
+    fetch('/unipulse/public/admin/dashboard/getRecentActivity')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(activities => {
+            displayRecentActivity(activities);
+        })
+        .catch(error => {
+            console.error('Error loading recent activity:', error);
+            displayRecentActivity(getSampleActivity());
+        });
+}
+
+// Display recent activity
+function displayRecentActivity(activities) {
+    const activityList = document.getElementById('activityList');
+    if (!activityList) return;
+    
     activityList.innerHTML = '';
     
-    recentActivity.forEach(activity => {
+    if (activities.length === 0) {
+        activityList.innerHTML = '<div class="no-data">No recent activities</div>';
+        return;
+    }
+    
+    activities.forEach((activity, index) => {
         const activityItem = document.createElement('div');
         activityItem.className = 'activity-item';
+        
+        // Hide items after the first 2
+        if (index >= 2) {
+            activityItem.classList.add('hidden-item');
+            activityItem.style.display = 'none';
+        }
+        
         activityItem.innerHTML = `
             <div class="activity-icon">
                 <i class="fas fa-${activity.icon}"></i>
@@ -260,28 +151,140 @@ function loadRecentActivity() {
     });
 }
 
+// Get sample activity data
+function getSampleActivity() {
+    return [
+        {
+            id: 1,
+            type: 'user',
+            title: 'New user registration',
+            description: 'Sarah Connor registered as Event Organizer',
+            time: '10 minutes ago',
+            icon: 'user-plus'
+        },
+        {
+            id: 2,
+            type: 'event',
+            title: 'Event published',
+            description: 'Tech Workshop 2025 published by UCSC IEEE',
+            time: '45 minutes ago',
+            icon: 'calendar'
+        },
+        {
+            id: 3,
+            type: 'system',
+            title: 'System backup completed',
+            description: 'Nightly database backup successful',
+            time: '2 hours ago',
+            icon: 'database'
+        },
+        {
+            id: 4,
+            type: 'user',
+            title: 'User profile updated',
+            description: 'John Doe updated their profile information',
+            time: '3 hours ago',
+            icon: 'user-edit'
+        },
+        {
+            id: 5,
+            type: 'event',
+            title: 'Event registration',
+            description: '25 new registrations for AI Summit 2025',
+            time: '4 hours ago',
+            icon: 'users'
+        }
+    ];
+}
+
 // Load pending approvals
 function loadPendingApprovals() {
     const approvalList = document.getElementById('approvalList');
     if (!approvalList) return;
     
+    approvalList.innerHTML = '<div class="loading">Loading approvals...</div>';
+    
+    fetch('/unipulse/public/admin/dashboard/getPendingApprovals')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(approvals => {
+            displayPendingApprovals(approvals);
+        })
+        .catch(error => {
+            console.error('Error loading pending approvals:', error);
+            displayPendingApprovals(getSampleApprovals());
+        });
+}
+
+// Display pending approvals
+function displayPendingApprovals(approvals) {
+    const approvalList = document.getElementById('approvalList');
+    if (!approvalList) return;
+    
     approvalList.innerHTML = '';
     
-    pendingApprovals.forEach(approval => {
+    if (approvals.length === 0) {
+        approvalList.innerHTML = '<div class="no-data">No pending approvals</div>';
+        return;
+    }
+    
+    approvals.forEach((approval, index) => {
         const approvalItem = document.createElement('div');
         approvalItem.className = 'approval-item';
+        
+        // Hide items after the first 2
+        if (index >= 2) {
+            approvalItem.classList.add('hidden-item');
+            approvalItem.style.display = 'none';
+        }
+        
         approvalItem.innerHTML = `
             <div class="approval-info">
                 <div class="approval-name">${approval.name}</div>
                 <div class="approval-type">${approval.type}</div>
+                <div class="approval-time">${approval.submitted}</div>
             </div>
             <div class="approval-actions">
-                <button class="approval-btn approve" onclick="approveRequest(${approval.id})">Approve</button>
-                <button class="approval-btn reject" onclick="rejectRequest(${approval.id})">Reject</button>
+                <button class="approval-btn approve" onclick="approveRequest('${approval.id}')">Approve</button>
+                <button class="approval-btn reject" onclick="rejectRequest('${approval.id}')">Reject</button>
             </div>
         `;
         approvalList.appendChild(approvalItem);
     });
+}
+
+// Get sample approvals data
+function getSampleApprovals() {
+    return [
+        {
+            id: 1,
+            name: 'UCSC Coding Club',
+            type: 'Organization Verification',
+            submitted: '2 hours ago'
+        },
+        {
+            id: 2,
+            name: 'Tech Innovation Summit',
+            type: 'Event Approval',
+            submitted: '5 hours ago'
+        },
+        {
+            id: 3,
+            name: 'Startup Meetup 2025',
+            type: 'Event Approval',
+            submitted: '8 hours ago'
+        },
+        {
+            id: 4,
+            name: 'Academic Excellence Awards',
+            type: 'Sponsor Registration',
+            submitted: '1 day ago'
+        }
+    ];
 }
 
 // Load user table
@@ -289,10 +292,44 @@ function loadUserTable() {
     const userTableBody = document.getElementById('userTableBody');
     if (!userTableBody) return;
     
+    userTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
+    
+    fetch('/unipulse/public/admin/dashboard/getRecentUsers')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(users => {
+            displayUserTable(users);
+        })
+        .catch(error => {
+            console.error('Error loading users:', error);
+            displayUserTable(getSampleUsers());
+        });
+}
+
+// Display user table
+function displayUserTable(users) {
+    const userTableBody = document.getElementById('userTableBody');
+    if (!userTableBody) return;
+    
     userTableBody.innerHTML = '';
     
-    userData.forEach(user => {
+    if (users.length === 0) {
+        userTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No users found</td></tr>';
+        return;
+    }
+    
+    users.forEach((user, index) => {
         const userRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (index >= 2) {
+            userRow.classList.add('hidden-row');
+            userRow.style.display = 'none';
+        }
         
         // Determine status class
         let statusClass = '';
@@ -310,6 +347,10 @@ function loadUserTable() {
             case 'inactive':
                 statusClass = 'status-inactive';
                 statusText = 'Inactive';
+                break;
+            default:
+                statusClass = 'status-active';
+                statusText = 'Active';
                 break;
         }
         
@@ -345,69 +386,59 @@ function loadUserTable() {
     });
 }
 
-// Load notifications
-function loadNotifications() {
-    const notificationList = document.getElementById('notificationList');
-    if (!notificationList) return;
-    
-    notificationList.innerHTML = '';
-    
-    const unreadCount = notifications.filter(n => !n.read).length;
-    const notificationBadge = document.getElementById('notificationBadge');
-    if (notificationBadge) {
-        notificationBadge.textContent = unreadCount;
-        notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    }
-    
-    notifications.forEach(notification => {
-        const notificationItem = document.createElement('div');
-        notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
-        notificationItem.innerHTML = `
-            <div class="notification-content">
-                <h4>${notification.title}</h4>
-                <p>${notification.message}</p>
-                <span class="notification-time">${notification.time}</span>
-            </div>
-        `;
-        notificationList.appendChild(notificationItem);
-    });
+// Get sample users data
+function getSampleUsers() {
+    return [
+        {
+            id: 1,
+            name: 'Sarah Connor',
+            email: 'sarah.connor@example.com',
+            role: 'Event Organizer',
+            registrationDate: '2025-03-15',
+            status: 'active',
+            avatar: 'SC'
+        },
+        {
+            id: 2,
+            name: 'Mike Johnson',
+            email: 'mike.johnson@example.com',
+            role: 'Student',
+            registrationDate: '2025-03-14',
+            status: 'active',
+            avatar: 'MJ'
+        },
+        {
+            id: 3,
+            name: 'Emily Davis',
+            email: 'emily.davis@example.com',
+            role: 'Publisher',
+            registrationDate: '2025-03-13',
+            status: 'active',
+            avatar: 'ED'
+        },
+        {
+            id: 4,
+            name: 'Robert Brown',
+            email: 'robert.brown@example.com',
+            role: 'Sponsor',
+            registrationDate: '2025-03-12',
+            status: 'pending',
+            avatar: 'RB'
+        },
+        {
+            id: 5,
+            name: 'Lisa Wilson',
+            email: 'lisa.wilson@example.com',
+            role: 'Volunteer',
+            registrationDate: '2025-03-11',
+            status: 'active',
+            avatar: 'LW'
+        }
+    ];
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    // Notification dropdown toggle
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-    
-    // User dropdown toggle
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-        });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
-        
-        if (userDropdown && !userDropdown.contains(e.target) && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-    });
-    
     // Quick action cards
     const actionCards = document.querySelectorAll('.action-card');
     actionCards.forEach(card => {
@@ -415,40 +446,6 @@ function setupEventListeners() {
             const action = this.getAttribute('data-action');
             handleQuickAction(action);
         });
-    });
-}
-
-// Setup dropdowns
-function setupDropdowns() {
-    // User dropdown
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function() {
-            userDropdown.classList.toggle('show');
-        });
-    }
-    
-    // Notification dropdown
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function() {
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (userDropdown && !userDropdown.contains(e.target) && userMenu && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-        
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && notificationBtn && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
     });
 }
 
@@ -462,20 +459,6 @@ function setupModals() {
     });
 }
 
-// Update admin profile in the header
-function updateAdminProfile() {
-    const usernameElement = document.getElementById('username');
-    const userRoleElement = document.getElementById('userRole');
-    
-    if (usernameElement) {
-        usernameElement.textContent = adminData.username;
-    }
-    
-    if (userRoleElement) {
-        userRoleElement.textContent = adminData.role;
-    }
-}
-
 // Animate progress bars
 function animateProgressBars() {
     const progressBars = document.querySelectorAll('.metric-fill');
@@ -487,32 +470,6 @@ function animateProgressBars() {
             bar.style.width = targetWidth;
         }, 500);
     });
-}
-
-// Toggle notifications dropdown
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
-    }
-}
-
-// Toggle user menu dropdown
-function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
-    }
-}
-
-// Mark all notifications as read
-function markAllAsRead() {
-    notifications.forEach(notification => {
-        notification.read = true;
-    });
-    
-    loadNotifications();
-    showToast('All notifications marked as read', 'success');
 }
 
 // Handle quick actions
@@ -540,15 +497,19 @@ function approveRequest(requestId) {
     console.log('Approving request:', requestId);
     showToast('Request approved successfully', 'success');
     
-    // Remove from UI
-    const requestItem = document.querySelector(`.approval-item:nth-child(${requestId})`);
-    if (requestItem) {
-        requestItem.remove();
-    }
+    // Find and remove the approval item
+    const approvalItems = document.querySelectorAll('.approval-item');
+    approvalItems.forEach((item) => {
+        const buttons = item.querySelectorAll('.approval-btn');
+        buttons.forEach(button => {
+            if (button.getAttribute('onclick') && button.getAttribute('onclick').includes(requestId)) {
+                item.remove();
+            }
+        });
+    });
     
-    // Update pending approvals count
-    adminData.pendingApprovals--;
-    document.getElementById('pendingApprovals').textContent = adminData.pendingApprovals;
+    // Refresh the pending approvals after a delay
+    setTimeout(loadPendingApprovals, 1000);
 }
 
 // Reject request
@@ -556,123 +517,44 @@ function rejectRequest(requestId) {
     console.log('Rejecting request:', requestId);
     showToast('Request rejected', 'info');
     
-    // Remove from UI
-    const requestItem = document.querySelector(`.approval-item:nth-child(${requestId})`);
-    if (requestItem) {
-        requestItem.remove();
-    }
+    // Find and remove the approval item
+    const approvalItems = document.querySelectorAll('.approval-item');
+    approvalItems.forEach((item) => {
+        const buttons = item.querySelectorAll('.approval-btn');
+        buttons.forEach(button => {
+            if (button.getAttribute('onclick') && button.getAttribute('onclick').includes(requestId)) {
+                item.remove();
+            }
+        });
+    });
     
-    // Update pending approvals count
-    adminData.pendingApprovals--;
-    document.getElementById('pendingApprovals').textContent = adminData.pendingApprovals;
+    // Refresh the pending approvals after a delay
+    setTimeout(loadPendingApprovals, 1000);
 }
 
 // Edit user
 function editUser(userId) {
     console.log('Editing user:', userId);
-    const user = userData.find(u => u.id === userId);
-    if (user) {
-        showUserModal(user, 'Edit User');
-    }
+    showToast('Edit functionality not implemented yet', 'info');
 }
 
 // View user
 function viewUser(userId) {
     console.log('Viewing user:', userId);
-    const user = userData.find(u => u.id === userId);
-    if (user) {
-        showUserModal(user, 'User Details');
-    }
-}
-
-// Show user modal
-function showUserModal(user, title) {
-    const modal = document.getElementById('userModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    
-    if (modal && modalTitle && modalBody) {
-        modalTitle.textContent = title;
-        
-        // Determine status text
-        let statusText = '';
-        switch(user.status) {
-            case 'active':
-                statusText = 'Active';
-                break;
-            case 'pending':
-                statusText = 'Pending';
-                break;
-            case 'inactive':
-                statusText = 'Inactive';
-                break;
-        }
-        
-        modalBody.innerHTML = `
-            <div class="user-modal-content">
-                <div class="user-modal-avatar">${user.avatar}</div>
-                <div class="user-modal-info">
-                    <div class="info-row">
-                        <span class="info-label">Name:</span>
-                        <span class="info-value">${user.name}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Email:</span>
-                        <span class="info-value">${user.email}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Role:</span>
-                        <span class="info-value">${user.role}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Registration Date:</span>
-                        <span class="info-value">${formatDate(user.registrationDate)}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Status:</span>
-                        <span class="info-value">${statusText}</span>
-                    </div>
-                </div>
-            </div>
-            ${title === 'Edit User' ? `
-            <div class="modal-actions">
-                <button class="btn btn-primary" onclick="saveUserChanges(${user.id})">Save Changes</button>
-                <button class="btn btn-outline" onclick="closeModal('userModal')">Cancel</button>
-            </div>
-            ` : ''}
-        `;
-        
-        modal.classList.add('show');
-    }
-}
-
-// Save user changes
-function saveUserChanges(userId) {
-    console.log('Saving changes for user:', userId);
-    showToast('User details updated successfully', 'success');
-    closeModal('userModal');
+    showToast('View functionality not implemented yet', 'info');
 }
 
 // Show delete user modal
 function showDeleteUserModal(userId) {
-    const user = userData.find(u => u.id === userId);
-    if (user) {
-        if (confirm(`Are you sure you want to delete user "${user.name}"? This action cannot be undone.`)) {
-            deleteUser(userId);
-        }
+    if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        deleteUser(userId);
     }
 }
 
 // Delete user
 function deleteUser(userId) {
     console.log('Deleting user:', userId);
-    showToast('User deleted successfully', 'success');
-    
-    // Remove from UI
-    const userRow = document.querySelector(`#userTableBody tr:nth-child(${userId})`);
-    if (userRow) {
-        userRow.remove();
-    }
+    showToast('Delete functionality not implemented yet', 'info');
 }
 
 // Close modal
@@ -739,7 +621,9 @@ function showToast(message, type = 'info') {
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
-            document.body.removeChild(toast);
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
         }, 300);
     }, 3000);
 }
@@ -763,13 +647,9 @@ function logout() {
 
 // Export functions for use in other modules
 window.AdminDashboard = {
-    logout,
     approveRequest,
     rejectRequest,
     editUser,
     viewUser,
-    deleteUser,
-    markAllAsRead,
-    toggleNotifications,
-    toggleUserMenu
+    deleteUser
 };

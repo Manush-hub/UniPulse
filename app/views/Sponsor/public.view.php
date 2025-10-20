@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Innovation Corp - UniPulse</title>
-    <link rel="stylesheet" href="/UniPulse/public/assets/css/sponsorpublic-style.css">
+    <link rel="stylesheet" href="/UniPulse/public/assets/css/sponsor/public-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>

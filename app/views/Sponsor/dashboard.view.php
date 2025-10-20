@@ -10,62 +10,10 @@
 
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="dashboard.html">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/userlanding">Home</a>
-                <a href="/unipulse/public/events">All Events</a>
-                <a href="/unipulse/public/sponsordashboard" class="active">Dashboard</a>
-            </nav>
-            <div class="header-actions">
-                <div class="notifications">
-                    <button class="notification-btn" onclick="toggleNotifications()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                        <span class="notification-badge" id="notificationBadge">3</span>
-                    </button>
-                    <div class="notification-dropdown" id="notificationDropdown">
-                        <div class="notification-header">
-                            <h3>Notifications</h3>
-                            <button onclick="markAllAsRead()">Mark all as read</button>
-                        </div>
-                        <div class="notification-list" id="notificationList">
-                            <!-- Notifications will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/default-avatar.png" alt="Sponsor Avatar" class="avatar">
-                    <div class="user-info">
-                        <span class="username" id="username">TechCorp Ltd</span>
-                        <span class="user-role" id="userRole">Sponsor</span>
-                    </div>
-                    <button class="user-dropdown-btn" onclick="toggleUserMenu()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <polyline points="6,9 12,15 18,9"></polyline>
-                        </svg>
-                    </button>
-                    <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html">Profile Settings</a>
-                        <a href="preferences.html">Preferences</a>
-                        <a href="billing.html">Billing & Payments</a>
-                        <a href="help.html">Help & Support</a>
-                        <hr>
-                        <a href="/unipulse/public/logout" class="logout">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+     <?php
+    $pageConfig = ['activeNav' => 'dashboard'];
+    include __DIR__ . '/components/header.php';
+    ?>
 
     <!-- Main Container -->
     <div class="main-container">
@@ -74,7 +22,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">TechCorp Ltd</span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($user['company_name'] ?? 'Sponsor') ?></span>! 👋</h1>
                         <p>Manage your sponsorships and discover new opportunities to support university events.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
@@ -92,7 +40,7 @@
                         </div>
                     </div>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='browse-events.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/sponsor/events?view=sponsor'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -148,16 +96,60 @@
                         <h3>Performance Analytics</h3>
                         <p>View sponsorship ROI and metrics</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='messages.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/sponsor/messages'">
                         <div class="action-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                             </svg>
                         </div>
-                        <h3>Messages</h3>
+                        <h3>Messages <?php if (isset($unread_count) && $unread_count > 0): ?><span class="notification-badge"><?= $unread_count ?></span><?php endif; ?></h3>
                         <p>Communicate with event organizers</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Messages -->
+        <section class="recent-messages">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Recent Messages from Publishers</h2>
+                    <a href="/unipulse/public/sponsor/messages" class="view-all">View All</a>
+                </div>
+                <div class="messages-container">
+                    <?php if (isset($recent_messages) && !empty($recent_messages)): ?>
+                        <?php foreach ($recent_messages as $message): ?>
+                            <div class="message-card <?= !$message->is_read ? 'unread' : '' ?>" onclick="window.location.href='/unipulse/public/sponsor/messages/details/<?= $message->id ?>'">
+                                <div class="message-header">
+                                    <div class="sender-info">
+                                        <h4><?= htmlspecialchars($message->sender_name) ?></h4>
+                                        <span class="message-date"><?= date('M j, Y g:i A', strtotime($message->created_at)) ?></span>
+                                    </div>
+                                    <?php if (!$message->is_read): ?>
+                                        <span class="unread-indicator"></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="message-preview">
+                                    <h5><?= htmlspecialchars($message->subject) ?></h5>
+                                    <p><?= htmlspecialchars(substr($message->message, 0, 150)) ?><?= strlen($message->message) > 150 ? '...' : '' ?></p>
+                                </div>
+                                <div class="message-footer">
+                                    <span class="message-type">From: <?= ucfirst($message->from_user_type) ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="no-messages">
+                            <div class="no-messages-icon">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <h3>No Messages Yet</h3>
+                            <p>When publishers send you messages, they'll appear here.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
@@ -243,19 +235,8 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-                <a href="#about">About UniPulse</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
     <script src="/unipulse/public/assets/js/Sponsor/dashboard-app.js"></script>
 </body>
 

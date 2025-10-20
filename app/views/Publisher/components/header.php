@@ -3,7 +3,7 @@ $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/publisher/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
 
 <header class="header">
         <div class="header-container">
@@ -15,6 +15,8 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             <nav class="nav">
                 <a href="/unipulse/public/publisher/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
                 <a href="/unipulse/public/publisher/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
+                <a href="/unipulse/public/publisher/sponsors" class="<?= $activeNav === 'sponsors' ? 'active' : '' ?>">Sponsors</a>
+                <a href="/unipulse/public/publisher/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
                 <a href="/unipulse/public/publisher/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
             </nav>
             <div class="header-actions">
@@ -38,7 +40,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                     </div>
                 </div>
                 <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="oranizer" class="organizer">
+                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar">
                     <div class="user-info">
                         <span class="username" id="username">Jennifer King</span>
                         <span class="user-role" id="userRole">Event Organizer</span>

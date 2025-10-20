@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment System Debug</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/comments-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { 
+            border: 2px solid #e5e7eb; 
+            margin: 20px 0; 
+            padding: 20px; 
+            border-radius: 8px;
+        }
+        .debug-title { 
+            background: #667eea; 
+            color: white; 
+            padding: 10px; 
+            margin: -20px -20px 20px -20px;
+            border-radius: 6px 6px 0 0;
+        }
+        .status { 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            color: white; 
+            font-weight: bold;
+        }
+        .status.completed { background: #10b981; }
+        .status.upcoming { background: #f59e0b; }
+        .btn-test {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Comment System Debug Page</h1>
+    
+    <div class="debug-section">
+        <div class="debug-title">Event Status Test</div>
+        <p><strong>Event ID 5:</strong> Community Service Day</p>
+        <p><strong>Status:</strong> <span class="status completed">COMPLETED</span></p>
+        <p>This event should show the comment section.</p>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">Comment Button Test</div>
+        
+        <!-- Login Prompt (should be hidden if logged in) -->
+        <div class="login-prompt" id="loginPrompt">
+            <div class="prompt-content">
+                <i class="fas fa-lock"></i>
+                <h4>Sign in to comment</h4>
+                <p>Please sign in to share your experience and rate this event.</p>
+                <a href="/unipulse/public/signin" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
+                </a>
+            </div>
+        </div>
+
+        <!-- Add Comment Button (should be visible if logged in and can comment) -->
+        <div class="add-comment-trigger" id="addCommentTrigger">
+            <button class="btn btn-outline" onclick="showCommentForm()">
+                <i class="fas fa-plus"></i>
+                Add Your Review
+            </button>
+        </div>
+        
+        <!-- Test Button -->
+        <button class="btn-test" onclick="testCommentButton()">
+            <i class="fas fa-bug"></i>
+            Test Comment Button
+        </button>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">Comment Form Test</div>
+        
+        <!-- Add Comment Form -->
+        <div class="add-comment-section" id="addCommentSection" style="display: none;">
+            <div class="comment-form">
+                <div class="form-group">
+                    <label for="commentText">Share your experience</label>
+                    <textarea id="commentText" placeholder="How was this event? Share your thoughts and feedback..." maxlength="1000"></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span>/1000
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventRating">Rate this event (optional)</label>
+                    <div class="rating-input" id="ratingInput">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-text" id="ratingText">Click stars to rate</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="btn btn-secondary" onclick="hideCommentForm()">Cancel</button>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Post Comment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <div class="debug-title">JavaScript Debug</div>
+        <div id="debugOutput">
+            <p>Debug information will appear here...</p>
+        </div>
+    </div>
+
+    <script>
+        // Debug functions
+        function testCommentButton() {
+            const debugOutput = document.getElementById('debugOutput');
+            const loginPrompt = document.getElementById('loginPrompt');
+            const addCommentTrigger = document.getElementById('addCommentTrigger');
+            
+            let output = '<h4>Debug Results:</h4>';
+            output += '<p><strong>Login Prompt Display:</strong> ' + window.getComputedStyle(loginPrompt).display + '</p>';
+            output += '<p><strong>Add Comment Button Display:</strong> ' + window.getComputedStyle(addCommentTrigger).display + '</p>';
+            output += '<p><strong>User Agent:</strong> ' + navigator.userAgent + '</p>';
+            output += '<p><strong>Current URL:</strong> ' + window.location.href + '</p>';
+            
+            // Test if CSS is loading
+            const testElement = document.createElement('div');
+            testElement.className = 'btn';
+            document.body.appendChild(testElement);
+            const computedStyle = window.getComputedStyle(testElement);
+            output += '<p><strong>CSS Loading:</strong> ' + (computedStyle.padding !== '0px' ? 'YES' : 'NO') + '</p>';
+            document.body.removeChild(testElement);
+            
+            debugOutput.innerHTML = output;
+        }
+        
+        function showCommentForm() {
+            const addCommentSection = document.getElementById('addCommentSection');
+            const addCommentTrigger = document.getElementById('addCommentTrigger');
+            
+            addCommentSection.style.display = 'block';
+            addCommentTrigger.style.display = 'none';
+        }
+        
+        function hideCommentForm() {
+            const addCommentSection = document.getElementById('addCommentSection');
+            const addCommentTrigger = document.getElementById('addCommentTrigger');
+            
+            addCommentSection.style.display = 'none';
+            addCommentTrigger.style.display = 'block';
+        }
+        
+        // Auto-run test on page load
+        window.addEventListener('load', function() {
+            setTimeout(testCommentButton, 500);
+        });
+        
+        // Test different visibility scenarios
+        function testScenario(scenario) {
+            const loginPrompt = document.getElementById('loginPrompt');
+            const addCommentTrigger = document.getElementById('addCommentTrigger');
+            
+            switch(scenario) {
+                case 'logged-out':
+                    loginPrompt.style.display = 'block';
+                    addCommentTrigger.style.display = 'none';
+                    break;
+                case 'logged-in':
+                    loginPrompt.style.display = 'none';
+                    addCommentTrigger.style.display = 'block';
+                    break;
+                case 'both-hidden':
+                    loginPrompt.style.display = 'none';
+                    addCommentTrigger.style.display = 'none';
+                    break;
+            }
+            
+            setTimeout(testCommentButton, 100);
+        }
+    </script>
+    
+    <div class="debug-section">
+        <div class="debug-title">Scenario Tests</div>
+        <button class="btn-test" onclick="testScenario('logged-out')">Test: Logged Out</button>
+        <button class="btn-test" onclick="testScenario('logged-in')">Test: Logged In</button>
+        <button class="btn-test" onclick="testScenario('both-hidden')">Test: Both Hidden</button>
+    </div>
+</body>
+</html>

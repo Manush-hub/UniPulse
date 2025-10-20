@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Debug Test</title>
+</head>
+<body>
+    <h1>🔍 Session Authentication Debug</h1>
+    
+    <div id="results"></div>
+    
+    <script>
+        async function testSession() {
+            const resultsDiv = document.getElementById('results');
+            let output = '<h2>Test Results:</h2>';
+            
+            try {
+                // Test 1: Check if we can reach the API
+                output += '<h3>1. Testing API Endpoint Accessibility</h3>';
+                const response1 = await fetch('/unipulse/public/user/comments/checkUserComment/5', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+                
+                if (response1.ok) {
+                    const data1 = await response1.json();
+                    output += `<p><strong>✅ API Response:</strong> ${JSON.stringify(data1, null, 2)}</p>`;
+                } else {
+                    output += `<p><strong>❌ API Error:</strong> ${response1.status} - ${response1.statusText}</p>`;
+                }
+                
+                // Test 2: Check if session exists by calling a simple endpoint
+                output += '<h3>2. Testing Session Status</h3>';
+                const response2 = await fetch('/unipulse/public/user/dashboard', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+                
+                output += `<p><strong>Dashboard Response:</strong> ${response2.status} - ${response2.statusText}</p>`;
+                
+                // Test 3: Check cookies
+                output += '<h3>3. Browser Cookies</h3>';
+                output += `<p><strong>All Cookies:</strong> ${document.cookie || 'No cookies found'}</p>`;
+                
+                // Test 4: Check current page authentication
+                output += '<h3>4. Current Page Context</h3>';
+                const userElement = document.querySelector('[data-user-id], .user-name, .username');
+                output += `<p><strong>User Element Found:</strong> ${userElement ? userElement.textContent : 'Not found'}</p>`;
+                
+            } catch (error) {
+                output += `<p><strong>❌ Error:</strong> ${error.message}</p>`;
+            }
+            
+            resultsDiv.innerHTML = output;
+        }
+        
+        // Run test when page loads
+        window.addEventListener('load', testSession);
+    </script>
+</body>
+</html>
