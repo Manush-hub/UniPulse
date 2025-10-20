@@ -163,4 +163,5 @@
 
     <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
+
 </html>
