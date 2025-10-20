@@ -204,6 +204,65 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <!-- Message View Modal -->
+    <div id="messageModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modalTitle">Message Details</h2>
+                <button class="modal-close" onclick="closeMessageModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div id="modalLoading" class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading message...</span>
+                </div>
+                <div id="modalMessageContent" class="message-details" style="display: none;">
+                    <div class="message-info">
+                        <div class="participant-info">
+                            <div class="participant-avatar" id="modalAvatar"></div>
+                            <div class="participant-details">
+                                <h3 id="modalParticipantName"></h3>
+                                <p id="modalParticipantType"></p>
+                            </div>
+                        </div>
+                        <div class="message-status" id="modalStatus"></div>
+                    </div>
+                    
+                    <div class="message-subject-section">
+                        <h4>Subject</h4>
+                        <p id="modalSubject"></p>
+                    </div>
+                    
+                    <div class="message-body-section">
+                        <h4>Message</h4>
+                        <div id="modalMessage" class="message-body"></div>
+                    </div>
+                    
+                    <div class="message-metadata">
+                        <div class="metadata-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>Sent: <span id="modalCreatedAt"></span></span>
+                        </div>
+                        <div class="metadata-item" id="modalUpdatedContainer" style="display: none;">
+                            <i class="fas fa-edit"></i>
+                            <span>Updated: <span id="modalUpdatedAt"></span></span>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-actions" id="modalActions">
+                        <!-- Actions will be populated based on message type and status -->
+                    </div>
+                </div>
+                <div id="modalError" class="error-state" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Failed to load message details</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Error/Success Messages -->
     <?php if (isset($_GET['error'])): ?>
         <div id="messageAlert" class="alert alert-error">

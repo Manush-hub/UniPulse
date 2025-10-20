@@ -65,7 +65,7 @@
             </div>
         </section>
 
-        <!-- Quick Actions -->
+        <!-- Quick Actions
         <section class="quick-actions">
             <div class="container">
                 <h2>Quick Actions</h2>
@@ -121,7 +121,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> -->
 
         <!-- Event Management -->
         <section class="event-management">

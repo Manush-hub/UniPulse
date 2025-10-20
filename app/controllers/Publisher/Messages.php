@@ -54,11 +54,23 @@ class PublisherMessages extends Controller {
         $currentUser = AuthService::getCurrentUser();
         
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            // Check if this is an AJAX request
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
             header('Location: /unipulse/public/signin');
             exit();
         }
         
         if (empty($messageId)) {
+            // Check if this is an AJAX request
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Message ID is required']);
+                exit();
+            }
             header('Location: /unipulse/public/publisher/messages');
             exit();
         }
@@ -68,11 +80,30 @@ class PublisherMessages extends Controller {
             $messageData = $message->getMessageById($messageId, $currentUser['id'], 'publisher');
             
             if (!$messageData) {
+                // Check if this is an AJAX request
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Message not found']);
+                    exit();
+                }
                 header('Location: /unipulse/public/publisher/messages?error=Message not found');
                 exit();
             }
             
-            // Mark as read if it's a received message
+            // Check if this is an AJAX request
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                // Add current user ID to help determine if this is a sent or received message
+                $messageData->current_user_id = $currentUser['id'];
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'message' => $messageData
+                ]);
+                exit();
+            }
+            
+            // Mark as read if it's a received message (only for non-AJAX requests)
             if ($messageData->to_user_id == $currentUser['id'] && $messageData->to_user_type == 'publisher' && !$messageData->is_read) {
                 $message->markAsRead($messageId, $currentUser['id'], 'publisher');
             }
@@ -87,6 +118,14 @@ class PublisherMessages extends Controller {
             
         } catch (Exception $e) {
             error_log("Error in PublisherMessages::details: " . $e->getMessage());
+            
+            // Check if this is an AJAX request
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Failed to load message']);
+                exit();
+            }
+            
             header('Location: /unipulse/public/publisher/messages?error=Failed to load message');
             exit();
         }
@@ -281,6 +320,59 @@ class PublisherMessages extends Controller {
             error_log('Exception in deleteMessage: ' . $e->getMessage());
             $this->sendJsonResponse(false, 'An error occurred while deleting the message.');
         }
+    }
+
+    public function markRead($messageId = '', $b = '', $c = '') {
+        // Check authentication
+        $currentUser = AuthService::getCurrentUser();
+        
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+        
+        if (empty($messageId)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Message ID is required']);
+            exit();
+        }
+        
+        try {
+            $message = new Message();
+            
+            // Get the message to verify it exists and is for this user
+            $messageData = $message->getMessageById($messageId, $currentUser['id'], 'publisher');
+            
+            if (!$messageData) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Message not found']);
+                exit();
+            }
+            
+            // Only mark as read if this is a received message for this user
+            if ($messageData->to_user_id == $currentUser['id'] && $messageData->to_user_type == 'publisher') {
+                $result = $message->markAsRead($messageId, $currentUser['id'], 'publisher');
+                
+                if ($result) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => true, 'message' => 'Message marked as read']);
+                } else {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Failed to mark message as read']);
+                }
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Cannot mark this message as read']);
+            }
+            
+        } catch (Exception $e) {
+            error_log('Error in markRead: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'An error occurred']);
+        }
+        
+        exit();
     }
 
     private function sendJsonResponse($success, $message) {

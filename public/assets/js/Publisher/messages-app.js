@@ -82,9 +82,313 @@ function viewMessage(messageId) {
         return;
     }
     
-    // Navigate to message details page
-    window.location.href = `/unipulse/public/publisher/messages/details/${messageId}`;
+    openMessageModal(messageId);
 }
+
+// Modal functionality
+function openMessageModal(messageId) {
+    const modal = document.getElementById('messageModal');
+    const loading = document.getElementById('modalLoading');
+    const content = document.getElementById('modalMessageContent');
+    const error = document.getElementById('modalError');
+    
+    // Show modal and loading state
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    loading.style.display = 'block';
+    content.style.display = 'none';
+    error.style.display = 'none';
+    
+    // Debug logging
+    console.log('Opening modal for message ID:', messageId);
+    
+    // Try different API URL formats based on environment
+    const baseUrl = window.location.origin;
+    const possibleUrls = [
+        `${baseUrl}/unipulse/public/publisher/messages/details/${messageId}`,
+        `${baseUrl}/unipulse/publisher/messages/details/${messageId}`,
+        `/unipulse/public/publisher/messages/details/${messageId}`,
+        `/unipulse/publisher/messages/details/${messageId}`,
+        `/unipulse/public/test_message_api.php?id=${messageId}` // Fallback
+    ];
+    
+    console.log('Trying API URLs:', possibleUrls);
+    
+    // Try each URL until one works
+    tryMultipleUrls(possibleUrls, messageId)
+        .then(data => {
+            if (data && data.success) {
+                populateModal(data.message);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            } else {
+                throw new Error(data ? data.message : 'Failed to load message');
+            }
+        })
+        .catch(err => {
+            console.error('All API calls failed:', err);
+            loading.style.display = 'none';
+            error.style.display = 'block';
+            
+            // Update error message with more details
+            const errorElement = error.querySelector('span');
+            if (errorElement) {
+                errorElement.textContent = `Failed to load message: ${err.message}`;
+            }
+        });
+}
+
+// Helper function to try multiple URLs
+function tryMultipleUrls(urls, messageId) {
+    let currentIndex = 0;
+    
+    function tryNext() {
+        if (currentIndex >= urls.length) {
+            throw new Error('All API endpoints failed');
+        }
+        
+        const url = urls[currentIndex];
+        console.log(`Trying API call ${currentIndex + 1}/${urls.length}: ${url}`);
+        currentIndex++;
+        
+        return tryApiCall(url, messageId)
+            .catch(error => {
+                console.warn(`API call failed for ${url}:`, error);
+                if (currentIndex < urls.length) {
+                    return tryNext();
+                } else {
+                    throw error;
+                }
+            });
+    }
+    
+    return tryNext();
+}
+
+// Helper function to make API calls
+function tryApiCall(url, messageId) {
+    console.log(`Trying API call to: ${url}`);
+    
+    return fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        console.log(`Response from ${url}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        return response.text();
+    })
+    .then(responseText => {
+        console.log(`Raw response from ${url}:`, responseText);
+        
+        try {
+            const data = JSON.parse(responseText);
+            console.log(`Parsed data from ${url}:`, data);
+            return data;
+        } catch (parseError) {
+            console.error(`JSON parse error from ${url}:`, parseError);
+            console.error('Response was not valid JSON:', responseText);
+            throw new Error(`Invalid JSON response: ${parseError.message}`);
+        }
+    });
+}
+
+function populateModal(message) {
+    // Set participant info
+    const avatar = document.getElementById('modalAvatar');
+    const participantName = document.getElementById('modalParticipantName');
+    const participantType = document.getElementById('modalParticipantType');
+    
+    // Determine if this is a sent or received message
+    const isSent = message.sender_id == message.current_user_id; // Assuming current_user_id is provided
+    const displayName = isSent ? message.recipient_name : message.sender_name;
+    const displayType = isSent ? 'Sponsor (Recipient)' : 'Sponsor (Sender)';
+    
+    avatar.textContent = displayName.substring(0, 2).toUpperCase();
+    participantName.textContent = displayName;
+    participantType.textContent = displayType;
+    
+    // Set message status
+    const status = document.getElementById('modalStatus');
+    if (message.is_read) {
+        status.innerHTML = `
+            <span class="status-badge read">
+                <i class="fas fa-check-double"></i> Read
+            </span>
+        `;
+    } else {
+        status.innerHTML = `
+            <span class="status-badge unread">
+                <i class="fas fa-clock"></i> Unread
+            </span>
+        `;
+    }
+    
+    // Set subject and message content
+    document.getElementById('modalSubject').textContent = message.subject;
+    document.getElementById('modalMessage').textContent = message.message;
+    
+    // Set timestamps
+    document.getElementById('modalCreatedAt').textContent = formatMessageDate(message.created_at);
+    
+    const updatedContainer = document.getElementById('modalUpdatedContainer');
+    if (message.updated_at && message.updated_at !== message.created_at) {
+        document.getElementById('modalUpdatedAt').textContent = formatMessageDate(message.updated_at);
+        updatedContainer.style.display = 'flex';
+    } else {
+        updatedContainer.style.display = 'none';
+    }
+    
+    // Set modal actions
+    const actions = document.getElementById('modalActions');
+    let actionButtons = '';
+    
+    if (isSent && !message.is_read) {
+        actionButtons += `
+            <button class="btn btn-secondary" onclick="editMessageFromModal(${message.id})">
+                <i class="fas fa-edit"></i> Edit Message
+            </button>
+            <button class="btn btn-danger" onclick="deleteMessageFromModal(${message.id})">
+                <i class="fas fa-trash"></i> Delete Message
+            </button>
+        `;
+    }
+    
+    actionButtons += `
+        <button class="btn btn-outline" onclick="closeMessageModal()">
+            <i class="fas fa-times"></i> Close
+        </button>
+    `;
+    
+    actions.innerHTML = actionButtons;
+    
+    // Mark as read if it's a received message and unread
+    if (!isSent && !message.is_read) {
+        markMessageAsRead(message.id);
+    }
+}
+
+function closeMessageModal() {
+    const modal = document.getElementById('messageModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = ''; // Restore scrolling
+}
+
+function editMessageFromModal(messageId) {
+    closeMessageModal();
+    editMessage(messageId);
+}
+
+function deleteMessageFromModal(messageId) {
+    if (confirm('Are you sure you want to delete this message? This action cannot be undone.')) {
+        closeMessageModal();
+        deleteMessageFromList(messageId);
+    }
+}
+
+function markMessageAsRead(messageId) {
+    fetch(`/unipulse/public/publisher/messages/markRead/${messageId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update the message card status in the background
+            const messageCard = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageCard) {
+                messageCard.classList.remove('unread');
+                const statusBadge = messageCard.querySelector('.status-badge');
+                if (statusBadge) {
+                    statusBadge.innerHTML = '<i class="fas fa-check-double"></i> Read';
+                    statusBadge.classList.remove('unread');
+                    statusBadge.classList.add('read');
+                }
+                
+                // Remove unread indicator
+                const unreadIndicator = messageCard.querySelector('.unread-indicator');
+                if (unreadIndicator) {
+                    unreadIndicator.remove();
+                }
+            }
+            
+            // Update unread count
+            updateUnreadCount();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking message as read:', error);
+    });
+}
+
+function updateUnreadCount() {
+    const unreadMessages = document.querySelectorAll('#received-tab .message-card.unread').length;
+    const unreadBadge = document.querySelector('button[onclick="showTab(\'received\')"] .unread-badge');
+    
+    if (unreadMessages > 0) {
+        if (unreadBadge) {
+            unreadBadge.textContent = unreadMessages;
+        } else {
+            // Create unread badge if it doesn't exist
+            const receivedTab = document.querySelector('button[onclick="showTab(\'received\')"]');
+            if (receivedTab) {
+                const badge = document.createElement('span');
+                badge.className = 'unread-badge';
+                badge.textContent = unreadMessages;
+                receivedTab.appendChild(badge);
+            }
+        }
+    } else {
+        if (unreadBadge) {
+            unreadBadge.remove();
+        }
+    }
+}
+
+function formatMessageDate(dateString) {
+    const date = new Date(dateString);
+    const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('messageModal');
+    if (e.target === modal) {
+        closeMessageModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('messageModal');
+        if (modal && modal.classList.contains('active')) {
+            closeMessageModal();
+        }
+    }
+});
 
 function editMessage(messageId) {
     if (!messageId) {
@@ -208,6 +512,9 @@ window.showTab = showTab;
 window.viewMessage = viewMessage;
 window.editMessage = editMessage;
 window.deleteMessageFromList = deleteMessageFromList;
+window.closeMessageModal = closeMessageModal;
+window.editMessageFromModal = editMessageFromModal;
+window.deleteMessageFromModal = deleteMessageFromModal;
 
 // Delete message from messages list
 function deleteMessageFromList(messageId) {
