@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details - UniPulse</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('eventview-style.css'); ?>">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/eventview-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/comments-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -27,11 +28,11 @@
         </div>
 
         <!-- Error State -->
-        <div id="errorContainer" class="error-container" style="display: none;">
+        <div id="errorContainer" class="error-container" <?php echo isset($error) ? 'style="display: block;"' : 'style="display: none;"'; ?>>
             <div class="error-content">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h2>Event Not Found</h2>
-                <p>The event you're looking for could not be found.</p>
+                <p><?php echo isset($error) ? htmlspecialchars($error) : 'The event you\'re looking for could not be found.'; ?></p>
                 <a href="/unipulse/public/user/events" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i>
                     Back to Events
@@ -46,7 +47,7 @@
                 <div class="container">
                     <a href="/unipulse/public/user/events" class="back-btn">
                         <i class="fas fa-arrow-left"></i>
-                        <span>Back to My Events</span>
+                        <span>Back to All Events</span>
                     </a>
                     <div class="event-actions">
                         <button class="btn btn-outline" id="shareBtn">
@@ -101,6 +102,20 @@
                                     <span id="eventParticipants">Loading...</span>
                                 </div>
                             </div>
+                            <div class="detail-item">
+                                <i class="fas fa-eye"></i>
+                                <div>
+                                    <strong>Target Audience</strong>
+                                    <span id="eventAudience">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="detail-item" id="ticketInfo" style="display: none;">
+                                <i class="fas fa-ticket-alt"></i>
+                                <div>
+                                    <strong>Ticket Type</strong>
+                                    <span id="eventTicketType">Loading...</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -144,6 +159,65 @@
                                 </h3>
                                 <div id="eventRequirements" class="event-requirements">
                                     Loading requirements...
+                                </div>
+                            </div>
+
+                            <!-- Location Details -->
+                            <div class="content-card" id="locationDetailsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Location Details
+                                </h3>
+                                <div id="locationDetails" class="location-details">
+                                    Loading location details...
+                                </div>
+                            </div>
+
+                            <!-- Ticket Information -->
+                            <div class="content-card" id="ticketDetailsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Ticket Information
+                                </h3>
+                                <div id="ticketDetails" class="ticket-details">
+                                    Loading ticket information...
+                                </div>
+                            </div>
+
+                            <!-- Custom Fields -->
+                            <div class="content-card" id="customFieldsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-list-ul"></i>
+                                    Additional Information
+                                </h3>
+                                <div id="customFields" class="custom-fields">
+                                    Loading additional information...
+                                </div>
+                            </div>
+
+                            <!-- Volunteer Information -->
+                            <div class="content-card" id="volunteerCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-hands-helping"></i>
+                                    Volunteer Opportunities
+                                </h3>
+                                <div id="volunteerInfo" class="volunteer-info">
+                                    Loading volunteer information...
+                                </div>
+                            </div>
+
+                            <!-- Donation Information -->
+                            <div class="content-card" id="donationCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-heart"></i>
+                                    Support This Event
+                                </h3>
+                                <div id="donationInfo" class="donation-info">
+                                    <p>This event accepts donations to help cover costs and improve the experience for all participants.</p>
+                                    <button class="btn btn-primary" onclick="openDonationModal()">
+                                        <i class="fas fa-heart"></i>
+                                        Make a Donation
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -208,6 +282,158 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section" id="commentsSection" style="display: none;">
+                <div class="container">
+                    <div class="content-card">
+                        <div class="comments-header">
+                            <h3>
+                                <i class="fas fa-comments"></i>
+                                Event Reviews & Comments
+                            </h3>
+                            <div class="comments-stats" id="commentsStats">
+                                <span class="stat-item">
+                                    <i class="fas fa-comment"></i>
+                                    <span id="totalCommentsCount">0</span> comments
+                                </span>
+                                <span class="stat-item" id="averageRatingDisplay" style="display: none;">
+                                    <i class="fas fa-star"></i>
+                                    <span id="averageRatingValue">0</span> average rating
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Add Comment Form -->
+                        <div class="add-comment-section" id="addCommentSection" style="display: none;">
+                            <div class="comment-form">
+                                <div class="form-group">
+                                    <label for="commentText">Share your experience</label>
+                                    <textarea id="commentText" placeholder="How was this event? Share your thoughts and feedback..." maxlength="1000"></textarea>
+                                    <div class="char-count">
+                                        <span id="charCount">0</span>/1000
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="eventRating">Rate this event (optional)</label>
+                                    <div class="rating-input" id="ratingInput">
+                                        <span class="star" data-rating="1">☆</span>
+                                        <span class="star" data-rating="2">☆</span>
+                                        <span class="star" data-rating="3">☆</span>
+                                        <span class="star" data-rating="4">☆</span>
+                                        <span class="star" data-rating="5">☆</span>
+                                    </div>
+                                    <div class="rating-text" id="ratingText">Click stars to rate</div>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button class="btn btn-secondary" id="cancelCommentBtn">Cancel</button>
+                                    <button class="btn btn-primary" id="submitCommentBtn">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Post Comment
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Login Prompt -->
+                        <div class="login-prompt" id="loginPrompt" style="display: none;">
+                            <div class="prompt-content">
+                                <i class="fas fa-lock"></i>
+                                <h4>Sign in to comment</h4>
+                                <p>Please sign in to share your experience and rate this event.</p>
+                                <a href="/unipulse/public/signin" class="btn btn-primary">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    Sign In
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Add Comment Button -->
+                        <div class="add-comment-trigger" id="addCommentTrigger" style="display: none;">
+                            <button class="btn btn-outline" onclick="showCommentForm()">
+                                <i class="fas fa-plus"></i>
+                                Add Your Review
+                            </button>
+                        </div>
+
+                        <!-- Comments List -->
+                        <div class="comments-list" id="commentsList">
+                            <div class="loading-spinner">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading comments...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Comment Modal -->
+    <div id="editCommentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Comment</h3>
+                <button class="close-btn" onclick="closeEditCommentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="editCommentText">Update your comment</label>
+                    <textarea id="editCommentText" maxlength="1000"></textarea>
+                    <div class="char-count">
+                        <span id="editCharCount">0</span>/1000
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editEventRating">Update your rating (optional)</label>
+                    <div class="rating-input" id="editRatingInput">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-text" id="editRatingText">Click stars to rate</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditCommentModal()">Cancel</button>
+                <button class="btn btn-primary" id="updateCommentBtn">
+                    <i class="fas fa-save"></i>
+                    Update Comment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Comment Modal -->
+    <div id="deleteCommentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Comment</h3>
+                <button class="close-btn" onclick="closeDeleteCommentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-delete">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Are you sure?</h4>
+                    <p>This action cannot be undone. Your comment and rating will be permanently deleted.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Delete Comment
+                </button>
+            </div>
         </div>
     </div>
 
@@ -238,6 +464,7 @@
     </div>
 
     <!-- Share Event Modal -->
+        <!-- Share Event Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -247,41 +474,72 @@
                 </button>
             </div>
             <div class="modal-body">
-                <p>Share this event with others:</p>
                 <div class="share-options">
-                    <button class="share-btn" onclick="shareViaFacebook()">
-                        <i class="fab fa-facebook"></i>
+                    <button class="share-btn facebook">
+                        <i class="fab fa-facebook-f"></i>
                         Facebook
                     </button>
-                    <button class="share-btn" onclick="shareViaTwitter()">
+                    <button class="share-btn twitter">
                         <i class="fab fa-twitter"></i>
                         Twitter
                     </button>
-                    <button class="share-btn" onclick="shareViaWhatsApp()">
+                    <button class="share-btn linkedin">
+                        <i class="fab fa-linkedin-in"></i>
+                        LinkedIn
+                    </button>
+                    <button class="share-btn whatsapp">
                         <i class="fab fa-whatsapp"></i>
                         WhatsApp
                     </button>
-                    <button class="share-btn" onclick="copyEventLink()">
-                        <i class="fas fa-link"></i>
-                        Copy Link
-                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="eventLink">Event Link</label>
-                    <div class="input-group">
-                        <input type="text" id="eventLink" readonly>
-                        <button class="btn btn-outline" onclick="copyEventLink()">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
+                <div class="share-link">
+                    <input type="text" id="shareLink" readonly>
+                    <button onclick="copyShareLink()">Copy Link</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Support This Event</h3>
+                <button class="close-btn" onclick="closeDonationModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Your donation helps make this event possible and supports the organizers in creating amazing experiences.</p>
+                <div class="donation-amounts">
+                    <button class="donation-amount" data-amount="500">LKR 500</button>
+                    <button class="donation-amount" data-amount="1000">LKR 1,000</button>
+                    <button class="donation-amount" data-amount="2500">LKR 2,500</button>
+                    <button class="donation-amount" data-amount="5000">LKR 5,000</button>
+                </div>
+                <div class="custom-amount">
+                    <label>Custom Amount:</label>
+                    <input type="number" id="customDonationAmount" placeholder="Enter amount (LKR)" min="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="processDonation()">
+                    <i class="fas fa-heart"></i>
+                    Donate Now
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <!-- Footer -->
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Pass server data to JavaScript
+        window.serverData = <?php echo json_encode($serverData ?? []); ?>;
+    </script>
     <script src="<?php echo $controller->loadJS('eventview-app.js'); ?>"></script>
 </body>
 </html>

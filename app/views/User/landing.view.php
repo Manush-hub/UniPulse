@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Discover University Events</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('landing-style.css'); ?>">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/landing-style.css">
 </head>
 
 <body>
@@ -158,7 +158,7 @@
     </section>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="<?php echo $controller->loadJS('landing-app.js'); ?>"></script>
 </body>

@@ -75,6 +75,15 @@ class AuthService {
         
         if ($user) {
             error_log("User found in $table, verifying password");
+            
+            // Special check for publishers - they must be approved
+            if ($table === 'publishers') {
+                if ($user->approval_status !== 'approved' || !$user->is_active) {
+                    error_log("Publisher login denied - not approved or inactive");
+                    return false;
+                }
+            }
+            
             if ($this->verifyPassword($password, $user->password_hash)) {
                 error_log("Password verification successful for $table");
                 return $user;

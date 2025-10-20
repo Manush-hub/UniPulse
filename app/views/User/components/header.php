@@ -3,7 +3,7 @@ $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/user/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
 
 <header class="header">
         <div class="header-container">
@@ -47,9 +47,9 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         </svg>
                     </button>
                     <div class="user-dropdown" id="userDropdown">
-                        <a href="profile.html">Profile Settings</a>
-                        <a href="preferences.html">Preferences</a>
-                        <a href="help.html">Help & Support</a>
+                        <a href="/unipulse/public/user/profile">Profile Settings</a>
+                        <a href="/unipulse/public/user/preferences">Preferences</a>
+                        <a href="/unipulse/public/user/help">Help & Support</a>
                         <hr>
                         <a href="/unipulse/public/logout" class="logout">Logout</a>
                     </div>

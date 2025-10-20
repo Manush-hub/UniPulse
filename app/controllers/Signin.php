@@ -80,7 +80,22 @@ class Signin extends Controller{
                 }
                 exit();
             } else {
-                $this->view('signin', ['error' => 'Invalid email or password']);
+                // Check if this is a publisher waiting for approval
+                $publisherModel = new Publisher();
+                $publisher = $publisherModel->findByEmail($email);
+                
+                if ($publisher && password_verify($password, $publisher->password_hash)) {
+                    if ($publisher->approval_status === 'pending') {
+                        $this->view('signin', ['error' => 'Your publisher account is pending approval by university moderators. Please wait for approval before signing in.']);
+                    } elseif ($publisher->approval_status === 'rejected') {
+                        $rejectionReason = $publisher->rejection_reason ? ' Reason: ' . $publisher->rejection_reason : '';
+                        $this->view('signin', ['error' => 'Your publisher account has been rejected.' . $rejectionReason]);
+                    } else {
+                        $this->view('signin', ['error' => 'Your publisher account is not active. Please contact support.']);
+                    }
+                } else {
+                    $this->view('signin', ['error' => 'Invalid email or password']);
+                }
             }
             
         } catch (Exception $e) {

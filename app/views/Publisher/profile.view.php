@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Club Profile - UniPulse</title>
-    <link rel="stylesheet" href="/UniPulse/public/assets/css/publisherprofile-style.css">
+    <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/profile-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -1001,7 +1001,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>

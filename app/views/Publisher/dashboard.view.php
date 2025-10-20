@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Event Organizer Dashboard</title>
-    <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
+    <title>UniPulse - Publisher Dashboard</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/dashboard-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 </head>
 
@@ -41,7 +42,7 @@
                         </div>
                     </div>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='createevent'">
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -50,24 +51,21 @@
                             </svg>
                             Create Event
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='create-event.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/sponsors'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="16"></line>
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                             </svg>
-                            Find Sponsorships
-                        </button>
-                        <button class="btn btn-outline" onclick="window.location.href='all-events.html'">
-                            View Reports
+                            View Sponsors
                         </button>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Quick Actions -->
+        <!-- Quick Actions
         <section class="quick-actions">
             <div class="container">
                 <h2>Quick Actions</h2>
@@ -123,7 +121,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> -->
 
         <!-- Event Management -->
         <section class="event-management">
@@ -225,6 +223,32 @@
             </div>
         </section>
 
+        <!-- Recent Comments -->
+        <section class="recent-comments">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Recent Comments on Your Events</h2>
+                    <div class="comment-stats">
+                        <span class="stat-item">
+                            <span class="stat-number" id="totalComments">0</span>
+                            <span class="stat-label">Total Comments</span>
+                        </span>
+                        <span class="stat-item">
+                            <span class="stat-number" id="averageRating">0.0</span>
+                            <span class="stat-label">Avg Rating</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="comments-container" id="recentCommentsContainer">
+                    <!-- Comments will be loaded here -->
+                    <div class="loading-comments">
+                        <div class="spinner"></div>
+                        <p>Loading recent comments...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">
@@ -303,7 +327,7 @@
         </div>
     </div>
 
-    <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
+    <script src="/unipulse/public/assets/js/Publisher/dashboard-app.js"></script>
 </body>
 
 </html>

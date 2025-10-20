@@ -46,6 +46,10 @@
             outline: none;
             border-color: var(--primary-color);
         }
+        select.form-control {
+            background-color: white;
+            cursor: pointer;
+        }
         .form-error {
             color: #d32f2f;
             font-size: 0.875rem;
@@ -169,6 +173,27 @@
                                    value="<?php echo isset($old_data['phone']) ? htmlspecialchars($old_data['phone']) : ''; ?>">
                             <?php if (isset($errors['phone'])): ?>
                                 <div class="form-error"><?php echo $errors['phone']; ?></div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="university">University</label>
+                            <select id="university" 
+                                    name="university" 
+                                    class="form-control" 
+                                    required>
+                                <option value="">Select University</option>
+                                <?php if (isset($universities)): ?>
+                                    <?php foreach ($universities as $key => $name): ?>
+                                        <option value="<?php echo htmlspecialchars($key); ?>" 
+                                                <?php echo (isset($old_data['university']) && $old_data['university'] === $key) ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($name); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <?php if (isset($errors['university'])): ?>
+                                <div class="form-error"><?php echo $errors['university']; ?></div>
                             <?php endif; ?>
                         </div>
 

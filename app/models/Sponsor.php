@@ -86,4 +86,54 @@ class Sponsor {
             'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT)
         ];
     }
+    
+    public function getAllSponsors() {
+        $query = "SELECT 
+            s.id,
+            s.company_name,
+            s.email,
+            s.phone,
+            s.country_code,
+            s.created_at,
+            u.last_login,
+            CASE 
+                WHEN u.last_login IS NULL THEN 'Never'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'Active'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 'Recently Active'
+                ELSE 'Inactive'
+            END as activity_status
+        FROM sponsors s
+        LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'
+        ORDER BY s.created_at DESC";
+        
+        return $this->query($query);
+    }
+    
+    public function getSponsorById($id) {
+        $query = "SELECT 
+            s.*,
+            u.last_login,
+            CASE 
+                WHEN u.last_login IS NULL THEN 'Never'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'Active'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 'Recently Active'
+                ELSE 'Inactive'
+            END as activity_status
+        FROM sponsors s
+        LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'
+        WHERE s.id = :id";
+        
+        return $this->getRow($query, ['id' => $id]);
+    }
+    
+    public function getSponsorStats() {
+        $query = "SELECT 
+            COUNT(*) as total_sponsors,
+            COUNT(CASE WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as active_sponsors,
+            COUNT(CASE WHEN s.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_sponsors
+        FROM sponsors s
+        LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'";
+        
+        return $this->getRow($query);
+    }
 }
