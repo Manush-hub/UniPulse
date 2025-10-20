@@ -29,6 +29,6 @@ else{
 }
 
 define ('APP_NAME',"My website");
-define('APP_DESC',"MY WEBSITESDS");
+define('APP_DESC',"MY WEBSITES");
 
 define('DEBUG', true);
