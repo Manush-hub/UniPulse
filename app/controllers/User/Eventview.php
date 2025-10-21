@@ -3,10 +3,12 @@
 class UserEventview extends Controller {
     
     private $eventModel;
+    private $registrationModel;
     
     public function __construct() {
-        // Initialize Event model
+        // Initialize models
         $this->eventModel = new Event();
+        $this->registrationModel = new EventRegistration();
     }
     
     public function index($id = null) {
@@ -37,6 +39,16 @@ class UserEventview extends Controller {
                             3
                         );
                         
+                        // Check if user is already registered (if user is logged in)
+                        $isRegistered = false;
+                        if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
+                            $isRegistered = $this->registrationModel->isUserRegistered(
+                                $eventId,
+                                $_SESSION['user_id'],
+                                $_SESSION['user_type']
+                            );
+                        }
+                        
                         // Pass server data to view for JavaScript
                         $data = [
                             'event' => $event,
@@ -44,6 +56,7 @@ class UserEventview extends Controller {
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
+                                'isRegistered' => $isRegistered,
                                 'apiEndpoint' => '/unipulse/public/user/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/user/eventview/joinEvent'
                             ]
@@ -146,6 +159,15 @@ class UserEventview extends Controller {
     public function joinEvent($id = null) {
         header('Content-Type: application/json');
         
+        // Check if user is logged in
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'You must be logged in to join an event'
+            ]);
+            exit;
+        }
+        
         // Get event ID from parameter or POST request
         $eventId = $id;
         if (!$eventId && isset($_POST['id'])) {
@@ -169,8 +191,20 @@ class UserEventview extends Controller {
             exit;
         }
         
+        $userId = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'];
+        
         try {
-            // Check if event exists and has space in database
+            // Check if user is already registered
+            if ($this->registrationModel->isUserRegistered($eventId, $userId, $userType)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'You have already registered for this event',
+                    'alreadyRegistered' => true
+                ]);
+                exit;
+            }
+            // Check if event exists
             $event = $this->eventModel->getEventById($eventId);
             
             if (!$event) {
@@ -181,12 +215,15 @@ class UserEventview extends Controller {
                 exit;
             }
             
-            if ($event->participants >= $event->max_participants) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Event is full'
-                ]);
-                exit;
+            // Check if event has available spots (only if max_participants is set)
+            if ($event->max_participants !== null) {
+                if ($event->current_participants >= $event->max_participants) {
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Event is full'
+                    ]);
+                    exit;
+                }
             }
             
             if ($event->status === 'completed' || $event->status === 'cancelled') {
@@ -197,21 +234,49 @@ class UserEventview extends Controller {
                 exit;
             }
             
-            // Join the event by updating database
-            if ($this->eventModel->joinEvent($eventId)) {
-                // Get updated event data from database
-                $updatedEvent = $this->eventModel->getEventById($eventId);
-                
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Successfully joined the event',
-                    'participants' => $updatedEvent->participants,
-                    'availableSpots' => $updatedEvent->max_participants - $updatedEvent->participants
-                ]);
+            // Create registration record
+            $notes = $_POST['notes'] ?? '';
+            $registrationData = [
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $userType,
+                'registration_type' => 'free',
+                'notes' => $notes
+            ];
+            
+            if ($this->registrationModel->registerUser($registrationData)) {
+                // Increment current participants count
+                if ($this->eventModel->incrementParticipants($eventId)) {
+                    // Get updated event data from database
+                    $updatedEvent = $this->eventModel->getEventById($eventId);
+                    
+                    // Calculate available spots (null if unlimited)
+                    $availableSpots = null;
+                    if ($updatedEvent->max_participants !== null) {
+                        $availableSpots = $updatedEvent->max_participants - $updatedEvent->current_participants;
+                    }
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'message' => 'Successfully joined the event',
+                        'participants' => $updatedEvent->participants, // Legacy
+                        'current_participants' => $updatedEvent->current_participants,
+                        'max_participants' => $updatedEvent->max_participants,
+                        'availableSpots' => $availableSpots,
+                        'isRegistered' => true
+                    ]);
+                } else {
+                    // If incrementing fails, rollback the registration
+                    $this->registrationModel->cancelRegistration($eventId, $userId, $userType);
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Failed to join event. Event may be full or an error occurred.'
+                    ]);
+                }
             } else {
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to join event. Please try again.'
+                    'error' => 'Failed to create registration. You may have already registered.'
                 ]);
             }
             

@@ -26,6 +26,14 @@
         padding: 0 2rem;
         }
 
+        /* Required field indicator */
+        .form-label.required::after,
+        label.required::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: bold;
+        }
+
     </style>
 
 </head>
@@ -53,13 +61,18 @@
             <div class="sidebar-item" data-target="location-time">Location and time</div>
             <div class="sidebar-item" data-target="audience">Audience</div>
             <div class="sidebar-item" data-target="ticket">Ticket</div>
-            <div class="sidebar-item" data-target="custom-fields">Custom Fields</div>
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
             <div class="sidebar-item" data-target="donation">Donations</div>
+            <div class="sidebar-item" data-target="custom-fields">Custom Fields</div>
 
         </aside> -->
-                <!-- <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
-            <input type="hidden" name="ajax" value="1" id="ajax-flag"> -->
+        
+        <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
+            <input type="hidden" name="ajax" value="1" id="ajax-flag">
+            <input type="hidden" name="ticket_types" id="ticket_types_input" value="">
+            <input type="hidden" name="schedule" id="schedule_input" value="">
+            <input type="hidden" name="custom_fields" id="custom_fields_input" value="">
+            <input type="hidden" name="volunteer_positions" id="volunteer_positions_input" value="">
             
             <main class="form-container">
                 <h2 style="margin-bottom: 30px;">Create an event</h2>
@@ -67,7 +80,7 @@
                 <section class="section" id="upload-cover">
                     <div class="section-header">
                         <div class="section-icon"></div>
-                        <h3>Upload cover</h3>
+                        <h3>Upload cover <span style="color: #dc3545;">*</span></h3>
                         <div class="toggle-icon" style="margin-left: auto;">▼</div>
                     </div>
                     <div class="section-content">
@@ -93,7 +106,7 @@
                                     <h4>Drag & Drop</h4>
                                     <p>Upload your cover photo or click browse</p>
                                 </div>
-                                <input type="file" name="cover_image" id="coverFileInput" class="file-input" accept="image/*">
+                                <input type="file" name="cover_image" id="coverFileInput" class="file-input" accept="image/*" required>
                                 <label for="coverFileInput" class="browse-btn">Browse Files</label>
                             </div>
                         </div>
@@ -111,20 +124,23 @@
                             <label class="form-label required">Name</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Make it catchy and memorable</p>
                             <input type="text" name="event_name" class="form-input" required
+                                minlength="3" maxlength="200"
                                 placeholder="Enter event name">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Description</label>
+                            <label class="form-label required">Description</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Provide essential event details</p>
-                            <textarea name="event_description" class="form-textarea" placeholder="Enter event description"></textarea>
+                            <textarea name="event_description" class="form-textarea" 
+                                maxlength="5000" required
+                                placeholder="Enter event description"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Category</label>
+                            <label class="form-label required">Category</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Select the category for your event
                             </p>
-                            <select name="event_category" class="form-select">
+                            <select name="event_category" class="form-select" required>
                                 <option value="">Select Category</option>
                                 <option value="academic">Academic</option>
                                 <option value="sports">Sports</option>
@@ -184,30 +200,47 @@
                                 <div class="university-location-inputs"
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                     <div>
-                                        <label
+                                        <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">University</label>
                                         <select name="selected_university" class="form-select">
                                             <option value="">Select University</option>
-                                            <option value="university-of-colombo">University of Colombo</option>
-                                            <option value="university-of-moratuwa">University of Moratuwa</option>
-                                            <option value="university-of-peradeniya">University of Peradeniya</option>
-                                            <option value="university-of-sri-jayewardenepura">University of Sri
-                                                Jayewardenepura</option>
-                                            <option value="other">Other</option>
+                                            <option value="university-of-colombo" >University of Colombo</option>
+                                            <option value="university-of-moratuwa" >University of Moratuwa</option>
+                                            <option value="university-of-peradeniya" >University of Peradeniya</option>
+                                            <option value="university-of-sri-jayewardenepura" >University of Sri Jayewardenepura</option>
+                                            <option value="other" >Other</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label
+                                        <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Faculty/Department</label>
-                                        <input type="text" name="faculty_department" class="form-input"
-                                            placeholder="e.g., Faculty of Engineering, Department of Computer Science">
+                                        <select name="faculty_department" class="form-select">
+                                            <option value="">Select Faculty/Department</option>
+                                            <option value="Faculty of Arts">Faculty of Arts</option>
+                                            <option value="Faculty of Science">Faculty of Science</option>
+                                            <option value="Faculty of Engineering">Faculty of Engineering</option>
+                                            <option value="Faculty of Medicine">Faculty of Medicine</option>
+                                            <option value="Faculty of Law">Faculty of Law</option>
+                                            <option value="Faculty of Business">Faculty of Business</option>
+                                            <option value="Faculty of Management">Faculty of Management</option>
+                                            <option value="Faculty of Agriculture">Faculty of Agriculture</option>
+                                            <option value="Faculty of Architecture">Faculty of Architecture</option>
+                                            <option value="Faculty of Education">Faculty of Education</option>
+                                            <option value="Faculty of Computing">Faculty of Computing</option>
+                                            <!-- <option value="Department of Computer Science">Department of Computer Science</option>
+                                            <option value="Department of Mathematics">Department of Mathematics</option>
+                                            <option value="Department of Physics">Department of Physics</option>
+                                            <option value="Department of Chemistry">Department of Chemistry</option> -->
+                                            <option value="Other">Other</option>
+                                        </select>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Exact
+                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Exact
                                         Location</label>
                                     <input type="text" name="event_location" class="form-input"
+                                        minlength="3" maxlength="200"
                                         placeholder="e.g., Main Auditorium, Lecture Hall A, Sports Complex">
                                 </div>
                             </div>
@@ -220,7 +253,7 @@
                                 <div class="external-location-inputs"
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                                     <div>
-                                        <label
+                                        <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Venue
                                             Name</label>
                                         <input type="text" name="venue_name" class="form-input" placeholder="e.g., Colombo Convention Center">
@@ -232,7 +265,7 @@
                                         <input type="text" name="street_address" class="form-input" placeholder="Enter street address">
                                     </div>
                                     <div>
-                                        <label
+                                        <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">City</label>
                                         <input type="text" name="city" class="form-input" placeholder="Enter city">
                                     </div>
@@ -246,18 +279,20 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Time</label>
+                            <label class="form-label required">Time</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Let attendees know when your event
                                 starts</p>
 
                             <div class="time-inputs">
                                 <div>
-                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Event
+                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Event
                                         Date</label>
-                                    <input type="date" name="event_date" class="form-input" required>
+                                    <input type="date" name="event_date" class="form-input" required 
+                                        min="<?php echo date('Y-m-d'); ?>"
+                                        max="<?php echo date('Y-m-d', strtotime('+2 years')); ?>">
                                 </div>
                                 <div>
-                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
+                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start
                                         Time</label>
                                     <input type="time" name="event_time" class="form-input" required>
                                 </div>
@@ -278,25 +313,25 @@
                         </p>
 
                         <div class="form-group">
-                            <label class="form-label">Target Audience</label>
+                            <label class="form-label required">Target Audience</label>
                             <div class="audience-options">
                                 <div class="audience-option">
                                     <input type="radio" id="university-students" name="audience" value="university-students"
-                                        checked>
+                                        checked required>
                                     <label for="university-students">
                                         <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
                                         University Students
                                     </label>
                                 </div>
                                 <div class="audience-option">
-                                    <input type="radio" id="public-users" name="audience" value="public-users">
+                                    <input type="radio" id="public-users" name="audience" value="public-users" required>
                                     <label for="public-users">
                                         <i class="fas fa-users" style="color: #FF6B35; font-size: 18px;"></i>
                                         Public Users
                                     </label>
                                 </div>
                                 <div class="audience-option">
-                                    <input type="radio" id="both-audiences" name="audience" value="both">
+                                    <input type="radio" id="both-audiences" name="audience" value="both" required>
                                     <label for="both-audiences">
                                         <i class="fas fa-globe" style="color: #10B981; font-size: 18px;"></i>
                                         Both
@@ -307,9 +342,14 @@
 
                         <div class="form-group">
                             <label class="form-label">Maximum Participants</label>
-                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set the maximum number of people who can attend</p>
-                            <input type="number" name="max_participants" class="form-input" min="1" required
-                                placeholder="Enter maximum number of participants">
+                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set the maximum number of people who can attend. Leave empty for unlimited participants.</p>
+                            <input type="number" name="max_participants" class="form-input" 
+                                min="1" max="100000"
+                                placeholder="Leave empty for unlimited participants">
+                            <p style="font-size: 11px; color: #999; margin-top: 5px;">
+                                <i class="fas fa-info-circle"></i> 
+                                This includes both free registrations and paid ticket purchases.
+                            </p>
                         </div>
 
                         <div class="form-group">
@@ -336,7 +376,7 @@
 
                                 <div class="ticket-type-options">
                                     <div class="ticket-type-option">
-                                        <input type="radio" id="free-all" name="ticketType" value="free-all">
+                                        <input type="radio" id="free-all" name="ticketType" value="free-all" checked>
                                         <label for="free-all">
                                             <i class="fas fa-gift ticket-icon" style="color: #10B981;"></i>
                                             Free for All
@@ -350,7 +390,7 @@
                                         </label>
                                     </div>
                                     <div class="ticket-type-option">
-                                        <input type="radio" id="mixed" name="ticketType" value="mixed" checked>
+                                        <input type="radio" id="mixed" name="ticketType" value="mixed">
                                         <label for="mixed">
                                             <i class="fas fa-university ticket-icon" style="color: #4A5BCC;"></i>
                                             Free for Uni Students + Paid for Others
@@ -359,7 +399,7 @@
                                 </div>
 
                                 <!-- Free for All Details -->
-                                <div id="freeAllDetails" class="ticket-details hidden">
+                                <div id="freeAllDetails" class="ticket-details">
                                     <div class="info-note" style="background: #f0fdf4; border-color: #10B981;">
                                         <i class="fas fa-gift"></i>
                                         Free registration for all attendees.
@@ -372,25 +412,27 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="form-label">Registration Period</label>
-                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
+                                        <label class="form-label">Registration Period (Optional)</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set registration period if needed. Leave empty to allow registration until event date</p>
 
                                         <div class="sale-dates">
                                             <div>
                                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
-                                                <input type="date" class="form-input" value="2023-06-05">
+                                                <input type="date" name="registration_start_date" class="form-input registration-start-date"
+                                                    min="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                             <div>
                                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
-                                                <input type="time" class="form-input" value="09:00">
+                                                <input type="time" name="registration_start_time" class="form-input">
                                             </div>
                                             <div>
                                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
-                                                <input type="date" class="form-input" value="2023-06-09">
+                                                <input type="date" name="registration_end_date" class="form-input registration-end-date"
+                                                    min="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                             <div>
                                                 <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
-                                                <input type="time" class="form-input" value="18:00">
+                                                <input type="time" name="registration_end_time" class="form-input">
                                             </div>
                                         </div>
                                     </div>
@@ -407,7 +449,7 @@
                                     <div class="ticket-types-container">
                                         <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
                                             <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
-                                            Ticket Types
+                                            Ticket Types <span style="color: #dc3545;">*</span>
                                         </h4>
 
                                         <div id="ticketTypesList">
@@ -420,11 +462,11 @@
                                                 <div class="ticket-type-details">
                                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                                         <div>
-                                                            <label class="form-label">Quantity Available</label>
+                                                            <label class="form-label required">Quantity Available</label>
                                                             <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
                                                         </div>
                                                         <div>
-                                                            <label class="form-label">Price (LKR)</label>
+                                                            <label class="form-label required">Price (LKR)</label>
                                                             <input type="number" class="form-input ticket-price" value="10" placeholder="Enter price" min="0" step="0.01">
                                                         </div>
                                                     </div>
@@ -472,32 +514,34 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="form-label">Sale Period</label>
-                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be available for purchase</p>
+                                        <label class="form-label required">Sale Period</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Ticket sale period must be between today and event date</p>
 
                                         <div class="sale-dates">
                                             <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
-                                                <input type="date" class="form-input" value="2023-06-05">
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" name="sale_start_date" class="form-input sale-start-date"
+                                                    min="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                             <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
-                                                <input type="time" class="form-input" value="09:00">
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" name="sale_start_time" class="form-input">
                                             </div>
                                             <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
-                                                <input type="date" class="form-input" value="2023-06-09">
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" name="sale_end_date" class="form-input sale-end-date"
+                                                    min="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                             <div>
-                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
-                                                <input type="time" class="form-input" value="18:00">
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" name="sale_end_time" class="form-input">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Mixed (Free for Uni + Paid for Others) Details -->
-                                <div id="mixedDetails" class="ticket-details">
+                                <div id="mixedDetails" class="ticket-details hidden">
                                     <div class="info-note" style="background: #eff6ff; border-color: #4A5BCC;">
                                         <i class="fas fa-university"></i>
                                         Free for university students, paid for outside users.
@@ -518,24 +562,26 @@
 
                                         <div class="form-group">
                                             <label class="form-label">Registration Period</label>
-                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when registration opens and closes</p>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Registration period must be between today and event date</p>
 
                                             <div class="sale-dates">
                                                 <div>
                                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
-                                                    <input type="date" class="form-input" value="2023-06-05">
+                                                    <input type="date" name="mixed_registration_start_date" class="form-input registration-start-date"
+                                                        min="<?php echo date('Y-m-d'); ?>">
                                                 </div>
                                                 <div>
                                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
-                                                    <input type="time" class="form-input" value="09:00">
+                                                    <input type="time" name="mixed_registration_start_time" class="form-input">
                                                 </div>
                                                 <div>
                                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
-                                                    <input type="date" class="form-input" value="2023-06-09">
+                                                    <input type="date" name="mixed_registration_end_date" class="form-input registration-end-date"
+                                                        min="<?php echo date('Y-m-d'); ?>">
                                                 </div>
                                                 <div>
                                                     <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
-                                                    <input type="time" class="form-input" value="18:00">
+                                                    <input type="time" name="mixed_registration_end_time" class="form-input">
                                                 </div>
                                             </div>
                                         </div>
@@ -545,14 +591,14 @@
                                     <div class="form-group">
                                         <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
                                             <i class="fas fa-users" style="color: #FF6B35; margin-right: 8px;"></i>
-                                            Paid Tickets for Outside Users
+                                            Paid Tickets for Outside Users <span style="color: #dc3545;">*</span>
                                         </h4>
 
                                         <!-- Ticket Types Container -->
                                         <div class="ticket-types-container">
                                             <h5 style="margin-bottom: 15px; font-size: 14px; color: #666;">
                                                 <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
-                                                Ticket Types
+                                                Ticket Types <span style="color: #dc3545;">*</span>
                                             </h5>
 
                                             <div id="mixedTicketTypesList">
@@ -565,11 +611,11 @@
                                                     <div class="ticket-type-details">
                                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                                             <div>
-                                                                <label class="form-label">Quantity Available</label>
+                                                                <label class="form-label required">Quantity Available</label>
                                                                 <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
                                                             </div>
                                                             <div>
-                                                                <label class="form-label">Price (LKR)</label>
+                                                                <label class="form-label required">Price (LKR)</label>
                                                                 <input type="number" class="form-input ticket-price" value="15" placeholder="Enter price" min="0" step="0.01">
                                                             </div>
                                                         </div>
@@ -617,31 +663,131 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <label class="form-label">Sale Period</label>
-                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set when tickets will be available for purchase</p>
+                                            <label class="form-label required">Sale Period</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Ticket sale period must be between today and event date</p>
 
                                             <div class="sale-dates">
                                                 <div>
-                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
-                                                    <input type="date" class="form-input" value="2023-06-05">
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                    <input type="date" name="mixed_sale_start_date" class="form-input sale-start-date"
+                                                        min="<?php echo date('Y-m-d'); ?>">
                                                 </div>
                                                 <div>
-                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
-                                                    <input type="time" class="form-input" value="09:00">
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                    <input type="time" name="mixed_sale_start_time" class="form-input">
                                                 </div>
                                                 <div>
-                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
-                                                    <input type="date" class="form-input" value="2023-06-09">
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                    <input type="date" name="mixed_sale_end_date" class="form-input sale-end-date"
+                                                        min="<?php echo date('Y-m-d'); ?>">
                                                 </div>
                                                 <div>
-                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
-                                                    <input type="time" class="form-input" value="18:00">
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                    <input type="time" name="mixed_sale_end_time" class="form-input">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="section" id="Request-Volunteer">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Request Volunteer</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <p style="color: #666; margin-bottom: 15px;">
+                            Need volunteers for your event's success? Let us know.
+                        </p>
+
+                        <div class="form-group">
+                            <label for="volunteerToggle" style="display: block; margin-bottom: 8px; color: #333;">
+                                Do you want volunteers?
+                            </label>
+
+                            <label class="switch">
+                                <input type="checkbox" id="volunteerToggle" name="volunteerToggle" value="1">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div id="volunteerDetails" class="volunteer-details hidden" style="margin-top: 20px;">
+                            <div class="info-note">
+                                <i class="fas fa-hands-helping"></i>
+                                Select where you'd like to recruit volunteers from
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Volunteer Source</label>
+                                <div class="volunteer-source-options">
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="faculty-volunteers" name="volunteer-source[]" value="faculty"
+                                            checked>
+                                        <label for="faculty-volunteers">
+                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
+                                            From My Faculty
+                                        </label>
+                                    </div>
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="university-volunteers" name="volunteer-source[]"
+                                            value="university">
+                                        <label for="university-volunteers">
+                                            <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
+                                            From My University
+                                        </label>
+                                    </div>
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="public-volunteers" name="volunteer-source[]" value="public">
+                                        <label for="public-volunteers">
+                                            <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
+                                            Public Users
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Number of Volunteers Needed</label>
+                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you
+                                    need?</p>
+                                <input type="number" name="volunteers_needed" class="form-input" 
+                                    placeholder="e.g., 5" min="1" max="1000"
+                                    style="max-width: 200px;">
+                            </div>
+
+                            <!-- <div class="form-group">
+                                <label class="form-label">Volunteer Requirements</label>
+                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Include positions when requesting a volunteer:</p>
+                                <label for="newOption">Enter positions:</label>
+                                <input type="text" class="form-input" id="newOption" placeholder="Type something...">
+                                <button type="button" id="addPositionBtn" class="add-field-btn" style="margin-top: 10px;">+ Add Position</button>
+                                <p><a href="volunteerreg.view.php">Go to volunteerreg Form</a></p>
+                            </div> -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- doantion-->
+                <section class="section" id="donation">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Donations</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label for="donationToggle" style="display: block; margin-bottom: 8px; color: #333;">
+                                Do you want to allow participants to make donations to support this event? </label>
+
+                            <label class="switch">
+                                <input type="checkbox" id="donationToggle" name="donationToggle" value="1">
+                                <span class="slider"></span>
+                            </label>
                         </div>
                     </div>
                 </section>
@@ -706,103 +852,6 @@
                     </div>
                 </section>
 
-                <section class="section" id="Request-Volunteer">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Request Volunteer</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <p style="color: #666; margin-bottom: 15px;">
-                            Need volunteers for your event's success? Let us know.
-                        </p>
-
-                        <div class="form-group">
-                            <label for="volunteerToggle" style="display: block; margin-bottom: 8px; color: #333;">
-                                Do you want volunteers?
-                            </label>
-
-                            <label class="switch">
-                                <input type="checkbox" id="volunteerToggle" name="volunteerToggle" value="1">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div id="volunteerDetails" class="volunteer-details hidden" style="margin-top: 20px;">
-                            <div class="info-note">
-                                <i class="fas fa-hands-helping"></i>
-                                Select where you'd like to recruit volunteers from
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Volunteer Source</label>
-                                <div class="volunteer-source-options">
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="faculty-volunteers" name="volunteer-source" value="faculty"
-                                            checked>
-                                        <label for="faculty-volunteers">
-                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
-                                            From My Faculty
-                                        </label>
-                                    </div>
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="university-volunteers" name="volunteer-source"
-                                            value="university">
-                                        <label for="university-volunteers">
-                                            <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
-                                            From My University
-                                        </label>
-                                    </div>
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="public-volunteers" name="volunteer-source" value="public">
-                                        <label for="public-volunteers">
-                                            <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
-                                            Public Users
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Number of Volunteers Needed</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you
-                                    need?</p>
-                                <input type="number" name="volunteers_needed" class="form-input" placeholder="e.g., 5" min="1"
-                                    style="max-width: 200px;">
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Volunteer Requirements</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Include positions when requesting a volunteer:</p>
-                                <label for="newOption">Enter positions:</label>
-                                <input type="text" class="form-input" id="newOption" placeholder="Type something...">
-                                <button type="button" id="addPositionBtn" class="add-field-btn" style="margin-top: 10px;">+ Add Position</button>
-                                <p><a href="volunteerreg.view.php">Go to volunteerreg Form</a></p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- doantion-->
-                <section class="section" id="donation">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Donations</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label for="donationToggle" style="display: block; margin-bottom: 8px; color: #333;">
-                                Do you want to allow participants to make donations to support this event? </label>
-
-                            <label class="switch">
-                                <input type="checkbox" id="donationToggle" name="donationToggle" value="1">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
                 <div class="bottom-actions">
                     <button type="button" class="cancel-btn" onclick="window.location.href='/unipulse/public/publisher/events'">Cancel</button>
                     <div class="action-buttons">
@@ -819,8 +868,8 @@
     <script>
     // Function to show success message
     function showSuccessMessage(message) {
-        // Remove any existing success messages
-        const existingMessage = document.querySelector('.success-message');
+        // Remove any existing messages
+        const existingMessage = document.querySelector('.success-message, .error-message');
         if (existingMessage) {
             existingMessage.remove();
         }
@@ -864,9 +913,717 @@
         }, 5000);
     }
     
+    // Function to show error message
+    function showErrorMessage(message, errors = null) {
+        // Remove any existing messages
+        const existingMessage = document.querySelector('.success-message, .error-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Create error message element
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.style.cssText = `
+            background: #f44336;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        let errorContent = `<strong>✗ ${message}</strong>`;
+        
+        if (errors && typeof errors === 'object') {
+            errorContent += '<ul style="margin: 10px 0 0 20px; text-align: left;">';
+            for (const [field, errorMsg] of Object.entries(errors)) {
+                errorContent += `<li>${errorMsg}</li>`;
+            }
+            errorContent += '</ul>';
+        }
+        
+        errorContent += `
+            <button onclick="this.parentElement.remove()" style="
+                background: none; 
+                border: none; 
+                color: white; 
+                float: right; 
+                cursor: pointer; 
+                font-size: 18px;
+                margin-top: -2px;
+                position: absolute;
+                right: 15px;
+                top: 15px;
+            ">×</button>
+        `;
+        
+        errorDiv.innerHTML = errorContent;
+        
+        // Insert at the top of the form
+        const form = document.getElementById('create-event');
+        form.insertBefore(errorDiv, form.firstChild);
+        
+        // Scroll to top to show error
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Form Validation Functions
+    function validateForm() {
+        const errors = [];
+        
+        // Validate Event Name
+        const eventName = document.querySelector('input[name="event_name"]').value.trim();
+        if (!eventName) {
+            errors.push('Event name is required');
+        } else if (eventName.length < 3) {
+            errors.push('Event name must be at least 3 characters long');
+        } else if (eventName.length > 200) {
+            errors.push('Event name must be less than 200 characters');
+        }
+        
+        // Validate Event Description
+        const eventDescription = document.querySelector('textarea[name="event_description"]').value.trim();
+        if (!eventDescription) {
+            errors.push('Event description is required');
+        } else if (eventDescription.length < 10) {
+            errors.push('Event description must be at least 10 characters long');
+        } else if (eventDescription.length > 5000) {
+            errors.push('Event description must be less than 5000 characters');
+        }
+        
+        // Validate Category
+        const category = document.querySelector('select[name="event_category"]').value;
+        if (!category) {
+            errors.push('Event category is required');
+        }
+        
+        // Validate Cover Image
+        const coverImage = document.querySelector('input[name="cover_image"]');
+        if (!coverImage.files || coverImage.files.length === 0) {
+            errors.push('Event cover image is required');
+        } else {
+            const file = coverImage.files[0];
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!allowedTypes.includes(file.type)) {
+                errors.push('Cover image must be JPEG, PNG, GIF, or WebP');
+            }
+            
+            if (file.size > maxSize) {
+                errors.push('Cover image size must not exceed 5MB');
+            }
+        }
+        
+        // Validate Event Date
+        const eventDate = document.querySelector('input[name="event_date"]').value;
+        if (!eventDate) {
+            errors.push('Event date is required');
+        } else {
+            const selectedDate = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                errors.push('Event date cannot be in the past');
+            }
+            
+            // Check if date is too far in the future (e.g., more than 2 years)
+            const twoYearsFromNow = new Date();
+            twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+            if (selectedDate > twoYearsFromNow) {
+                errors.push('Event date cannot be more than 2 years in the future');
+            }
+        }
+        
+        // Validate Event Time
+        const eventTime = document.querySelector('input[name="event_time"]').value;
+        if (!eventTime) {
+            errors.push('Event time is required');
+        } else if (eventDate) {
+            // If event is today, check if time is in the future
+            const selectedDate = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate.getTime() === today.getTime()) {
+                const [hours, minutes] = eventTime.split(':');
+                const eventDateTime = new Date();
+                eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                if (eventDateTime < new Date()) {
+                    errors.push('Event time cannot be in the past for today\'s events');
+                }
+            }
+        }
+        
+        // Validate Location
+        const locationType = document.querySelector('input[name="location-type"]:checked')?.value || 'inside-university';
+        const eventLocation = document.querySelector('input[name="event_location"]').value.trim();
+        
+        if (locationType === 'inside-university') {
+            // Validate University
+            const university = document.querySelector('select[name="selected_university"]').value;
+            if (!university) {
+                errors.push('University selection is required for inside university events');
+            }
+            
+            // Validate Faculty/Department
+            const faculty = document.querySelector('select[name="faculty_department"]').value;
+            if (!faculty) {
+                errors.push('Faculty/Department is required for inside university events');
+            }
+            
+            // Validate Event Location
+            if (!eventLocation) {
+                errors.push('Event location is required (e.g., Main Auditorium, Hall A)');
+            }
+        } else {
+            const venueName = document.querySelector('input[name="venue_name"]').value.trim();
+            const city = document.querySelector('input[name="city"]').value.trim();
+            
+            if (!venueName) {
+                errors.push('Venue name is required for outside university events');
+            }
+            if (!city) {
+                errors.push('City is required for outside university events');
+            }
+        }
+        
+        // Validate Target Audience
+        const audience = document.querySelector('input[name="audience"]:checked');
+        if (!audience) {
+            errors.push('Target audience is required');
+        }
+        
+        // Validate Max Participants (optional field)
+        const maxParticipants = document.querySelector('input[name="max_participants"]').value;
+        if (maxParticipants) {
+            if (parseInt(maxParticipants) < 1) {
+                errors.push('Maximum participants must be at least 1');
+            } else if (parseInt(maxParticipants) > 100000) {
+                errors.push('Maximum participants cannot exceed 100,000');
+            }
+        }
+        
+        // Validate Registration/Sale Dates based on ticket type
+        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+        
+        if (ticketType === 'free-all') {
+            // For free-all, registration period is optional
+            // Only validate if any registration date field is filled
+            const regStartDate = document.querySelector('input[name="registration_start_date"]')?.value;
+            const regEndDate = document.querySelector('input[name="registration_end_date"]')?.value;
+            
+            if (regStartDate || regEndDate) {
+                // If any field is filled, validate the registration period
+                validateRegistrationPeriod(errors, eventDate, '#freeAllDetails');
+            }
+        } else if (ticketType === 'paid-all') {
+            // Check if paid-all details section is visible
+            const paidAllDetails = document.getElementById('paidAllDetails');
+            if (!paidAllDetails || !paidAllDetails.classList.contains('hidden')) {
+                // Validate ticket types
+                validateTicketTypes(errors, '#ticketTypesList');
+                
+                // Require sale period
+                const saleStartDate = document.querySelector('input[name="sale_start_date"]');
+                const saleStartTime = document.querySelector('input[name="sale_start_time"]');
+                const saleEndDate = document.querySelector('input[name="sale_end_date"]');
+                const saleEndTime = document.querySelector('input[name="sale_end_time"]');
+                
+                if (!saleStartDate || !saleStartDate.value) {
+                    errors.push('Sale start date is required for paid events');
+                }
+                if (!saleStartTime || !saleStartTime.value) {
+                    errors.push('Sale start time is required for paid events');
+                }
+                if (!saleEndDate || !saleEndDate.value) {
+                    errors.push('Sale end date is required for paid events');
+                }
+                if (!saleEndTime || !saleEndTime.value) {
+                    errors.push('Sale end time is required for paid events');
+                }
+                
+                validateSalePeriod(errors, eventDate, '#paidAllDetails');
+            }
+        } else if (ticketType === 'mixed') {
+            // Check if mixed details section is visible
+            const mixedDetails = document.getElementById('mixedDetails');
+            if (!mixedDetails || !mixedDetails.classList.contains('hidden')) {
+                // Registration period for university students is optional
+                validateRegistrationPeriod(errors, eventDate, '#mixedDetails');
+                
+                // Validate sale period for outside users - REQUIRED
+                const saleStartDate = document.querySelector('input[name="mixed_sale_start_date"]');
+                const saleStartTime = document.querySelector('input[name="mixed_sale_start_time"]');
+                const saleEndDate = document.querySelector('input[name="mixed_sale_end_date"]');
+                const saleEndTime = document.querySelector('input[name="mixed_sale_end_time"]');
+                
+                if (!saleStartDate || !saleStartDate.value) {
+                    errors.push('Sale start date is required for outside users');
+                }
+                if (!saleStartTime || !saleStartTime.value) {
+                    errors.push('Sale start time is required for outside users');
+                }
+                if (!saleEndDate || !saleEndDate.value) {
+                    errors.push('Sale end date is required for outside users');
+                }
+                if (!saleEndTime || !saleEndTime.value) {
+                    errors.push('Sale end time is required for outside users');
+                }
+                
+                validateSalePeriod(errors, eventDate, '#mixedDetails');
+                validateTicketTypes(errors, '#mixedTicketTypesList');
+            }
+        }
+        
+        // Validate Volunteers
+        const needsVolunteers = document.getElementById('volunteerToggle').checked;
+        console.log('Volunteer validation - needsVolunteers:', needsVolunteers);
+        
+        if (needsVolunteers) {
+            const volunteersNeeded = document.querySelector('input[name="volunteers_needed"]').value;
+            console.log('volunteersNeeded:', volunteersNeeded);
+            
+            if (!volunteersNeeded) {
+                errors.push('Number of volunteers needed is required');
+            } else if (parseInt(volunteersNeeded) < 1) {
+                errors.push('Number of volunteers must be at least 1');
+            } else if (parseInt(volunteersNeeded) > 1000) {
+                errors.push('Number of volunteers cannot exceed 1,000');
+            }
+            
+            // Check if at least one volunteer source is selected
+            const volunteerSources = document.querySelectorAll('input[name="volunteer-source[]"]:checked');
+            console.log('volunteerSources found:', volunteerSources.length);
+            volunteerSources.forEach((source, index) => {
+                console.log(`Source ${index}:`, source.value, source.checked);
+            });
+            
+            if (volunteerSources.length === 0) {
+                errors.push('Please select at least one volunteer source');
+            }
+        }
+        
+        // Show errors if any
+        if (errors.length > 0) {
+            const errorObj = {};
+            errors.forEach((error, index) => {
+                errorObj[`error${index + 1}`] = error;
+            });
+            showErrorMessage('Please fix the following validation errors:', errorObj);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function validateRegistrationPeriod(errors, eventDate, containerSelector) {
+        const container = document.querySelector(containerSelector);
+        if (!container || container.classList.contains('hidden')) return;
+        
+        // Get date inputs properly
+        const dateInputs = container.querySelectorAll('input[type="date"]');
+        const startDate = dateInputs[0]?.value;
+        const endDate = dateInputs[1]?.value;
+        
+        // Validate if only end date is provided without start date
+        if (endDate && !startDate) {
+            errors.push('Please provide a registration start date');
+            return;
+        }
+        
+        if (startDate && eventDate) {
+            const regStart = new Date(startDate);
+            const event = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Registration start cannot be in the past
+            if (regStart < today) {
+                errors.push('Registration start date cannot be in the past (must be today or later)');
+            }
+            
+            // Registration start cannot be after event date
+            if (regStart > event) {
+                errors.push('Registration start date cannot be after the event date');
+            }
+        }
+        
+        // Validate registration end date
+        if (endDate && startDate) {
+            const regEnd = new Date(endDate);
+            const regStart = new Date(startDate);
+            const event = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // End date must be after start date
+            if (regEnd < regStart) {
+                errors.push('Registration end date must be after start date');
+            }
+            
+            // End date cannot be after event date
+            if (regEnd > event) {
+                errors.push('Registration period must close before or on the event date');
+            }
+            
+            // End date cannot be in the past
+            if (regEnd < today) {
+                errors.push('Registration end date cannot be in the past');
+            }
+        }
+        
+        // If both dates are provided, validate the complete period
+        if (startDate && endDate && eventDate) {
+            const regStart = new Date(startDate);
+            const regEnd = new Date(endDate);
+            const event = new Date(eventDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Registration period must be between today and event date
+            if (regStart < today || regEnd > event) {
+                errors.push('Registration period must be between today and the event date');
+            }
+        }
+    }
+    
+    function validateSalePeriod(errors, eventDate, containerSelector) {
+        const container = document.querySelector(containerSelector);
+        if (!container || container.classList.contains('hidden')) return;
+        
+        const saleDates = container.querySelectorAll('.sale-dates input[type="date"]');
+        if (saleDates.length >= 2) {
+            const startDate = saleDates[0].value;
+            const endDate = saleDates[1].value;
+            
+            if (startDate && endDate) {
+                const saleStart = new Date(startDate);
+                const saleEnd = new Date(endDate);
+                const event = new Date(eventDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Sale start cannot be in the past
+                if (saleStart < today) {
+                    errors.push('Ticket sale start date cannot be in the past (must be today or later)');
+                }
+                
+                // Sale start must be before sale end
+                if (saleStart > saleEnd) {
+                    errors.push('Ticket sale start date must be before end date');
+                }
+                
+                // Sale end cannot be after event date
+                if (saleEnd > event) {
+                    errors.push('Ticket sale must end before or on the event date');
+                }
+                
+                // Complete validation: sale period between today and event
+                if (saleStart < today || saleEnd > event) {
+                    errors.push('Ticket sale period must be between today and the event date');
+                }
+            }
+        }
+    }
+    
+    function validateTicketTypes(errors, containerSelector) {
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+        
+        const ticketItems = container.querySelectorAll('.ticket-type-item');
+        
+        if (ticketItems.length === 0) {
+            errors.push('At least one ticket type is required for paid events');
+            return;
+        }
+        
+        ticketItems.forEach((item, index) => {
+            const typeName = item.querySelector('.ticket-type-name')?.value.trim();
+            const quantity = item.querySelector('.ticket-quantity')?.value;
+            const price = item.querySelector('.ticket-price')?.value;
+            
+            if (!typeName) {
+                errors.push(`Ticket type ${index + 1}: Name is required`);
+            }
+            
+            if (!quantity || parseInt(quantity) < 1) {
+                errors.push(`Ticket type ${index + 1}: Quantity must be at least 1`);
+            } else if (parseInt(quantity) > 100000) {
+                errors.push(`Ticket type ${index + 1}: Quantity cannot exceed 100,000`);
+            }
+            
+            if (!price || parseFloat(price) < 0) {
+                errors.push(`Ticket type ${index + 1}: Price must be 0 or greater`);
+            } else if (parseFloat(price) > 1000000) {
+                errors.push(`Ticket type ${index + 1}: Price cannot exceed 1,000,000`);
+            }
+            
+            // Validate discount if enabled
+            const discountToggle = item.querySelector('.discount-toggle');
+            if (discountToggle && discountToggle.checked) {
+                const discountPercent = item.querySelector('.discount-percent')?.value;
+                if (!discountPercent || parseFloat(discountPercent) < 0 || parseFloat(discountPercent) > 100) {
+                    errors.push(`Ticket type ${index + 1}: Discount percentage must be between 0 and 100`);
+                }
+            }
+        });
+    }
+    
+    // Real-time validation helpers
+    function setupRealtimeValidation() {
+        // Event Date validation
+        const eventDateInput = document.querySelector('input[name="event_date"]');
+        if (eventDateInput) {
+            eventDateInput.addEventListener('change', function() {
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    this.style.borderColor = '#dc3545';
+                    showTooltip(this, 'Event date cannot be in the past');
+                } else {
+                    this.style.borderColor = '#10B981';
+                    removeTooltip(this);
+                }
+                
+                // Update max date for registration and sale periods
+                updateRegistrationAndSalePeriodLimits(this.value);
+            });
+        }
+        
+        // Event Time validation
+        const eventTimeInput = document.querySelector('input[name="event_time"]');
+        if (eventTimeInput && eventDateInput) {
+            eventTimeInput.addEventListener('change', function() {
+                const eventDate = eventDateInput.value;
+                if (!eventDate) return;
+                
+                const selectedDate = new Date(eventDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate.getTime() === today.getTime()) {
+                    const [hours, minutes] = this.value.split(':');
+                    const eventDateTime = new Date();
+                    eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    
+                    if (eventDateTime < new Date()) {
+                        this.style.borderColor = '#dc3545';
+                        showTooltip(this, 'Event time cannot be in the past');
+                    } else {
+                        this.style.borderColor = '#10B981';
+                        removeTooltip(this);
+                    }
+                }
+            });
+        }
+        
+        // Max Participants validation
+        const maxParticipantsInput = document.querySelector('input[name="max_participants"]');
+        if (maxParticipantsInput) {
+            maxParticipantsInput.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                if (value < 1 || value > 100000) {
+                    this.style.borderColor = '#dc3545';
+                } else {
+                    this.style.borderColor = '#10B981';
+                }
+            });
+        }
+    }
+    
+    // Update registration and sale period date limits based on event date
+    function updateRegistrationAndSalePeriodLimits(eventDate) {
+        if (!eventDate) return;
+        
+        const today = new Date().toISOString().split('T')[0];
+        
+        // Update all registration date inputs
+        const registrationStartDates = document.querySelectorAll('.registration-start-date');
+        const registrationEndDates = document.querySelectorAll('.registration-end-date');
+        
+        registrationStartDates.forEach(input => {
+            input.setAttribute('min', today);
+            input.setAttribute('max', eventDate);
+        });
+        
+        registrationEndDates.forEach(input => {
+            input.setAttribute('min', today);
+            input.setAttribute('max', eventDate);
+        });
+        
+        // Update all sale date inputs
+        const saleStartDates = document.querySelectorAll('.sale-start-date');
+        const saleEndDates = document.querySelectorAll('.sale-end-date');
+        
+        saleStartDates.forEach(input => {
+            input.setAttribute('min', today);
+            input.setAttribute('max', eventDate);
+        });
+        
+        saleEndDates.forEach(input => {
+            input.setAttribute('min', today);
+            input.setAttribute('max', eventDate);
+        });
+    }
+    
+    function showTooltip(element, message) {
+        removeTooltip(element);
+        const tooltip = document.createElement('div');
+        tooltip.className = 'validation-tooltip';
+        tooltip.textContent = message;
+        tooltip.style.cssText = `
+            position: absolute;
+            background: #dc3545;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-top: 5px;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        `;
+        element.parentElement.style.position = 'relative';
+        element.parentElement.appendChild(tooltip);
+    }
+    
+    function removeTooltip(element) {
+        const tooltip = element.parentElement.querySelector('.validation-tooltip');
+        if (tooltip) {
+            tooltip.remove();
+        }
+    }
+    
+    // Initialize real-time validation when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setupRealtimeValidation();
+    });
+    
+    // Collect and store all dynamic form data
+    function collectAndStoreFormData() {
+        // Collect ticket types based on ticket type selected
+        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+        let ticketTypes = [];
+        
+        if (ticketType === 'paid-all') {
+            // Collect from paid-all ticket types list
+            const ticketCards = document.querySelectorAll('#ticketTypesList .ticket-type-item');
+            ticketCards.forEach(card => {
+                const name = card.querySelector('.ticket-type-name')?.value || '';
+                const price = card.querySelector('.ticket-price')?.value || '0';
+                const quantity = card.querySelector('.ticket-quantity')?.value || '0';
+                const description = card.querySelector('textarea')?.value || '';
+                const discountPercent = card.querySelector('.discount-percent')?.value || '';
+                const discountedPrice = card.querySelector('.discounted-price')?.value || '';
+                
+                if (name && price && quantity) {
+                    const ticketData = {
+                        name: name,
+                        price: parseFloat(price),
+                        quantity: parseInt(quantity),
+                        description: description
+                    };
+                    
+                    // Add discount info if provided
+                    if (discountPercent && discountedPrice) {
+                        ticketData.discount_percent = parseFloat(discountPercent);
+                        ticketData.discounted_price = parseFloat(discountedPrice);
+                    }
+                    
+                    ticketTypes.push(ticketData);
+                }
+            });
+        } else if (ticketType === 'mixed') {
+            // Collect from mixed ticket types list
+            const ticketCards = document.querySelectorAll('#mixedTicketTypesList .ticket-type-item');
+            ticketCards.forEach(card => {
+                const name = card.querySelector('.ticket-type-name')?.value || '';
+                const price = card.querySelector('.ticket-price')?.value || '0';
+                const quantity = card.querySelector('.ticket-quantity')?.value || '0';
+                const description = card.querySelector('textarea')?.value || '';
+                const discountPercent = card.querySelector('.discount-percent')?.value || '';
+                const discountedPrice = card.querySelector('.discounted-price')?.value || '';
+                
+                if (name && price && quantity) {
+                    const ticketData = {
+                        name: name,
+                        price: parseFloat(price),
+                        quantity: parseInt(quantity),
+                        description: description
+                    };
+                    
+                    // Add discount info if provided
+                    if (discountPercent && discountedPrice) {
+                        ticketData.discount_percent = parseFloat(discountPercent);
+                        ticketData.discounted_price = parseFloat(discountedPrice);
+                    }
+                    
+                    ticketTypes.push(ticketData);
+                }
+            });
+        }
+        
+        // Store ticket types in hidden input
+        document.getElementById('ticket_types_input').value = JSON.stringify(ticketTypes);
+        
+        // Collect schedule
+        const scheduleItems = [];
+        document.querySelectorAll('#scheduleList .schedule-item-card').forEach(item => {
+            const time = item.querySelector('[data-schedule-time]')?.textContent || '';
+            const activity = item.querySelector('[data-schedule-activity]')?.textContent || '';
+            if (time && activity) {
+                scheduleItems.push({ time, activity });
+            }
+        });
+        document.getElementById('schedule_input').value = JSON.stringify(scheduleItems);
+        
+        // Collect custom fields
+        const customFields = [];
+        document.querySelectorAll('#customFieldsList .custom-field-item').forEach(field => {
+            const label = field.querySelector('[data-field-label]')?.textContent || '';
+            const type = field.querySelector('[data-field-type]')?.textContent || '';
+            if (label && type) {
+                customFields.push({ label, type });
+            }
+        });
+        document.getElementById('custom_fields_input').value = JSON.stringify(customFields);
+        
+        // Collect volunteer positions
+        const volunteerPositions = [];
+        document.querySelectorAll('#volunteerPositionsList .position-item').forEach(position => {
+            const text = position.querySelector('span')?.textContent || position.textContent.replace('×', '').trim();
+            if (text) {
+                volunteerPositions.push(text);
+            }
+        });
+        document.getElementById('volunteer_positions_input').value = JSON.stringify(volunteerPositions);
+        
+        console.log('Collected data:', {
+            ticketTypes: ticketTypes,
+            schedule: scheduleItems,
+            customFields: customFields,
+            volunteerPositions: volunteerPositions
+        });
+    }
+    
     // Handle form submission
     document.getElementById('create-event').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Collect all dynamic data before validation
+        collectAndStoreFormData();
+        
+        // Validate form before submission
+        if (!validateForm()) {
+            return;
+        }
         
         const submitBtn = document.querySelector('.publish-btn');
         const originalText = submitBtn.textContent;
@@ -910,46 +1667,26 @@
         })
         .then(data => {
             if (data.success) {
-                // Show success message with better styling
-                showSuccessMessage('Event created successfully! You can create another event below.');
+                // Show success message
+                showSuccessMessage('Event created successfully! Redirecting to events page...');
                 
-                // Reset the form for creating another event
-                const form = document.getElementById('create-event');
-                form.reset();
-                
-                // Reset file input specifically
-                const fileInput = document.getElementById('coverFileInput');
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-                
-                // Reset any toggle switches to unchecked
-                document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                
-                // Hide any conditional sections that were shown
-                document.querySelectorAll('.volunteer-details').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.donation-details').forEach(el => el.classList.add('hidden'));
-                
-                // Scroll to top of form
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                // Show error messages
-                let errorMessage = 'Please fix the following errors:\n';
-                if (data.errors) {
-                    for (const [field, message] of Object.entries(data.errors)) {
-                        errorMessage += `- ${message}\n`;
+                // Redirect to events page after a short delay
+                setTimeout(() => {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = '/unipulse/public/publisher/events';
                     }
-                } else {
-                    errorMessage += data.message || 'Unknown error occurred';
-                }
-                alert(errorMessage);
+                }, 1500); // 1.5 second delay to show success message
+            } else {
+                // Show error messages in styled message box
+                const errorMsg = data.message || 'Failed to create event. Please check the errors below.';
+                showErrorMessage(errorMsg, data.errors);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Network or server error: ' + error.message + '. Please check the console for more details.');
+            showErrorMessage('Network or server error occurred', { 'error': error.message });
         })
         .finally(() => {
             // Reset button

@@ -1,6 +1,7 @@
 // Get server data or use fallback
 let currentEvent = window.serverData?.event || null;
 let similarEvents = window.serverData?.similarEvents || [];
+let isUserRegistered = window.serverData?.isRegistered || false;
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
@@ -69,9 +70,49 @@ function displayEventDetails(event) {
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
     const maxParticipants = event.max_participants || event.maxParticipants;
+    const currentParticipants = event.current_participants || event.currentParticipants || 0;
     const organizerEmail = event.organizer_email || event.organizerEmail;
     const targetAudience = event.target_audience || event.targetAudience;
     const ticketType = event.ticket_type || event.ticketType;
+    const imageUrl = event.image_url || event.imageUrl || event.cover_image || event.image;
+    
+    // Display hero image if available
+    if (imageUrl) {
+        const heroImageContainer = document.getElementById('heroImageContainer');
+        const heroImage = document.getElementById('heroImage');
+        if (heroImageContainer && heroImage) {
+            // Build correct image path
+            let imagePath = '';
+            if (imageUrl.startsWith('http')) {
+                imagePath = imageUrl;
+            } else if (imageUrl.startsWith('/unipulse/')) {
+                imagePath = imageUrl;
+            } else if (imageUrl.startsWith('/')) {
+                imagePath = imageUrl;
+            } else {
+                // Relative path from database - add /unipulse/public/ prefix
+                imagePath = `/unipulse/public/${imageUrl}`;
+            }
+            
+            console.log('Image URL from DB:', imageUrl);
+            console.log('Constructed image path:', imagePath);
+            
+            heroImage.src = imagePath;
+            heroImage.alt = event.title + ' Cover Image';
+            heroImageContainer.style.display = 'block';
+            
+            // Add error handler
+            heroImage.onerror = function() {
+                console.error('Failed to load image:', imagePath);
+                heroImageContainer.style.display = 'none';
+            };
+            
+            // Add load handler for debugging
+            heroImage.onload = function() {
+                console.log('Image loaded successfully:', imagePath);
+            };
+        }
+    }
     
     // Basic event info
     document.getElementById('eventCategory').textContent = capitalizeFirstLetter(event.category);
@@ -83,9 +124,23 @@ function displayEventDetails(event) {
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
     document.getElementById('eventDateTime').textContent = `${formatDate(eventDate)} at ${eventTime}`;
-    document.getElementById('eventLocation').textContent = event.location;
     document.getElementById('eventUniversity').textContent = universityName;
-    document.getElementById('eventParticipants').textContent = `${event.participants}/${maxParticipants}`;
+    
+    // Show faculty/department if available
+    if (event.faculty_department) {
+        document.getElementById('facultyInfo').style.display = 'flex';
+        document.getElementById('eventFaculty').textContent = event.faculty_department;
+    }
+    
+    document.getElementById('eventLocation').textContent = event.location;
+    
+    // Show participants info only if max_participants is set
+    if (maxParticipants !== null && maxParticipants !== undefined) {
+        document.getElementById('participantsInfo').style.display = 'flex';
+        document.getElementById('eventParticipants').textContent = `${currentParticipants}/${maxParticipants}`;
+    } else {
+        document.getElementById('participantsInfo').style.display = 'none';
+    }
     
     // Target audience
     document.getElementById('eventAudience').textContent = formatAudience(targetAudience);
@@ -99,14 +154,23 @@ function displayEventDetails(event) {
     // Full description
     document.getElementById('eventDescription').textContent = event.description;
     
-    // Schedule
-    if (event.schedule) {
+    // Registration Period
+    displayRegistrationPeriod(event);
+    
+    // Schedule - hide card if no schedule data
+    if (event.schedule && Array.isArray(event.schedule) && event.schedule.length > 0) {
         displaySchedule(event.schedule);
+        document.getElementById('scheduleCard').style.display = 'block';
+    } else {
+        document.getElementById('scheduleCard').style.display = 'none';
     }
     
-    // Requirements
-    if (event.requirements) {
+    // Requirements - hide card if no requirements
+    if (event.requirements && Array.isArray(event.requirements) && event.requirements.length > 0) {
         displayRequirements(event.requirements);
+        document.getElementById('requirementsCard').style.display = 'block';
+    } else {
+        document.getElementById('requirementsCard').style.display = 'none';
     }
     
     // Location details
@@ -115,19 +179,33 @@ function displayEventDetails(event) {
     // Ticket details
     displayTicketDetails(event);
     
-    // Custom fields
-    if (event.custom_fields) {
+    // Custom fields - hide card if no custom fields
+    if (event.custom_fields && Array.isArray(event.custom_fields) && event.custom_fields.length > 0) {
         displayCustomFields(event.custom_fields);
+    } else {
+        if (document.getElementById('customFieldsCard')) {
+            document.getElementById('customFieldsCard').style.display = 'none';
+        }
     }
     
-    // Volunteer information
-    if (event.needs_volunteers) {
+    // Volunteer information - hide card if not accepting volunteers
+    if (event.needs_volunteers && event.needs_volunteers == 1) {
         displayVolunteerInfo(event);
+    } else {
+        if (document.getElementById('volunteerCard')) {
+            document.getElementById('volunteerCard').style.display = 'none';
+        }
     }
     
-    // Donation information
-    if (event.accepts_donations) {
-        document.getElementById('donationCard').style.display = 'block';
+    // Donation information - hide card if not accepting donations
+    if (event.accepts_donations && event.accepts_donations == 1) {
+        if (document.getElementById('donationCard')) {
+            document.getElementById('donationCard').style.display = 'block';
+        }
+    } else {
+        if (document.getElementById('donationCard')) {
+            document.getElementById('donationCard').style.display = 'none';
+        }
     }
     
     // Organizer info
@@ -136,14 +214,19 @@ function displayEventDetails(event) {
     // Store organizer email for contact function
     currentEvent.organizerEmail = organizerEmail;
     
-    // Statistics
-    document.getElementById('totalParticipants').textContent = event.participants;
-    document.getElementById('availableSpots').textContent = maxParticipants - event.participants;
-    
-    // Participation percentage
-    const percentage = Math.round((event.participants / maxParticipants) * 100);
-    document.getElementById('participationPercentage').textContent = `${percentage}%`;
-    document.getElementById('participationFill').style.width = `${percentage}%`;
+    // Statistics - only show if max_participants is set
+    if (maxParticipants !== null && maxParticipants !== undefined) {
+        document.getElementById('eventStatsCard').style.display = 'block';
+        document.getElementById('totalParticipants').textContent = currentParticipants;
+        document.getElementById('availableSpots').textContent = maxParticipants - currentParticipants;
+        
+        // Participation percentage
+        const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
+        document.getElementById('participationPercentage').textContent = `${percentage}%`;
+        document.getElementById('participationFill').style.width = `${percentage}%`;
+    } else {
+        document.getElementById('eventStatsCard').style.display = 'none';
+    }
     
     // Set event link for sharing
     if (document.getElementById('shareLink')) {
@@ -151,7 +234,7 @@ function displayEventDetails(event) {
     }
     
     // Update status styling
-    updateStatusStyling(event.status, event.participants, maxParticipants);
+    updateStatusStyling(event.status, currentParticipants, maxParticipants);
     
     // Show comments section if event is completed
     if (event.status === 'completed') {
@@ -160,6 +243,50 @@ function displayEventDetails(event) {
             commentsSection.style.display = 'block';
             loadComments(); // Load comments for completed events
         }
+    }
+}
+
+// Display registration period
+function displayRegistrationPeriod(event) {
+    const registrationPeriodCard = document.getElementById('registrationPeriodCard');
+    const registrationPeriodContainer = document.getElementById('registrationPeriod');
+    
+    // Check if registration dates are available
+    if (event.registration_start_date && event.registration_end_date) {
+        let registrationHTML = '<div class="registration-period-item">';
+        
+        // Registration Start
+        registrationHTML += '<div style="margin-bottom: 15px;">';
+        registrationHTML += '<div><strong>Registration Opens:</strong></div>';
+        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
+        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_start_date)}`;
+        if (event.registration_start_time) {
+            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_start_time}`;
+        }
+        registrationHTML += '</div></div>';
+        
+        // Registration End
+        registrationHTML += '<div style="margin-bottom: 15px;">';
+        registrationHTML += '<div><strong>Registration Closes:</strong></div>';
+        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
+        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_end_date)}`;
+        if (event.registration_end_time) {
+            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_end_time}`;
+        }
+        registrationHTML += '</div></div>';
+        
+        // Registration limit if available
+        if (event.registration_limit) {
+            registrationHTML += '<div>';
+            registrationHTML += '<div><strong>Registration Limit:</strong></div>';
+            registrationHTML += `<div style="color: #666; margin-top: 5px;"><i class="fas fa-users"></i> ${event.registration_limit} participants</div>`;
+            registrationHTML += '</div>';
+        }
+        
+        registrationHTML += '</div>';
+        
+        registrationPeriodContainer.innerHTML = registrationHTML;
+        registrationPeriodCard.style.display = 'block';
     }
 }
 
@@ -289,18 +416,65 @@ function confirmJoinEvent() {
         if (data.success) {
             alert(`Successfully joined "${currentEvent.title}"!`);
             
-            // Update UI with new participant count
-            currentEvent.participants = data.participants;
-            const maxParticipants = currentEvent.max_participants || currentEvent.maxParticipants;
+            // Mark user as registered
+            isUserRegistered = true;
             
-            document.getElementById('eventParticipants').textContent = `${data.participants}/${maxParticipants}`;
-            document.getElementById('totalParticipants').textContent = data.participants;
-            document.getElementById('availableSpots').textContent = data.availableSpots;
+            // Update join button state
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                joinBtn.classList.add('disabled');
+                joinBtn.style.cursor = 'not-allowed';
+                joinBtn.style.opacity = '0.6';
+                joinBtn.disabled = true;
+                joinBtn.removeEventListener('click', openJoinModal);
+            }
             
-            // Update participation percentage
-            const percentage = Math.round((data.participants / maxParticipants) * 100);
-            document.getElementById('participationPercentage').textContent = `${percentage}%`;
-            document.getElementById('participationFill').style.width = `${percentage}%`;
+            // Update current event data
+            const newCurrentParticipants = data.current_participants || data.participants || 0;
+            const maxParticipants = data.max_participants || currentEvent.max_participants || currentEvent.maxParticipants;
+            
+            currentEvent.current_participants = newCurrentParticipants;
+            currentEvent.participants = data.participants; // Legacy
+            
+            // Update UI with new participant count only if max_participants is set
+            if (maxParticipants !== null && maxParticipants !== undefined) {
+                // Update participants in detail section
+                const participantsInfo = document.getElementById('participantsInfo');
+                if (participantsInfo) {
+                    participantsInfo.style.display = 'flex';
+                    document.getElementById('eventParticipants').textContent = `${newCurrentParticipants}/${maxParticipants}`;
+                }
+                
+                // Update statistics card
+                const statsCard = document.getElementById('eventStatsCard');
+                if (statsCard && statsCard.style.display !== 'none') {
+                    document.getElementById('totalParticipants').textContent = newCurrentParticipants;
+                    document.getElementById('availableSpots').textContent = data.availableSpots !== null ? data.availableSpots : maxParticipants - newCurrentParticipants;
+                    
+                    // Update participation percentage
+                    const percentage = maxParticipants > 0 ? Math.round((newCurrentParticipants / maxParticipants) * 100) : 0;
+                    document.getElementById('participationPercentage').textContent = `${percentage}%`;
+                    document.getElementById('participationFill').style.width = `${percentage}%`;
+                }
+            }
+            
+            closeJoinModal();
+        } else if (data.alreadyRegistered) {
+            // User is already registered
+            alert('You have already registered for this event.');
+            isUserRegistered = true;
+            
+            // Update join button state
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                joinBtn.classList.add('disabled');
+                joinBtn.style.cursor = 'not-allowed';
+                joinBtn.style.opacity = '0.6';
+                joinBtn.disabled = true;
+                joinBtn.removeEventListener('click', openJoinModal);
+            }
             
             closeJoinModal();
         } else {
@@ -390,6 +564,7 @@ function formatTicketType(ticketType) {
 
 function displayLocationDetails(event) {
     const locationType = event.location_type || 'inside-university';
+    const universityName = event.university_name || event.universityName;
     let locationHTML = '';
     
     if (locationType === 'outside-university') {
@@ -412,12 +587,29 @@ function displayLocationDetails(event) {
             document.getElementById('locationDetailsCard').style.display = 'block';
             document.getElementById('locationDetails').innerHTML = locationHTML;
         }
-    } else if (event.faculty_department) {
-        locationHTML = `<div class="location-detail-item">
-            <div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>
-        </div>`;
-        document.getElementById('locationDetailsCard').style.display = 'block';
-        document.getElementById('locationDetails').innerHTML = locationHTML;
+    } else {
+        // Inside university - show university, faculty/department, and exact location
+        locationHTML = '<div class="location-detail-item">';
+        
+        if (universityName) {
+            locationHTML += `<div><strong>University:</strong> ${universityName}</div>`;
+        }
+        
+        if (event.faculty_department) {
+            locationHTML += `<div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>`;
+        }
+        
+        if (event.location) {
+            locationHTML += `<div><strong>Exact Location:</strong> ${event.location}</div>`;
+        }
+        
+        locationHTML += '</div>';
+        
+        // Only show if there's actual content
+        if (universityName || event.faculty_department || event.location) {
+            document.getElementById('locationDetailsCard').style.display = 'block';
+            document.getElementById('locationDetails').innerHTML = locationHTML;
+        }
     }
 }
 
@@ -503,7 +695,7 @@ function displayVolunteerInfo(event) {
     }
     
     volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += '<button class="btn btn-outline" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
+    volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
     volunteerHTML += '</div>';
     
     volunteerHTML += '</div>';
@@ -538,8 +730,16 @@ function processDonation() {
 }
 
 function applyAsVolunteer() {
-    // Here you would redirect to volunteer application form or open a modal
-    alert('Volunteer application functionality would be implemented here.');
+    // Get the event ID from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+    
+    // Redirect to volunteer registration page with event ID
+    if (eventId) {
+        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
+    } else {
+        alert('Event ID not found');
+    }
 }
 
 // Event listeners for donation amounts
@@ -564,7 +764,18 @@ let editingCommentId = null;
 let editingCommentRating = 0;
 
 // Event listeners
-document.getElementById('joinBtn').addEventListener('click', openJoinModal);
+const joinBtn = document.getElementById('joinBtn');
+if (joinBtn) {
+    if (isUserRegistered) {
+        joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+        joinBtn.classList.add('disabled');
+        joinBtn.style.cursor = 'not-allowed';
+        joinBtn.style.opacity = '0.6';
+        joinBtn.disabled = true;
+    } else {
+        joinBtn.addEventListener('click', openJoinModal);
+    }
+}
 document.getElementById('shareBtn').addEventListener('click', openShareModal);
 
 // Comments event listeners

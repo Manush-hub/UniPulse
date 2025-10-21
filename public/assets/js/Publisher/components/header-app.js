@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 const organizerData = {
-    username: 'Jennifer King',
-    displayName: 'Jennifer',
+    username: 'Organization',
+    displayName: 'Organization',
     role: 'Event Organizer',
     university: 'University of Moratuwa',
     upcomingEvents: 7,

@@ -436,10 +436,10 @@ function loadMoreEvents() {
         categoryDiv.textContent = event.category;
         imageDiv.appendChild(categoryDiv);
 
-        // Price badge
+        // Price badge - Use ticket information
         const priceDiv = document.createElement('div');
         priceDiv.className = 'event-price';
-        priceDiv.textContent = event.price;
+        priceDiv.innerHTML = getTicketPriceBadge(event);
         imageDiv.appendChild(priceDiv);
 
         card.appendChild(imageDiv);
@@ -462,10 +462,31 @@ function loadMoreEvents() {
         dateDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> <span>${formatDate(event.date)} at ${event.time}</span>`;
         metaDiv.appendChild(dateDiv);
 
-        // Location
+        // Location - build based on location type
+        const locationType = event.location_type || 'inside-university';
+        let locationText = '';
+        
+        if (locationType === 'outside-university') {
+            // Outside university: show "Venue, City"
+            const venueName = event.venue_name || event.venueName;
+            const city = event.city;
+            if (venueName && city) {
+                locationText = `${venueName}, ${city}`;
+            } else if (venueName) {
+                locationText = venueName;
+            } else if (city) {
+                locationText = city;
+            } else {
+                locationText = event.location || 'Location TBA';
+            }
+        } else {
+            // Inside university: show exact location
+            locationText = event.location || 'Location TBA';
+        }
+        
         const locationDiv = document.createElement('div');
         locationDiv.className = 'event-location';
-        locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${event.location}</span>`;
+        locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${locationText}</span>`;
         metaDiv.appendChild(locationDiv);
 
         contentDiv.appendChild(metaDiv);
@@ -477,6 +498,47 @@ function loadMoreEvents() {
         };
 
         return card;
+    }
+
+    // Get ticket price badge for event card
+    function getTicketPriceBadge(event) {
+        const ticketType = event.ticket_type || event.ticketType || 'free-all';
+        
+        if (ticketType === 'free-all') {
+            return 'Free';
+        }
+        
+        // For paid or mixed events, show ticket prices
+        const ticketTypes = event.ticket_types || [];
+        
+        if (ticketTypes && ticketTypes.length > 0) {
+            // Parse if it's a JSON string
+            const tickets = typeof ticketTypes === 'string' ? JSON.parse(ticketTypes) : ticketTypes;
+            
+            if (Array.isArray(tickets) && tickets.length > 0) {
+                // Get price range
+                const prices = tickets.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
+                if (prices.length > 0) {
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    
+                    if (minPrice === maxPrice) {
+                        return `LKR ${minPrice}`;
+                    } else {
+                        return `LKR ${minPrice} - ${maxPrice}`;
+                    }
+                }
+            }
+        }
+        
+        // Fallback for paid events
+        if (ticketType === 'paid-all') {
+            return 'Paid';
+        } else if (ticketType === 'mixed') {
+            return 'Mixed';
+        }
+        
+        return event.price || 'Free';
     }
 
     // Format date utility
