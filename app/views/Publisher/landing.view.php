@@ -136,7 +136,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>Upcoming in <span class="highlight">24h</span></h2>
-                <a href="all-events.html" class="view-more">View more</a>
+                <a href="/unipulse/public/publisher/events" class="view-more">View more</a>
             </div>
             <div class="upcoming-grid" id="upcomingEventsGrid">
                 <!-- Upcoming events will be loaded here -->
@@ -149,7 +149,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>More events</h2>
-                <a href="all-events.html" class="view-more">View more</a>
+                <a href="/unipulse/public/publisher/events" class="view-more">View more</a>
             </div>
             <div class="events-grid" id="moreEventsGrid">
                 <!-- More events will be loaded here -->

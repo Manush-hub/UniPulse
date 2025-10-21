@@ -66,13 +66,15 @@ body {
 .welcome-text h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    margin-top: 57px;
 }
 
 .welcome-text p {
     font-size: 1.1rem;
     opacity: 0.9;
-    margin-bottom: 2rem;
+    margin-bottom: 57px;
+    /* margin-bottom: 2rem; */
 }
 
 /* Quick Actions */

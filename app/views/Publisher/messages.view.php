@@ -22,7 +22,7 @@
         <section class="hero">
             <div class="container">
                 <div class="hero-content">
-                    <h1><i class="fas fa-envelope"></i> My Messages</h1>
+                    <h1>My Messages</h1>
                     <p>Manage your communications with sponsors</p>
                 </div>
             </div>

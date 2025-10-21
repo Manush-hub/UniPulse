@@ -30,7 +30,7 @@
         </section>
 
         <!-- Quick Actions -->
-        <section class="quick-actions">
+        <!-- <section class="quick-actions">
             <div class="container">
                 <h2>Quick Actions</h2>
                 <div class="actions-grid">
@@ -71,14 +71,14 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section> -->
 
         <!-- Upcoming Events -->
         <section class="upcoming-events">
             <div class="container">
                 <div class="section-header">
                     <h2>Your Upcoming Events</h2>
-                    <a href="my-events.html" class="view-all">View All</a>
+                    <a href="/unipulse/public/user/events" class="view-all">View All</a>
                 </div>
                 <div class="events-carousel" id="upcomingEventsCarousel">
                     <!-- Events will be loaded here -->
@@ -91,7 +91,7 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Featured Events</h2>
-                    <a href="all-events.html" class="view-all">View All</a>
+                    <a href="/unipulse/public/user/events" class="view-all">View All</a>
                 </div>
                 <div class="events-grid" id="featuredEventsGrid">
                     <!-- Featured events will be loaded here -->

@@ -18,6 +18,14 @@
                 transform: translateY(0);
             }
         }
+
+        /* Container */
+        .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        }
+
     </style>
 
 </head>
@@ -31,7 +39,7 @@
     
 
     <div class="main-container">
-        <aside class="sidebar">
+        <!-- <aside class="sidebar">
             <div style="margin-bottom: 20px;">
                 <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Last saved</div>
                 <div style="font-size: 12px; color: #333;">Monday, June 06 | 06:42 AM</div>
@@ -49,10 +57,9 @@
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
             <div class="sidebar-item" data-target="donation">Donations</div>
 
-        </aside>
-                <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
-            <!-- Hidden field to help with AJAX detection -->
-            <input type="hidden" name="ajax" value="1" id="ajax-flag">
+        </aside> -->
+                <!-- <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
+            <input type="hidden" name="ajax" value="1" id="ajax-flag"> -->
             
             <main class="form-container">
                 <h2 style="margin-bottom: 30px;">Create an event</h2>
@@ -70,8 +77,8 @@
                         <div class="cover-image" id="coverImageContainer">
                             <div class="cover-image-placeholder">
                                 <div>
-                                    <div>Rock Revolt</div>
-                                    <div style="font-size: 32px; margin: 10px 0;">Power</div>
+                                    <div style="font-size: 32px;">Rock Revolt</div>
+                                    <div style="font-size: 32px;">Power</div>
                                     <div style="font-size: 32px;">Passion</div>
                                 </div>
                             </div>
