@@ -193,7 +193,7 @@ class Comment {
     }
     
     /**
-     * Delete a comment (soft delete)
+     * Delete a comment (hard delete for completed events, soft delete for others)
      */
     public function deleteComment($commentId, $userId, $userType) {
         // Get existing comment
@@ -208,17 +208,37 @@ class Comment {
             return ['success' => false, 'errors' => ['You can only delete your own comments']];
         }
         
-        // Soft delete
-        $result = $this->update($commentId, [
-            'is_deleted' => 1,
-            'deleted_at' => date('Y-m-d H:i:s')
-        ]);
+        // Get event details to check status
+        $event = $this->getEventForComment($comment->event_id);
         
-        if ($result) {
-            return ['success' => true];
+        if (!$event) {
+            return ['success' => false, 'errors' => ['Event not found']];
         }
         
-        return ['success' => false, 'errors' => ['Failed to delete comment']];
+        // For completed events, perform hard delete (actually remove from database)
+        if ($event->status === 'completed') {
+            $query = "DELETE FROM event_comments WHERE id = :comment_id";
+            $stmt = $this->connect()->prepare($query);
+            $result = $stmt->execute(['comment_id' => $commentId]);
+            
+            if ($result) {
+                return ['success' => true, 'message' => 'Comment permanently deleted'];
+            }
+            
+            return ['success' => false, 'errors' => ['Failed to delete comment']];
+        } else {
+            // For non-completed events, use soft delete
+            $result = $this->update($commentId, [
+                'is_deleted' => 1,
+                'deleted_at' => date('Y-m-d H:i:s')
+            ]);
+            
+            if ($result) {
+                return ['success' => true, 'message' => 'Comment deleted'];
+            }
+            
+            return ['success' => false, 'errors' => ['Failed to delete comment']];
+        }
     }
     
     /**

@@ -409,6 +409,119 @@ class PublisherComments extends Controller {
     }
     
     /**
+     * Delete a comment (AJAX endpoint) - Publishers can delete comments on their events
+     */
+    public function deleteComment($commentId = null) {
+        header('Content-Type: application/json');
+        
+        // Check if publisher is logged in
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'error' => 'You must be logged in as a publisher to delete comments']);
+            return;
+        }
+        
+        if (!$commentId) {
+            echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
+            return;
+        }
+        
+        try {
+            // Get current user
+            $currentUser = AuthService::getCurrentUser();
+            
+            // Delete comment using the same model logic
+            $result = $this->commentModel->deleteComment(
+                $commentId,
+                $currentUser['id'],
+                $currentUser['type']
+            );
+            
+            if ($result['success']) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => $result['message'] ?? 'Comment deleted successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => implode(', ', $result['errors'])
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error deleting comment: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to delete comment']);
+        }
+    }
+
+    /**
+     * Update a comment (AJAX endpoint) - Publishers can update their comments
+     */
+    public function updateComment($commentId = null) {
+        header('Content-Type: application/json');
+        
+        // Check if publisher is logged in
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'error' => 'You must be logged in as a publisher to update comments']);
+            return;
+        }
+        
+        if (!$commentId) {
+            echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
+            return;
+        }
+        
+        // Get PUT/POST data
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            $input = $_POST;
+        }
+        
+        try {
+            // Get current user
+            $currentUser = AuthService::getCurrentUser();
+            
+            // Update comment
+            $result = $this->commentModel->updateComment(
+                $commentId,
+                $input,
+                $currentUser['id'],
+                $currentUser['type']
+            );
+            
+            if ($result['success']) {
+                // Get updated comment
+                $updatedComment = $this->commentModel->getCommentById($commentId);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Comment updated successfully',
+                    'comment' => [
+                        'id' => $updatedComment->id,
+                        'user_name' => $updatedComment->user_name,
+                        'user_type' => $updatedComment->user_type,
+                        'comment_text' => $updatedComment->comment_text,
+                        'rating' => $updatedComment->rating,
+                        'is_edited' => true,
+                        'updated_at' => $updatedComment->updated_at,
+                        'formatted_date' => $this->formatDate($updatedComment->updated_at)
+                    ]
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => implode(', ', $result['errors'])
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error updating comment: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to update comment']);
+        }
+    }
+
+    /**
      * Format date for display
      */
     private function formatDate($dateString) {
