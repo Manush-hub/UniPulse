@@ -240,7 +240,7 @@
                                                     <?php if ($moderator->is_active): ?>
                                                         <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
                                                            class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
+                                                           onclick="return confirmModeratorDeletion(<?php echo $moderator->id; ?>, '<?php echo htmlspecialchars($moderator->full_name, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($moderator->university_name, ENT_QUOTES); ?>')">
                                                             <i class="fas fa-trash"></i>
                                                         </a>
                                                     <?php else: ?>
@@ -250,7 +250,7 @@
                                                         </a>
                                                         <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
                                                            class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirm('Are you sure you want to delete this moderator? This action cannot be undone.')">
+                                                           onclick="return confirmModeratorDeletion(<?php echo $moderator->id; ?>, '<?php echo htmlspecialchars($moderator->full_name, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($moderator->university_name, ENT_QUOTES); ?>')">
                                                             <i class="fas fa-trash"></i>
                                                         </a>
                                                     <?php endif; ?>
@@ -272,5 +272,223 @@
             </div>
         </section>
     </div>
+
+    <!-- Custom Modal for Delete Confirmation -->
+    <div id="deleteModal" class="delete-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeDeleteModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Moderator Deletion</h3>
+                <button onclick="closeDeleteModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modalMessage"></div>
+                <div id="pendingWarning" class="warning-box" style="display: none;">
+                    <i class="fas fa-warning"></i>
+                    <strong>Warning:</strong> This moderator has pending publisher approvals that need to be resolved first.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+                <button id="confirmDeleteBtn" onclick="proceedWithDeletion()" class="btn-confirm-delete">Delete Moderator</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .delete-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+        
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            min-width: 400px;
+            max-width: 600px;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .warning-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            color: #92400e;
+        }
+        
+        .warning-box i {
+            color: #f59e0b;
+            margin-top: 0.125rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-cancel {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cancel:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+        
+        .btn-confirm-delete {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: #dc2626;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-confirm-delete:hover {
+            background: #b91c1c;
+        }
+        
+        .btn-confirm-delete:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <script>
+        let currentDeleteUrl = '';
+        
+        async function confirmModeratorDeletion(moderatorId, moderatorName, universityName) {
+            try {
+                // Check for pending approvals
+                const response = await fetch(`/unipulse/public/admin/moderators/check_pending/${moderatorId}`);
+                const data = await response.json();
+                
+                const modal = document.getElementById('deleteModal');
+                const message = document.getElementById('modalMessage');
+                const warningBox = document.getElementById('pendingWarning');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                
+                message.innerHTML = `Are you sure you want to delete moderator <strong>${moderatorName}</strong> from <strong>${universityName}</strong>?<br><br>This action cannot be undone.`;
+                
+                if (data.hasPending && data.pendingCount > 0) {
+                    warningBox.style.display = 'flex';
+                    warningBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong>Warning:</strong> This moderator has <strong>${data.pendingCount}</strong> pending publisher approval(s) 
+                            for ${universityName}. These approvals need to be resolved first.
+                        </div>`;
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Cannot Delete';
+                    currentDeleteUrl = '';
+                } else {
+                    warningBox.style.display = 'none';
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Delete Moderator';
+                    currentDeleteUrl = `/unipulse/public/admin/moderators/deactivate/${moderatorId}`;
+                }
+                
+                modal.style.display = 'block';
+                return false; // Prevent default action
+            } catch (error) {
+                console.error('Error checking pending approvals:', error);
+                // Fallback to simple confirmation with server-side check
+                const message = `Are you sure you want to delete moderator ${moderatorName}?\n\n` +
+                              `Note: If this moderator has pending approvals, the deletion will be blocked by the server.\n\n` +
+                              `This action cannot be undone.`;
+                return confirm(message);
+            }
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+        
+        function proceedWithDeletion() {
+            if (currentDeleteUrl) {
+                window.location.href = currentDeleteUrl;
+            }
+        }
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDeleteModal();
+            }
+        });
+    </script>
 </body>
 </html>

@@ -26,7 +26,7 @@ class Publisherreg extends Controller{
                     // Insert publisher data
                     $publisherId = $publisher->create($userData);
                     
-                    if (!$publisherId) {
+                    if ($publisherId) {
                         // Also create entry in main users table
                         $user = new User();
                         $user->createFromRegistration(
@@ -40,16 +40,15 @@ class Publisherreg extends Controller{
                         $this->notifyModerators($userData['university'], $publisherId);
                         
                         $success = true;
-                        $data['success_message'] = "Registration successful! Your publisher account has been created and is pending verification by university moderators.";
-                        header("Location: signin");
+                        $_SESSION['registration_success'] = "Registration successful! Your publisher account has been created and is pending verification by university moderators.";
+                        header("Location: /unipulse/public/signin");
                         exit();
-                        // Clear form data on success
-                        $_POST = [];
-                        $_FILES = [];
                     } else {
                         $errors[] = "Registration failed. Please try again.";
                     }
                 } catch (Exception $e) {
+                    error_log("Publisher registration error: " . $e->getMessage());
+                    error_log("Stack trace: " . $e->getTraceAsString());
                     $errors[] = "An error occurred during registration: " . $e->getMessage();
                 }
             }
@@ -66,6 +65,12 @@ class Publisherreg extends Controller{
      * Notify moderators of new publisher registration
      */
     private function notifyModerators($university, $publisherId) {
+        // Validate parameters
+        if (empty($university) || empty($publisherId)) {
+            error_log("Invalid parameters for notifyModerators: university=$university, publisherId=$publisherId");
+            return false;
+        }
+        
         $moderatorModel = new Moderator();
         $moderators = $moderatorModel->getByUniversity($university);
         
@@ -81,6 +86,8 @@ class Publisherreg extends Controller{
                 );
             }
         }
+        
+        return true;
     }
 
 }

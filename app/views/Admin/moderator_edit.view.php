@@ -52,6 +52,35 @@
             border-color: #4a90e2;
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
+        .form-group input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        .readonly-info {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+            font-style: italic;
+        }
+        .required-asterisk {
+            color: #dc2626;
+            margin-left: 3px;
+        }
+        .form-group input.error,
+        .form-group select.error {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        .validation-error {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        .validation-error.show {
+            display: block;
+        }
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -201,24 +230,28 @@
                         <form method="POST" action="">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="full_name">Full Name *</label>
+                                    <label for="full_name">Full Name <span class="required-asterisk">*</span></label>
                                     <input type="text" 
                                            id="full_name" 
                                            name="full_name" 
                                            value="<?php echo htmlspecialchars($moderator->full_name); ?>" 
                                            required>
+                                    <div class="validation-error" id="full_name_error"></div>
                                     <?php if (isset($errors['full_name'])): ?>
                                         <div class="error-message"><?php echo htmlspecialchars($errors['full_name']); ?></div>
                                     <?php endif; ?>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="email">Email Address *</label>
+                                    <label for="email">Email Address <span class="required-asterisk">*</span></label>
                                     <input type="email" 
                                            id="email" 
                                            name="email" 
                                            value="<?php echo htmlspecialchars($moderator->email); ?>" 
-                                           required>
+                                           readonly>
+                                    <div class="readonly-info">
+                                        <i class="fas fa-info-circle"></i> Email cannot be changed after creation
+                                    </div>
                                     <?php if (isset($errors['email'])): ?>
                                         <div class="error-message"><?php echo htmlspecialchars($errors['email']); ?></div>
                                     <?php endif; ?>
@@ -231,14 +264,16 @@
                                     <input type="tel" 
                                            id="phone" 
                                            name="phone" 
+                                           placeholder="e.g., 0771234567 or +94771234567"
                                            value="<?php echo htmlspecialchars($moderator->phone ?? ''); ?>">
+                                    <div class="validation-error" id="phone_error"></div>
                                     <?php if (isset($errors['phone'])): ?>
                                         <div class="error-message"><?php echo htmlspecialchars($errors['phone']); ?></div>
                                     <?php endif; ?>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="university">University *</label>
+                                    <label for="university">University <span class="required-asterisk">*</span></label>
                                     <select id="university" name="university" required>
                                         <option value="">Select University</option>
                                         <?php foreach ($universities as $key => $name): ?>
@@ -248,23 +283,15 @@
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <div class="validation-error" id="university_error"></div>
                                     <?php if (isset($errors['university'])): ?>
                                         <div class="error-message"><?php echo htmlspecialchars($errors['university']); ?></div>
                                     <?php endif; ?>
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="university_name">University Name *</label>
-                                <input type="text" 
-                                       id="university_name" 
-                                       name="university_name" 
-                                       value="<?php echo htmlspecialchars($moderator->university_name ?? ''); ?>" 
-                                       required>
-                                <?php if (isset($errors['university_name'])): ?>
-                                    <div class="error-message"><?php echo htmlspecialchars($errors['university_name']); ?></div>
-                                <?php endif; ?>
-                            </div>
+                            <!-- Hidden field to store university name -->
+                            <input type="hidden" id="university_name" name="university_name" value="<?php echo htmlspecialchars($moderator->university_name ?? ''); ?>">
                             
                             <div class="form-group">
                                 <label for="password">New Password (leave blank to keep current)</label>
@@ -314,7 +341,151 @@
             } else {
                 universityNameInput.value = '';
             }
+            
+            // Clear validation error when selection changes
+            clearValidationError('university');
         });
+
+        // Initialize university name on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const universitySelect = document.getElementById('university');
+            const universityNameInput = document.getElementById('university_name');
+            const selectedOption = universitySelect.options[universitySelect.selectedIndex];
+            
+            if (selectedOption.value && !universityNameInput.value) {
+                universityNameInput.value = selectedOption.text;
+            }
+            
+            // Initialize form validation
+            initFormValidation();
+        });
+
+        // Form validation functions
+        function showValidationError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + '_error');
+            
+            field.classList.add('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        function clearValidationError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(fieldId + '_error');
+            
+            field.classList.remove('error');
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
+        }
+
+        function validateField(fieldId, value, rules) {
+            // Clear previous error
+            clearValidationError(fieldId);
+            
+            // Check required fields
+            if (rules.required && (!value || value.trim() === '')) {
+                showValidationError(fieldId, rules.requiredMessage || 'This field is required');
+                return false;
+            }
+            
+            // Check minimum length
+            if (rules.minLength && value && value.trim().length < rules.minLength) {
+                showValidationError(fieldId, rules.minLengthMessage || `Minimum ${rules.minLength} characters required`);
+                return false;
+            }
+            
+            // Check email format
+            if (rules.email && value && value.trim() !== '') {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    showValidationError(fieldId, 'Please enter a valid email address');
+                    return false;
+                }
+            }
+            
+            // Check phone format
+            if (rules.phone && value && value.trim() !== '') {
+                // Sri Lankan phone number validation
+                // Supports formats: 0771234567, +94771234567, +94 77 123 4567, 077-123-4567, etc.
+                const phoneRegex = /^(\+94|0)?[0-9\s\-\(\)]{9,15}$/;
+                const cleanPhone = value.replace(/[\s\-\(\)]/g, ''); // Remove spaces, dashes, parentheses
+                
+                // Check if it's a valid Sri Lankan number
+                const sriLankanRegex = /^(\+94|0)?(7[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|8[0-9]|9[0-9])[0-9]{7}$/;
+                
+                if (!phoneRegex.test(value) || !sriLankanRegex.test(cleanPhone)) {
+                    showValidationError(fieldId, 'Please enter a valid Sri Lankan phone number (e.g., 0771234567 or +94771234567)');
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        function initFormValidation() {
+            const form = document.querySelector('form');
+            
+            // Real-time validation on blur
+            document.getElementById('full_name').addEventListener('blur', function() {
+                validateField('full_name', this.value, {
+                    required: true,
+                    minLength: 2,
+                    requiredMessage: 'Full name is required',
+                    minLengthMessage: 'Full name must be at least 2 characters'
+                });
+            });
+            
+            document.getElementById('phone').addEventListener('blur', function() {
+                validateField('phone', this.value, {
+                    phone: true
+                });
+            });
+            
+            document.getElementById('university').addEventListener('change', function() {
+                validateField('university', this.value, {
+                    required: true,
+                    requiredMessage: 'Please select a university'
+                });
+            });
+            
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validate all required fields
+                if (!validateField('full_name', document.getElementById('full_name').value, {
+                    required: true,
+                    minLength: 2,
+                    requiredMessage: 'Full name is required',
+                    minLengthMessage: 'Full name must be at least 2 characters'
+                })) {
+                    isValid = false;
+                }
+                
+                if (!validateField('university', document.getElementById('university').value, {
+                    required: true,
+                    requiredMessage: 'Please select a university'
+                })) {
+                    isValid = false;
+                }
+                
+                // Validate optional phone if provided
+                const phoneValue = document.getElementById('phone').value;
+                if (phoneValue && !validateField('phone', phoneValue, { phone: true })) {
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    // Scroll to first error
+                    const firstError = document.querySelector('.validation-error.show');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>

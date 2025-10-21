@@ -25,6 +25,7 @@ body {
     padding: 0;
     flex: 1;
     flex-direction: column;
+    margin-top: 80px;
 }
 
 /* User Avatar */

@@ -119,27 +119,17 @@ class Moderator {
     public function updateModerator($id, $data) {
         $errors = [];
         
+        // Remove email from update data - email cannot be changed
+        if (isset($data['email'])) {
+            unset($data['email']);
+        }
+        
         // Validate full name
         if (isset($data['full_name'])) {
             if (empty($data['full_name'])) {
                 $errors['full_name'] = 'Full name is required';
             } elseif (strlen($data['full_name']) < 2) {
                 $errors['full_name'] = 'Full name must be at least 2 characters';
-            }
-        }
-        
-        // Validate email
-        if (isset($data['email'])) {
-            if (empty($data['email'])) {
-                $errors['email'] = 'Email is required';
-            } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                $errors['email'] = 'Please provide a valid email address';
-            } else {
-                // Check if email already exists (excluding current moderator)
-                $existing = $this->where(['email' => $data['email']]);
-                if ($existing && count($existing) > 0 && $existing[0]->id != $id) {
-                    $errors['email'] = 'This email is already registered';
-                }
             }
         }
         
@@ -229,18 +219,23 @@ class Moderator {
      * Get moderator permissions
      */
     public function getPermissions($id) {
-        $moderator = $this->find($id);
-        if ($moderator && $moderator->permissions) {
-            return json_decode($moderator->permissions, true);
-        }
-        
         // Default permissions for moderators
-        return [
+        $defaultPermissions = [
             'approve_publishers' => true,
             'moderate_events' => true,
             'handle_reports' => true,
             'view_analytics' => true
         ];
+        
+        $moderator = $this->find($id);
+        if ($moderator && $moderator->permissions) {
+            $existingPermissions = json_decode($moderator->permissions, true) ?: [];
+            // Merge existing permissions with defaults, giving priority to existing
+            return array_merge($defaultPermissions, $existingPermissions);
+        }
+        
+        // Return default permissions if no moderator found or no permissions set
+        return $defaultPermissions;
     }
     
     /**
@@ -316,5 +311,35 @@ class Moderator {
     public function findById($id) {
         $query = "SELECT * FROM moderators WHERE id = :id LIMIT 1";
         return $this->getRow($query, ['id' => $id]);
+    }
+    
+    /**
+     * Check if moderator has pending approvals
+     */
+    public function hasPendingApprovals($moderatorId) {
+        $moderator = $this->find($moderatorId);
+        if (!$moderator) {
+            return false;
+        }
+        
+        // Check for pending publisher approvals for this moderator's university
+        $publisherModel = new Publisher();
+        $pendingCount = $publisherModel->getPendingCountByUniversity($moderator->university);
+        
+        return $pendingCount > 0;
+    }
+    
+    /**
+     * Get count of pending approvals for moderator
+     */
+    public function getPendingApprovalsCount($moderatorId) {
+        $moderator = $this->find($moderatorId);
+        if (!$moderator) {
+            return 0;
+        }
+        
+        // Get pending publisher approvals count for this moderator's university
+        $publisherModel = new Publisher();
+        return $publisherModel->getPendingCountByUniversity($moderator->university);
     }
 }

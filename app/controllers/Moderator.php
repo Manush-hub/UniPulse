@@ -26,8 +26,8 @@ class ModeratorController extends Controller {
             // Get recent pending publishers for this university
             $recent_pending_publishers = $publisherModel->getRecentPendingForUniversity($moderator->university, 5);
             
-            // Get moderator permissions
-            $permissions = json_decode($moderator->permissions ?? '{}', true);
+            // Get moderator permissions (with defaults)
+            $permissions = $moderatorModel->getPermissions($moderator->id);
             
             $data = [
                 'title' => 'Moderator Dashboard',

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lankan Phone Number Validation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .test-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .test-case { margin: 10px 0; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .valid { background: #dcfce7; border-left: 4px solid #10b981; }
+        .invalid { background: #fee2e2; border-left: 4px solid #dc2626; }
+        .test-number { font-family: monospace; font-weight: bold; }
+        .result { font-weight: bold; }
+        input { padding: 10px; margin: 10px 0; width: 100%; border: 2px solid #e0e0e0; border-radius: 6px; }
+        input.error { border-color: #dc2626; background: #fef2f2; }
+        .error-msg { color: #dc2626; font-size: 14px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>📱 Sri Lankan Phone Number Validation Test</h2>
+        
+        <div style="margin-bottom: 30px;">
+            <h3>🧪 Interactive Test:</h3>
+            <input type="tel" id="phoneTest" placeholder="Try entering: 0771234567 or +94782341345">
+            <div id="result" class="error-msg" style="display: none;"></div>
+        </div>
+        
+        <h3>✅ Test Cases - Valid Numbers:</h3>
+        <div id="validTests"></div>
+        
+        <h3>❌ Test Cases - Invalid Numbers:</h3>
+        <div id="invalidTests"></div>
+    </div>
+
+    <script>
+        // Sri Lankan phone number validation function
+        function validateSriLankanPhone(value) {
+            if (!value || value.trim() === '') return { valid: true, message: '' };
+            
+            const phoneRegex = /^(\+94|0)?[0-9\s\-\(\)]{9,15}$/;
+            const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+            const sriLankanRegex = /^(\+94|0)?(7[0-9]|1[0-9]|2[0-9]|3[0-9]|4[0-9]|5[0-9]|6[0-9]|8[0-9]|9[0-9])[0-9]{7}$/;
+            
+            if (!phoneRegex.test(value) || !sriLankanRegex.test(cleanPhone)) {
+                return { 
+                    valid: false, 
+                    message: 'Please enter a valid Sri Lankan phone number (e.g., 0771234567 or +94771234567)' 
+                };
+            }
+            
+            return { valid: true, message: 'Valid Sri Lankan phone number' };
+        }
+
+        // Test cases
+        const validNumbers = [
+            '0771234567',
+            '+94771234567', 
+            '+94782341345',
+            '0782341345',
+            '+94 77 123 4567',
+            '077-123-4567',
+            '077 123 4567',
+            '0112345678',
+            '+94112345678',
+            '091-234-5678'
+        ];
+
+        const invalidNumbers = [
+            '123456789',      // Too short
+            '12345678901234', // Too long 
+            '+1234567890',    // Wrong country code
+            '0771234',        // Too short
+            'abcd1234567',    // Contains letters
+            '++94771234567',  // Double plus
+            '0071234567',     // Invalid prefix (00)
+            '+94001234567',   // Invalid area code (00)
+            '',               // Empty (should be valid for optional field)
+            '+94x71234567'    // Contains invalid character
+        ];
+
+        // Create test displays
+        function createTestDisplay(numbers, isValid) {
+            const container = document.getElementById(isValid ? 'validTests' : 'invalidTests');
+            
+            numbers.forEach(number => {
+                const result = validateSriLankanPhone(number);
+                const div = document.createElement('div');
+                div.className = `test-case ${result.valid ? 'valid' : 'invalid'}`;
+                
+                div.innerHTML = `
+                    <span class="test-number">${number || '(empty)'}</span>
+                    <span class="result">${result.valid ? '✅ Valid' : '❌ Invalid'}</span>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+
+        // Interactive test
+        document.getElementById('phoneTest').addEventListener('input', function() {
+            const result = validateSriLankanPhone(this.value);
+            const resultDiv = document.getElementById('result');
+            
+            if (this.value.trim() === '') {
+                this.classList.remove('error');
+                resultDiv.style.display = 'none';
+            } else if (result.valid) {
+                this.classList.remove('error');
+                resultDiv.style.display = 'block';
+                resultDiv.style.color = '#10b981';
+                resultDiv.textContent = '✅ Valid Sri Lankan phone number';
+            } else {
+                this.classList.add('error');
+                resultDiv.style.display = 'block';
+                resultDiv.style.color = '#dc2626';
+                resultDiv.textContent = result.message;
+            }
+        });
+
+        // Initialize tests
+        createTestDisplay(validNumbers, true);
+        createTestDisplay(invalidNumbers.filter(n => n !== ''), false); // Exclude empty string for invalid test
+    </script>
+</body>
+</html>

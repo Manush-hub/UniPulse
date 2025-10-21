@@ -6,21 +6,29 @@ class Publisher {
     protected $table = 'publishers';
     
     public function create($data) {
-        $query = "INSERT INTO publishers (
-            society_name, email, phone, country_code, password_hash, 
-            university, faculty, confirmation_document, approval_status
-        ) VALUES (
-            :society_name, :email, :phone, :country_code, :password_hash,
-            :university, :faculty, :confirmation_document, 'pending'
-        )";
-        
-        $result = $this->query($query, $data);
-        if ($result !== false) {
-            // Get the connection to retrieve last insert ID
+        try {
+            $query = "INSERT INTO publishers (
+                society_name, email, phone, country_code, password_hash, 
+                university, faculty, confirmation_document, approval_status
+            ) VALUES (
+                :society_name, :email, :phone, :country_code, :password_hash,
+                :university, :faculty, :confirmation_document, 'pending'
+            )";
+            
+            // Use direct database connection for INSERT operations
             $conn = $this->connect();
-            return $conn->lastInsertId();
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute($data);
+            
+            if ($result) {
+                $publisherId = $conn->lastInsertId();
+                return $publisherId ? (int)$publisherId : false;
+            }
+            return false;
+        } catch (Exception $e) {
+            error_log("Error creating publisher: " . $e->getMessage());
+            throw $e;
         }
-        return false;
     }
     
     public function findByEmail($email) {
@@ -233,16 +241,30 @@ class Publisher {
      * Create approval notification
      */
     public function createApprovalNotification($publisherId, $moderatorId, $type, $message = '') {
-        $query = "INSERT INTO publisher_approval_notifications 
-                  (publisher_id, moderator_id, notification_type, message) 
-                  VALUES (:publisher_id, :moderator_id, :type, :message)";
+        // Validate required parameters
+        if (empty($publisherId) || empty($moderatorId) || empty($type)) {
+            error_log("Invalid parameters for createApprovalNotification: publisherId=$publisherId, moderatorId=$moderatorId, type=$type");
+            return false;
+        }
         
-        $this->query($query, [
-            'publisher_id' => $publisherId,
-            'moderator_id' => $moderatorId,
-            'type' => $type,
-            'message' => $message
-        ]);
+        try {
+            $query = "INSERT INTO publisher_approval_notifications 
+                      (publisher_id, moderator_id, notification_type, message) 
+                      VALUES (:publisher_id, :moderator_id, :type, :message)";
+            
+            // Use direct database connection for INSERT operations
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute([
+                'publisher_id' => $publisherId,
+                'moderator_id' => $moderatorId,
+                'type' => $type,
+                'message' => $message
+            ]);
+        } catch (Exception $e) {
+            error_log("Error creating approval notification: " . $e->getMessage());
+            return false;
+        }
     }
     
     /**
@@ -274,5 +296,16 @@ class Publisher {
             'university' => $university,
             'limit' => $limit
         ]);
+    }
+    
+    /**
+     * Get count of pending publisher approvals for a university
+     */
+    public function getPendingCountByUniversity($university) {
+        $query = "SELECT COUNT(*) as count FROM publishers 
+                  WHERE university = :university AND approval_status = 'pending'";
+        
+        $result = $this->getRow($query, ['university' => $university]);
+        return $result ? (int)$result->count : 0;
     }
 }

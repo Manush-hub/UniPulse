@@ -103,12 +103,52 @@ class Moderators extends Controller{
         }
         
         $moderatorModel = new Moderator();
-        // Instead of just deactivating, delete the moderator from database
+        
+        // Check if moderator has pending approvals
+        if ($moderatorModel->hasPendingApprovals($id)) {
+            $pendingCount = $moderatorModel->getPendingApprovalsCount($id);
+            $moderator = $moderatorModel->find($id);
+            $message = "Cannot delete moderator {$moderator->full_name}. ";
+            $message .= "This moderator has {$pendingCount} pending publisher approval(s) ";
+            $message .= "for {$moderator->university_name}. ";
+            $message .= "Please reassign or resolve these approvals first.";
+            
+            header('Location: /unipulse/public/admin/moderators?error=' . urlencode($message));
+            exit();
+        }
+        
+        // If no pending approvals, proceed with deletion
         if ($moderatorModel->deleteModerator($id)) {
             header('Location: /unipulse/public/admin/moderators?success=Moderator deleted successfully');
         } else {
             header('Location: /unipulse/public/admin/moderators?error=Failed to delete moderator');
         }
+        exit();
+    }
+    
+    public function check_pending($id = '', $b = '', $c = '') {
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Unauthorized']);
+            exit();
+        }
+        
+        if (!$id) {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'No moderator ID provided']);
+            exit();
+        }
+        
+        $moderatorModel = new Moderator();
+        $hasPending = $moderatorModel->hasPendingApprovals($id);
+        $pendingCount = $moderatorModel->getPendingApprovalsCount($id);
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'hasPending' => $hasPending,
+            'pendingCount' => $pendingCount
+        ]);
         exit();
     }
 }

@@ -180,7 +180,10 @@ class User {
                 'is_active' => 1
             ];
             
-            return $this->query($query, $data);
+            // Use direct database connection for INSERT operations
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($data);
         } catch (Exception $e) {
             error_log("Error creating user from registration: " . $e->getMessage());
             return false;
