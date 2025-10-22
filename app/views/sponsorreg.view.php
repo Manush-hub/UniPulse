@@ -6,6 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Sponsor Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/sponsorreg-style.css">
+    <style>
+        .required {
+            color: #dc3545;
+            margin-left: 3px;
+            font-weight: bold;
+        }
+        
+        /* Dropdown with scroll - show 4 items */
+        select#country-code {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select#country-code option {
+            padding: 10px;
+        }
+        
+        /* Set size attribute to show visible items when opened */
+        select#country-code[size] {
+            height: auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -65,19 +88,19 @@
                 $formData = isset($form_data) ? $form_data : null;
             ?>
                 <div class="form-group">
-                    <label for="name">Company/Individual Name</label>
+                    <label for="name">Company/Individual Name <span class="required">*</span></label>
                     <input type="text" id="name" name="name" placeholder="Enter your name" value="<?= getValue('name', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email Address</label>
+                    <label for="email">Email Address <span class="required">*</span></label>
                     <input type="email" id="email" name="email" placeholder="Enter your email address" value="<?= getValue('email', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone-number">Phone Number</label>
+                    <label for="phone-number">Phone Number <span class="required">*</span></label>
                     <div class="field">
-                        <select id="country-code" name="country-code" required>
+                        <select id="country-code" name="country-code" size="1" required>
                             <option value="+94" <?= getValue('country-code', $formData) === '+94' ? 'selected' : '' ?>>LK +94</option>
                             <option value="+91" <?= getValue('country-code', $formData) === '+91' ? 'selected' : '' ?>>IN +91</option>
                             <option value="+44" <?= getValue('country-code', $formData) === '+44' ? 'selected' : '' ?>>UK +44</option>
@@ -88,12 +111,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Password <span class="required">*</span></label>
                     <input type="password" id="password" name="password" placeholder="Create your password" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
+                    <label for="confirm-password">Confirm Password <span class="required">*</span></label>
                     <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
                 </div>
 
@@ -113,6 +136,25 @@
     <?php include 'footer.php'; ?>
 
     <script>
+        // Country code dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const countryCodeSelect = document.getElementById('country-code');
+            
+            // When user clicks on dropdown, show 4 items
+            countryCodeSelect.addEventListener('focus', function() {
+                this.size = 4;
+            });
+            
+            countryCodeSelect.addEventListener('blur', function() {
+                this.size = 1;
+            });
+            
+            countryCodeSelect.addEventListener('change', function() {
+                this.size = 1;
+                this.blur();
+            });
+        });
+
         // Terms validation with improved feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
