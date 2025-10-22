@@ -169,13 +169,22 @@ class Editevent extends Controller{
                 exit();
             }
             
+            // Sanitize and validate date inputs
+            function sanitizeDate($date) {
+                return (!empty($date) && $date !== '') ? $date : null;
+            }
+            
+            function sanitizeTime($time) {
+                return (!empty($time) && $time !== '') ? $time : null;
+            }
+            
             // Get form data (same structure as create event)
             $formData = [
                 'title' => $_POST['event_name'] ?? '',
                 'description' => $_POST['event_description'] ?? '',
                 'category' => $_POST['event_category'] ?? '',
-                'event_date' => $_POST['event_date'] ?? '',
-                'event_time' => $_POST['event_time'] ?? '',
+                'event_date' => sanitizeDate($_POST['event_date'] ?? ''),
+                'event_time' => sanitizeTime($_POST['event_time'] ?? ''),
                 'location' => $_POST['event_location'] ?? '',
                 'location_type' => $_POST['location-type'] ?? 'inside-university',
                 'venue_name' => $_POST['venue_name'] ?? '',
@@ -187,10 +196,25 @@ class Editevent extends Controller{
                 'target_audience' => $_POST['audience'] ?? 'university-students',
                 'ticket_type' => $_POST['ticketType'] ?? 'free-all',
                 'registration_limit' => !empty($_POST['registration_limit']) ? (int)$_POST['registration_limit'] : null,
-                'registration_start_date' => $_POST['registration_start_date'] ?? null,
-                'registration_start_time' => $_POST['registration_start_time'] ?? null,
-                'registration_end_date' => $_POST['registration_end_date'] ?? null,
-                'registration_end_time' => $_POST['registration_end_time'] ?? null,
+                'registration_start_date' => sanitizeDate($_POST['registration_start_date'] ?? ''),
+                'registration_start_time' => sanitizeTime($_POST['registration_start_time'] ?? ''),
+                'registration_end_date' => sanitizeDate($_POST['registration_end_date'] ?? ''),
+                'registration_end_time' => sanitizeTime($_POST['registration_end_time'] ?? ''),
+                // Paid ticket fields
+                'sale_start_date' => sanitizeDate($_POST['sale_start_date'] ?? ''),
+                'sale_start_time' => sanitizeTime($_POST['sale_start_time'] ?? ''),
+                'sale_end_date' => sanitizeDate($_POST['sale_end_date'] ?? ''),
+                'sale_end_time' => sanitizeTime($_POST['sale_end_time'] ?? ''),
+                // Mixed ticket fields
+                'mixed_free_limit' => !empty($_POST['mixed_free_limit']) ? (int)$_POST['mixed_free_limit'] : null,
+                'mixed_registration_start_date' => sanitizeDate($_POST['mixed_registration_start_date'] ?? ''),
+                'mixed_registration_start_time' => sanitizeTime($_POST['mixed_registration_start_time'] ?? ''),
+                'mixed_registration_end_date' => sanitizeDate($_POST['mixed_registration_end_date'] ?? ''),
+                'mixed_registration_end_time' => sanitizeTime($_POST['mixed_registration_end_time'] ?? ''),
+                'mixed_sale_start_date' => sanitizeDate($_POST['mixed_sale_start_date'] ?? ''),
+                'mixed_sale_start_time' => sanitizeTime($_POST['mixed_sale_start_time'] ?? ''),
+                'mixed_sale_end_date' => sanitizeDate($_POST['mixed_sale_end_date'] ?? ''),
+                'mixed_sale_end_time' => sanitizeTime($_POST['mixed_sale_end_time'] ?? ''),
                 'needs_volunteers' => isset($_POST['volunteerToggle']) && $_POST['volunteerToggle'] == '1' ? 1 : 0,
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
@@ -215,6 +239,11 @@ class Editevent extends Controller{
             // Handle ticket types if provided
             if (!empty($_POST['ticket_types'])) {
                 $formData['ticket_types'] = json_decode($_POST['ticket_types'], true);
+            }
+            
+            // Handle mixed ticket types if provided
+            if (!empty($_POST['mixed_ticket_types'])) {
+                $formData['mixed_ticket_types'] = json_decode($_POST['mixed_ticket_types'], true);
             }
             
             // Handle custom fields if provided

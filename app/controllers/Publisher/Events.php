@@ -305,8 +305,8 @@ class PublisherEvents extends Controller{
                 exit();
             }
             
-            // Redirect to the create event page with edit mode
-            header("Location: /unipulse/public/publisher/create_event?edit={$eventId}");
+            // Redirect to the edit event page
+            header("Location: /unipulse/public/publisher/editevent/{$eventId}");
             exit();
             
         } catch (Exception $e) {

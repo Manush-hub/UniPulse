@@ -40,6 +40,20 @@ class Event {
         'registration_end_date',
         'registration_end_time',
         'ticket_types',
+        'sale_start_date',
+        'sale_start_time',
+        'sale_end_date',
+        'sale_end_time',
+        'mixed_free_limit',
+        'mixed_registration_start_date',
+        'mixed_registration_start_time',
+        'mixed_registration_end_date',
+        'mixed_registration_end_time',
+        'mixed_sale_start_date',
+        'mixed_sale_start_time',
+        'mixed_sale_end_date',
+        'mixed_sale_end_time',
+        'mixed_ticket_types',
         'custom_fields',
         'needs_volunteers',
         'volunteer_sources',
@@ -542,6 +556,10 @@ class Event {
         
         if (isset($data['ticket_types']) && is_array($data['ticket_types'])) {
             $data['ticket_types'] = json_encode($data['ticket_types']);
+        }
+        
+        if (isset($data['mixed_ticket_types']) && is_array($data['mixed_ticket_types'])) {
+            $data['mixed_ticket_types'] = json_encode($data['mixed_ticket_types']);
         }
         
         if (isset($data['custom_fields']) && is_array($data['custom_fields'])) {

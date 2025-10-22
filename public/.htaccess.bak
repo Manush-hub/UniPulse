@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Don't rewrite files and directories that exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Don't rewrite php files 
+RewriteRule ^.*\.php$ - [L]
+
+# Redirect all other requests to index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

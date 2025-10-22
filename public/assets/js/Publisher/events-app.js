@@ -150,15 +150,23 @@ function updatePagination(pagination = null) {
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
+    
+    // Debug logging to check event object
+    console.log('Creating event card for event:', event);
+    console.log('Event ID:', event.id);
+    console.log('Event status:', event.status);
+    
     card.onclick = (e) => {
         // Don't trigger view details if clicking on action buttons
         if (!e.target.closest('.event-actions')) {
-            viewEventDetails(event.id);
+            console.log('Event card clicked, event ID:', eventId);
+            viewEventDetails(eventId);
         }
     };
     card.style.cursor = 'pointer';
     
     // Handle different field names from database vs JavaScript
+    const eventId = event.id || event.event_id;
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
     const universityName = event.university_name || event.universityName;
@@ -170,6 +178,12 @@ function createEventCard(event) {
     const locationType = event.location_type || 'inside-university';
     const venueName = event.venue_name || event.venueName;
     const city = event.city;
+    
+    // Ensure we have a valid event ID
+    if (!eventId) {
+        console.error('Event ID is missing for event:', event);
+        return card; // Return card but without click functionality
+    }
     
     // Build location display based on location type
     let locationDisplay = '';
@@ -339,8 +353,25 @@ function loadMoreEvents() {
 
 // View event details - redirect to event view page
 function viewEventDetails(eventId) {
-    // Redirect to event view page using MVC routing
-    window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
+    // Debug logging to check if eventId is valid
+    console.log('viewEventDetails called with eventId:', eventId);
+    
+    // Check if eventId is valid
+    if (!eventId || eventId === undefined || eventId === null) {
+        console.error('Invalid event ID:', eventId);
+        alert('Error: Invalid event ID. Please try again.');
+        return;
+    }
+    
+    try {
+        // Redirect to event view page using MVC routing
+        const url = `/unipulse/public/publisher/eventview?id=${eventId}`;
+        console.log('Redirecting to:', url);
+        window.location.href = url;
+    } catch (error) {
+        console.error('Error redirecting to event view:', error);
+        alert('Error loading event details. Please try again.');
+    }
 }
 
 // Utility functions

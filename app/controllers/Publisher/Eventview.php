@@ -73,15 +73,39 @@ class PublisherEventview extends Controller {
                         ];
                     } else {
                         $data['error'] = 'Event not found in database';
+                        // Still provide serverData for potential AJAX fallback
+                        $currentUser = AuthService::getCurrentUser();
+                        $data['serverData'] = [
+                            'error' => 'Event not found in database',
+                            'currentUser' => $currentUser,
+                            'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
+                            'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
+                        ];
                     }
                 }
             } catch (Exception $e) {
                 // Log error and show user-friendly message
                 error_log("Database error in PublisherEventview::index: " . $e->getMessage());
                 $data['error'] = 'Unable to load event details. Please try again later.';
+                // Still provide serverData for potential AJAX fallback
+                $currentUser = AuthService::getCurrentUser();
+                $data['serverData'] = [
+                    'error' => 'Unable to load event details. Please try again later.',
+                    'currentUser' => $currentUser,
+                    'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
+                    'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
+                ];
             }
         } else {
             $data['error'] = 'No event ID provided';
+            // Still provide serverData for potential AJAX fallback
+            $currentUser = AuthService::getCurrentUser();
+            $data['serverData'] = [
+                'error' => 'No event ID provided',
+                'currentUser' => $currentUser,
+                'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
+                'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
+            ];
         }
         
         $this->view('eventview', $data);

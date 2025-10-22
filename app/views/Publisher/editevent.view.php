@@ -44,6 +44,14 @@
         margin: 0 auto;
         padding: 0 2rem;
         }
+        
+        /* Required field indicator */
+        .form-label.required::after,
+        label.required::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: bold;
+        }
 
         /* Use main color #1E3A8A throughout */
         .section-icon {
@@ -109,6 +117,233 @@
         
         .add-ticket-type-btn:hover {
             background: #1e40af !important;
+        }
+        
+        /* Ticket functionality styles */
+        .ticket-container {
+            margin-top: 20px;
+        }
+
+        .ticket-type-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .ticket-type-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .ticket-type-option:hover {
+            border-color: #1E3A8A;
+            background: #f8fafc;
+        }
+
+        .ticket-type-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .ticket-type-option input[type="radio"]:checked + label {
+            color: #1E3A8A;
+            font-weight: 600;
+        }
+
+        .ticket-type-option input[type="radio"]:checked {
+            + label::before {
+                background: #1E3A8A;
+                border-color: #1E3A8A;
+            }
+        }
+
+        .ticket-type-option label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #374151;
+            margin: 0;
+        }
+
+        .ticket-type-option label::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .ticket-type-option input[type="radio"]:checked + label::before {
+            background: #1E3A8A;
+            border-color: #1E3A8A;
+            box-shadow: inset 0 0 0 3px white;
+        }
+
+        .ticket-icon {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        .ticket-details {
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            background: #f9fafb;
+        }
+
+        .ticket-details.hidden {
+            display: none;
+        }
+
+        .info-note {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            color: #0c4a6e;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .ticket-types-container {
+            margin: 20px 0;
+        }
+
+        .ticket-type-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .ticket-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .remove-ticket-type-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-ticket-type-btn:hover {
+            background: #dc2626;
+        }
+
+        .add-ticket-type-btn {
+            background: #1E3A8A;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .add-ticket-type-btn:hover {
+            background: #1e40af;
+        }
+
+        .ticket-discount-section {
+            margin: 15px 0;
+        }
+
+        .toggle-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #1E3A8A;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .discount-details {
+            margin-top: 15px;
+        }
+
+        .discount-details.hidden {
+            display: none;
+        }
+
+        .sale-dates {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
         
         /* Expand content area width */
@@ -529,43 +764,403 @@
                     </div>
                 </section>
 
-                <!-- Registration Details -->
+                <!-- Ticket Section -->
                 <section class="section" id="ticket">
                     <div class="section-header">
                         <div class="section-icon"></div>
-                        <h3>Registration Details</h3>
+                        <h3>Ticket</h3>
                         <div class="toggle-icon" style="margin-left: auto;">▼</div>
                     </div>
                     <div class="section-content">
-
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="max_participants" class="form-label">Maximum Participants *</label>
-                            <div class="input-group">
-                                <input type="number" name="max_participants" class="form-input" min="1" required
-                                       value="<?= htmlspecialchars($data['old_data']['max_participants'] ?? $data['event']->max_participants) ?>"
-                                       placeholder="Maximum number of participants">
-                            </div>
-                        </div>
+                            <div class="ticket-container">
+                                <h4>Ticket Booking Options:</h4>
 
-                        <div class="form-group">
-                            <label for="ticketType" class="form-label">Ticket Type *</label>
-                            <div class="input-group">
-                                <select name="ticketType" class="form-select" required>
-                                    <?php 
-                                    $ticketTypes = [
-                                        'free-all' => 'Free for All',
-                                        'paid-all' => 'Paid for All',
-                                        'mixed' => 'Mixed (Free & Paid)'
-                                    ];
-                                    $selectedTicketType = $data['old_data']['ticket_type'] ?? $data['event']->ticket_type;
-                                    foreach ($ticketTypes as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedTicketType == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <?php 
+                                $selectedTicketType = $data['old_data']['ticket_type'] ?? $data['event']->ticket_type ?? 'free-all';
+                                ?>
+
+                                <div class="ticket-type-options">
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="free-all" name="ticketType" value="free-all" <?= $selectedTicketType == 'free-all' ? 'checked' : '' ?>>
+                                        <label for="free-all">
+                                            <i class="fas fa-gift ticket-icon" style="color: #10B981;"></i>
+                                            Free for All
+                                        </label>
+                                    </div>
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="paid-all" name="ticketType" value="paid-all" <?= $selectedTicketType == 'paid-all' ? 'checked' : '' ?>>
+                                        <label for="paid-all">
+                                            <i class="fas fa-credit-card ticket-icon" style="color: #F59E0B;"></i>
+                                            Paid for All
+                                        </label>
+                                    </div>
+                                    <div class="ticket-type-option">
+                                        <input type="radio" id="mixed" name="ticketType" value="mixed" <?= $selectedTicketType == 'mixed' ? 'checked' : '' ?>>
+                                        <label for="mixed">
+                                            <i class="fas fa-university ticket-icon" style="color: #4A5BCC;"></i>
+                                            Free for Uni Students + Paid for Others
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Free for All Details -->
+                                <div id="freeAllDetails" class="ticket-details <?= $selectedTicketType != 'free-all' ? 'hidden' : '' ?>">
+                                    <div class="info-note" style="background: #f0fdf4; border-color: #10B981;">
+                                        <i class="fas fa-gift"></i>
+                                        Free registration for all attendees.
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Limit (Optional)</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
+                                        <input type="number" class="form-input" name="max_participants" placeholder="Leave empty for unlimited registrations" min="1"
+                                               value="<?= htmlspecialchars($data['old_data']['max_participants'] ?? $data['event']->max_participants ?? '') ?>">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Registration Period (Optional)</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set registration period if needed. Leave empty to allow registration until event date</p>
+
+                                        <div class="sale-dates">
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" name="registration_start_date" class="form-input registration-start-date"
+                                                    min="<?php echo date('Y-m-d'); ?>"
+                                                    value="<?= htmlspecialchars($data['old_data']['registration_start_date'] ?? $data['event']->registration_start_date ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" name="registration_start_time" class="form-input"
+                                                       value="<?= htmlspecialchars($data['old_data']['registration_start_time'] ?? $data['event']->registration_start_time ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" name="registration_end_date" class="form-input registration-end-date"
+                                                    min="<?php echo date('Y-m-d'); ?>"
+                                                    value="<?= htmlspecialchars($data['old_data']['registration_end_date'] ?? $data['event']->registration_end_date ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" name="registration_end_time" class="form-input"
+                                                       value="<?= htmlspecialchars($data['old_data']['registration_end_time'] ?? $data['event']->registration_end_time ?? '') ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Paid for All Details -->
+                                <div id="paidAllDetails" class="ticket-details <?= $selectedTicketType != 'paid-all' ? 'hidden' : '' ?>">
+                                    <div class="info-note">
+                                        <i class="fas fa-ticket-alt"></i>
+                                        Configure your paid ticket details below
+                                    </div>
+
+                                    <!-- Ticket Types Container -->
+                                    <div class="ticket-types-container">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                            Ticket Types <span style="color: #dc3545;">*</span>
+                                        </h4>
+
+                                        <div id="ticketTypesList">
+                                            <?php
+                                            // Get existing ticket types data
+                                            $existingTicketTypes = [];
+                                            if (isset($data['event']->ticket_types)) {
+                                                if (is_string($data['event']->ticket_types)) {
+                                                    $existingTicketTypes = json_decode($data['event']->ticket_types, true) ?: [];
+                                                } else {
+                                                    $existingTicketTypes = $data['event']->ticket_types ?: [];
+                                                }
+                                            }
+                                            
+                                            if (empty($existingTicketTypes) && $selectedTicketType == 'paid-all') {
+                                                // Default ticket type if no existing data
+                                                $existingTicketTypes = [[
+                                                    'name' => 'General Admission',
+                                                    'quantity' => 100,
+                                                    'price' => 10,
+                                                    'description' => ''
+                                                ]];
+                                            }
+                                            
+                                            foreach ($existingTicketTypes as $index => $ticketType):
+                                            ?>
+                                            <!-- Ticket type item -->
+                                            <div class="ticket-type-item" data-ticket-id="<?= $index + 1 ?>">
+                                                <div class="ticket-type-header">
+                                                    <input type="text" class="form-input ticket-type-name" value="<?= htmlspecialchars($ticketType['name'] ?? 'General Admission') ?>" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                    <button type="button" class="remove-ticket-type-btn">×</button>
+                                                </div>
+                                                <div class="ticket-type-details">
+                                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                        <div>
+                                                            <label class="form-label required">Quantity Available</label>
+                                                            <input type="number" class="form-input ticket-quantity" value="<?= htmlspecialchars($ticketType['quantity'] ?? 100) ?>" placeholder="Enter quantity" min="1">
+                                                        </div>
+                                                        <div>
+                                                            <label class="form-label required">Price (LKR)</label>
+                                                            <input type="number" class="form-input ticket-price" value="<?= htmlspecialchars($ticketType['price'] ?? 10) ?>" placeholder="Enter price" min="0" step="0.01">
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Discount Section for Ticket Type -->
+                                                    <div class="ticket-discount-section">
+                                                        <div class="toggle-container">
+                                                            <span><i class="fas fa-tag" style="color: #FF6B35; margin-right: 8px;"></i> Discount for University Students?</span>
+                                                            <label class="switch">
+                                                                <input type="checkbox" class="discount-toggle" <?= isset($ticketType['discount_percent']) && $ticketType['discount_percent'] > 0 ? 'checked' : '' ?>>
+                                                                <span class="slider"></span>
+                                                            </label>
+                                                        </div>
+
+                                                        <div class="discount-details <?= !isset($ticketType['discount_percent']) || $ticketType['discount_percent'] <= 0 ? 'hidden' : '' ?>">
+                                                            <div class="info-note" style="background: #f0f9ff; border-color: #0ea5e9; margin-bottom: 15px;">
+                                                                <i class="fas fa-info-circle"></i>
+                                                                Discount will be applied to university students only
+                                                            </div>
+
+                                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                                <div>
+                                                                    <label class="form-label">Discount Percentage</label>
+                                                                    <input type="number" class="form-input discount-percent" placeholder="Enter discount %" min="0" max="100" value="<?= htmlspecialchars($ticketType['discount_percent'] ?? '') ?>">
+                                                                </div>
+                                                                <div>
+                                                                    <label class="form-label">Discounted Price</label>
+                                                                    <input type="number" class="form-input discounted-price" placeholder="Calculated price" readonly value="<?= htmlspecialchars($ticketType['discounted_price'] ?? '') ?>">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="form-label">Description (Optional)</label>
+                                                        <textarea class="form-textarea" placeholder="Describe this ticket type" style="min-height: 60px;"><?= htmlspecialchars($ticketType['description'] ?? '') ?></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+
+                                        <button type="button" class="add-ticket-type-btn" id="addTicketTypeBtn">
+                                            <i class="fas fa-plus"></i> Add Another Ticket Type
+                                        </button>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label required">Sale Period</label>
+                                        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Ticket sale period must be between today and event date</p>
+
+                                        <div class="sale-dates">
+                                            <div>
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                <input type="date" name="sale_start_date" class="form-input sale-start-date"
+                                                    min="<?php echo date('Y-m-d'); ?>"
+                                                    value="<?= htmlspecialchars($data['old_data']['sale_start_date'] ?? $data['event']->sale_start_date ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                <input type="time" name="sale_start_time" class="form-input"
+                                                       value="<?= htmlspecialchars($data['old_data']['sale_start_time'] ?? $data['event']->sale_start_time ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                <input type="date" name="sale_end_date" class="form-input sale-end-date"
+                                                    min="<?php echo date('Y-m-d'); ?>"
+                                                    value="<?= htmlspecialchars($data['old_data']['sale_end_date'] ?? $data['event']->sale_end_date ?? '') ?>">
+                                            </div>
+                                            <div>
+                                                <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                <input type="time" name="sale_end_time" class="form-input"
+                                                       value="<?= htmlspecialchars($data['old_data']['sale_end_time'] ?? $data['event']->sale_end_time ?? '') ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mixed (Free for Uni + Paid for Others) Details -->
+                                <div id="mixedDetails" class="ticket-details <?= $selectedTicketType != 'mixed' ? 'hidden' : '' ?>">
+                                    <div class="info-note" style="background: #eff6ff; border-color: #4A5BCC;">
+                                        <i class="fas fa-university"></i>
+                                        Free for university students, paid for outside users.
+                                    </div>
+
+                                    <!-- Free for University Students Section -->
+                                    <div class="form-group">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                            Free Registration for University Students
+                                        </h4>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Registration Limit (Optional)</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
+                                            <input type="number" class="form-input" name="mixed_free_limit" placeholder="Leave empty for unlimited registrations" min="1"
+                                                   value="<?= htmlspecialchars($data['old_data']['mixed_free_limit'] ?? $data['event']->mixed_free_limit ?? '') ?>">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Registration Period</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Registration period must be between today and event date</p>
+
+                                            <div class="sale-dates">
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                    <input type="date" name="mixed_registration_start_date" class="form-input registration-start-date"
+                                                        min="<?php echo date('Y-m-d'); ?>"
+                                                        value="<?= htmlspecialchars($data['old_data']['mixed_registration_start_date'] ?? $data['event']->mixed_registration_start_date ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                    <input type="time" name="mixed_registration_start_time" class="form-input"
+                                                           value="<?= htmlspecialchars($data['old_data']['mixed_registration_start_time'] ?? $data['event']->mixed_registration_start_time ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                    <input type="date" name="mixed_registration_end_date" class="form-input registration-end-date"
+                                                        min="<?php echo date('Y-m-d'); ?>"
+                                                        value="<?= htmlspecialchars($data['old_data']['mixed_registration_end_date'] ?? $data['event']->mixed_registration_end_date ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                    <input type="time" name="mixed_registration_end_time" class="form-input"
+                                                           value="<?= htmlspecialchars($data['old_data']['mixed_registration_end_time'] ?? $data['event']->mixed_registration_end_time ?? '') ?>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Paid for Outside Users Section -->
+                                    <div class="form-group">
+                                        <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                            <i class="fas fa-users" style="color: #FF6B35; margin-right: 8px;"></i>
+                                            Paid Tickets for Outside Users <span style="color: #dc3545;">*</span>
+                                        </h4>
+
+                                        <!-- Ticket Types Container -->
+                                        <div class="ticket-types-container">
+                                            <h5 style="margin-bottom: 15px; font-size: 14px; color: #666;">
+                                                <i class="fas fa-ticket-alt" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                                Ticket Types <span style="color: #dc3545;">*</span>
+                                            </h5>
+
+                                            <div id="mixedTicketTypesList">
+                                                <?php
+                                                // Get existing mixed ticket types data
+                                                $existingMixedTicketTypes = [];
+                                                if (isset($data['event']->mixed_ticket_types)) {
+                                                    if (is_string($data['event']->mixed_ticket_types)) {
+                                                        $existingMixedTicketTypes = json_decode($data['event']->mixed_ticket_types, true) ?: [];
+                                                    } else {
+                                                        $existingMixedTicketTypes = $data['event']->mixed_ticket_types ?: [];
+                                                    }
+                                                }
+                                                
+                                                if (empty($existingMixedTicketTypes) && $selectedTicketType == 'mixed') {
+                                                    // Default ticket type if no existing data
+                                                    $existingMixedTicketTypes = [[
+                                                        'name' => 'General Admission',
+                                                        'quantity' => 100,
+                                                        'price' => 15,
+                                                        'description' => ''
+                                                    ]];
+                                                }
+                                                
+                                                foreach ($existingMixedTicketTypes as $index => $ticketType):
+                                                ?>
+                                                <!-- Default ticket type -->
+                                                <div class="ticket-type-item" data-ticket-id="<?= $index + 1 ?>">
+                                                    <div class="ticket-type-header">
+                                                        <input type="text" class="form-input ticket-type-name" value="<?= htmlspecialchars($ticketType['name'] ?? 'General Admission') ?>" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                        <button type="button" class="remove-ticket-type-btn">×</button>
+                                                    </div>
+                                                    <div class="ticket-type-details">
+                                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                            <div>
+                                                                <label class="form-label required">Quantity Available</label>
+                                                                <input type="number" class="form-input ticket-quantity" value="<?= htmlspecialchars($ticketType['quantity'] ?? 100) ?>" placeholder="Enter quantity" min="1">
+                                                            </div>
+                                                            <div>
+                                                                <label class="form-label required">Price (LKR)</label>
+                                                                <input type="number" class="form-input ticket-price" value="<?= htmlspecialchars($ticketType['price'] ?? 15) ?>" placeholder="Enter price" min="0" step="0.01">
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Discount Section for Ticket Type -->
+                                                        <div class="ticket-discount-section">
+                                                            <div class="toggle-container">
+                                                                <span><i class="fas fa-tag" style="color: #FF6B35; margin-right: 8px;"></i>Discount for Outside Users?</span>
+                                                                <label class="switch">
+                                                                    <input type="checkbox" class="discount-toggle" <?= isset($ticketType['discount_percent']) && $ticketType['discount_percent'] > 0 ? 'checked' : '' ?>>
+                                                                    <span class="slider"></span>
+                                                                </label>
+                                                            </div>
+
+                                                            <div class="discount-details <?= !isset($ticketType['discount_percent']) || $ticketType['discount_percent'] <= 0 ? 'hidden' : '' ?>">
+                                                                <div class="info-note" style="background: #f0f9ff; border-color: #0ea5e9; margin-bottom: 15px;">
+                                                                    <i class="fas fa-info-circle"></i>
+                                                                    Discount will be applied to Outside Users
+                                                                </div>
+
+                                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                                                    <div>
+                                                                        <label class="form-label">Discount Percentage</label>
+                                                                        <input type="number" class="form-input discount-percent" placeholder="Enter discount %" min="0" max="100" value="<?= htmlspecialchars($ticketType['discount_percent'] ?? '') ?>">
+                                                                    </div>
+                                                                    <div>
+                                                                        <label class="form-label">Discounted Price</label>
+                                                                        <input type="number" class="form-input discounted-price" placeholder="Calculated price" readonly value="<?= htmlspecialchars($ticketType['discounted_price'] ?? '') ?>">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="form-label">Description (Optional)</label>
+                                                            <textarea class="form-textarea" placeholder="Describe this ticket type" style="min-height: 60px;"><?= htmlspecialchars($ticketType['description'] ?? '') ?></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
+
+                                            <button type="button" class="add-ticket-type-btn" id="addMixedTicketTypeBtn">
+                                                <i class="fas fa-plus"></i> Add Another Ticket Type
+                                            </button>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label required">Sale Period</label>
+                                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Ticket sale period must be between today and event date</p>
+
+                                            <div class="sale-dates">
+                                                <div>
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Date</label>
+                                                    <input type="date" name="mixed_sale_start_date" class="form-input sale-start-date"
+                                                        min="<?php echo date('Y-m-d'); ?>"
+                                                        value="<?= htmlspecialchars($data['old_data']['mixed_sale_start_date'] ?? $data['event']->mixed_sale_start_date ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Start Time</label>
+                                                    <input type="time" name="mixed_sale_start_time" class="form-input"
+                                                           value="<?= htmlspecialchars($data['old_data']['mixed_sale_start_time'] ?? $data['event']->mixed_sale_start_time ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Date</label>
+                                                    <input type="date" name="mixed_sale_end_date" class="form-input sale-end-date"
+                                                        min="<?php echo date('Y-m-d'); ?>"
+                                                        value="<?= htmlspecialchars($data['old_data']['mixed_sale_end_date'] ?? $data['event']->mixed_sale_end_date ?? '') ?>">
+                                                </div>
+                                                <div>
+                                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End Time</label>
+                                                    <input type="time" name="mixed_sale_end_time" class="form-input"
+                                                           value="<?= htmlspecialchars($data['old_data']['mixed_sale_end_time'] ?? $data['event']->mixed_sale_end_time ?? '') ?>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -948,6 +1543,70 @@
         // Show loading state
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating Event...';
         submitBtn.disabled = true;
+        
+        // Collect ticket types data before submitting
+        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+        
+        if (ticketType === 'paid-all') {
+            // Collect paid ticket types
+            const ticketTypes = [];
+            document.querySelectorAll('#ticketTypesList .ticket-type-item').forEach(item => {
+                const name = item.querySelector('.ticket-type-name')?.value || '';
+                const quantity = item.querySelector('.ticket-quantity')?.value || '';
+                const price = item.querySelector('.ticket-price')?.value || '';
+                const description = item.querySelector('.form-textarea')?.value || '';
+                const discountToggle = item.querySelector('.discount-toggle')?.checked || false;
+                const discountPercent = item.querySelector('.discount-percent')?.value || '';
+                const discountedPrice = item.querySelector('.discounted-price')?.value || '';
+                
+                if (name && quantity && price) {
+                    ticketTypes.push({
+                        name: name,
+                        quantity: parseInt(quantity),
+                        price: parseFloat(price),
+                        description: description,
+                        discount_percent: discountToggle ? parseFloat(discountPercent) || 0 : 0,
+                        discounted_price: discountToggle ? parseFloat(discountedPrice) || 0 : 0
+                    });
+                }
+            });
+            
+            if (ticketTypes.length > 0) {
+                document.getElementById('ticket_types_input').value = JSON.stringify(ticketTypes);
+            }
+        } else if (ticketType === 'mixed') {
+            // Collect mixed ticket types (for outside users)
+            const mixedTicketTypes = [];
+            document.querySelectorAll('#mixedTicketTypesList .ticket-type-item').forEach(item => {
+                const name = item.querySelector('.ticket-type-name')?.value || '';
+                const quantity = item.querySelector('.ticket-quantity')?.value || '';
+                const price = item.querySelector('.ticket-price')?.value || '';
+                const description = item.querySelector('.form-textarea')?.value || '';
+                const discountToggle = item.querySelector('.discount-toggle')?.checked || false;
+                const discountPercent = item.querySelector('.discount-percent')?.value || '';
+                const discountedPrice = item.querySelector('.discounted-price')?.value || '';
+                
+                if (name && quantity && price) {
+                    mixedTicketTypes.push({
+                        name: name,
+                        quantity: parseInt(quantity),
+                        price: parseFloat(price),
+                        description: description,
+                        discount_percent: discountToggle ? parseFloat(discountPercent) || 0 : 0,
+                        discounted_price: discountToggle ? parseFloat(discountedPrice) || 0 : 0
+                    });
+                }
+            });
+            
+            if (mixedTicketTypes.length > 0) {
+                // For mixed tickets, we need to send them as mixed_ticket_types
+                const mixedTicketTypesInput = document.createElement('input');
+                mixedTicketTypesInput.type = 'hidden';
+                mixedTicketTypesInput.name = 'mixed_ticket_types';
+                mixedTicketTypesInput.value = JSON.stringify(mixedTicketTypes);
+                this.appendChild(mixedTicketTypesInput);
+            }
+        }
         
         // Get form data
         const formData = new FormData(this);

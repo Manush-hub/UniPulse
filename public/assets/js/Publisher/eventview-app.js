@@ -2,8 +2,8 @@
 let currentEvent = window.serverData?.event || null;
 let similarEvents = window.serverData?.similarEvents || [];
 const hasError = window.serverData?.error || null;
-const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
-const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
+const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/publisher/eventview/getEvent';
+const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/publisher/eventview/joinEvent';
 let isUserRegistered = window.serverData?.isRegistered || false;
 
 // Initialize the page
@@ -19,13 +19,20 @@ function getEventIdFromURL() {
 
 // Load event details
 function loadEventDetails() {
+    console.log('loadEventDetails called');
+    console.log('hasError:', hasError);
+    console.log('currentEvent:', currentEvent);
+    console.log('serverData:', window.serverData);
+    
     if (hasError) {
+        console.log('Error detected, showing error page');
         hideLoading();
         showError();
         return;
     }
     
     if (currentEvent) {
+        console.log('Using server data directly');
         // Use server data directly
         displayEventDetails(currentEvent);
         loadSimilarEvents(similarEvents);
@@ -33,18 +40,26 @@ function loadEventDetails() {
         showEventContainer();
     } else {
         // Fallback to AJAX if no server data
+        console.log('No server event data, falling back to AJAX');
         const eventId = getEventIdFromURL();
+        console.log('Event ID from URL:', eventId);
         
         if (!eventId) {
+            console.log('No event ID found, showing error');
             showError();
             return;
         }
 
+        console.log('Making AJAX request to:', `${apiEndpoint}?id=${eventId}`);
         showLoading();
 
         fetch(`${apiEndpoint}?id=${eventId}`)
-            .then(response => response.json())
+            .then(response => {
+                console.log('AJAX response received:', response);
+                return response.json();
+            })
             .then(data => {
+                console.log('AJAX data:', data);
                 if (data.success) {
                     currentEvent = data.event;
                     similarEvents = data.similarEvents || [];
