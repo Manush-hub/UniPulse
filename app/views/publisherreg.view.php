@@ -335,33 +335,6 @@
             }
         });
 
-        // Faculty options change based on university selection
-        document.getElementById('university').addEventListener('change', function() {
-            const facultySelect = document.getElementById('faculty');
-            // Reset faculty options
-            facultySelect.innerHTML = '<option value="">Select your faculty/department</option>';
-            
-            // Add faculty options based on selected university
-            const commonFaculties = [
-                { value: 'faculty-of-arts', text: 'Faculty of Arts' },
-                { value: 'faculty-of-science', text: 'Faculty of Science' },
-                { value: 'faculty-of-engineering', text: 'Faculty of Engineering' },
-                { value: 'faculty-of-medicine', text: 'Faculty of Medicine' },
-                { value: 'faculty-of-law', text: 'Faculty of Law' },
-                { value: 'faculty-of-management', text: 'Faculty of Management' },
-                { value: 'faculty-of-education', text: 'Faculty of Education' },
-                { value: 'faculty-of-agriculture', text: 'Faculty of Agriculture' },
-                { value: 'faculty-of-applied-sciences', text: 'Faculty of Applied Sciences' }
-            ];
-
-            commonFaculties.forEach(faculty => {
-                const option = document.createElement('option');
-                option.value = faculty.value;
-                option.textContent = faculty.text;
-                facultySelect.appendChild(option);
-            });
-        });
-
         // Terms validation with improved feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
