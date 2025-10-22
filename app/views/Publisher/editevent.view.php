@@ -8,6 +8,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
     <style>
+        /* Dropdown with scroll - show 5 items */
+        select[name="event_category"],
+        select[name="audience"],
+        select[name="location-type"],
+        select[name="ticketType"],
+        #customFieldType {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select[name="event_category"] option,
+        select[name="audience"] option,
+        select[name="location-type"] option,
+        select[name="ticketType"] option,
+        #customFieldType option {
+            padding: 10px;
+        }
+        
+        /* Set size attribute to show 5 visible items when opened */
+        select[name="event_category"][size],
+        select[name="audience"][size],
+        select[name="location-type"][size],
+        select[name="ticketType"][size],
+        #customFieldType[size] {
+            height: auto;
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -117,7 +145,7 @@
         }
         
         .content {
-            width: 1088px;
+            width: 800px;
             /* width: 100% !important; */
         }
         
@@ -404,7 +432,7 @@
                         <div class="form-group">
                             <label for="event_category" class="form-label">Category *</label>
                             <div class="input-group">
-                                <select name="event_category" class="form-select" required>
+                                <select name="event_category" class="form-select" size="1" required>
                                     <option value="">Select a category</option>
                                     <?php 
                                     $categories = [
@@ -431,7 +459,7 @@
                         <div class="form-group">
                             <label for="audience" class="form-label">Target Audience *</label>
                             <div class="input-group">
-                                <select name="audience" class="form-select" required>
+                                <select name="audience" class="form-select" size="1" required>
                                     <?php 
                                     $audiences = [
                                         'university-students' => 'University Students',
@@ -501,7 +529,7 @@
                         <div class="form-group">
                             <label for="location-type" class="form-label">Location Type</label>
                             <div class="input-group">
-                                <select name="location-type" class="form-select">
+                                <select name="location-type" class="form-select" size="1">
                                     <?php 
                                     $locationTypes = [
                                         'inside-university' => 'Inside University',
@@ -551,7 +579,7 @@
                         <div class="form-group">
                             <label for="ticketType" class="form-label">Ticket Type *</label>
                             <div class="input-group">
-                                <select name="ticketType" class="form-select" required>
+                                <select name="ticketType" class="form-select" size="1" required>
                                     <?php 
                                     $ticketTypes = [
                                         'free-all' => 'Free for All',
@@ -694,7 +722,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">Field Type</label>
-                                    <select id="customFieldType" class="form-select">
+                                    <select id="customFieldType" class="form-select" size="1">
                                         <option value="text">Text Input</option>
                                         <option value="textarea">Text Area</option>
                                         <option value="select">Dropdown</option>
@@ -782,21 +810,52 @@
                     <div class="section-content">
                         <p style="color: #666; margin-bottom: 15px;">Upload the event cover to capture your audience's attention</p>
 
-                        <?php if (!empty($data['event']->cover_image)): ?>
-                            <div class="current-image-container" style="
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <!-- Current Image - Left Side -->
+                            <?php if (!empty($data['event']->cover_image)): ?>
+                                <div class="current-image-container" style="
+                                    flex: 1;
+                                    min-width: 300px;
+                                    background: #f8f9fa; 
+                                    border: 2px solid #1E3A8A; 
+                                    border-radius: 12px; 
+                                    padding: 20px;
+                                    box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+                                ">
+                                    <p style="color: #1E3A8A; font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center;">
+                                        <i class="fas fa-image"></i> Current Cover Image
+                                    </p>
+                                    <div style="text-align: center;">
+                                        <img src="/unipulse/public/<?= htmlspecialchars($data['event']->cover_image) ?>" 
+                                             alt="Current cover" 
+                                             style="
+                                                max-width: 100%; 
+                                                max-height: 300px; 
+                                                border-radius: 8px; 
+                                                border: 2px solid #e9ecef;
+                                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                                             ">
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- New Image Preview - Right Side -->
+                            <div class="new-image-container" style="
+                                flex: 1;
+                                min-width: 300px;
                                 background: #f8f9fa; 
-                                border: 2px solid #1E3A8A; 
+                                border: 2px solid #28a745; 
                                 border-radius: 12px; 
-                                padding: 20px; 
-                                margin-bottom: 20px;
-                                box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
-                            ">
-                                <p style="color: #1E3A8A; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
-                                    <i class="fas fa-image"></i> Current Cover Image:
+                                padding: 20px;
+                                box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+                                display: none;
+                            " id="newImagePreviewContainer">
+                                <p style="color: #28a745; font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: center;">
+                                    <i class="fas fa-check-circle"></i> New Cover Image Preview
                                 </p>
                                 <div style="text-align: center;">
-                                    <img src="/unipulse/public/<?= htmlspecialchars($data['event']->cover_image) ?>" 
-                                         alt="Current cover" 
+                                    <img id="newImagePreview" 
+                                         alt="New cover preview" 
                                          style="
                                             max-width: 100%; 
                                             max-height: 300px; 
@@ -805,8 +864,23 @@
                                             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
                                          ">
                                 </div>
+                                <button type="button" onclick="clearNewImage()" style="
+                                    margin-top: 10px;
+                                    width: 100%;
+                                    background: #dc3545;
+                                    color: white;
+                                    border: none;
+                                    padding: 8px;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                    transition: background 0.3s;
+                                " onmouseover="this.style.background='#c82333'" 
+                                   onmouseout="this.style.background='#dc3545'">
+                                    <i class="fas fa-times"></i> Remove New Image
+                                </button>
                             </div>
-                        <?php endif; ?>
+                        </div>
 
                         <div class="upload-area-container" style="
                             background: #ffffff; 
@@ -815,6 +889,7 @@
                             padding: 30px; 
                             text-align: center;
                             transition: all 0.3s ease;
+                            margin-top: 20px;
                         " onmouseover="this.style.background='#f0f4ff'; this.style.borderColor='#1e40af';" 
                            onmouseout="this.style.background='#ffffff'; this.style.borderColor='#1E3A8A';">
                             <div class="upload-icon" style="font-size: 48px; color: #1E3A8A; margin-bottom: 16px;">
@@ -891,6 +966,61 @@
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
     
     <script>
+    // Dropdown scroll functionality - show 5 items when opened
+    document.addEventListener('DOMContentLoaded', function() {
+        const categorySelect = document.querySelector('select[name="event_category"]');
+        const audienceSelect = document.querySelector('select[name="audience"]');
+        const locationTypeSelect = document.querySelector('select[name="location-type"]');
+        const ticketTypeSelect = document.querySelector('select[name="ticketType"]');
+        const customFieldTypeSelect = document.getElementById('customFieldType');
+        
+        // Apply to all dropdowns
+        [categorySelect, audienceSelect, locationTypeSelect, ticketTypeSelect, customFieldTypeSelect].forEach(select => {
+            if (select) {
+                select.addEventListener('focus', function() {
+                    this.size = 5;
+                });
+                
+                select.addEventListener('blur', function() {
+                    this.size = 1;
+                });
+                
+                select.addEventListener('change', function() {
+                    this.size = 1;
+                    this.blur();
+                });
+            }
+        });
+        
+        // Cover image preview functionality
+        const coverFileInput = document.getElementById('coverFileInput');
+        if (coverFileInput) {
+            coverFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const newImagePreview = document.getElementById('newImagePreview');
+                        const newImageContainer = document.getElementById('newImagePreviewContainer');
+                        
+                        newImagePreview.src = e.target.result;
+                        newImageContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+    
+    // Function to clear new image selection
+    function clearNewImage() {
+        const coverFileInput = document.getElementById('coverFileInput');
+        const newImageContainer = document.getElementById('newImagePreviewContainer');
+        
+        coverFileInput.value = '';
+        newImageContainer.style.display = 'none';
+    }
+    
     // Function to show success message
     function showSuccessMessage(message) {
         // Remove any existing success messages

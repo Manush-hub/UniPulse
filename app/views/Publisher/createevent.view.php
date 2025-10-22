@@ -8,6 +8,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
     <style>
+        /* Dropdown with scroll - show 5 items */
+        select[name="selected_university"],
+        select[name="faculty_department"],
+        select[name="event_category"],
+        #fieldType {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select[name="selected_university"] option,
+        select[name="faculty_department"] option,
+        select[name="event_category"] option,
+        #fieldType option {
+            padding: 10px;
+        }
+        
+        /* Set size attribute to show 5 visible items when opened */
+        select[name="selected_university"][size],
+        select[name="faculty_department"][size],
+        select[name="event_category"][size],
+        #fieldType[size] {
+            height: auto;
+        }
+        
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -140,7 +165,7 @@
                             <label class="form-label required">Category</label>
                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Select the category for your event
                             </p>
-                            <select name="event_category" class="form-select" required>
+                            <select name="event_category" class="form-select" size="1" required>
                                 <option value="">Select Category</option>
                                 <option value="academic">Academic</option>
                                 <option value="sports">Sports</option>
@@ -150,6 +175,7 @@
                                 <option value="workshop">Workshop</option>
                                 <option value="business">Business</option>
                                 <option value="music">Music</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
                     </div>
@@ -202,36 +228,55 @@
                                     <div>
                                         <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">University</label>
-                                        <select name="selected_university" class="form-select">
+                                        <select name="selected_university" class="form-select" size="1">
                                             <option value="">Select University</option>
-                                            <option value="university-of-colombo" >University of Colombo</option>
-                                            <option value="university-of-moratuwa" >University of Moratuwa</option>
-                                            <option value="university-of-peradeniya" >University of Peradeniya</option>
-                                            <option value="university-of-sri-jayewardenepura" >University of Sri Jayewardenepura</option>
-                                            <option value="other" >Other</option>
+                                            <!-- State Universities (15) -->
+                                            <option value="university-of-colombo">University of Colombo</option>
+                                            <option value="university-of-peradeniya">University of Peradeniya</option>
+                                            <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
+                                            <option value="university-of-kelaniya">University of Kelaniya</option>
+                                            <option value="university-of-moratuwa">University of Moratuwa</option>
+                                            <option value="university-of-jaffna">University of Jaffna</option>
+                                            <option value="university-of-ruhuna">University of Ruhuna</option>
+                                            <option value="eastern-university">Eastern University, Sri Lanka</option>
+                                            <option value="south-eastern-university">South Eastern University of Sri Lanka</option>
+                                            <option value="rajarata-university">Rajarata University of Sri Lanka</option>
+                                            <option value="sabaragamuwa-university">Sabaragamuwa University of Sri Lanka</option>
+                                            <option value="wayamba-university">Wayamba University of Sri Lanka</option>
+                                            <option value="uva-wellassa-university">Uva Wellassa University</option>
+                                            <option value="open-university">Open University of Sri Lanka</option>
+                                            <option value="buddhist-and-pali-university">Buddhist and Pali University of Sri Lanka</option>
+                                            <!-- Private Universities (5 Main) -->
+                                            <option value="sliit">Sri Lanka Institute of Information Technology (SLIIT)</option>
+                                            <option value="nsbm">NSBM Green University</option>
+                                            <option value="cinec">CINEC Campus</option>
+                                            <option value="apiit">Asia Pacific Institute of Information Technology (APIIT)</option>
+                                            <option value="kiu">KIU (Kaatsu International University)</option>
+                                            <option value="other">Other</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Faculty/Department</label>
-                                        <select name="faculty_department" class="form-select">
+                                        <select name="faculty_department" class="form-select" size="1">
                                             <option value="">Select Faculty/Department</option>
-                                            <option value="Faculty of Arts">Faculty of Arts</option>
-                                            <option value="Faculty of Science">Faculty of Science</option>
-                                            <option value="Faculty of Engineering">Faculty of Engineering</option>
-                                            <option value="Faculty of Medicine">Faculty of Medicine</option>
-                                            <option value="Faculty of Law">Faculty of Law</option>
-                                            <option value="Faculty of Business">Faculty of Business</option>
-                                            <option value="Faculty of Management">Faculty of Management</option>
-                                            <option value="Faculty of Agriculture">Faculty of Agriculture</option>
-                                            <option value="Faculty of Architecture">Faculty of Architecture</option>
-                                            <option value="Faculty of Education">Faculty of Education</option>
-                                            <option value="Faculty of Computing">Faculty of Computing</option>
-                                            <!-- <option value="Department of Computer Science">Department of Computer Science</option>
-                                            <option value="Department of Mathematics">Department of Mathematics</option>
-                                            <option value="Department of Physics">Department of Physics</option>
-                                            <option value="Department of Chemistry">Department of Chemistry</option> -->
-                                            <option value="Other">Other</option>
+                                            <!-- Most Famous Faculties -->
+                                            <option value="ucsc">University of Colombo School of Computing (UCSC)</option>
+                                            <option value="faculty-of-engineering">Faculty of Engineering</option>
+                                            <option value="faculty-of-medicine">Faculty of Medicine</option>
+                                            <option value="faculty-of-science">Faculty of Science</option>
+                                            <option value="faculty-of-management">Faculty of Management and Finance</option>
+                                            <option value="faculty-of-arts">Faculty of Arts</option>
+                                            <option value="faculty-of-law">Faculty of Law</option>
+                                            <option value="faculty-of-information-technology">Faculty of Information Technology</option>
+                                            <option value="faculty-of-applied-sciences">Faculty of Applied Sciences</option>
+                                            <option value="faculty-of-agriculture">Faculty of Agriculture</option>
+                                            <option value="faculty-of-architecture">Faculty of Architecture</option>
+                                            <option value="faculty-of-education">Faculty of Education</option>
+                                            <option value="faculty-of-social-sciences">Faculty of Social Sciences</option>
+                                            <option value="faculty-of-allied-health-sciences">Faculty of Allied Health Sciences</option>
+                                            <option value="faculty-of-dental-sciences">Faculty of Dental Sciences</option>
+                                            <option value="other">Other</option>
                                         </select>
                                     </div>
                                 </div>
@@ -817,7 +862,7 @@
                                 </div>
                                 <div>
                                     <label class="form-label">Field Type</label>
-                                    <select id="fieldType" class="form-select">
+                                    <select id="fieldType" class="form-select" size="1">
                                         <option value="text">Text Input</option>
                                         <option value="number">Number</option>
                                         <option value="email">Email</option>
@@ -866,6 +911,74 @@
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
     
     <script>
+    // Dropdown scroll functionality for university and faculty selects
+    document.addEventListener('DOMContentLoaded', function() {
+        const universitySelect = document.querySelector('select[name="selected_university"]');
+        const facultySelect = document.querySelector('select[name="faculty_department"]');
+        const categorySelect = document.querySelector('select[name="event_category"]');
+        
+        if (universitySelect) {
+            universitySelect.addEventListener('focus', function() {
+                this.size = 5;
+            });
+            
+            universitySelect.addEventListener('blur', function() {
+                this.size = 1;
+            });
+            
+            universitySelect.addEventListener('change', function() {
+                this.size = 1;
+                this.blur();
+            });
+        }
+        
+        if (facultySelect) {
+            facultySelect.addEventListener('focus', function() {
+                this.size = 5;
+            });
+            
+            facultySelect.addEventListener('blur', function() {
+                this.size = 1;
+            });
+            
+            facultySelect.addEventListener('change', function() {
+                this.size = 1;
+                this.blur();
+            });
+        }
+        
+        if (categorySelect) {
+            categorySelect.addEventListener('focus', function() {
+                this.size = 5;
+            });
+            
+            categorySelect.addEventListener('blur', function() {
+                this.size = 1;
+            });
+            
+            categorySelect.addEventListener('change', function() {
+                this.size = 1;
+                this.blur();
+            });
+        }
+        
+        const fieldTypeSelect = document.getElementById('fieldType');
+        if (fieldTypeSelect) {
+            fieldTypeSelect.addEventListener('focus', function() {
+                this.size = 5;
+            });
+            
+            fieldTypeSelect.addEventListener('blur', function() {
+                this.size = 1;
+            });
+            
+            fieldTypeSelect.addEventListener('change', function() {
+                this.size = 1;
+                this.blur();
+            });
+        }
+    });
+
     // Function to show success message
     function showSuccessMessage(message) {
         // Remove any existing messages
