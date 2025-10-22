@@ -62,7 +62,11 @@
             </div>
 
             <!-- Event Hero Section -->
-            <div class="event-hero">
+            <div class="event-hero" id="eventHero">
+                <div class="hero-image-container" id="heroImageContainer" style="display: none;">
+                    <img id="heroImage" src="" alt="Event Cover" class="hero-cover-image">
+                    <div class="hero-overlay"></div>
+                </div>
                 <div class="container">
                     <div class="hero-content">
                         <div class="event-meta">
@@ -81,20 +85,27 @@
                                 </div>
                             </div>
                             <div class="detail-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div>
-                                    <strong>Location</strong>
-                                    <span id="eventLocation">Loading...</span>
-                                </div>
-                            </div>
-                            <div class="detail-item">
                                 <i class="fas fa-university"></i>
                                 <div>
                                     <strong>University</strong>
                                     <span id="eventUniversity">Loading...</span>
                                 </div>
                             </div>
+                            <div class="detail-item" id="facultyInfo" style="display: none;">
+                                <i class="fas fa-building"></i>
+                                <div>
+                                    <strong>Faculty/Department</strong>
+                                    <span id="eventFaculty">Loading...</span>
+                                </div>
+                            </div>
                             <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <div>
+                                    <strong>Exact Location</strong>
+                                    <span id="eventLocation">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="detail-item" id="participantsInfo" style="display: none;">
                                 <i class="fas fa-users"></i>
                                 <div>
                                     <strong>Participants</strong>
@@ -136,8 +147,19 @@
                                 </div>
                             </div>
 
+                            <!-- Registration Period -->
+                            <div id="registrationPeriodCard" class="content-card" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-calendar-check"></i>
+                                    Registration Period
+                                </h3>
+                                <div id="registrationPeriod" class="registration-period">
+                                    Loading registration period...
+                                </div>
+                            </div>
+
                             <!-- Event Schedule -->
-                            <div class="content-card">
+                            <div class="content-card" id="scheduleCard" style="display: none;">
                                 <h3>
                                     <i class="fas fa-clock"></i>
                                     Event Schedule
@@ -151,7 +173,7 @@
                             </div>
 
                             <!-- Requirements -->
-                            <div class="content-card">
+                            <div class="content-card" id="requirementsCard" style="display: none;">
                                 <h3>
                                     <i class="fas fa-list-check"></i>
                                     Requirements & Prerequisites
@@ -243,8 +265,8 @@
                                 </div>
                             </div>
 
-                            <!-- Event Stats -->
-                            <div class="content-card">
+                            <!-- Event Stats (Only shown when max_participants is set) -->
+                            <div class="content-card" id="eventStatsCard" style="display: none;">
                                 <h3>
                                     <i class="fas fa-chart-bar"></i>
                                     Event Statistics

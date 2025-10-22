@@ -286,7 +286,9 @@ class Editevent extends Controller{
     }
     
     private function handleImageUpload($file) {
-        $uploadDir = 'public/uploads/event_covers/';
+        // Use relative path from controller (which is in app/controllers/Publisher/)
+        // to reach the public directory at the project root
+        $uploadDir = __DIR__ . '/../../../public/uploads/event_covers/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize = 5 * 1024 * 1024; // 5MB
         

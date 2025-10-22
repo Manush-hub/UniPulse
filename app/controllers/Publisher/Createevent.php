@@ -30,7 +30,9 @@ class PublisherCreateevent extends Controller{
             exit();
         }
         
-        $data = [];
+        $data = [
+            'currentUser' => $currentUser
+        ];
         
         // Check if form was submitted
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -62,22 +64,62 @@ class PublisherCreateevent extends Controller{
         try {
             $user = AuthService::getCurrentUser();
             
+            // Validate form data
+            $validationErrors = $this->validateFormData($_POST, $_FILES);
+            if (!empty($validationErrors)) {
+                if ($isAjax) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Validation failed. Please check the errors below.',
+                        'errors' => $validationErrors
+                    ]);
+                    exit();
+                } else {
+                    $data = [
+                        'errors' => $validationErrors,
+                        'old_data' => $_POST
+                    ];
+                    $this->view('createevent', $data);
+                    return;
+                }
+            }
+            
             // Get form data
+            $locationType = $_POST['location-type'] ?? 'inside-university';
+            
+            // Set location based on location type
+            $location = '';
+            $university = '';
+            $universityName = '';
+            
+            if ($locationType === 'outside-university') {
+                // For outside university, use venue_name as primary location
+                $location = $_POST['venue_name'] ?? '';
+                // For outside events, use publisher's university or set as 'external'
+                $university = $user['university'] ?? 'external';
+                $universityName = 'External Event';
+            } else {
+                // For inside university, use event_location
+                $location = $_POST['event_location'] ?? '';
+                $university = $_POST['selected_university'] ?? ($user['university'] ?? 'unknown');
+                $universityName = $this->getUniversityName($university);
+            }
+            
             $formData = [
                 'title' => $_POST['event_name'] ?? '',
                 'description' => $_POST['event_description'] ?? '',
                 'category' => $_POST['event_category'] ?? '',
                 'event_date' => $_POST['event_date'] ?? '',
                 'event_time' => $_POST['event_time'] ?? '',
-                'location' => $_POST['event_location'] ?? '',
-                'location_type' => $_POST['location-type'] ?? 'inside-university',
+                'location' => $location,
+                'location_type' => $locationType,
                 'venue_name' => $_POST['venue_name'] ?? '',
                 'street_address' => $_POST['street_address'] ?? '',
                 'city' => $_POST['city'] ?? '',
                 'district_province' => $_POST['district_province'] ?? '',
                 'faculty_department' => $_POST['faculty_department'] ?? '',
-                'university' => $user['university'] ?? 'unknown',
-                'university_name' => $this->getUniversityName($user['university'] ?? 'unknown'),
+                'university' => $university,
+                'university_name' => $universityName,
                 'organizer' => $user['name'] ?? $user['full_name'] ?? '',
                 'organizer_email' => $user['email'] ?? '',
                 'max_participants' => !empty($_POST['max_participants']) ? (int)$_POST['max_participants'] : 100,
@@ -86,10 +128,6 @@ class PublisherCreateevent extends Controller{
                 'status' => 'upcoming',
                 'ticket_type' => $_POST['ticketType'] ?? 'free-all',
                 'registration_limit' => !empty($_POST['registration_limit']) ? (int)$_POST['registration_limit'] : null,
-                'registration_start_date' => $_POST['registration_start_date'] ?? null,
-                'registration_start_time' => $_POST['registration_start_time'] ?? null,
-                'registration_end_date' => $_POST['registration_end_date'] ?? null,
-                'registration_end_time' => $_POST['registration_end_time'] ?? null,
                 'needs_volunteers' => isset($_POST['volunteerToggle']) && $_POST['volunteerToggle'] == '1' ? 1 : 0,
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
@@ -97,6 +135,30 @@ class PublisherCreateevent extends Controller{
                 'created_by_type' => ($user['type'] ?? '') === 'publisher' ? 'publisher' : 'publisher',
                 'visibility' => 'public'
             ];
+            
+            // Handle registration/sale dates based on ticket type
+            $ticketType = $_POST['ticketType'] ?? 'free-all';
+            
+            if ($ticketType === 'free-all') {
+                // For free events, use registration dates
+                $formData['registration_start_date'] = $_POST['registration_start_date'] ?? null;
+                $formData['registration_start_time'] = $_POST['registration_start_time'] ?? null;
+                $formData['registration_end_date'] = $_POST['registration_end_date'] ?? null;
+                $formData['registration_end_time'] = $_POST['registration_end_time'] ?? null;
+            } elseif ($ticketType === 'paid-all') {
+                // For paid events, map sale dates to registration dates
+                $formData['registration_start_date'] = $_POST['sale_start_date'] ?? null;
+                $formData['registration_start_time'] = $_POST['sale_start_time'] ?? null;
+                $formData['registration_end_date'] = $_POST['sale_end_date'] ?? null;
+                $formData['registration_end_time'] = $_POST['sale_end_time'] ?? null;
+            } elseif ($ticketType === 'mixed') {
+                // For mixed events, use registration dates for university students
+                // and sale dates for outside users (we'll use sale dates as primary)
+                $formData['registration_start_date'] = $_POST['mixed_registration_start_date'] ?? $_POST['mixed_sale_start_date'] ?? null;
+                $formData['registration_start_time'] = $_POST['mixed_registration_start_time'] ?? $_POST['mixed_sale_start_time'] ?? null;
+                $formData['registration_end_date'] = $_POST['mixed_registration_end_date'] ?? $_POST['mixed_sale_end_date'] ?? null;
+                $formData['registration_end_time'] = $_POST['mixed_registration_end_time'] ?? $_POST['mixed_sale_end_time'] ?? null;
+            }
             
                         // Handle requirements if provided
             if (!empty($_POST['requirements'])) {
@@ -152,23 +214,21 @@ class PublisherCreateevent extends Controller{
                     echo json_encode([
                         'success' => true,
                         'message' => 'Event created successfully!',
-                        'event_id' => $result['event_id'] ?? null
+                        'event_id' => $result['event_id'] ?? null,
+                        'redirect' => '/unipulse/public/publisher/events'
                     ]);
                     exit();
                 } else {
-                    // Show success message and stay on the same page
-                    $data = [
-                        'success' => 'Event created successfully!',
-                        'event_id' => $result['event_id'] ?? null
-                    ];
-                    $this->view('createevent', $data);
-                    return;
+                    // Redirect to events page for non-AJAX requests
+                    header('Location: /unipulse/public/publisher/events?success=Event created successfully');
+                    exit();
                 }
             } else {
                 // Return error response
                 if ($isAjax) {
                     echo json_encode([
                         'success' => false,
+                        'message' => 'Failed to create event. Please check the errors below.',
                         'errors' => $result['errors'] ?? ['general' => 'Unknown error occurred']
                     ]);
                     exit();
@@ -204,7 +264,9 @@ class PublisherCreateevent extends Controller{
     }
     
     private function handleImageUpload($file) {
-        $uploadDir = 'public/uploads/event_covers/';
+        // Use relative path from controller (which is in app/controllers/Publisher/)
+        // to reach the public directory at the project root
+        $uploadDir = __DIR__ . '/../../../public/uploads/event_covers/';
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize = 5 * 1024 * 1024; // 5MB
         
@@ -247,5 +309,305 @@ class PublisherCreateevent extends Controller{
         ];
         
         return $universities[$universityCode] ?? $universityCode;
+    }
+    
+    private function validateFormData($postData, $files) {
+        $errors = [];
+        
+        // Validate Event Name
+        if (empty($postData['event_name']) || trim($postData['event_name']) === '') {
+            $errors['event_name'] = 'Event name is required';
+        } elseif (strlen(trim($postData['event_name'])) < 3) {
+            $errors['event_name'] = 'Event name must be at least 3 characters long';
+        } elseif (strlen(trim($postData['event_name'])) > 200) {
+            $errors['event_name'] = 'Event name must be less than 200 characters';
+        }
+        
+        // Validate Event Description
+        if (empty($postData['event_description']) || trim($postData['event_description']) === '') {
+            $errors['event_description'] = 'Event description is required';
+        } elseif (strlen(trim($postData['event_description'])) < 10) {
+            $errors['event_description'] = 'Event description must be at least 10 characters long';
+        } elseif (strlen(trim($postData['event_description'])) > 5000) {
+            $errors['event_description'] = 'Event description must be less than 5000 characters';
+        }
+        
+        // Validate Category
+        if (empty($postData['event_category'])) {
+            $errors['event_category'] = 'Event category is required';
+        }
+        
+        // Validate Event Date
+        if (empty($postData['event_date'])) {
+            $errors['event_date'] = 'Event date is required';
+        } else {
+            $eventDate = strtotime($postData['event_date']);
+            $today = strtotime(date('Y-m-d'));
+            
+            if ($eventDate < $today) {
+                $errors['event_date'] = 'Event date cannot be in the past';
+            }
+            
+            // Check if date is too far in the future (more than 2 years)
+            $twoYearsFromNow = strtotime('+2 years');
+            if ($eventDate > $twoYearsFromNow) {
+                $errors['event_date'] = 'Event date cannot be more than 2 years in the future';
+            }
+        }
+        
+        // Validate Event Time
+        if (empty($postData['event_time'])) {
+            $errors['event_time'] = 'Event time is required';
+        } elseif (!empty($postData['event_date'])) {
+            // If event is today, check if time is in the future
+            $eventDate = strtotime($postData['event_date']);
+            $today = strtotime(date('Y-m-d'));
+            
+            if ($eventDate === $today) {
+                $eventDateTime = strtotime($postData['event_date'] . ' ' . $postData['event_time']);
+                if ($eventDateTime < time()) {
+                    $errors['event_time'] = 'Event time cannot be in the past for today\'s events';
+                }
+            }
+        }
+        
+        // Validate Location based on location type
+        $locationType = $postData['location-type'] ?? 'inside-university';
+        
+        if ($locationType === 'inside-university') {
+            // Validate University selection
+            if (empty($postData['selected_university']) || trim($postData['selected_university']) === '') {
+                $errors['selected_university'] = 'University selection is required for inside university events';
+            }
+            
+            // Validate Faculty/Department
+            if (empty($postData['faculty_department']) || trim($postData['faculty_department']) === '') {
+                $errors['faculty_department'] = 'Faculty/Department is required for inside university events';
+            }
+            
+            // Validate Event Location
+            if (empty($postData['event_location']) || trim($postData['event_location']) === '') {
+                $errors['event_location'] = 'Event location is required (e.g., Main Auditorium, Hall A)';
+            }
+        } else {
+            // Outside university - venue name and city are required
+            if (empty($postData['venue_name']) || trim($postData['venue_name']) === '') {
+                $errors['venue_name'] = 'Venue name is required for outside university events';
+            }
+            if (empty($postData['city']) || trim($postData['city']) === '') {
+                $errors['city'] = 'City is required for outside university events';
+            }
+        }
+        
+        // Validate Target Audience
+        if (empty($postData['audience'])) {
+            $errors['audience'] = 'Target audience is required';
+        }
+        
+        // Validate Max Participants (optional, but if provided must be valid)
+        if (!empty($postData['max_participants'])) {
+            if (!is_numeric($postData['max_participants']) || (int)$postData['max_participants'] < 1) {
+                $errors['max_participants'] = 'Maximum participants must be at least 1';
+            } elseif ((int)$postData['max_participants'] > 100000) {
+                $errors['max_participants'] = 'Maximum participants cannot exceed 100,000';
+            }
+        }
+        
+        // Validate Category
+        if (empty($postData['event_category'])) {
+            $errors['event_category'] = 'Event category is required';
+        }
+        
+        // Validate Cover Image - NOW REQUIRED
+        if (!isset($files['cover_image']) || $files['cover_image']['error'] === UPLOAD_ERR_NO_FILE) {
+            $errors['cover_image'] = 'Event cover image is required';
+        } elseif ($files['cover_image']['error'] !== UPLOAD_ERR_OK) {
+            $errors['cover_image'] = 'Error uploading cover image';
+        } else {
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!in_array($files['cover_image']['type'], $allowedTypes)) {
+                $errors['cover_image'] = 'Invalid image type. Please upload JPEG, PNG, GIF, or WebP';
+            }
+            
+            if ($files['cover_image']['size'] > $maxSize) {
+                $errors['cover_image'] = 'Image too large. Maximum size is 5MB';
+            }
+        }
+        
+        // Validate Ticket Type and related fields
+        $ticketType = $postData['ticketType'] ?? 'free-all';
+        
+        if ($ticketType === 'paid-all' || $ticketType === 'mixed') {
+            // Validate ticket types exist
+            if (empty($postData['ticket_types'])) {
+                $errors['ticket_types'] = 'At least one ticket type is required for paid events';
+            } else {
+                $ticketTypes = json_decode($postData['ticket_types'], true);
+                if (empty($ticketTypes) || !is_array($ticketTypes)) {
+                    $errors['ticket_types'] = 'Invalid ticket types data';
+                } else {
+                    foreach ($ticketTypes as $index => $ticket) {
+                        if (empty($ticket['name'])) {
+                            $errors["ticket_type_{$index}_name"] = "Ticket type " . ($index + 1) . ": Name is required";
+                        }
+                        if (empty($ticket['quantity']) || (int)$ticket['quantity'] < 1) {
+                            $errors["ticket_type_{$index}_quantity"] = "Ticket type " . ($index + 1) . ": Quantity must be at least 1";
+                        }
+                        if (!isset($ticket['price']) || (float)$ticket['price'] < 0) {
+                            $errors["ticket_type_{$index}_price"] = "Ticket type " . ($index + 1) . ": Price must be 0 or greater";
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Validate Sale/Registration Periods based on ticket type
+        if ($ticketType === 'paid-all') {
+            // Require sale period for paid events
+            if (empty($postData['sale_start_date'])) {
+                $errors['sale_start_date'] = 'Sale start date is required for paid events';
+            }
+            if (empty($postData['sale_start_time'])) {
+                $errors['sale_start_time'] = 'Sale start time is required for paid events';
+            }
+            if (empty($postData['sale_end_date'])) {
+                $errors['sale_end_date'] = 'Sale end date is required for paid events';
+            }
+            if (empty($postData['sale_end_time'])) {
+                $errors['sale_end_time'] = 'Sale end time is required for paid events';
+            }
+        } elseif ($ticketType === 'mixed') {
+            // Registration period for university students is optional (not required)
+            
+            // Require sale period for outside users
+            if (empty($postData['mixed_sale_start_date'])) {
+                $errors['mixed_sale_start_date'] = 'Sale start date is required for outside users';
+            }
+            if (empty($postData['mixed_sale_start_time'])) {
+                $errors['mixed_sale_start_time'] = 'Sale start time is required for outside users';
+            }
+            if (empty($postData['mixed_sale_end_date'])) {
+                $errors['mixed_sale_end_date'] = 'Sale end date is required for outside users';
+            }
+            if (empty($postData['mixed_sale_end_time'])) {
+                $errors['mixed_sale_end_time'] = 'Sale end time is required for outside users';
+            }
+        }
+        
+        // Validate Registration/Sale Periods
+        $today = strtotime(date('Y-m-d'));
+        $eventDate = !empty($postData['event_date']) ? strtotime($postData['event_date']) : null;
+        
+        // Validate Registration Start Date
+        if (!empty($postData['registration_start_date']) && $eventDate) {
+            $regStart = strtotime($postData['registration_start_date']);
+            
+            // Registration start must be today or in the future
+            if ($regStart < $today) {
+                $errors['registration_start_date'] = 'Registration start date cannot be in the past (must be today or later)';
+            }
+            
+            // Registration start must be before or on event date
+            if ($regStart > $eventDate) {
+                $errors['registration_start_date'] = 'Registration start date cannot be after the event date';
+            }
+        }
+        
+        // Validate Registration End Date
+        if (!empty($postData['registration_end_date'])) {
+            $regEnd = strtotime($postData['registration_end_date']);
+            
+            // Registration end must not be in the past
+            if ($regEnd < $today) {
+                $errors['registration_end_date'] = 'Registration end date cannot be in the past';
+            }
+            
+            // Registration end must be before or on event date
+            if ($eventDate && $regEnd > $eventDate) {
+                $errors['registration_end_date'] = 'Registration period must close before or on the event date';
+            }
+            
+            // Registration end must be after start
+            if (!empty($postData['registration_start_date'])) {
+                $regStart = strtotime($postData['registration_start_date']);
+                if ($regEnd < $regStart) {
+                    $errors['registration_end_date'] = 'Registration end date must be after start date';
+                }
+            }
+        }
+        
+        // Validate complete registration period
+        if (!empty($postData['registration_start_date']) && !empty($postData['registration_end_date']) && $eventDate) {
+            $regStart = strtotime($postData['registration_start_date']);
+            $regEnd = strtotime($postData['registration_end_date']);
+            
+            // Registration period must be between publish date (today) and event date
+            if ($regStart < $today || $regEnd > $eventDate) {
+                $errors['registration_period'] = 'Registration period must be between today (publish date) and the event date';
+            }
+        }
+        
+        // Validate Ticket Sale Periods (similar logic)
+        if (!empty($postData['sale_start_date']) && $eventDate) {
+            $saleStart = strtotime($postData['sale_start_date']);
+            
+            if ($saleStart < $today) {
+                $errors['sale_start_date'] = 'Ticket sale start date cannot be in the past (must be today or later)';
+            }
+            
+            if ($saleStart > $eventDate) {
+                $errors['sale_start_date'] = 'Ticket sale start date cannot be after the event date';
+            }
+        }
+        
+        if (!empty($postData['sale_end_date'])) {
+            $saleEnd = strtotime($postData['sale_end_date']);
+            
+            if ($saleEnd < $today) {
+                $errors['sale_end_date'] = 'Ticket sale end date cannot be in the past';
+            }
+            
+            if ($eventDate && $saleEnd > $eventDate) {
+                $errors['sale_end_date'] = 'Ticket sale must end before or on the event date';
+            }
+            
+            if (!empty($postData['sale_start_date'])) {
+                $saleStart = strtotime($postData['sale_start_date']);
+                if ($saleEnd < $saleStart) {
+                    $errors['sale_end_date'] = 'Ticket sale end date must be after start date';
+                }
+            }
+        }
+        
+        // Validate complete sale period
+        if (!empty($postData['sale_start_date']) && !empty($postData['sale_end_date']) && $eventDate) {
+            $saleStart = strtotime($postData['sale_start_date']);
+            $saleEnd = strtotime($postData['sale_end_date']);
+            
+            // Sale period must be between publish date (today) and event date
+            if ($saleStart < $today || $saleEnd > $eventDate) {
+                $errors['sale_period'] = 'Ticket sale period must be between today (publish date) and the event date';
+            }
+        }
+        
+        // Validate Volunteers
+        if (isset($postData['volunteerToggle']) && $postData['volunteerToggle'] == '1') {
+            if (empty($postData['volunteers_needed'])) {
+                $errors['volunteers_needed'] = 'Number of volunteers needed is required';
+            } elseif (!is_numeric($postData['volunteers_needed']) || (int)$postData['volunteers_needed'] < 1) {
+                $errors['volunteers_needed'] = 'Number of volunteers must be at least 1';
+            } elseif ((int)$postData['volunteers_needed'] > 1000) {
+                $errors['volunteers_needed'] = 'Number of volunteers cannot exceed 1,000';
+            }
+            
+            // Check if at least one volunteer source is selected
+            if (empty($postData['volunteer-source']) || !is_array($postData['volunteer-source'])) {
+                $errors['volunteer_sources'] = 'Please select at least one volunteer source';
+            }
+        }
+        
+        return $errors;
     }
 }

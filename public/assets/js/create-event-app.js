@@ -111,9 +111,27 @@ function toggleLocationFields() {
     if (selectedType === 'inside-university') {
         insideUniversityLocation.classList.remove('hidden');
         outsideUniversityLocation.classList.add('hidden');
+        
+        // Add required to inside university fields
+        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.setAttribute('required', 'required'));
+        
+        // Remove required from outside university fields
+        outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.removeAttribute('required'));
+        outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.removeAttribute('required'));
     } else {
         insideUniversityLocation.classList.add('hidden');
         outsideUniversityLocation.classList.remove('hidden');
+        
+        // Remove required from inside university fields
+        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.removeAttribute('required'));
+        
+        // Add required to outside university fields
+        outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.setAttribute('required', 'required'));
+        outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.setAttribute('required', 'required'));
     }
 }
 
@@ -296,14 +314,27 @@ function updateTicketOptions() {
     freeAllDetails.classList.add("hidden");
     paidAllDetails.classList.add("hidden");
     mixedDetails.classList.add("hidden");
+    
+    // Remove required from all ticket fields
+    document.querySelectorAll('input[name="sale_start_date"], input[name="sale_start_time"], input[name="sale_end_date"], input[name="sale_end_time"]').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('input[name="mixed_sale_start_date"], input[name="mixed_sale_start_time"], input[name="mixed_sale_end_date"], input[name="mixed_sale_end_time"]').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('#ticketTypesList .ticket-type-name, #ticketTypesList .ticket-quantity, #ticketTypesList .ticket-price').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('#mixedTicketTypesList .ticket-type-name, #mixedTicketTypesList .ticket-quantity, #mixedTicketTypesList .ticket-price').forEach(el => el.removeAttribute('required'));
 
     // Show details based on selection
     if (freeAllRadio.checked) {
         freeAllDetails.classList.remove("hidden");
+        // No required fields for free-all
     } else if (paidAllRadio.checked) {
         paidAllDetails.classList.remove("hidden");
+        // Add required to paid-all fields
+        document.querySelectorAll('input[name="sale_start_date"], input[name="sale_start_time"], input[name="sale_end_date"], input[name="sale_end_time"]').forEach(el => el.setAttribute('required', 'required'));
+        document.querySelectorAll('#ticketTypesList .ticket-type-name, #ticketTypesList .ticket-quantity, #ticketTypesList .ticket-price').forEach(el => el.setAttribute('required', 'required'));
     } else if (mixedRadio.checked) {
         mixedDetails.classList.remove("hidden");
+        // Add required to mixed sale fields (for outside users)
+        document.querySelectorAll('input[name="mixed_sale_start_date"], input[name="mixed_sale_start_time"], input[name="mixed_sale_end_date"], input[name="mixed_sale_end_time"]').forEach(el => el.setAttribute('required', 'required'));
+        document.querySelectorAll('#mixedTicketTypesList .ticket-type-name, #mixedTicketTypesList .ticket-quantity, #mixedTicketTypesList .ticket-price').forEach(el => el.setAttribute('required', 'required'));
     }
 }
 
@@ -353,18 +384,18 @@ function addTicketType(containerId, counterVar) {
 
     newTicketType.innerHTML = `
         <div class="ticket-type-header">
-            <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name (e.g., VIP, 1st Class)" style="max-width: 250px; margin-bottom: 0;">
+            <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name (e.g., VIP, 1st Class)" style="max-width: 250px; margin-bottom: 0;" required>
             <button type="button" class="remove-ticket-type-btn">×</button>
         </div>
         <div class="ticket-type-details">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
-                    <label class="form-label">Quantity Available</label>
-                    <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1" value="100">
+                    <label class="form-label required">Quantity Available</label>
+                    <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1" value="100" required>
                 </div>
                 <div>
-                    <label class="form-label">Price (USD)</label>
-                    <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01" value="10">
+                    <label class="form-label required">Price (LKR)</label>
+                    <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01" value="10" required>
                 </div>
             </div>
             

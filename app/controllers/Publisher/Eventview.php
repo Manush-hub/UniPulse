@@ -3,10 +3,12 @@
 class PublisherEventview extends Controller {
     
     private $eventModel;
+    private $registrationModel;
     
     public function __construct() {
         // Initialize Event model
         $this->eventModel = new Event();
+        $this->registrationModel = new EventRegistration();
     }
     
     public function index($id = null) {
@@ -42,6 +44,12 @@ class PublisherEventview extends Controller {
                         $currentPublisherId = ($currentUser && $currentUser['type'] === 'publisher') ? $currentUser['id'] : null;
                         $isOwner = ($currentPublisherId && $event->created_by == $currentPublisherId && $event->created_by_type == 'publisher');
                         
+                        // Check if publisher is already registered
+                        $isRegistered = false;
+                        if ($currentPublisherId) {
+                            $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
+                        }
+                        
                         // Pass server data to view for JavaScript
                         $data = [
                             'event' => $event,
@@ -51,6 +59,7 @@ class PublisherEventview extends Controller {
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
+                                'isRegistered' => $isRegistered,
                                 'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
                             ]
@@ -167,6 +176,18 @@ class PublisherEventview extends Controller {
             exit;
         }
         
+        // Check if publisher is logged in
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'You must be logged in as a publisher to join events'
+            ]);
+            exit;
+        }
+        
+        $publisherId = $currentUser['id'];
+        
         // Validate event ID is numeric
         if (!is_numeric($eventId)) {
             echo json_encode([
@@ -177,7 +198,17 @@ class PublisherEventview extends Controller {
         }
         
         try {
-            // Check if event exists and has space in database
+            // Check if publisher is already registered
+            if ($this->registrationModel->isUserRegistered($eventId, $publisherId, 'publisher')) {
+                echo json_encode([
+                    'success' => false,
+                    'alreadyRegistered' => true,
+                    'error' => 'You have already registered for this event'
+                ]);
+                exit;
+            }
+            
+            // Check if event exists
             $event = $this->eventModel->getEventById($eventId);
             
             if (!$event) {
@@ -188,12 +219,15 @@ class PublisherEventview extends Controller {
                 exit;
             }
             
-            if ($event->participants >= $event->max_participants) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Event is full'
-                ]);
-                exit;
+            // Check if event has available spots (only if max_participants is set)
+            if ($event->max_participants !== null) {
+                if ($event->current_participants >= $event->max_participants) {
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Event is full'
+                    ]);
+                    exit;
+                }
             }
             
             if ($event->status === 'completed' || $event->status === 'cancelled') {
@@ -204,21 +238,48 @@ class PublisherEventview extends Controller {
                 exit;
             }
             
-            // Join the event by updating database
-            if ($this->eventModel->joinEvent($eventId)) {
+            // Create registration record
+            $registrationData = [
+                'event_id' => $eventId,
+                'user_id' => $publisherId,
+                'user_type' => 'publisher',
+                'notes' => $_POST['notes'] ?? '',
+                'status' => 'registered'
+            ];
+            
+            if (!$this->registrationModel->registerUser($registrationData)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to create registration record'
+                ]);
+                exit;
+            }
+            
+            // Join the event by incrementing current participants
+            if ($this->eventModel->incrementParticipants($eventId)) {
                 // Get updated event data from database
                 $updatedEvent = $this->eventModel->getEventById($eventId);
+                
+                // Calculate available spots (null if unlimited)
+                $availableSpots = null;
+                if ($updatedEvent->max_participants !== null) {
+                    $availableSpots = $updatedEvent->max_participants - $updatedEvent->current_participants;
+                }
                 
                 echo json_encode([
                     'success' => true,
                     'message' => 'Successfully joined the event',
-                    'participants' => $updatedEvent->participants,
-                    'availableSpots' => $updatedEvent->max_participants - $updatedEvent->participants
+                    'participants' => $updatedEvent->participants, // Legacy
+                    'current_participants' => $updatedEvent->current_participants,
+                    'max_participants' => $updatedEvent->max_participants,
+                    'availableSpots' => $availableSpots
                 ]);
             } else {
+                // Rollback registration if increment fails
+                $this->registrationModel->cancelRegistration($eventId, $publisherId, 'publisher');
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to join event. Please try again.'
+                    'error' => 'Failed to join event. Event may be full or an error occurred.'
                 ]);
             }
             

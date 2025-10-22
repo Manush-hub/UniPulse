@@ -301,6 +301,20 @@ body {
     color: #6b7280;
 }
 
+.event-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.event-price {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
 .event-participants {
     display: flex;
     align-items: center;

@@ -28,6 +28,7 @@ class Event {
         'created_by',
         'created_by_type',
         'participants',
+        'current_participants',
         'max_participants',
         'target_audience',
         'requirements',
@@ -304,32 +305,96 @@ class Event {
     }
     
     /**
-     * Update participant count
+     * Update participant count (legacy - for backward compatibility)
      */
     public function updateParticipants($id, $newCount) {
         return $this->update($id, ['participants' => $newCount]);
     }
     
     /**
+     * Update current participants count
+     */
+    public function updateCurrentParticipants($id, $newCount) {
+        return $this->update($id, ['current_participants' => $newCount]);
+    }
+    
+    /**
+     * Increment current participants (when user registers or buys ticket)
+     */
+    public function incrementParticipants($id) {
+        $event = $this->getEventById($id);
+        if (!$event) {
+            return false;
+        }
+        
+        // Check if max_participants is set and if we've reached the limit
+        if ($event->max_participants !== null && $event->current_participants >= $event->max_participants) {
+            return false; // Event is full
+        }
+        
+        return $this->updateCurrentParticipants($id, $event->current_participants + 1);
+    }
+    
+    /**
+     * Decrement current participants (when user cancels registration)
+     */
+    public function decrementParticipants($id) {
+        $event = $this->getEventById($id);
+        if (!$event || $event->current_participants <= 0) {
+            return false;
+        }
+        
+        return $this->updateCurrentParticipants($id, $event->current_participants - 1);
+    }
+    
+    /**
+     * Check if event has available spots
+     */
+    public function hasAvailableSpots($id) {
+        $event = $this->getEventById($id);
+        if (!$event) {
+            return false;
+        }
+        
+        // If max_participants is not set (NULL), unlimited spots available
+        if ($event->max_participants === null) {
+            return true;
+        }
+        
+        return $event->current_participants < $event->max_participants;
+    }
+    
+    /**
+     * Get available spots count
+     */
+    public function getAvailableSpots($id) {
+        $event = $this->getEventById($id);
+        if (!$event) {
+            return 0;
+        }
+        
+        // If max_participants is not set (NULL), return null to indicate unlimited
+        if ($event->max_participants === null) {
+            return null;
+        }
+        
+        return max(0, $event->max_participants - $event->current_participants);
+    }
+    
+    /**
      * Join event (increment participant count)
+     * @deprecated Use incrementParticipants() instead
      */
     public function joinEvent($id) {
-        $event = $this->getEventById($id);
-        if ($event && $event->participants < $event->max_participants) {
-            return $this->updateParticipants($id, $event->participants + 1);
-        }
-        return false;
+        return $this->incrementParticipants($id);
     }
     
     /**
      * Leave event (decrement participant count)
+     * @deprecated Use decrementParticipants() instead
      */
     public function leaveEvent($id) {
-        $event = $this->getEventById($id);
-        if ($event && $event->participants > 0) {
-            return $this->updateParticipants($id, $event->participants - 1);
-        }
-        return false;
+        return $this->decrementParticipants($id);
     }
     
     /**

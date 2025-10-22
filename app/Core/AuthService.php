@@ -125,12 +125,20 @@ class AuthService {
             case 'public':
             case 'university':
                 $_SESSION['user_name'] = $userData['user']->full_name;
+                // Store university for university students
+                if ($userData['type'] === 'university' && isset($userData['user']->university)) {
+                    $_SESSION['user_university'] = $userData['user']->university;
+                }
                 break;
             case 'sponsor':
                 $_SESSION['user_name'] = $userData['user']->company_name;
                 break;
             case 'publisher':
                 $_SESSION['user_name'] = $userData['user']->society_name;
+                // Store university for publishers
+                if (isset($userData['user']->university)) {
+                    $_SESSION['user_university'] = $userData['user']->university;
+                }
                 break;
         }
         
@@ -156,13 +164,20 @@ class AuthService {
             return false;
         }
         
-        return [
+        $user = [
             'id' => $_SESSION['user_id'],
             'email' => $_SESSION['user_email'],
             'name' => $_SESSION['user_name'],
             'type' => $_SESSION['user_type'],
             'table' => $_SESSION['user_table']
         ];
+        
+        // Include university if it exists in session
+        if (isset($_SESSION['user_university'])) {
+            $user['university'] = $_SESSION['user_university'];
+        }
+        
+        return $user;
     }
     
     /**

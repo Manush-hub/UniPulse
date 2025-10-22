@@ -154,14 +154,76 @@ function createEventCard(event) {
     card.style.cursor = 'pointer';
     
     // Handle different field names from database vs JavaScript
+    const eventDate = event.event_date || event.date;
+    const eventTime = event.event_time || event.time;
     const universityName = event.university_name || event.universityName;
     const maxParticipants = event.max_participants || event.maxParticipants;
-    const imageUrl = event.image_url || event.image;
+    const currentParticipants = event.current_participants || event.currentParticipants || 0;
+    const coverImage = event.cover_image || event.image_url || event.image;
+    const facultyDepartment = event.faculty_department || event.facultyDepartment;
+    const exactLocation = event.location || event.exact_location;
+    const locationType = event.location_type || 'inside-university';
+    const venueName = event.venue_name || event.venueName;
+    const city = event.city;
+    
+    // Build location display based on location type
+    let locationDisplay = '';
+    let secondaryInfo = '';
+    
+    if (locationType === 'outside-university') {
+        // Outside university: show "Venue, City"
+        if (venueName && city) {
+            locationDisplay = `${venueName}, ${city}`;
+        } else if (venueName) {
+            locationDisplay = venueName;
+        } else if (city) {
+            locationDisplay = city;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        // No secondary info for outside events
+        secondaryInfo = '';
+    } else {
+        // Inside university: show "Exact Location, University"
+        if (exactLocation && universityName) {
+            locationDisplay = `${exactLocation}, ${universityName}`;
+        } else if (exactLocation) {
+            locationDisplay = exactLocation;
+        } else if (universityName) {
+            locationDisplay = universityName;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        // Secondary info shows "Faculty, University"
+        if (facultyDepartment && universityName) {
+            secondaryInfo = `${facultyDepartment}, ${universityName}`;
+        } else if (facultyDepartment) {
+            secondaryInfo = facultyDepartment;
+        } else if (universityName) {
+            secondaryInfo = universityName;
+        }
+    }
+    
+    // Build correct image path
+    let imagePath = '';
+    if (coverImage) {
+        console.log('Cover image from DB:', coverImage); // Debug log
+        if (coverImage.startsWith('http')) {
+            imagePath = coverImage;
+        } else if (coverImage.startsWith('/')) {
+            // Absolute path from root
+            imagePath = coverImage;
+        } else {
+            // Relative path from database - add /unipulse/public/ prefix
+            imagePath = `/unipulse/public/${coverImage}`;
+        }
+        console.log('Constructed image path:', imagePath); // Debug log
+    }
     
     card.innerHTML = `
         <div class="event-image">
-            ${imageUrl ? 
-                `<img src="${imageUrl}" alt="${event.title}">` : 
+            ${imagePath ? 
+                `<img src="${imagePath}" alt="${event.title}">` : 
                 `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -183,35 +245,42 @@ function createEventCard(event) {
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span>${formatDate(event.date)} at ${event.time}</span>
+                    <span>${formatDate(eventDate)} at ${eventTime}</span>
                 </div>
                 <div class="meta-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                         <circle cx="12" cy="10" r="3"></circle>
                     </svg>
-                    <span>${event.location}</span>
+                    <span>${locationDisplay}</span>
                 </div>
+                ${secondaryInfo ? `
                 <div class="meta-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
                         <polyline points="9,22 9,12 15,12 15,22"></polyline>
                     </svg>
-                    <span>${universityName}</span>
+                    <span>${secondaryInfo}</span>
                 </div>
+                ` : ''}
             </div>
             <div class="event-footer">
                 <div class="event-organizer">
                     Organized by ${event.organizer}
                 </div>
-                <div class="event-participants">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span>${event.participants}/${maxParticipants}</span>
+                <div class="event-footer-right">
+                    ${getTicketPriceDisplay(event)}
+                    ${maxParticipants !== null && maxParticipants !== undefined ? `
+                    <div class="event-participants">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>${currentParticipants}/${maxParticipants}</span>
+                    </div>
+                    ` : ''}
                 </div>
             </div>
         </div>
@@ -358,4 +427,55 @@ function showMessage(message, type = 'info') {
             }
         }, 300);
     }, 4000);
+}
+
+// Get ticket price display for event card
+function getTicketPriceDisplay(event) {
+    const ticketType = event.ticket_type || event.ticketType || 'free-all';
+    
+    if (ticketType === 'free-all') {
+        return `<div class="event-price" style="color: #10B981; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-ticket-alt"></i> Free
+        </div>`;
+    }
+    
+    // For paid or mixed events, show ticket prices
+    const ticketTypes = event.ticket_types || [];
+    
+    if (ticketTypes && ticketTypes.length > 0) {
+        // Parse if it's a JSON string
+        const tickets = typeof ticketTypes === 'string' ? JSON.parse(ticketTypes) : ticketTypes;
+        
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            // Get price range
+            const prices = tickets.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                
+                if (minPrice === maxPrice) {
+                    return `<div class="event-price" style="color: #3b82f6; font-weight: 600; font-size: 14px;">
+                        <i class="fas fa-ticket-alt"></i> LKR ${minPrice}
+                    </div>`;
+                } else {
+                    return `<div class="event-price" style="color: #3b82f6; font-weight: 600; font-size: 14px;">
+                        <i class="fas fa-ticket-alt"></i> LKR ${minPrice} - ${maxPrice}
+                    </div>`;
+                }
+            }
+        }
+    }
+    
+    // Fallback for paid events without detailed ticket info
+    if (ticketType === 'paid-all') {
+        return `<div class="event-price" style="color: #3b82f6; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-ticket-alt"></i> Paid
+        </div>`;
+    } else if (ticketType === 'mixed') {
+        return `<div class="event-price" style="color: #f59e0b; font-weight: 600; font-size: 14px;">
+            <i class="fas fa-ticket-alt"></i> Mixed
+        </div>`;
+    }
+    
+    return '';
 }

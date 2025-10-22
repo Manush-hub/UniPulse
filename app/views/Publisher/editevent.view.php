@@ -144,6 +144,188 @@
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }
+        
+        /* Volunteer source styles */
+        .volunteer-source-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 12px;
+        }
+        
+        .volunteer-source-option {
+            position: relative;
+        }
+        
+        .volunteer-source-option input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .volunteer-source-option label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .volunteer-source-option input[type="checkbox"]:checked + label {
+            border-color: #1E3A8A;
+            background: #F0F4FF;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        
+        .volunteer-source-option label:hover {
+            border-color: #1E3A8A;
+            background: #F9FAFB;
+        }
+        
+        /* Custom Fields Styles */
+        .custom-field-builder {
+            background: #F9FAFB;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .add-field-btn {
+            background: #1E3A8A;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-field-btn:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+        
+        .custom-fields-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .custom-field-item {
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-field-item:hover {
+            border-color: #1E3A8A;
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.1);
+        }
+        
+        .field-info {
+            flex: 1;
+        }
+        
+        .field-info strong {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        
+        .field-type-badge {
+            display: inline-block;
+            background: #E0E7FF;
+            color: #1E3A8A;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+        
+        .required-badge {
+            display: inline-block;
+            background: #FEE2E2;
+            color: #DC2626;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .field-options-display {
+            margin-top: 8px;
+            color: #666;
+            font-size: 13px;
+            font-style: italic;
+        }
+        
+        .remove-field-btn {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .remove-field-btn:hover {
+            background: #DC2626;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .info-note {
+            background: #EFF6FF;
+            border-left: 4px solid #1E3A8A;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1E3A8A;
+        }
+        
+        .info-note i {
+            font-size: 18px;
+        }
     </style>
 
 </head>
@@ -159,12 +341,16 @@
         <form action="/unipulse/public/publisher/editevent/<?= $data['event_id'] ?>" method="POST" enctype="multipart/form-data" id="edit-event">
             <!-- Hidden field to help with AJAX detection -->
             <input type="hidden" name="ajax" value="1" id="ajax-flag">
+            <input type="hidden" name="ticket_types" id="ticket_types_input" value="">
+            <input type="hidden" name="schedule" id="schedule_input" value="">
+            <input type="hidden" name="custom_fields" id="custom_fields_input" value="">
+            <input type="hidden" name="volunteer_positions" id="volunteer_positions_input" value="">
             
-            <main class="content">
+                        <main class="content">
                 <!-- Back button -->
-                <a href="/unipulse/public/publisher/dashboard" class="back-button">
+                <a href="/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>" class="back-button">
                     <i class="fas fa-arrow-left"></i>
-                    Back to Dashboard
+                    Back
                 </a>
         
                 <h2 style="margin-bottom: 30px;">Edit Event</h2>
@@ -408,12 +594,54 @@
                         </div>
 
                         <div id="volunteerDetails" class="volunteer-details <?= (($data['old_data']['needs_volunteers'] ?? $data['event']->needs_volunteers) == 1) ? '' : 'hidden' ?>" style="margin-top: 20px;">
+                            <div class="info-note">
+                                <i class="fas fa-hands-helping"></i>
+                                Select where you'd like to recruit volunteers from
+                            </div>
+
                             <div class="form-group">
-                                <label for="volunteers_needed" class="form-label">Number of Volunteers Needed</label>
+                                <label class="form-label required">Volunteer Source</label>
+                                <div class="volunteer-source-options">
+                                    <?php 
+                                    $volunteerSources = $data['old_data']['volunteer_sources'] ?? $data['event']->volunteer_sources ?? [];
+                                    if (!is_array($volunteerSources)) {
+                                        $volunteerSources = json_decode($volunteerSources, true) ?? [];
+                                    }
+                                    ?>
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="faculty-volunteers" name="volunteer-source[]" value="faculty"
+                                            <?= in_array('faculty', $volunteerSources) ? 'checked' : '' ?>>
+                                        <label for="faculty-volunteers">
+                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
+                                            From My Faculty
+                                        </label>
+                                    </div>
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="university-volunteers" name="volunteer-source[]" value="university"
+                                            <?= in_array('university', $volunteerSources) ? 'checked' : '' ?>>
+                                        <label for="university-volunteers">
+                                            <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
+                                            From My University
+                                        </label>
+                                    </div>
+                                    <div class="volunteer-source-option">
+                                        <input type="checkbox" id="public-volunteers" name="volunteer-source[]" value="public"
+                                            <?= in_array('public', $volunteerSources) ? 'checked' : '' ?>>
+                                        <label for="public-volunteers">
+                                            <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
+                                            Public Users
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="volunteers_needed" class="form-label required">Number of Volunteers Needed</label>
+                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you need?</p>
                                 <div class="input-group">
-                                    <input type="number" name="volunteers_needed" class="form-input" min="1"
+                                    <input type="number" name="volunteers_needed" class="form-input" min="1" max="1000"
                                            value="<?= htmlspecialchars($data['old_data']['volunteers_needed'] ?? $data['event']->volunteers_needed ?? '') ?>"
-                                           placeholder="How many volunteers do you need?">
+                                           placeholder="e.g., 5" style="max-width: 200px;">
                                 </div>
                             </div>
                         </div>
@@ -441,6 +669,106 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
+                    </div>
+                </section>
+
+                <!-- Custom Fields Section -->
+                <section class="section" id="custom-fields">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Custom Fields</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="info-note">
+                            <i class="fas fa-info-circle"></i>
+                            Add custom fields to collect additional information from participants during registration
+                        </div>
+
+                        <div class="custom-field-builder">
+                            <div class="form-row" style="margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label class="form-label">Field Label</label>
+                                    <input type="text" id="customFieldLabel" class="form-input" 
+                                           placeholder="e.g., Dietary Restrictions, T-Shirt Size">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Field Type</label>
+                                    <select id="customFieldType" class="form-select">
+                                        <option value="text">Text Input</option>
+                                        <option value="textarea">Text Area</option>
+                                        <option value="select">Dropdown</option>
+                                        <option value="checkbox">Checkbox</option>
+                                        <option value="radio">Radio Buttons</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="customFieldOptionsContainer" style="display: none;">
+                                <label class="form-label">Options (comma-separated)</label>
+                                <input type="text" id="customFieldOptions" class="form-input" 
+                                       placeholder="e.g., Small, Medium, Large, XL">
+                                <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                                    Separate each option with a comma
+                                </p>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="customFieldRequired">
+                                    <span>Make this field required</span>
+                                </label>
+                            </div>
+
+                            <button type="button" class="add-field-btn" onclick="addCustomField()">
+                                <i class="fas fa-plus"></i> Add Custom Field
+                            </button>
+                        </div>
+
+                        <!-- Existing Custom Fields Display -->
+                        <?php 
+                        $existingCustomFields = $data['event']->custom_fields ?? [];
+                        if (!is_array($existingCustomFields)) {
+                            $existingCustomFields = json_decode($existingCustomFields, true) ?? [];
+                        }
+                        if (!empty($existingCustomFields)): 
+                        ?>
+                        <div class="custom-fields-preview" style="margin-top: 30px;">
+                            <h4 style="color: #333; margin-bottom: 15px; font-size: 16px;">
+                                <i class="fas fa-list"></i> Current Custom Fields
+                            </h4>
+                            <div id="customFieldsList" class="custom-fields-list">
+                                <?php foreach ($existingCustomFields as $index => $field): ?>
+                                <div class="custom-field-item" data-index="<?= $index ?>">
+                                    <div class="field-info">
+                                        <strong><?= htmlspecialchars($field['label']) ?></strong>
+                                        <span class="field-type-badge"><?= htmlspecialchars($field['type']) ?></span>
+                                        <?php if ($field['required']): ?>
+                                        <span class="required-badge">Required</span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($field['options'])): ?>
+                                        <div class="field-options-display">
+                                            Options: <?= htmlspecialchars(implode(', ', $field['options'])) ?>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <button type="button" class="remove-field-btn" onclick="removeCustomField(<?= $index ?>)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php else: ?>
+                        <div class="custom-fields-preview" style="margin-top: 30px; display: none;">
+                            <h4 style="color: #333; margin-bottom: 15px; font-size: 16px;">
+                                <i class="fas fa-list"></i> Custom Fields Preview
+                            </h4>
+                            <div id="customFieldsList" class="custom-fields-list">
+                                <!-- Custom fields will be added here -->
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </section>
 
@@ -548,7 +876,7 @@
                 <!-- Action Buttons -->
                 <div class="bottom-actions">
                     <div class="action-buttons">
-                        <button type="button" onclick="window.location.href='/unipulse/public/publisher/events'" class="cancel-btn">
+                        <button type="button" onclick="window.location.href='/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>'" class="cancel-btn">
                             <i class="fas fa-times"></i> Cancel
                         </button>
                         <button type="submit" class="publish-btn">
@@ -658,10 +986,12 @@
         .then(data => {
             if (data.success) {
                 // Show success message with better styling
-                showSuccessMessage('Event updated successfully!');
+                showSuccessMessage('Event updated successfully! Redirecting to event view...');
                 
-                // Scroll to top of form
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                // Redirect to event view after a short delay
+                setTimeout(function() {
+                    window.location.href = '/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>';
+                }, 1500);
             } else {
                 // Show error messages
                 let errorMessage = 'Please fix the following errors:\n';
@@ -685,6 +1015,125 @@
             submitBtn.disabled = false;
         });
     });
+
+    // Custom Fields Functionality
+    let customFieldsArray = [];
+    
+    // Load existing custom fields
+    <?php if (!empty($existingCustomFields)): ?>
+    customFieldsArray = <?= json_encode($existingCustomFields) ?>;
+    <?php endif; ?>
+    
+    // Show/hide options field based on field type
+    const customFieldType = document.getElementById('customFieldType');
+    const customFieldOptionsContainer = document.getElementById('customFieldOptionsContainer');
+    
+    if (customFieldType) {
+        customFieldType.addEventListener('change', function() {
+            if (this.value === 'select' || this.value === 'radio' || this.value === 'checkbox') {
+                customFieldOptionsContainer.style.display = 'block';
+            } else {
+                customFieldOptionsContainer.style.display = 'none';
+            }
+        });
+    }
+    
+    function addCustomField() {
+        const label = document.getElementById('customFieldLabel').value.trim();
+        const type = document.getElementById('customFieldType').value;
+        const optionsInput = document.getElementById('customFieldOptions').value.trim();
+        const required = document.getElementById('customFieldRequired').checked;
+        
+        if (!label) {
+            alert('Please enter a field label!');
+            return;
+        }
+        
+        if ((type === 'select' || type === 'radio' || type === 'checkbox') && !optionsInput) {
+            alert('Please enter options for this field type!');
+            return;
+        }
+        
+        // Parse options
+        const options = (type === 'select' || type === 'radio' || type === 'checkbox') 
+            ? optionsInput.split(',').map(opt => opt.trim()).filter(opt => opt !== '')
+            : [];
+        
+        // Add to array
+        const newField = {
+            label: label,
+            type: type,
+            options: options,
+            required: required
+        };
+        customFieldsArray.push(newField);
+        
+        // Update hidden input
+        document.getElementById('custom_fields').value = JSON.stringify(customFieldsArray);
+        
+        // Update UI
+        renderCustomFields();
+        
+        // Clear form
+        document.getElementById('customFieldLabel').value = '';
+        document.getElementById('customFieldOptions').value = '';
+        document.getElementById('customFieldRequired').checked = false;
+        document.getElementById('customFieldType').value = 'text';
+        customFieldOptionsContainer.style.display = 'none';
+    }
+    
+    function removeCustomField(index) {
+        if (confirm('Are you sure you want to remove this custom field?')) {
+            customFieldsArray.splice(index, 1);
+            document.getElementById('custom_fields').value = JSON.stringify(customFieldsArray);
+            renderCustomFields();
+        }
+    }
+    
+    function renderCustomFields() {
+        const preview = document.querySelector('.custom-fields-preview');
+        const list = document.getElementById('customFieldsList');
+        
+        if (customFieldsArray.length === 0) {
+            preview.style.display = 'none';
+            return;
+        }
+        
+        preview.style.display = 'block';
+        list.innerHTML = '';
+        
+        customFieldsArray.forEach((field, index) => {
+            const fieldItem = document.createElement('div');
+            fieldItem.className = 'custom-field-item';
+            fieldItem.setAttribute('data-index', index);
+            
+            let optionsDisplay = '';
+            if (field.options && field.options.length > 0) {
+                optionsDisplay = `
+                    <div class="field-options-display">
+                        Options: ${field.options.join(', ')}
+                    </div>
+                `;
+            }
+            
+            fieldItem.innerHTML = `
+                <div class="field-info">
+                    <strong>${field.label}</strong>
+                    <span class="field-type-badge">${field.type}</span>
+                    ${field.required ? '<span class="required-badge">Required</span>' : ''}
+                    ${optionsDisplay}
+                </div>
+                <button type="button" class="remove-field-btn" onclick="removeCustomField(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            list.appendChild(fieldItem);
+        });
+    }
+    
+    // Initial render
+    renderCustomFields();
     </script>
 </body>
 

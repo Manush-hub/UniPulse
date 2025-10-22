@@ -4,6 +4,7 @@ let similarEvents = window.serverData?.similarEvents || [];
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
+let isUserRegistered = window.serverData?.isRegistered || false;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -69,9 +70,49 @@ function displayEventDetails(event) {
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
     const maxParticipants = event.max_participants || event.maxParticipants;
+    const currentParticipants = event.current_participants || event.currentParticipants || 0;
     const organizerEmail = event.organizer_email || event.organizerEmail;
     const targetAudience = event.target_audience || event.targetAudience;
     const ticketType = event.ticket_type || event.ticketType;
+    const imageUrl = event.image_url || event.imageUrl || event.cover_image || event.image;
+    
+    // Display hero image if available
+    if (imageUrl) {
+        const heroImageContainer = document.getElementById('heroImageContainer');
+        const heroImage = document.getElementById('heroImage');
+        if (heroImageContainer && heroImage) {
+            // Build correct image path
+            let imagePath = '';
+            if (imageUrl.startsWith('http')) {
+                imagePath = imageUrl;
+            } else if (imageUrl.startsWith('/unipulse/')) {
+                imagePath = imageUrl;
+            } else if (imageUrl.startsWith('/')) {
+                imagePath = imageUrl;
+            } else {
+                // Relative path from database - add /unipulse/public/ prefix
+                imagePath = `/unipulse/public/${imageUrl}`;
+            }
+            
+            console.log('Image URL from DB:', imageUrl);
+            console.log('Constructed image path:', imagePath);
+            
+            heroImage.src = imagePath;
+            heroImage.alt = event.title + ' Cover Image';
+            heroImageContainer.style.display = 'block';
+            
+            // Add error handler
+            heroImage.onerror = function() {
+                console.error('Failed to load image:', imagePath);
+                heroImageContainer.style.display = 'none';
+            };
+            
+            // Add load handler for debugging
+            heroImage.onload = function() {
+                console.log('Image loaded successfully:', imagePath);
+            };
+        }
+    }
     
     // Basic event info
     document.getElementById('eventCategory').textContent = capitalizeFirstLetter(event.category);
@@ -82,31 +123,91 @@ function displayEventDetails(event) {
     // Event details grid
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
+    const locationType = event.location_type || 'inside-university';
+    
     document.getElementById('eventDateTime').textContent = `${formatDate(eventDate)} at ${eventTime}`;
-    document.getElementById('eventLocation').textContent = event.location;
-    document.getElementById('eventUniversity').textContent = universityName;
-    document.getElementById('eventParticipants').textContent = `${event.participants}/${maxParticipants}`;
+    
+    // Display location fields based on location type
+    if (locationType === 'outside-university') {
+        // Outside university: show venue and city
+        const venueName = event.venue_name || event.venueName || '';
+        const city = event.city || '';
+        let venueCity = '';
+        
+        if (venueName && city) {
+            venueCity = `${venueName}, ${city}`;
+        } else if (venueName) {
+            venueCity = venueName;
+        } else if (city) {
+            venueCity = city;
+        } else {
+            venueCity = 'Location TBA';
+        }
+        
+        document.getElementById('venueInfo').style.display = 'flex';
+        document.getElementById('eventVenueCity').textContent = venueCity;
+        
+        // Hide inside university fields
+        document.getElementById('universityInfo').style.display = 'none';
+        document.getElementById('facultyInfo').style.display = 'none';
+        document.getElementById('exactLocationInfo').style.display = 'none';
+    } else {
+        // Inside university: show university, faculty, and exact location
+        document.getElementById('universityInfo').style.display = 'flex';
+        document.getElementById('eventUniversity').textContent = universityName;
+        
+        // Show faculty/department if available
+        if (event.faculty_department) {
+            document.getElementById('facultyInfo').style.display = 'flex';
+            document.getElementById('eventFaculty').textContent = event.faculty_department;
+        }
+        
+        document.getElementById('exactLocationInfo').style.display = 'flex';
+        document.getElementById('eventLocation').textContent = event.location;
+        
+        // Hide outside university field
+        document.getElementById('venueInfo').style.display = 'none';
+    }
+    
+    // Show participants info only if max_participants is set
+    if (maxParticipants !== null && maxParticipants !== undefined) {
+        document.getElementById('participantsInfo').style.display = 'flex';
+        document.getElementById('eventParticipants').textContent = `${currentParticipants}/${maxParticipants}`;
+    } else {
+        document.getElementById('participantsInfo').style.display = 'none';
+    }
     
     // Target audience
     document.getElementById('eventAudience').textContent = formatAudience(targetAudience);
     
-    // Ticket type (show if not free-all)
-    if (ticketType && ticketType !== 'free-all') {
-        document.getElementById('ticketInfo').style.display = 'block';
+    // Ticket type - Always show with appropriate display
+    document.getElementById('ticketInfo').style.display = 'block';
+    if (ticketType === 'free-all') {
+        document.getElementById('eventTicketType').innerHTML = '<span style="color: #10B981; font-weight: 600;">Free Event</span>';
+    } else {
         document.getElementById('eventTicketType').textContent = formatTicketType(ticketType);
     }
     
     // Full description
     document.getElementById('eventDescription').textContent = event.description;
     
-    // Schedule
-    if (event.schedule) {
+    // Registration Period
+    displayRegistrationPeriod(event);
+    
+    // Schedule - hide card if no schedule data
+    if (event.schedule && Array.isArray(event.schedule) && event.schedule.length > 0) {
         displaySchedule(event.schedule);
+        document.getElementById('scheduleCard').style.display = 'block';
+    } else {
+        document.getElementById('scheduleCard').style.display = 'none';
     }
     
-    // Requirements
-    if (event.requirements) {
+    // Requirements - hide card if no requirements
+    if (event.requirements && Array.isArray(event.requirements) && event.requirements.length > 0) {
         displayRequirements(event.requirements);
+        document.getElementById('requirementsCard').style.display = 'block';
+    } else {
+        document.getElementById('requirementsCard').style.display = 'none';
     }
     
     // Location details
@@ -115,19 +216,33 @@ function displayEventDetails(event) {
     // Ticket details
     displayTicketDetails(event);
     
-    // Custom fields
-    if (event.custom_fields) {
+    // Custom fields - hide card if no custom fields
+    if (event.custom_fields && Array.isArray(event.custom_fields) && event.custom_fields.length > 0) {
         displayCustomFields(event.custom_fields);
+    } else {
+        if (document.getElementById('customFieldsCard')) {
+            document.getElementById('customFieldsCard').style.display = 'none';
+        }
     }
     
-    // Volunteer information
-    if (event.needs_volunteers) {
+    // Volunteer information - hide card if not accepting volunteers
+    if (event.needs_volunteers && event.needs_volunteers == 1) {
         displayVolunteerInfo(event);
+    } else {
+        if (document.getElementById('volunteerCard')) {
+            document.getElementById('volunteerCard').style.display = 'none';
+        }
     }
     
-    // Donation information
-    if (event.accepts_donations) {
-        document.getElementById('donationCard').style.display = 'block';
+    // Donation information - hide card if not accepting donations
+    if (event.accepts_donations && event.accepts_donations == 1) {
+        if (document.getElementById('donationCard')) {
+            document.getElementById('donationCard').style.display = 'block';
+        }
+    } else {
+        if (document.getElementById('donationCard')) {
+            document.getElementById('donationCard').style.display = 'none';
+        }
     }
     
     // Organizer info
@@ -136,14 +251,19 @@ function displayEventDetails(event) {
     // Store organizer email for contact function
     currentEvent.organizerEmail = organizerEmail;
     
-    // Statistics
-    document.getElementById('totalParticipants').textContent = event.participants;
-    document.getElementById('availableSpots').textContent = maxParticipants - event.participants;
-    
-    // Participation percentage
-    const percentage = Math.round((event.participants / maxParticipants) * 100);
-    document.getElementById('participationPercentage').textContent = `${percentage}%`;
-    document.getElementById('participationFill').style.width = `${percentage}%`;
+    // Statistics - only show if max_participants is set
+    if (maxParticipants !== null && maxParticipants !== undefined) {
+        document.getElementById('eventStatsCard').style.display = 'block';
+        document.getElementById('totalParticipants').textContent = currentParticipants;
+        document.getElementById('availableSpots').textContent = maxParticipants - currentParticipants;
+        
+        // Participation percentage
+        const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
+        document.getElementById('participationPercentage').textContent = `${percentage}%`;
+        document.getElementById('participationFill').style.width = `${percentage}%`;
+    } else {
+        document.getElementById('eventStatsCard').style.display = 'none';
+    }
     
     // Set event link for sharing
     if (document.getElementById('shareLink')) {
@@ -151,10 +271,54 @@ function displayEventDetails(event) {
     }
     
     // Update status styling
-    updateStatusStyling(event.status, event.participants, maxParticipants);
+    updateStatusStyling(event.status, currentParticipants, maxParticipants);
     
     // Initialize comments for completed events
     initializeComments();
+}
+
+// Display registration period
+function displayRegistrationPeriod(event) {
+    const registrationPeriodCard = document.getElementById('registrationPeriodCard');
+    const registrationPeriodContainer = document.getElementById('registrationPeriod');
+    
+    // Check if registration dates are available
+    if (event.registration_start_date && event.registration_end_date) {
+        let registrationHTML = '<div class="registration-period-item">';
+        
+        // Registration Start
+        registrationHTML += '<div style="margin-bottom: 15px;">';
+        registrationHTML += '<div><strong>Registration Opens:</strong></div>';
+        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
+        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_start_date)}`;
+        if (event.registration_start_time) {
+            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_start_time}`;
+        }
+        registrationHTML += '</div></div>';
+        
+        // Registration End
+        registrationHTML += '<div style="margin-bottom: 15px;">';
+        registrationHTML += '<div><strong>Registration Closes:</strong></div>';
+        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
+        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_end_date)}`;
+        if (event.registration_end_time) {
+            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_end_time}`;
+        }
+        registrationHTML += '</div></div>';
+        
+        // Registration limit if available
+        if (event.registration_limit) {
+            registrationHTML += '<div>';
+            registrationHTML += '<div><strong>Registration Limit:</strong></div>';
+            registrationHTML += `<div style="color: #666; margin-top: 5px;"><i class="fas fa-users"></i> ${event.registration_limit} participants</div>`;
+            registrationHTML += '</div>';
+        }
+        
+        registrationHTML += '</div>';
+        
+        registrationPeriodContainer.innerHTML = registrationHTML;
+        registrationPeriodCard.style.display = 'block';
+    }
 }
 
 // Display event schedule
@@ -223,10 +387,15 @@ function updateStatusStyling(status, participants, maxParticipants) {
     statusElement.className = `event-status ${status}`;
     
     const joinBtn = document.getElementById('joinBtn');
-    if (status === 'completed' || status === 'cancelled') {
+    if (isUserRegistered) {
+        joinBtn.disabled = true;
+        joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+        joinBtn.style.cursor = 'not-allowed';
+        joinBtn.style.opacity = '0.6';
+    } else if (status === 'completed' || status === 'cancelled') {
         joinBtn.disabled = true;
         joinBtn.innerHTML = '<i class="fas fa-calendar-times"></i> Event Ended';
-    } else if (participants >= maxParticipants) {
+    } else if (maxParticipants !== null && maxParticipants !== undefined && participants >= maxParticipants) {
         joinBtn.disabled = true;
         joinBtn.innerHTML = '<i class="fas fa-users"></i> Event Full';
     }
@@ -283,18 +452,53 @@ function confirmJoinEvent() {
         if (data.success) {
             alert(`Successfully joined "${currentEvent.title}"!`);
             
+            // Mark user as registered
+            isUserRegistered = true;
+            
+            // Update join button state
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                joinBtn.classList.add('disabled');
+                joinBtn.style.cursor = 'not-allowed';
+                joinBtn.style.opacity = '0.6';
+                joinBtn.disabled = true;
+                joinBtn.removeEventListener('click', openJoinModal);
+            }
+            
             // Update UI with new participant count
-            currentEvent.participants = data.participants;
+            const newCurrentParticipants = data.current_participants || data.participants || 0;
             const maxParticipants = currentEvent.max_participants || currentEvent.maxParticipants;
+            currentEvent.current_participants = newCurrentParticipants;
             
-            document.getElementById('eventParticipants').textContent = `${data.participants}/${maxParticipants}`;
-            document.getElementById('totalParticipants').textContent = data.participants;
-            document.getElementById('availableSpots').textContent = data.availableSpots;
+            // Update participant count in detail section if visible
+            if (maxParticipants !== null && maxParticipants !== undefined) {
+                document.getElementById('eventParticipants').textContent = `${newCurrentParticipants}/${maxParticipants}`;
+                document.getElementById('totalParticipants').textContent = newCurrentParticipants;
+                document.getElementById('availableSpots').textContent = maxParticipants - newCurrentParticipants;
+                
+                // Update participation percentage
+                const percentage = maxParticipants > 0 ? Math.round((newCurrentParticipants / maxParticipants) * 100) : 0;
+                document.getElementById('participationPercentage').textContent = `${percentage}%`;
+                document.getElementById('participationFill').style.width = `${percentage}%`;
+            }
             
-            // Update participation percentage
-            const percentage = Math.round((data.participants / maxParticipants) * 100);
-            document.getElementById('participationPercentage').textContent = `${percentage}%`;
-            document.getElementById('participationFill').style.width = `${percentage}%`;
+            closeJoinModal();
+        } else if (data.alreadyRegistered) {
+            // User is already registered
+            alert('You have already registered for this event.');
+            isUserRegistered = true;
+            
+            // Update join button state
+            const joinBtn = document.getElementById('joinBtn');
+            if (joinBtn) {
+                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                joinBtn.classList.add('disabled');
+                joinBtn.style.cursor = 'not-allowed';
+                joinBtn.style.opacity = '0.6';
+                joinBtn.disabled = true;
+                joinBtn.removeEventListener('click', openJoinModal);
+            }
             
             closeJoinModal();
         } else {
@@ -384,6 +588,7 @@ function formatTicketType(ticketType) {
 
 function displayLocationDetails(event) {
     const locationType = event.location_type || 'inside-university';
+    const universityName = event.university_name || event.universityName;
     let locationHTML = '';
     
     if (locationType === 'outside-university') {
@@ -406,46 +611,110 @@ function displayLocationDetails(event) {
             document.getElementById('locationDetailsCard').style.display = 'block';
             document.getElementById('locationDetails').innerHTML = locationHTML;
         }
-    } else if (event.faculty_department) {
-        locationHTML = `<div class="location-detail-item">
-            <div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>
-        </div>`;
-        document.getElementById('locationDetailsCard').style.display = 'block';
-        document.getElementById('locationDetails').innerHTML = locationHTML;
+    } else {
+        // Inside university - show university, faculty/department, and exact location
+        locationHTML = '<div class="location-detail-item">';
+        
+        if (universityName) {
+            locationHTML += `<div><strong>University:</strong> ${universityName}</div>`;
+        }
+        
+        if (event.faculty_department) {
+            locationHTML += `<div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>`;
+        }
+        
+        if (event.location) {
+            locationHTML += `<div><strong>Exact Location:</strong> ${event.location}</div>`;
+        }
+        
+        locationHTML += '</div>';
+        
+        // Only show if there's actual content
+        if (universityName || event.faculty_department || event.location) {
+            document.getElementById('locationDetailsCard').style.display = 'block';
+            document.getElementById('locationDetails').innerHTML = locationHTML;
+        }
     }
 }
 
 function displayTicketDetails(event) {
     const ticketType = event.ticket_type || 'free-all';
+    const ticketDetailsCard = document.getElementById('ticketDetailsCard');
+    const ticketDetailsDiv = document.getElementById('ticketDetails');
     
     if (ticketType === 'free-all') {
-        return; // No special ticket details to show
+        // Show "Free Event" information
+        ticketDetailsCard.style.display = 'block';
+        ticketDetailsDiv.innerHTML = `
+            <div class="ticket-detail-item" style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; color: #10B981; margin-bottom: 10px;">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div style="font-size: 24px; font-weight: 600; color: #10B981; margin-bottom: 10px;">
+                    Free Event
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    No ticket purchase required. Everyone is welcome to attend!
+                </div>
+            </div>
+        `;
+        return;
     }
     
+    // For paid or mixed events
     let ticketHTML = '<div class="ticket-detail-item">';
-    ticketHTML += `<div><strong>Ticket Type:</strong> ${formatTicketType(ticketType)}</div>`;
+    ticketHTML += `<div style="margin-bottom: 15px;"><strong>Ticket Type:</strong> <span style="color: #3b82f6; font-weight: 600;">${formatTicketType(ticketType)}</span></div>`;
     
     if (event.registration_start_date && event.registration_end_date) {
-        ticketHTML += `<div><strong>Registration Period:</strong> ${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</div>`;
+        ticketHTML += `<div style="margin-bottom: 10px;"><strong>Registration Period:</strong> ${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</div>`;
     }
     
     if (event.registration_limit) {
-        ticketHTML += `<div><strong>Registration Limit:</strong> ${event.registration_limit} participants</div>`;
+        ticketHTML += `<div style="margin-bottom: 15px;"><strong>Registration Limit:</strong> ${event.registration_limit} participants</div>`;
     }
     
-    if (event.ticket_types && Array.isArray(event.ticket_types)) {
-        ticketHTML += '<div><strong>Available Tickets:</strong></div>';
-        ticketHTML += '<ul class="ticket-types-list">';
-        event.ticket_types.forEach(ticket => {
-            ticketHTML += `<li>${ticket.name} - LKR ${ticket.price} (${ticket.quantity} available)</li>`;
-        });
-        ticketHTML += '</ul>';
+    // Display ticket types and prices
+    if (event.ticket_types) {
+        let tickets = event.ticket_types;
+        
+        // Parse if it's a JSON string
+        if (typeof tickets === 'string') {
+            try {
+                tickets = JSON.parse(tickets);
+            } catch (e) {
+                console.error('Error parsing ticket_types:', e);
+                tickets = [];
+            }
+        }
+        
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            ticketHTML += '<div style="margin-top: 20px;"><strong style="font-size: 16px; color: #1f2937;">Available Tickets:</strong></div>';
+            ticketHTML += '<div class="ticket-types-list" style="margin-top: 10px;">';
+            
+            tickets.forEach(ticket => {
+                ticketHTML += `
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <span style="font-weight: 600; font-size: 16px; color: #1f2937;">${ticket.name}</span>
+                            <span style="font-size: 18px; font-weight: 700; color: #3b82f6;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
+                        </div>
+                        ${ticket.description ? `<div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">${ticket.description}</div>` : ''}
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #6b7280;">
+                            <span><i class="fas fa-users"></i> Quantity: ${ticket.quantity}</span>
+                            ${ticket.benefits ? `<span><i class="fas fa-star"></i> ${ticket.benefits}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            ticketHTML += '</div>';
+        }
     }
     
     ticketHTML += '</div>';
     
-    document.getElementById('ticketDetailsCard').style.display = 'block';
-    document.getElementById('ticketDetails').innerHTML = ticketHTML;
+    ticketDetailsCard.style.display = 'block';
+    ticketDetailsDiv.innerHTML = ticketHTML;
 }
 
 function displayCustomFields(customFields) {
@@ -497,7 +766,7 @@ function displayVolunteerInfo(event) {
     }
     
     volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += '<button class="btn btn-outline" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
+    volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
     volunteerHTML += '</div>';
     
     volunteerHTML += '</div>';
@@ -532,8 +801,16 @@ function processDonation() {
 }
 
 function applyAsVolunteer() {
-    // Here you would redirect to volunteer application form or open a modal
-    alert('Volunteer application functionality would be implemented here.');
+    // Get the event ID from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+    
+    // Redirect to volunteer registration page with event ID
+    if (eventId) {
+        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
+    } else {
+        alert('Event ID not found');
+    }
 }
 
 // Event listeners for donation amounts
@@ -553,7 +830,10 @@ function showEventContainer() {
 }
 
 // Event listeners
-document.getElementById('joinBtn').addEventListener('click', openJoinModal);
+const joinBtn = document.getElementById('joinBtn');
+if (joinBtn && !isUserRegistered) {
+    joinBtn.addEventListener('click', openJoinModal);
+}
 document.getElementById('shareBtn').addEventListener('click', openShareModal);
 
 // Close modals when clicking outside
