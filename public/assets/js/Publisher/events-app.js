@@ -150,7 +150,12 @@ function updatePagination(pagination = null) {
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
-    card.onclick = () => viewEventDetails(event.id);
+    card.onclick = (e) => {
+        // Don't trigger view details if clicking on action buttons
+        if (!e.target.closest('.event-actions')) {
+            viewEventDetails(event.id);
+        }
+    };
     card.style.cursor = 'pointer';
     
     // Handle different field names from database vs JavaScript
@@ -283,11 +288,14 @@ function createEventCard(event) {
                     ` : ''}
                 </div>
             </div>
+
         </div>
     `;
     
     return card;
 }
+
+
 
 // Search events
 function searchEvents() {
@@ -479,3 +487,4 @@ function getTicketPriceDisplay(event) {
     
     return '';
 }
+

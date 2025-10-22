@@ -799,4 +799,48 @@ class Event {
             'message' => $message
         ]);
     }
+    
+    /**
+     * Get events created by a specific publisher
+     */
+    public function getEventsByPublisher($publisherId, $filters = []) {
+        $whereClause = ['created_by = :publisher_id', 'created_by_type = :created_by_type'];
+        $params = [
+            'publisher_id' => $publisherId,
+            'created_by_type' => 'publisher'
+        ];
+        
+        // Apply additional filters
+        if (!empty($filters['category'])) {
+            $whereClause[] = 'category = :category';
+            $params['category'] = $filters['category'];
+        }
+        
+        if (!empty($filters['status'])) {
+            $whereClause[] = 'status = :status';
+            $params['status'] = $filters['status'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $whereClause[] = '(title LIKE :search OR description LIKE :search OR location LIKE :search)';
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        $sql = "SELECT * FROM {$this->table}";
+        $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+        $sql .= ' ORDER BY event_date ASC, event_time ASC';
+        
+        // Add pagination if specified
+        if (isset($filters['limit'])) {
+            $sql .= ' LIMIT :limit';
+            $params['limit'] = $filters['limit'];
+            
+            if (isset($filters['offset'])) {
+                $sql .= ' OFFSET :offset';
+                $params['offset'] = $filters['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
 }

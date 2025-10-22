@@ -870,7 +870,7 @@ function editEvent() {
         return;
     }
     
-    window.location.href = `/unipulse/public/publisher/editevent?id=${currentEvent.id}`;
+    window.location.href = `/unipulse/public/publisher/events/edit/${currentEvent.id}`;
 }
 
 // Delete event function for publisher's own events
@@ -888,13 +888,12 @@ function deleteEvent() {
             deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
         }
 
-        fetch('/unipulse/public/publisher/deleteevent', {
+        fetch(`/unipulse/public/publisher/events/delete/${currentEvent.id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ id: currentEvent.id })
+            }
         })
         .then(response => {
             if (!response.ok) {

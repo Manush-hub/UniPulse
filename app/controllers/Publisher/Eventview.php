@@ -47,7 +47,13 @@ class PublisherEventview extends Controller {
                         // Check if publisher is already registered
                         $isRegistered = false;
                         if ($currentPublisherId) {
-                            $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
+                            try {
+                                $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
+                            } catch (Exception $regException) {
+                                // If registration check fails, just set to false and continue
+                                error_log("Registration check failed: " . $regException->getMessage());
+                                $isRegistered = false;
+                            }
                         }
                         
                         // Pass server data to view for JavaScript
@@ -60,6 +66,7 @@ class PublisherEventview extends Controller {
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,
+                                'currentUser' => $currentUser,
                                 'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
                             ]
