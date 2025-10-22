@@ -855,7 +855,7 @@
                 <div class="bottom-actions">
                     <button type="button" class="cancel-btn" onclick="window.location.href='/unipulse/public/publisher/events'">Cancel</button>
                     <div class="action-buttons">
-                        <button type="button" class="save-draft-btn">Save draft</button>
+                        <!-- <button type="button" class="save-draft-btn">Save draft</button> -->
                         <button type="submit" class="publish-btn">Publish Event</button>
                     </div>
                 </div>

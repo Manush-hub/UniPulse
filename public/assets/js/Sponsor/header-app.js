@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Sample data for sponsor dashboard
 const sponsorData = {
-    companyName: 'TechCorp Ltd',
+    companyName: 'Company',
     contactPerson: 'John Smith',
     email: 'john@techcorp.com',
     totalSponsorships: 8,

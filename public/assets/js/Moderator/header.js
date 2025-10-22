@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 const moderatorData = {
-    username: 'Lisa Chen',
-    displayName: 'Lisa',
+    username: 'Moderator',
+    displayName: 'Moderator',
     role: 'Moderator',
 }
 

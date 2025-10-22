@@ -54,6 +54,10 @@
                             <i class="fas fa-share"></i>
                             Share Event
                         </button> -->
+                        <button class="btn btn-success" id="buyTicketBtn" style="display: none;">
+                            <i class="fas fa-ticket-alt"></i>
+                            Buy Ticket
+                        </button>
                         <button class="btn btn-primary" id="joinBtn">
                             <i class="fas fa-calendar-plus"></i>
                             Join Event

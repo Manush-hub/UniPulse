@@ -149,6 +149,18 @@ function displayEventDetails(event) {
     if (ticketType && ticketType !== 'free-all') {
         document.getElementById('ticketInfo').style.display = 'block';
         document.getElementById('eventTicketType').textContent = formatTicketType(ticketType);
+        
+        // Show buy ticket button for paid events
+        const buyTicketBtn = document.getElementById('buyTicketBtn');
+        if (buyTicketBtn) {
+            buyTicketBtn.style.display = 'inline-flex';
+        }
+    } else {
+        // Hide buy ticket button for free events
+        const buyTicketBtn = document.getElementById('buyTicketBtn');
+        if (buyTicketBtn) {
+            buyTicketBtn.style.display = 'none';
+        }
     }
     
     // Full description
@@ -387,6 +399,12 @@ function closeShareModal() {
     document.getElementById('shareModal').style.display = 'none';
 }
 
+// Make modal functions globally accessible
+window.openJoinModal = openJoinModal;
+window.closeJoinModal = closeJoinModal;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+
 // Event actions
 function confirmJoinEvent() {
     const notes = document.getElementById('participantNotes').value;
@@ -501,6 +519,9 @@ function contactOrganizer() {
     }
 }
 
+// Make function globally accessible
+window.contactOrganizer = contactOrganizer;
+
 // Share functions
 function shareViaFacebook() {
     const url = encodeURIComponent(window.location.href);
@@ -525,6 +546,36 @@ function copyEventLink() {
     document.execCommand('copy');
     alert('Event link copied to clipboard!');
 }
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    if (shareLink) {
+        shareLink.select();
+        shareLink.setSelectionRange(0, 99999); // For mobile devices
+        
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareLink.value)
+                .then(() => {
+                    showToast('Link copied to clipboard!', 'success');
+                })
+                .catch(() => {
+                    // Fallback to execCommand
+                    document.execCommand('copy');
+                    showToast('Link copied to clipboard!', 'success');
+                });
+        } else {
+            // Fallback for older browsers
+            document.execCommand('copy');
+            showToast('Link copied to clipboard!', 'success');
+        }
+    }
+}
+
+// Make functions globally accessible
+window.copyEventLink = copyEventLink;
+window.copyShareLink = copyShareLink;
+window.confirmJoinEvent = confirmJoinEvent;
 
 // UI state management
 function showLoading() {
@@ -729,6 +780,11 @@ function processDonation() {
     closeDonationModal();
 }
 
+// Make functions globally accessible
+window.openDonationModal = openDonationModal;
+window.closeDonationModal = closeDonationModal;
+window.processDonation = processDonation;
+
 function applyAsVolunteer() {
     // Get the event ID from the URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -776,12 +832,32 @@ if (joinBtn) {
         joinBtn.addEventListener('click', openJoinModal);
     }
 }
-document.getElementById('shareBtn').addEventListener('click', openShareModal);
 
-// Comments event listeners
-document.addEventListener('DOMContentLoaded', function() {
+// Buy Ticket button handler
+const buyTicketBtn = document.getElementById('buyTicketBtn');
+if (buyTicketBtn) {
+    buyTicketBtn.addEventListener('click', function() {
+        const eventId = getEventIdFromURL();
+        if (eventId) {
+            window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
+        }
+    });
+}
+
+const shareBtn = document.getElementById('shareBtn');
+if (shareBtn) {
+    shareBtn.addEventListener('click', openShareModal);
+}
+
+// Comments event listeners - check if DOM is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        setupCommentsEventListeners();
+    });
+} else {
+    // DOM is already loaded
     setupCommentsEventListeners();
-});
+}
 
 function setupCommentsEventListeners() {
     // Character count for comment text
@@ -1149,6 +1225,9 @@ function showCommentForm() {
     }
 }
 
+// Make function globally accessible
+window.showCommentForm = showCommentForm;
+
 // Hide comment form
 function hideCommentForm() {
     const addCommentSection = document.getElementById('addCommentSection');
@@ -1282,6 +1361,9 @@ function editComment(commentId) {
     document.getElementById('editCommentModal').style.display = 'flex';
 }
 
+// Make function globally accessible
+window.editComment = editComment;
+
 // Update comment
 async function updateComment() {
     const commentText = document.getElementById('editCommentText').value.trim();
@@ -1339,6 +1421,9 @@ function deleteComment(commentId) {
     document.getElementById('deleteCommentModal').style.display = 'flex';
 }
 
+// Make function globally accessible
+window.deleteComment = deleteComment;
+
 // Confirm delete comment
 async function confirmDeleteComment() {
     const deleteBtn = document.getElementById('confirmDeleteBtn');
@@ -1385,6 +1470,10 @@ function closeDeleteCommentModal() {
     document.getElementById('deleteCommentModal').style.display = 'none';
     editingCommentId = null;
 }
+
+// Make functions globally accessible
+window.closeEditCommentModal = closeEditCommentModal;
+window.closeDeleteCommentModal = closeDeleteCommentModal;
 
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {

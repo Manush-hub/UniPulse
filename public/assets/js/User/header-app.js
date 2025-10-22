@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 const userData = {
-    username: 'Manush-hub',
+    username: 'User',
     // displayName: 'Manush',
     university: 'University of Colombo',
     avatar: '/unipulse/public/assets/images/default-avatar.png'
