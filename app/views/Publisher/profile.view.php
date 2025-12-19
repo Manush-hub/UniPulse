@@ -16,6 +16,7 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
+                    <img id="coverPhoto" src="<?= isset($profile->cover_photo_url) && $profile->cover_photo_url ? $profile->cover_photo_url : 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=300&fit=crop' ?>" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -24,6 +25,7 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
+                    <img id="profileImage" src="<?= isset($profile->logo_url) && $profile->logo_url ? $profile->logo_url : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop' ?>" alt="Profile Logo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
@@ -1003,6 +1005,10 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <script>
+        // Pass publisher data from PHP to JavaScript
+        const publisherData = <?= $publisherJson ?? '{}' ?>;
+    </script>
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>
 </html>

@@ -308,4 +308,176 @@ class Publisher {
         $result = $this->getRow($query, ['university' => $university]);
         return $result ? (int)$result->count : 0;
     }
+
+    /**
+     * Get profile data for a publisher
+     */
+    public function getProfileData($publisherId) {
+        // First check if profile exists
+        $query = "SELECT * FROM publisher_profiles WHERE publisher_id = :publisher_id LIMIT 1";
+        $profile = $this->getRow($query, ['publisher_id' => $publisherId]);
+        
+        if (!$profile) {
+            // Create empty profile if doesn't exist
+            $this->createEmptyProfile($publisherId);
+            $profile = $this->getRow($query, ['publisher_id' => $publisherId]);
+        }
+        
+        return $profile;
+    }
+
+    /**
+     * Create empty profile for publisher
+     */
+    private function createEmptyProfile($publisherId) {
+        try {
+            $query = "INSERT INTO publisher_profiles (publisher_id) VALUES (:publisher_id)";
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['publisher_id' => $publisherId]);
+        } catch (Exception $e) {
+            error_log("Error creating empty profile: " . $e->getMessage());
+            // Return a stdClass object with default values if insert fails
+            $defaultProfile = new stdClass();
+            $defaultProfile->publisher_id = $publisherId;
+            $defaultProfile->org_type = null;
+            $defaultProfile->address = null;
+            $defaultProfile->established_year = null;
+            $defaultProfile->member_count = null;
+            $defaultProfile->headline = null;
+            $defaultProfile->bio = null;
+            $defaultProfile->mission = null;
+            $defaultProfile->website = null;
+            $defaultProfile->facebook = null;
+            $defaultProfile->instagram = null;
+            $defaultProfile->linkedin = null;
+            $defaultProfile->twitter = null;
+            $defaultProfile->discord = null;
+            $defaultProfile->youtube = null;
+            $defaultProfile->logo_url = null;
+            $defaultProfile->cover_photo_url = null;
+            return $defaultProfile;
+        }
+    }
+
+    /**
+     * Update basic publisher information
+     */
+    public function updateBasicInfo($publisherId, $data) {
+        $allowedFields = ['society_name', 'phone', 'university', 'faculty'];
+        
+        $updateFields = [];
+        $updateData = ['id' => $publisherId];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $updateFields[] = "$field = :$field";
+                $updateData[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($updateFields)) {
+            return true; // No fields to update
+        }
+        
+        $query = "UPDATE publishers SET " . implode(', ', $updateFields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($updateData);
+        } catch (Exception $e) {
+            error_log("Error updating basic info: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update publisher profile data
+     */
+    public function updateProfileData($publisherId, $data) {
+        $allowedFields = ['org_type', 'address', 'established_year', 'member_count', 'headline', 'bio', 
+                         'mission', 'website', 'facebook', 'instagram', 'linkedin', 'twitter', 
+                         'discord', 'youtube', 'logo_url', 'cover_photo_url'];
+        
+        $updateFields = [];
+        $updateData = ['publisher_id' => $publisherId];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $updateFields[] = "$field = :$field";
+                $updateData[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($updateFields)) {
+            return true; // No fields to update
+        }
+        
+        // Check if profile exists
+        $existsQuery = "SELECT id FROM publisher_profiles WHERE publisher_id = :publisher_id";
+        $exists = $this->getRow($existsQuery, ['publisher_id' => $publisherId]);
+        
+        if (!$exists) {
+            $this->createEmptyProfile($publisherId);
+        }
+        
+        $query = "UPDATE publisher_profiles SET " . implode(', ', $updateFields) . ", updated_at = CURRENT_TIMESTAMP WHERE publisher_id = :publisher_id";
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($updateData);
+        } catch (Exception $e) {
+            error_log("Error updating profile data: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Upload and save image
+     */
+    public function uploadImage($file, $type, $publisherId) {
+        error_log("uploadImage called with type: $type, publisherId: $publisherId");
+        error_log("File info: " . print_r($file, true));
+        
+        // Validate file
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            error_log("Invalid file type: " . $file['type']);
+            return false;
+        }
+
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($file['size'] > $maxSize) {
+            error_log("File too large: " . $file['size']);
+            return false;
+        }
+
+        // Create upload directory if it doesn't exist
+        $uploadDir = __DIR__ . '/../../public/uploads/publisher_images/' . $publisherId . '/';
+        error_log("Upload directory: " . $uploadDir);
+        
+        if (!file_exists($uploadDir)) {
+            $result = mkdir($uploadDir, 0755, true);
+            error_log("Directory created: " . ($result ? 'YES' : 'NO'));
+        }
+
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = $type . '_' . time() . '_' . uniqid() . '.' . $extension;
+        $filePath = $uploadDir . $filename;
+        error_log("Target file path: " . $filePath);
+
+        // Move uploaded file
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Return relative URL
+            $url = '/unipulse/public/uploads/publisher_images/' . $publisherId . '/' . $filename;
+            error_log("Upload successful, URL: " . $url);
+            return $url;
+        }
+
+        error_log("move_uploaded_file failed");
+        return false;
+    }
 }

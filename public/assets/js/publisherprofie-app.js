@@ -2,25 +2,28 @@ class ClubProfile {
     constructor() {
         this.currentTab = 'about';
         this.organizationData = {
-            name: 'Tech Innovation Society',
-            type: 'student-org',
-            university: 'University of California, Berkeley',
-            faculty: 'School of Engineering',
-            officialEmail: 'contact@techinnovationsociety.org',
-            contactNumber: '+1 (510) 642-1000',
-            address: '123 Tech Lane, Berkeley, CA 94720',
-            establishedYear: 2018,
-            memberCount: 245,
-            headline: 'Student Organization',
-            bio: 'Leading student organization dedicated to fostering innovation and technological advancement. We organize workshops, hackathons, and networking events to bridge the gap between academia and industry.',
-            mission: 'To create a vibrant community of tech enthusiasts, fostering innovation, collaboration, and professional development through hands-on learning experiences and industry partnerships.',
-            website: 'https://techinnovationsociety.berkeley.edu',
-            instagram: 'https://instagram.com/berkeley_tech_society',
-            facebook: 'https://facebook.com/BerkeleyTechSociety',
-            linkedin: 'https://linkedin.com/company/berkeley-tech-innovation-society',
-            twitter: 'https://twitter.com/BerkeleyTechSoc',
-            discord: 'https://discord.gg/berkeley-tech',
-            logo: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=cover&w=400&q=80'
+            name: '',
+            type: '',
+            university: '',
+            faculty: '',
+            officialEmail: '',
+            contactNumber: '',
+            address: '',
+            establishedYear: '',
+            memberCount: '',
+            headline: '',
+            bio: '',
+            mission: '',
+            website: '',
+            instagram: '',
+            facebook: '',
+            linkedin: '',
+            twitter: '',
+            discord: '',
+            youtube: '',
+            telegram: '',
+            github: '',
+            logo: ''
         };
         
         this.events = [
@@ -121,28 +124,49 @@ class ClubProfile {
         this.setupProfilePhotoUpload();
     }
 
+    // setupCoverPhotoUpload() {
+    //     const coverOverlay = document.querySelector('.cover-overlay');
+    //     const coverInput = document.getElementById('coverInput');
+
+    //     if (coverOverlay && coverInput) {
+    //         coverOverlay.addEventListener('click', () => {
+    //             coverInput.click();
+    //         });
+
+    //         coverInput.addEventListener('change', (e) => {
+    //             const file = e.target.files[0];
+    //             if (file && file.type.startsWith('image/')) {
+    //                 const reader = new FileReader();
+    //                 reader.onload = (e) => {
+    //                     const coverImg = document.getElementById('coverPhoto');
+    //                     if (coverImg) {
+    //                         coverImg.src = e.target.result;
+    //                         // this.showNotification('Cover photo updated successfully!', 'success');
+    //                     }
+    //                 };
+    //                 reader.readAsDataURL(file);
+    //             }
+    //         });
+    //     }
+    // }
+
     setupCoverPhotoUpload() {
-        const coverOverlay = document.querySelector('.cover-overlay');
-        const coverInput = document.getElementById('coverInput');
+        const avatarEditBtn = document.querySelector('.avatar-edit-btn');
+        const fileInput = document.getElementById('fileInput');
 
-        if (coverOverlay && coverInput) {
-            coverOverlay.addEventListener('click', () => {
-                coverInput.click();
-            });
+        // Create file input if it doesn't exist
+        if (!fileInput) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'fileInput';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+        }
 
-            coverInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const coverImg = document.getElementById('coverPhoto');
-                        if (coverImg) {
-                            coverImg.src = e.target.result;
-                            // this.showNotification('Cover photo updated successfully!', 'success');
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
+        if (avatarEditBtn) {
+            avatarEditBtn.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
             });
         }
     }
@@ -301,22 +325,96 @@ class ClubProfile {
     }
 
     loadUserData() {
-        // Load organization data into form fields
-        Object.keys(this.organizationData).forEach(key => {
-            const element = document.getElementById(key) || document.getElementById('org' + key.charAt(0).toUpperCase() + key.slice(1));
-            if (element) {
-                element.value = this.organizationData[key];
+        // Check if publisherData is available from PHP
+        if (typeof publisherData !== 'undefined' && publisherData) {
+            // Map database fields to form fields
+            const formFieldMapping = {
+                'society_name': 'orgName',
+                'email': 'officialEmail',
+                'phone': 'contactNumber',
+                'university': 'university',
+                'faculty': 'faculty',
+                'org_type': 'orgType',
+                'address': 'address',
+                'established_year': 'establishedYear',
+                'member_count': 'memberCount',
+                'headline': 'headline',
+                'bio': 'bio',
+                'mission': 'mission',
+                'website': 'website',
+                'facebook': 'facebook',
+                'instagram': 'instagram',
+                'linkedin': 'linkedin',
+                'twitter': 'twitter',
+                'discord': 'discord',
+                'youtube': 'youtube'
+            };
+
+            // Populate form fields with database data
+            Object.keys(formFieldMapping).forEach(dbField => {
+                const formFieldId = formFieldMapping[dbField];
+                const element = document.getElementById(formFieldId);
+                if (element && publisherData[dbField]) {
+                    element.value = publisherData[dbField];
+                }
+            });
+
+            // Update organization data object with real data
+            if (publisherData.society_name) {
+                this.organizationData.name = publisherData.society_name;
             }
-        });
+            if (publisherData.email) {
+                this.organizationData.officialEmail = publisherData.email;
+            }
+            if (publisherData.phone) {
+                this.organizationData.contactNumber = publisherData.phone;
+            }
+            if (publisherData.university) {
+                this.organizationData.university = publisherData.university;
+            }
+            if (publisherData.faculty) {
+                this.organizationData.faculty = publisherData.faculty;
+            }
 
-        // Update profile display
-        const profileName = document.getElementById('profileName');
-        const profileBio = document.getElementById('profileBio');
-        const profileImage = document.getElementById('profileImage');
+            // Update profile display with real data
+            const profileName = document.getElementById('profileName');
+            if (profileName && publisherData.society_name) {
+                profileName.textContent = publisherData.society_name;
+            }
 
-        if (profileName) profileName.textContent = this.organizationData.name;
-        if (profileBio) profileBio.textContent = this.organizationData.bio;
-        if (profileImage) profileImage.src = this.organizationData.logo;
+            const profileBio = document.getElementById('profileBio');
+            if (profileBio && publisherData.bio) {
+                profileBio.textContent = publisherData.bio;
+            }
+
+            // Update profile image if available
+            const profileImage = document.getElementById('profileImage');
+            if (profileImage && publisherData.logo_url) {
+                profileImage.src = publisherData.logo_url;
+            }
+
+            // Update cover photo if available
+            const coverPhoto = document.getElementById('coverPhoto');
+            if (coverPhoto && publisherData.cover_photo_url) {
+                coverPhoto.src = publisherData.cover_photo_url;
+            }
+        } else {
+            // Fallback to hardcoded data if publisherData is not available
+            Object.keys(this.organizationData).forEach(key => {
+                const element = document.getElementById(key) || document.getElementById('org' + key.charAt(0).toUpperCase() + key.slice(1));
+                if (element) {
+                    element.value = this.organizationData[key];
+                }
+            });
+
+            const profileName = document.getElementById('profileName');
+            const profileBio = document.getElementById('profileBio');
+            const profileImage = document.getElementById('profileImage');
+
+            if (profileName) profileName.textContent = this.organizationData.name;
+            if (profileBio) profileBio.textContent = this.organizationData.bio;
+            if (profileImage) profileImage.src = this.organizationData.logo;
+        }
 
         // Load focus areas
         this.loadFocusAreas();
@@ -485,33 +583,69 @@ class ClubProfile {
 
     saveOrganizationInfo() {
         const formData = {
-            name: document.getElementById('orgName').value,
-            type: document.getElementById('orgType').value,
+            orgName: document.getElementById('orgName').value,
+            orgType: document.getElementById('orgType').value,
             university: document.getElementById('university').value,
             faculty: document.getElementById('faculty').value,
-            officialEmail: document.getElementById('officialEmail').value,
             contactNumber: document.getElementById('contactNumber').value,
             address: document.getElementById('address').value,
             establishedYear: document.getElementById('establishedYear').value,
             memberCount: document.getElementById('memberCount').value,
-            adminisName: document.getElementById('adminisName').value,
-            adminisContact: document.getElementById('adminisContact').value,
-            adminRole: document.getElementById('adminRole').value,
-            adminEmail: document.getElementById('adminEmail').value,
             headline: document.getElementById('headline').value,
             bio: document.getElementById('bio').value,
             mission: document.getElementById('mission').value
         };
 
-        // Update organizationData
-        Object.assign(this.organizationData, formData);
+        // Show loading state
+        const saveBtn = document.querySelector('#organization-form .btn-primary');
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+        saveBtn.disabled = true;
 
-        // this.showNotification('Organization information updated successfully!', 'success');
-        
-        // Update profile display
-        document.getElementById('profileName').textContent = formData.name;
-        const profileBioElements = document.querySelectorAll('#profileBio');
-        profileBioElements.forEach(el => el.textContent = formData.bio);
+        // Make AJAX call to update profile
+        fetch('/unipulse/public/publisher/profile/updateOrganizationInfo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update organizationData
+                this.organizationData.name = formData.orgName;
+                this.organizationData.type = formData.orgType;
+                this.organizationData.university = formData.university;
+                this.organizationData.faculty = formData.faculty;
+                this.organizationData.contactNumber = formData.contactNumber;
+                this.organizationData.address = formData.address;
+                this.organizationData.establishedYear = formData.establishedYear;
+                this.organizationData.memberCount = formData.memberCount;
+                this.organizationData.headline = formData.headline;
+                this.organizationData.bio = formData.bio;
+                this.organizationData.mission = formData.mission;
+                
+                // Update profile display
+                const profileName = document.getElementById('profileName');
+                if (profileName) profileName.textContent = formData.orgName;
+                
+                const profileBio = document.getElementById('profileBio');
+                if (profileBio) profileBio.textContent = formData.bio;
+                
+                this.showNotification('Organization information updated successfully!', 'success');
+            } else {
+                this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating organization info:', error);
+            this.showNotification('An error occurred while updating', 'error');
+        })
+        .finally(() => {
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+        });
     }
 
     cancelOrganizationInfo() {
@@ -674,12 +808,47 @@ class ClubProfile {
 
     saveSocialLinks() {
         const socialData = {
+            website: document.getElementById('website').value,
             instagram: document.getElementById('instagram').value,
             facebook: document.getElementById('facebook').value,
-            linkedin: document.getElementById('linkedin').value
+            linkedin: document.getElementById('linkedin').value,
+            twitter: document.getElementById('twitter').value,
+            discord: document.getElementById('discord').value,
+            youtube: document.getElementById('youtube').value
         };
 
-        // this.showNotification('Social links updated successfully!', 'success');
+        // Show loading state
+        const saveBtn = document.querySelector('#social-form .btn-primary');
+        if (saveBtn) {
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+
+            // Make AJAX call to update social links
+            fetch('/unipulse/public/publisher/profile/updateSocialLinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(socialData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.showNotification('Social links updated successfully!', 'success');
+                } else {
+                    this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating social links:', error);
+                this.showNotification('An error occurred while updating', 'error');
+            })
+            .finally(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            });
+        }
     }
 
     saveSettings() {
@@ -806,6 +975,50 @@ class ClubProfile {
         }
     }
 
+    showNotification(message, type = 'info') {
+        // Create notification element if it doesn't exist
+        let notification = document.getElementById('notification-toast');
+        
+        if (!notification) {
+            notification = document.createElement('div');
+            notification.id = 'notification-toast';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideInRight 0.3s ease-out;
+                max-width: 350px;
+            `;
+            document.body.appendChild(notification);
+        }
+
+        // Set background color based on type
+        const colors = {
+            'success': '#10b981',
+            'error': '#ef4444',
+            'warning': '#f59e0b',
+            'info': '#3b82f6'
+        };
+        
+        notification.style.backgroundColor = colors[type] || colors['info'];
+        notification.textContent = message;
+        notification.style.display = 'block';
+
+        // Auto-hide after 3 seconds
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 300);
+        }, 3000);
+    }
+
     // Notification functions removed
 }
 
@@ -873,16 +1086,65 @@ function uploadCover() {
 
 function changeCover(event) {
     const file = event.target.files[0];
+    console.log('changeCover called, file:', file);
+    
     if (file && file.type.startsWith('image/')) {
+        // Show preview immediately
         const reader = new FileReader();
         reader.onload = (e) => {
             const coverImg = document.getElementById('coverPhoto');
             if (coverImg) {
                 coverImg.src = e.target.result;
-                // clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                console.log('Preview set');
             }
         };
         reader.readAsDataURL(file);
+
+        // Upload to server
+        const formData = new FormData();
+        formData.append('image', file);
+
+        console.log('Starting upload to /unipulse/public/publisher/profile/uploadCoverPhoto');
+        
+        if (typeof clubProfile !== 'undefined') {
+            clubProfile.showNotification('Uploading cover photo...', 'info');
+        }
+
+        fetch('/unipulse/public/publisher/profile/uploadCoverPhoto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Response received:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                if (typeof clubProfile !== 'undefined') {
+                    clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                }
+                // Update with server URL
+                const coverImg = document.getElementById('coverPhoto');
+                if (coverImg && data.imageUrl) {
+                    coverImg.src = data.imageUrl;
+                    console.log('Cover photo updated with URL:', data.imageUrl);
+                }
+            } else {
+                console.error('Upload failed:', data.message);
+                if (typeof clubProfile !== 'undefined') {
+                    clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
+                }
+                alert('Failed to upload: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading cover photo:', error);
+            if (typeof clubProfile !== 'undefined') {
+                clubProfile.showNotification('Error uploading cover photo', 'error');
+            }
+            alert('Error uploading cover photo: ' + error.message);
+        });
     }
 }
 
@@ -894,15 +1156,43 @@ function uploadProfileImage() {
 function changeProfileImage(event) {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
+        // Show preview immediately
         const reader = new FileReader();
         reader.onload = (e) => {
             const profileImg = document.getElementById('profileImage');
             if (profileImg) {
                 profileImg.src = e.target.result;
-                // clubProfile.showNotification('Organization logo updated successfully!', 'success');
             }
         };
         reader.readAsDataURL(file);
+
+        // Upload to server
+        const formData = new FormData();
+        formData.append('image', file);
+
+        clubProfile.showNotification('Uploading profile logo...', 'info');
+
+        fetch('/unipulse/public/publisher/profile/uploadProfileImage', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                clubProfile.showNotification('Profile logo updated successfully!', 'success');
+                // Update with server URL
+                const profileImg = document.getElementById('profileImage');
+                if (profileImg && data.imageUrl) {
+                    profileImg.src = data.imageUrl;
+                }
+            } else {
+                clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading profile image:', error);
+            clubProfile.showNotification('Error uploading profile image', 'error');
+        });
     }
 }
 

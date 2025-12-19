@@ -1,0 +1,74 @@
+and change<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Cover Photo Upload</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .preview { width: 400px; height: 200px; border: 2px solid #ccc; margin: 10px 0; }
+        .preview img { width: 100%; height: 100%; object-fit: cover; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Test Cover Photo Upload</h2>
+    
+    <input type="file" id="coverFile" accept="image/*">
+    <button onclick="testUpload()">Upload Cover Photo</button>
+    
+    <div class="preview">
+        <img id="preview" src="https://via.placeholder.com/400x200?text=No+Image" alt="Preview">
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('coverFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function testUpload() {
+            const fileInput = document.getElementById('coverFile');
+            const result = document.getElementById('result');
+            
+            if (!fileInput.files.length) {
+                result.innerHTML = '<p style="color:red">Please select a file first</p>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            
+            result.innerHTML = '<p>Uploading...</p>';
+
+            fetch('/unipulse/public/publisher/profile/uploadCoverPhoto', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response:', data);
+                if (data.success) {
+                    result.innerHTML = `
+                        <p style="color:green">✓ Success!</p>
+                        <p><strong>URL:</strong> ${data.imageUrl}</p>
+                        <img src="${data.imageUrl}" style="max-width: 400px; border: 1px solid #ccc;">
+                    `;
+                } else {
+                    result.innerHTML = `<p style="color:red">✗ Error: ${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                result.innerHTML = `<p style="color:red">✗ Error: ${error.message}</p>`;
+            });
+        }
+    </script>
+</body>
+</html>
