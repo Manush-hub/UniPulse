@@ -60,7 +60,8 @@ class Publisherprofile extends Controller{
                 'discord' => $profileData->discord ?? null,
                 'youtube' => $profileData->youtube ?? null,
                 'logo_url' => $profileData->logo_url ?? null,
-                'cover_photo_url' => $profileData->cover_photo_url ?? null
+                'cover_photo_url' => $profileData->cover_photo_url ?? null,
+                'preferences' => $profileData->preferences ?? null
             ])
         ];
 
@@ -269,5 +270,57 @@ class Publisherprofile extends Controller{
         }
     }
 
-}
+    /**
+     * Update organization preferences (Auto-save via AJAX)
+     */
+    public function updatePreferences($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        // Check authentication
+        $currentUser = AuthService::getCurrentUser();
+        
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+            exit();
+        }
 
+        $publisherId = $currentUser['id'];
+        
+        // Handle AJAX request
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Get preferences from POST data (JSON string from JavaScript)
+            $preferences = [];
+            
+            if (isset($_POST['selected_preferences'])) {
+                $preferencesData = json_decode($_POST['selected_preferences'], true);
+                if (is_array($preferencesData)) {
+                    $preferences = $preferencesData;
+                }
+            }
+            
+            // Store preferences as JSON string (empty array if nothing selected)
+            $preferencesJson = json_encode($preferences);
+            
+            // Log what we're saving
+            error_log("Publisher $publisherId saving preferences: " . $preferencesJson);
+            
+            $result = $this->publisherModel->updateProfileData($publisherId, ['preferences' => $preferencesJson]);
+
+            if ($result) {
+                error_log("Publisher $publisherId preferences saved successfully");
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Preferences updated successfully',
+                    'saved_preferences' => $preferences
+                ]);
+            } else {
+                error_log("Publisher $publisherId preferences save failed");
+                echo json_encode(['success' => false, 'message' => 'Failed to update preferences']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+        exit();
+    }
+
+}

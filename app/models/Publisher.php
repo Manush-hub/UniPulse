@@ -398,7 +398,7 @@ class Publisher {
     public function updateProfileData($publisherId, $data) {
         $allowedFields = ['org_type', 'address', 'established_year', 'member_count', 'headline', 'bio', 
                          'mission', 'website', 'facebook', 'instagram', 'linkedin', 'twitter', 
-                         'discord', 'youtube', 'logo_url', 'cover_photo_url'];
+                         'discord', 'youtube', 'logo_url', 'cover_photo_url', 'preferences'];
         
         $updateFields = [];
         $updateData = ['publisher_id' => $publisherId];

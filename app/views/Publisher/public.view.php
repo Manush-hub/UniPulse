@@ -332,60 +332,6 @@
                 </div>
             </section>
 
-            <!-- Members Section -->
-            <section id="members-section" class="content-section">
-                <div class="section-title">
-                    <h2>Our Team</h2>
-                </div>
-                <!-- Leadership Team -->
-                <div class="info-card">
-                    <div class="info-header">
-                        <h3><i class="fas fa-crown"></i>Executive Committee</h3>
-                    </div>
-                    <div class="leadership-showcase">
-                        <div class="leader-card">
-                            <div class="leader-avatar">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson">
-                            </div>
-                            <div class="leader-info">
-                                <h4>Sarah Johnson</h4>
-                                <p class="leader-role">President</p>
-                            </div>
-                        </div>
-
-                        <div class="leader-card">
-                            <div class="leader-avatar">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen">
-                            </div>
-                            <div class="leader-info">
-                                <h4>Michael Chen</h4>
-                                <p class="leader-role">Vice President</p>
-                            </div>
-                        </div>
-
-                        <div class="leader-card">
-                            <div class="leader-avatar">
-                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez">
-                            </div>
-                            <div class="leader-info">
-                                <h4>Emily Rodriguez</h4>
-                                <p class="leader-role">Secretary</p>
-                            </div>
-                        </div>
-
-                        <div class="leader-card">
-                            <div class="leader-avatar">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Park">
-                            </div>
-                            <div class="leader-info">
-                                <h4>David Park</h4>
-                                <p class="leader-role">Treasurer</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <!-- Gallery Section -->
             <section id="gallery-section" class="content-section">
                 <div class="section-title">

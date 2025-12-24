@@ -140,65 +140,53 @@
                     <div class="card-header">
                         <h3>Organization Preferences</h3>
                     </div>
+                    
+                    <?php if (isset($_SESSION['success'])): ?>
+                        <div class="alert alert-success">
+                            <?php 
+                            echo htmlspecialchars($_SESSION['success']); 
+                            unset($_SESSION['success']);
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($_SESSION['error'])): ?>
+                        <div class="alert alert-error">
+                            <?php 
+                            echo htmlspecialchars($_SESSION['error']); 
+                            unset($_SESSION['error']);
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <button type="button" class="preference-btn" data-preference="technology">Technology</button>
-                            <button type="button" class="preference-btn" data-preference="innovation">Innovation</button>
-                            <button type="button" class="preference-btn" data-preference="entrepreneurship">Entrepreneurship</button>
-                            <button type="button" class="preference-btn" data-preference="ai-ml">AI & Machine Learning</button>
-                            <button type="button" class="preference-btn" data-preference="web-dev">Web Development</button>
-                            <button type="button" class="preference-btn" data-preference="networking">Networking</button>
-                            <button type="button" class="preference-btn" data-preference="research">Research</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Executive Committee</h3>
-                        <button class="btn btn-small" onclick="manageExecutiveCommittee()">
-                            <i class="fas fa-user-cog"></i> Manage
-                        </button>
-                    </div>
-                    <div class="leadership-grid">
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson">
-                            </div>
-                            <div class="member-info">
-                                <h4>Sarah Johnson</h4>
-                                <p class="member-role">President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen">
-                            </div>
-                            <div class="member-info">
-                                <h4>Michael Chen</h4>
-                                <p class="member-role">Vice President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez">
-                            </div>
-                            <div class="member-info">
-                                <h4>Emily Rodriguez</h4>
-                                <p class="member-role">Secretary</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Park">
-                            </div>
-                            <div class="member-info">
-                                <h4>David Park</h4>
-                                <p class="member-role">Treasurer</p>
-                            </div>
+                            <?php 
+                            // Decode preferences from JSON
+                            $selectedPreferences = [];
+                            if (!empty($data['profile']->preferences)) {
+                                $selectedPreferences = json_decode($data['profile']->preferences, true) ?? [];
+                            }
+                            
+                            // Define all available preferences
+                            $allPreferences = [
+                                'technology' => 'Technology',
+                                'innovation' => 'Innovation',
+                                'entrepreneurship' => 'Entrepreneurship',
+                                'ai-ml' => 'AI & Machine Learning',
+                                'web-dev' => 'Web Development',
+                                'networking' => 'Networking',
+                                'research' => 'Research'
+                            ];
+                            
+                            foreach ($allPreferences as $key => $label):
+                                $activeClass = in_array($key, $selectedPreferences) ? ' active' : '';
+                                $activeStyle = in_array($key, $selectedPreferences) ? ' style="background: linear-gradient(135deg, #4A5BCC 0%, #23387f 100%); border-color: #4A5BCC; color: white; box-shadow: 0 4px 15px rgba(74, 91, 204, 0.3);"' : '';
+                            ?>
+                                <button type="button" class="preference-btn-custom<?php echo $activeClass; ?>" data-preference="<?php echo htmlspecialchars($key); ?>"<?php echo $activeStyle; ?>>
+                                    <?php echo htmlspecialchars($label); ?>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
@@ -818,116 +806,6 @@
         </div>
     </div>
 
-    <!-- Executive Committee Management Modal -->
-    <div id="executiveCommitteeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Manage Executive Committee</h3>
-                <button class="close-modal" onclick="closeExecutiveCommitteeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="committee-management-grid">
-                    <!-- President Section -->
-                    <div class="committee-member-section">
-                        <h4>President</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('presidentPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="presidentPreview" class="photo-preview" style="display: none;" alt="President Photo">
-                                </div>
-                                <input type="file" id="presidentPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'president')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="presidentFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="presidentLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vice President Section -->
-                    <div class="committee-member-section">
-                        <h4>Vice President</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('vicePresidentPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="vicePresidentPreview" class="photo-preview" style="display: none;" alt="Vice President Photo">
-                                </div>
-                                <input type="file" id="vicePresidentPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'vicePresident')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="vicePresidentFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="vicePresidentLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Secretary Section -->
-                    <div class="committee-member-section">
-                        <h4>Secretary</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('secretaryPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="secretaryPreview" class="photo-preview" style="display: none;" alt="Secretary Photo">
-                                </div>
-                                <input type="file" id="secretaryPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'secretary')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="secretaryFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="secretaryLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Treasurer Section -->
-                    <div class="committee-member-section">
-                        <h4>Treasurer</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('treasurerPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="treasurerPreview" class="photo-preview" style="display: none;" alt="Treasurer Photo">
-                                </div>
-                                <input type="file" id="treasurerPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'treasurer')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="treasurerFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="treasurerLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-primary" onclick="saveExecutiveCommittee()">
-                        Save Committee
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeExecutiveCommitteeModal()">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Add Admin Modal -->
     <div id="addAdminModal" class="modal">
         <div class="modal-content">
@@ -1008,6 +886,97 @@
     <script>
         // Pass publisher data from PHP to JavaScript
         const publisherData = <?= $publisherJson ?? '{}' ?>;
+        
+        // Add event listeners for preference buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.preference-btn-custom').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    togglePreferenceBtn(this);
+                });
+            });
+        });
+        
+        // Toggle preference button and auto-save to database
+        function togglePreferenceBtn(button) {
+            // Toggle active class
+            const wasActive = button.classList.contains('active');
+            button.classList.toggle('active');
+            const isNowActive = button.classList.contains('active');
+            
+            console.log('Button:', button.getAttribute('data-preference'), 'Was active:', wasActive, 'Now active:', isNowActive);
+            
+            // Apply inline styles based on new state
+            if (isNowActive) {
+                button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                button.style.borderColor = '#4A5BCC';
+                button.style.color = 'white';
+                button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+            } else {
+                button.style.background = '#fafafa';
+                button.style.borderColor = '#e0e0e0';
+                button.style.color = '#666';
+                button.style.boxShadow = 'none';
+            }
+            
+            // Get all active preferences after toggle
+            const activePreferences = [];
+            document.querySelectorAll('.preference-btn-custom.active').forEach(btn => {
+                const preference = btn.getAttribute('data-preference');
+                if (preference) {
+                    activePreferences.push(preference);
+                }
+            });
+            
+            console.log('Active preferences now:', activePreferences);
+            
+            // Auto-save to database via AJAX
+            fetch('/unipulse/public/publisher/profile/updatePreferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'selected_preferences=' + encodeURIComponent(JSON.stringify(activePreferences))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✓ Saved successfully');
+                } else {
+                    console.error('✗ Failed:', data.message);
+                    // Revert on error
+                    button.classList.toggle('active');
+                    if (wasActive) {
+                        button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                        button.style.borderColor = '#4A5BCC';
+                        button.style.color = 'white';
+                        button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+                    } else {
+                        button.style.background = '#fafafa';
+                        button.style.borderColor = '#e0e0e0';
+                        button.style.color = '#666';
+                        button.style.boxShadow = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('✗ Error:', error);
+                // Revert on error
+                button.classList.toggle('active');
+                if (wasActive) {
+                    button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                    button.style.borderColor = '#4A5BCC';
+                    button.style.color = 'white';
+                    button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+                } else {
+                    button.style.background = '#fafafa';
+                    button.style.borderColor = '#e0e0e0';
+                    button.style.color = '#666';
+                    button.style.boxShadow = 'none';
+                }
+            });
+        }
     </script>
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>

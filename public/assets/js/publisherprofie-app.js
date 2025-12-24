@@ -398,6 +398,23 @@ class ClubProfile {
             if (coverPhoto && publisherData.cover_photo_url) {
                 coverPhoto.src = publisherData.cover_photo_url;
             }
+
+            // Load preferences if available (for checkbox display)
+            if (publisherData.preferences) {
+                try {
+                    const preferences = JSON.parse(publisherData.preferences);
+                    // Preferences are now handled by PHP form checkboxes
+                    // This code is kept for backward compatibility
+                    document.querySelectorAll('.preference-btn').forEach(btn => {
+                        const preference = btn.dataset.preference;
+                        if (preferences.includes(preference)) {
+                            btn.classList.add('active');
+                        }
+                    });
+                } catch (e) {
+                    console.error('Error parsing preferences:', e);
+                }
+            }
         } else {
             // Fallback to hardcoded data if publisherData is not available
             Object.keys(this.organizationData).forEach(key => {
@@ -445,6 +462,8 @@ class ClubProfile {
     }
 
     togglePreference(button) {
+        // Pure PHP implementation - no JS auto-save needed
+        // This function is kept for backward compatibility with button-based UI
         button.classList.toggle('active');
         const preference = button.dataset.preference;
         const isActive = button.classList.contains('active');
@@ -731,19 +750,6 @@ class ClubProfile {
             
             card.style.display = matches ? 'block' : 'none';
         });
-    }
-
-    manageExecutiveCommittee() {
-        document.getElementById('executiveCommitteeModal').style.display = 'flex';
-        document.getElementById('executiveCommitteeModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        // Load existing committee data if available
-        this.loadExistingCommitteeData();
-    }
-
-    loadExistingCommitteeData() {
-        // This function would load existing committee member data from the database
     }
 
     addAdmin() {
@@ -1065,10 +1071,6 @@ function transferOwnership() {
 
 function deleteOrganization() {
     clubProfile.deleteOrganization();
-}
-
-function manageExecutiveCommittee() {
-    clubProfile.manageExecutiveCommittee();
 }
 
 function addAdmin() {
@@ -1540,246 +1542,10 @@ document.addEventListener('keydown', function(event) {
             closeGalleryModal();
         }
         
-        const committeeModal = document.getElementById('executiveCommitteeModal');
-        if (committeeModal && committeeModal.style.display === 'flex') {
-            closeExecutiveCommitteeModal();
-        }
-        
         const addAdminModal = document.getElementById('addAdminModal');
         if (addAdminModal && addAdminModal.style.display === 'flex') {
             closeAddAdminModal();
         }
-    }
-});
-
-// Executive Committee Management Functions
-function closeExecutiveCommitteeModal() {
-    document.getElementById('executiveCommitteeModal').style.display = 'none';
-    document.getElementById('executiveCommitteeModal').classList.remove('active');
-    document.body.style.overflow = 'auto';
-    
-    // Reset form
-    clearCommitteeForm();
-}
-
-function clearCommitteeForm() {
-    // Clear all input fields
-    const positions = ['president', 'vicePresident', 'secretary', 'treasurer'];
-    
-    positions.forEach(position => {
-        const firstNameInput = document.getElementById(`${position}FirstName`);
-        const lastNameInput = document.getElementById(`${position}LastName`);
-        
-        if (firstNameInput) firstNameInput.value = '';
-        if (lastNameInput) lastNameInput.value = '';
-        
-        // Clear photo preview
-        const preview = document.getElementById(`${position}Preview`);
-        const uploadPlaceholder = document.querySelector(`#${position}Photo`)?.parentElement?.querySelector('.upload-placeholder');
-        
-        if (preview) {
-            preview.style.display = 'none';
-            preview.src = '';
-        }
-        
-        if (uploadPlaceholder) {
-            uploadPlaceholder.style.display = 'flex';
-        }
-        
-        // Reset file input
-        const fileInput = document.getElementById(`${position}Photo`);
-        if (fileInput) {
-            fileInput.value = '';
-        }
-    });
-}
-
-function previewCommitteePhoto(event, position) {
-    const file = event.target.files[0];
-    if (file) {
-        // Validate file type
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-        if (!validTypes.includes(file.type)) {
-            // clubProfile.showNotification('Please select a valid image file (JPG, PNG)', 'error');
-            event.target.value = '';
-            return;
-        }
-        
-        // Validate file size (5MB max)
-        if (file.size > 5 * 1024 * 1024) {
-            // clubProfile.showNotification('File size must be less than 5MB', 'error');
-            event.target.value = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById(`${position}Preview`);
-            const uploadPlaceholder = event.target.parentElement.querySelector('.upload-placeholder');
-            
-            if (preview) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            
-            if (uploadPlaceholder) {
-                uploadPlaceholder.style.display = 'none';
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function saveExecutiveCommittee() {
-    // Collect data from all committee member forms
-    const committeeData = {
-        president: getCommitteeMemberData('president'),
-        vicePresident: getCommitteeMemberData('vicePresident'),
-        secretary: getCommitteeMemberData('secretary'),
-        treasurer: getCommitteeMemberData('treasurer')
-    };
-    
-    // Validate that at least one member is filled
-    const hasData = Object.values(committeeData).some(member => 
-        member.firstName.trim() !== '' || member.lastName.trim() !== '' || member.hasPhoto
-    );
-    
-    if (!hasData) {
-        // clubProfile.showNotification('Please add at least one committee member', 'error');
-        return;
-    }
-    
-    // Show loading state
-    const saveBtn = document.querySelector('#executiveCommitteeModal .btn-primary');
-    const originalText = saveBtn.textContent;
-    saveBtn.textContent = 'Saving...';
-    saveBtn.disabled = true;
-    
-    // Simulate API call (replace with actual implementation)
-    setTimeout(() => {
-        // Update the executive committee display
-        updateExecutiveCommitteeDisplay(committeeData);
-        
-        // Reset button state
-        saveBtn.textContent = originalText;
-        saveBtn.disabled = false;
-        
-        // Close modal
-        closeExecutiveCommitteeModal();
-        
-        // Show success message
-        showSuccessMessage('Executive committee updated successfully!');
-    }, 1000);
-}
-
-function getCommitteeMemberData(position) {
-    const firstNameInput = document.getElementById(`${position}FirstName`);
-    const lastNameInput = document.getElementById(`${position}LastName`);
-    const photoInput = document.getElementById(`${position}Photo`);
-    
-    const firstName = firstNameInput ? firstNameInput.value.trim() : '';
-    const lastName = lastNameInput ? lastNameInput.value.trim() : '';
-    const hasPhoto = photoInput && photoInput.files.length > 0;
-    
-    return {
-        firstName,
-        lastName,
-        photo: hasPhoto ? photoInput.files[0] : null,
-        hasPhoto
-    };
-}
-
-function updateExecutiveCommitteeDisplay(committeeData) {
-    // Update the committee cards on the main page
-    const positions = [
-        { key: 'president', title: 'President' },
-        { key: 'vicePresident', title: 'Vice President' },
-        { key: 'secretary', title: 'Secretary' },
-        { key: 'treasurer', title: 'Treasurer' }
-    ];
-    
-    const leadershipGrid = document.querySelector('.leadership-grid');
-    if (!leadershipGrid) return;
-    
-    // Clear existing cards
-    leadershipGrid.innerHTML = '';
-    
-    positions.forEach(position => {
-        const memberData = committeeData[position.key];
-        
-        // Only create card if member has data
-        if (memberData.firstName || memberData.lastName || memberData.hasPhoto) {
-            const card = createCommitteeMemberCard(memberData, position.title);
-            leadershipGrid.appendChild(card);
-        }
-    });
-    
-    // If no members, show placeholder
-    if (leadershipGrid.children.length === 0) {
-        leadershipGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px;">No executive committee members added yet.</p>';
-    }
-}
-
-function createCommitteeMemberCard(memberData, position) {
-    const card = document.createElement('div');
-    card.className = 'member-card leadership';
-    
-    const fullName = `${memberData.firstName} ${memberData.lastName}`.trim() || 'No Name';
-    const photoSrc = memberData.hasPhoto ? URL.createObjectURL(memberData.photo) : '/Applications/MAMP/htdocs/UniPulse/public/assets/images/logo.png';
-    
-    card.innerHTML = `
-        <div class="member-avatar">
-            <img src="${photoSrc}" alt="${fullName}">
-        </div>
-        <div class="member-info">
-            <h4>${fullName}</h4>
-            <p class="member-role">${position}</p>
-        </div>
-    `;
-    
-    return card;
-}
-
-function showSuccessMessage(message) {
-    // Create and show a temporary success message
-    const messageDiv = document.createElement('div');
-    messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        z-index: 1001;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        animation: slideInRight 0.3s ease;
-    `;
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        messageDiv.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (document.body.contains(messageDiv)) {
-                document.body.removeChild(messageDiv);
-            }
-        }, 300);
-    }, 3000);
-}
-
-// Close executive committee modal when clicking outside
-document.addEventListener('click', function(event) {
-    const modal = document.getElementById('executiveCommitteeModal');
-    if (event.target === modal) {
-        closeExecutiveCommitteeModal();
-    }
-    
-    const addAdminModal = document.getElementById('addAdminModal');
-    if (event.target === addAdminModal) {
-        closeAddAdminModal();
     }
 });
 
