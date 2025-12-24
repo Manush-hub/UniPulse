@@ -22,6 +22,25 @@ input, select, button, textarea {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
+    color: inherit;
+}
+
+/* Restore button cursor */
+button {
+    cursor: pointer;
+}
+
+/* Ensure header buttons maintain proper styling */
+.header button,
+.notification-btn,
+.user-dropdown-btn {
+    cursor: pointer;
+    color: #666;
+}
+
+.header .notification-btn i,
+.header .user-dropdown-btn i {
+    color: inherit;
 }
 
 body {

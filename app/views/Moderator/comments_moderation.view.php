@@ -483,6 +483,7 @@
     </div>
 
     <script src="/unipulse/public/assets/js/Moderator/comments-moderation.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>

@@ -37,6 +37,7 @@ class ModeratorUserreports extends Controller {
                 'title' => 'User Reports',
                 'page' => 'user_reports',
                 'moderator' => $moderator,
+                'user' => $currentUser,
                 'pendingReports' => $pendingReports,
                 'reportStats' => $reportStats,
                 'permissions' => $permissions

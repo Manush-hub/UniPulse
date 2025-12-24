@@ -271,6 +271,7 @@
     </div>
 
     <script src="/unipulse/public/assets/js/Moderator/reports.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>

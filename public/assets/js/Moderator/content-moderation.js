@@ -5,39 +5,8 @@ console.log('Content Moderation app loaded');
 document.addEventListener('DOMContentLoaded', function() {
     initializeContentModeration();
     loadPendingEvents();
-    setupEventListeners();
+    setupContentModerationListeners();
 });
-
-// Sample data for testing
-const sampleEvents = [
-    {
-        id: 1,
-        title: 'Annual Tech Symposium 2024',
-        organizer: 'Computer Science Department',
-        category: 'Academic',
-        submitted: '2 hours ago',
-        description: 'Annual technology conference featuring guest speakers from industry leaders...',
-        status: 'pending'
-    },
-    {
-        id: 2,
-        title: 'Spring Music Festival',
-        organizer: 'Music Club',
-        category: 'Cultural',
-        submitted: '5 hours ago',
-        description: 'Outdoor music festival featuring student bands and local artists...',
-        status: 'pending'
-    },
-    {
-        id: 3,
-        title: 'Career Development Workshop',
-        organizer: 'Career Services',
-        category: 'Professional',
-        submitted: '1 day ago',
-        description: 'Interactive workshop on resume building and interview skills...',
-        status: 'pending'
-    }
-];
 
 function initializeContentModeration() {
     console.log('Initializing content moderation...');
@@ -51,16 +20,52 @@ function loadPendingEvents() {
         return;
     }
     
+    // Show loading state
+    eventsList.innerHTML = '<div class="loading">Loading pending events...</div>';
+    
+    // Fetch pending events from backend
+    fetch('/unipulse/public/moderator/contentmoderation/getPendingEvents')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch pending events');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.events) {
+                displayPendingEvents(data.events);
+                updateStats(data.events.length);
+            } else {
+                eventsList.innerHTML = '<div class="no-data">No pending events found</div>';
+                updateStats(0);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading pending events:', error);
+            eventsList.innerHTML = '<div class="no-data">Failed to load pending events</div>';
+            updateStats(0);
+        });
+}
+
+function displayPendingEvents(events) {
+    const eventsList = document.getElementById('eventsList');
+    if (!eventsList) return;
+    
     // Clear existing content
     eventsList.innerHTML = '';
     
-    // Load sample events
-    sampleEvents.forEach(event => {
+    if (events.length === 0) {
+        eventsList.innerHTML = '<div class="no-data">No pending events</div>';
+        return;
+    }
+    
+    // Load events
+    events.forEach(event => {
         const eventElement = createEventElement(event);
         eventsList.appendChild(eventElement);
     });
     
-    console.log('Loaded', sampleEvents.length, 'pending events');
+    console.log('Loaded', events.length, 'pending events');
 }
 
 function createEventElement(event) {
@@ -108,7 +113,7 @@ function createEventElement(event) {
     return eventDiv;
 }
 
-function setupEventListeners() {
+function setupContentModerationListeners() {
     // Filter buttons
     const filterButtons = document.querySelectorAll('.btn[onclick*="filter"]');
     filterButtons.forEach(button => {
@@ -119,9 +124,7 @@ function setupEventListeners() {
     });
 }
 
-function updateStats() {
-    const pendingCount = sampleEvents.filter(e => e.status === 'pending').length;
-    
+function updateStats(pendingCount = 0) {
     // Update various stat elements
     const pendingElements = document.querySelectorAll('#pendingEvents, #pendingCount');
     pendingElements.forEach(el => {
@@ -149,12 +152,26 @@ function filterEvents(filter) {
 
 function viewEventDetails(eventId) {
     console.log('Viewing event details for ID:', eventId);
-    const event = sampleEvents.find(e => e.id === eventId);
     
-    if (event) {
-        // Show modal with event details
-        showEventModal(event);
-    }
+    // Fetch event details from backend
+    fetch(`/unipulse/public/moderator/contentmoderation/getEventDetails/${eventId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch event details');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.event) {
+                showEventModal(data.event);
+            } else {
+                showNotification('Failed to load event details', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading event details:', error);
+            showNotification('Failed to load event details', 'error');
+        });
 }
 
 function approveEvent(eventId) {
@@ -173,7 +190,7 @@ function approveEvent(eventId) {
             if (data.success) {
                 showNotification('Event approved successfully!', 'success');
                 removeEventFromList(eventId);
-                updateStats();
+                loadPendingEvents(); // Reload events to update count
             } else {
                 showNotification(data.message || 'Failed to approve event', 'error');
             }
@@ -206,7 +223,7 @@ function rejectEvent(eventId) {
         if (data.success) {
             showNotification('Event rejected successfully!', 'success');
             removeEventFromList(eventId);
-            updateStats();
+            loadPendingEvents(); // Reload events to update count
         } else {
             showNotification(data.message || 'Failed to reject event', 'error');
         }

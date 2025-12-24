@@ -41,7 +41,7 @@ class ModeratorComments extends Controller {
                 'page_title' => 'Comments Moderation'
             ];
 
-            parent::view('comments_moderation', $data);
+            parent::view('Moderator/comments_moderation', $data);
 
         } catch (Exception $e) {
             error_log("Error loading comments moderation page: " . $e->getMessage());
@@ -52,7 +52,7 @@ class ModeratorComments extends Controller {
                 'error' => 'Unable to load comments data'
             ];
 
-            parent::view('comments_moderation', $data);
+            parent::view('Moderator/comments_moderation', $data);
         }
     }
     

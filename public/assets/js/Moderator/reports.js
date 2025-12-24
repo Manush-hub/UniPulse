@@ -5,55 +5,12 @@ console.log('User Reports app loaded');
 document.addEventListener('DOMContentLoaded', function() {
     initializeUserReports();
     loadReports();
-    setupEventListeners();
+    setupReportsListeners();
     setupFilters();
 });
 
-// Sample data for testing
-const sampleReports = [
-    {
-        id: 1,
-        content: '"Spring Party" Event Description',
-        reason: 'Contains inappropriate language',
-        type: 'inappropriate',
-        priority: 'high',
-        submitted: '2 hours ago',
-        status: 'pending',
-        assignedTo: null
-    },
-    {
-        id: 2,
-        content: 'User comment on "Tech Talk"',
-        reason: 'Spam content',
-        type: 'spam',
-        priority: 'medium',
-        submitted: '5 hours ago',
-        status: 'in_progress',
-        assignedTo: 'Lisa Chen'
-    },
-    {
-        id: 3,
-        content: 'AI Symposium description',
-        reason: 'Contains misinformation',
-        type: 'misinformation',
-        priority: 'high',
-        submitted: '1 day ago',
-        status: 'resolved',
-        assignedTo: 'Lisa Chen'
-    },
-    {
-        id: 4,
-        content: 'Student profile picture',
-        reason: 'Inappropriate image',
-        type: 'inappropriate',
-        priority: 'medium',
-        submitted: '2 days ago',
-        status: 'pending',
-        assignedTo: null
-    }
-];
-
-let filteredReports = [...sampleReports];
+let allReports = [];
+let filteredReports = [];
 
 function initializeUserReports() {
     console.log('Initializing user reports...');
@@ -67,8 +24,47 @@ function loadReports() {
         return;
     }
     
+    // Show loading state
+    reportsTableBody.innerHTML = '<tr><td colspan="8" class="loading">Loading reports...</td></tr>';
+    
+    // Fetch reports from backend
+    fetch('/unipulse/public/moderator/userreports/getReports')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch reports');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.reports) {
+                allReports = data.reports;
+                filteredReports = [...allReports];
+                displayReports();
+                updateStats();
+            } else {
+                reportsTableBody.innerHTML = '<tr><td colspan="8" class="no-data">No reports found</td></tr>';
+                updateStats();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading reports:', error);
+            reportsTableBody.innerHTML = '<tr><td colspan="8" class="no-data">Failed to load reports</td></tr>';
+            updateStats();
+        });
+}
+
+function displayReports() {
+    const reportsTableBody = document.getElementById('reportsTableBody');
+    if (!reportsTableBody) return;
+    
     // Clear existing content
     reportsTableBody.innerHTML = '';
+    
+    if (filteredReports.length === 0) {
+        reportsTableBody.innerHTML = '<tr><td colspan="8" class="no-data">No reports found</td></tr>';
+        updateReportsCount();
+        return;
+    }
     
     // Load filtered reports
     filteredReports.forEach(report => {
@@ -125,7 +121,7 @@ function createReportRow(report) {
     return row;
 }
 
-function setupEventListeners() {
+function setupReportsListeners() {
     // Select all checkbox
     const selectAllCheckbox = document.getElementById('selectAll');
     if (selectAllCheckbox) {
@@ -145,8 +141,8 @@ function setupFilters() {
 }
 
 function updateStats() {
-    const pendingCount = sampleReports.filter(r => r.status === 'pending').length;
-    const resolvedToday = sampleReports.filter(r => r.status === 'resolved' && r.submitted.includes('hour')).length;
+    const pendingCount = allReports.filter(r => r.status === 'pending').length;
+    const resolvedToday = allReports.filter(r => r.status === 'resolved' && r.submitted.includes('hour')).length;
     
     // Update stat elements
     const pendingElement = document.getElementById('pendingReports');
@@ -169,7 +165,7 @@ function filterReports() {
     const priorityFilter = document.getElementById('priorityFilter').value;
     const dateFilter = document.getElementById('dateFilter').value;
     
-    filteredReports = sampleReports.filter(report => {
+    filteredReports = allReports.filter(report => {
         let match = true;
         
         if (statusFilter !== 'all' && report.status !== statusFilter) {
@@ -196,8 +192,9 @@ function filterReports() {
         return match;
     });
     
-    loadReports();
+    displayReports();
     console.log('Filtered reports:', filteredReports.length);
+}
 }
 
 function toggleSelectAll() {
@@ -211,7 +208,7 @@ function toggleSelectAll() {
 
 function viewReport(reportId) {
     console.log('Viewing report ID:', reportId);
-    const report = sampleReports.find(r => r.id === reportId);
+    const report = allReports.find(r => r.id === reportId);
     
     if (report) {
         showReportModal(report);
@@ -233,13 +230,7 @@ function assignToMe(reportId) {
         .then(data => {
             if (data.success) {
                 showNotification('Report assigned successfully!', 'success');
-                // Update the report in the list
-                const reportIndex = sampleReports.findIndex(r => r.id === reportId);
-                if (reportIndex !== -1) {
-                    sampleReports[reportIndex].status = 'in_progress';
-                    sampleReports[reportIndex].assignedTo = 'You';
-                    filterReports(); // Refresh the display
-                }
+                loadReports(); // Reload reports from backend
             } else {
                 showNotification(data.message || 'Failed to assign report', 'error');
             }
@@ -273,13 +264,7 @@ function resolveReport(reportId) {
     .then(data => {
         if (data.success) {
             showNotification('Report resolved successfully!', 'success');
-            // Update the report in the list
-            const reportIndex = sampleReports.findIndex(r => r.id === reportId);
-            if (reportIndex !== -1) {
-                sampleReports[reportIndex].status = 'resolved';
-                filterReports(); // Refresh the display
-            }
-            updateStats();
+            loadReports(); // Reload reports from backend
         } else {
             showNotification(data.message || 'Failed to resolve report', 'error');
         }

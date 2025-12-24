@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUniversityComments();
     
     // Setup event listeners
-    setupEventListeners();
+    setupCommentsDashboardListeners();
 });
 
 function initModeratorCommentsDashboard() {
@@ -199,7 +199,7 @@ function displayRecentActivity() {
     container.innerHTML = html;
 }
 
-function setupEventListeners() {
+function setupCommentsDashboardListeners() {
     // Search functionality
     const searchInput = document.getElementById('search-comments');
     if (searchInput) {

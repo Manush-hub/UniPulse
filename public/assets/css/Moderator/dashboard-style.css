@@ -18,7 +18,7 @@ body {
     padding: 1rem 0;
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
 }
 
 .header-container {
@@ -95,15 +95,15 @@ body {
 
 .notification-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 0.5rem);
     right: 0;
     width: 320px;
+    max-width: 90vw;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     display: none;
-    z-index: 1000;
-    margin-top: 0.5rem;
+    z-index: 2000;
 }
 
 .notification-dropdown.show {
@@ -216,15 +216,14 @@ body {
 
 .user-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 0.5rem);
     right: 0;
     width: 200px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     display: none;
-    z-index: 1000;
-    margin-top: 0.5rem;
+    z-index: 2000;
     padding: 0.5rem 0;
 }
 

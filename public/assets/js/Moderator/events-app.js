@@ -10,11 +10,11 @@ const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/moderato
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     loadEvents();
-    setupEventListeners();
+    setupEventsListeners();
 });
 
 // Setup event listeners
-function setupEventListeners() {
+function setupEventsListeners() {
     // Search input listener
     document.getElementById('searchInput').addEventListener('input', debounce(searchEvents, 300));
     
@@ -150,8 +150,6 @@ function updatePagination(pagination = null) {
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
-    card.onclick = () => viewEventDetails(event.id);
-    card.style.cursor = 'pointer';
     
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
@@ -172,7 +170,7 @@ function createEventCard(event) {
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
             <div class="event-status ${event.status}">${event.status}</div>
         </div>
-        <div class="event-content">
+        <div class="event-content" onclick="viewEventDetails(${event.id})" style="cursor: pointer;">
             <h3 class="event-title">${event.title}</h3>
             <p class="event-description">${event.description}</p>
             <div class="event-meta">
@@ -214,6 +212,14 @@ function createEventCard(event) {
                     <span>${event.participants}/${maxParticipants}</span>
                 </div>
             </div>
+        </div>
+        <div class="event-actions">
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); showHideEventModal(${event.id}, '${event.title.replace(/'/g, "\\'")}')">
+                <i class="fas fa-eye-slash"></i> Hide Event
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewEventDetails(${event.id})">
+                <i class="fas fa-eye"></i> View Details
+            </button>
         </div>
     `;
     
@@ -358,4 +364,124 @@ function showMessage(message, type = 'info') {
             }
         }, 300);
     }, 4000);
+}
+// Show hide event modal
+function showHideEventModal(eventId, eventTitle) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="hideEventModal" class="modal-overlay" onclick="closeHideEventModal(event)">
+            <div class="modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2>Hide Event</h2>
+                    <button class="modal-close" onclick="closeHideEventModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Event:</strong> ${eventTitle}</p>
+                    <p class="warning-text">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        This action will hide the event from the website. The publisher will be notified with your reason. You can moderate any event regardless of university.
+                    </p>
+                    <div class="form-group">
+                        <label for="hideReason">Reason for hiding this event: <span class="required">*</span></label>
+                        <textarea 
+                            id="hideReason" 
+                            rows="5" 
+                            placeholder="Please provide a detailed reason for hiding this event. This will be sent to the publisher."
+                            required
+                        ></textarea>
+                        <small class="char-count"><span id="charCount">0</span>/500 characters</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeHideEventModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmHideEvent(${eventId})">
+                        <i class="fas fa-eye-slash"></i> Hide Event
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add character counter
+    const textarea = document.getElementById('hideReason');
+    const charCount = document.getElementById('charCount');
+    textarea.addEventListener('input', function() {
+        const count = this.value.length;
+        charCount.textContent = count;
+        if (count > 500) {
+            this.value = this.value.substring(0, 500);
+            charCount.textContent = 500;
+        }
+    });
+    
+    // Focus textarea
+    setTimeout(() => textarea.focus(), 100);
+}
+
+// Close hide event modal
+function closeHideEventModal(event) {
+    if (event && event.target.className !== 'modal-overlay') {
+        return;
+    }
+    const modal = document.getElementById('hideEventModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Confirm hide event
+async function confirmHideEvent(eventId) {
+    const reason = document.getElementById('hideReason').value.trim();
+    
+    if (!reason) {
+        showMessage('Please provide a reason for hiding this event', 'error');
+        return;
+    }
+    
+    if (reason.length < 10) {
+        showMessage('Reason must be at least 10 characters long', 'error');
+        return;
+    }
+    
+    // Disable button to prevent double submission
+    const hideButton = document.querySelector('.modal-footer .btn-danger');
+    hideButton.disabled = true;
+    hideButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding...';
+    
+    try {
+        const response = await fetch('/unipulse/public/moderator/events/hideEvent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                event_id: eventId,
+                reason: reason
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(data.message || 'Event hidden successfully. Publisher has been notified.', 'success');
+            closeHideEventModal();
+            
+            // Reload events after 1 second
+            setTimeout(() => {
+                loadEvents(true);
+            }, 1000);
+        } else {
+            showMessage(data.error || 'Failed to hide event', 'error');
+            hideButton.disabled = false;
+            hideButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Event';
+        }
+    } catch (error) {
+        console.error('Error hiding event:', error);
+        showMessage('An error occurred while hiding the event', 'error');
+        hideButton.disabled = false;
+        hideButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Event';
+    }
 }

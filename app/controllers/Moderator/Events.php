@@ -3,11 +3,13 @@
 class ModeratorEvents extends Controller{
 
     private $eventModel;
+    private $moderatorModel;
     
     public function __construct() {
         parent::__construct();
         // Initialize Event model
         $this->eventModel = new Event();
+        $this->moderatorModel = new Moderator();
     }
 
     public function index($a = '', $b = '' , $c = ''){
@@ -19,6 +21,21 @@ class ModeratorEvents extends Controller{
         }
         
         $data = [];
+        
+        // Get moderator data for header
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            $moderatorModel = new Moderator();
+            $moderator = $moderatorModel->findById($currentUser['id']);
+            $data['moderator'] = $moderator;
+            $data['user'] = $currentUser;
+            
+            // Debug: Log moderator data
+            error_log("ModeratorEvents - Moderator loaded: " . ($moderator ? $moderator->full_name : 'NULL'));
+        } catch (Exception $e) {
+            error_log("Error loading moderator data: " . $e->getMessage());
+            $data['moderator'] = (object) ['full_name' => 'Moderator'];
+        }
         
         try {
             // Get filters from request
@@ -60,40 +77,36 @@ class ModeratorEvents extends Controller{
             $totalPages = ceil(count($totalEvents) / $limit);
             
             // Prepare data for view with server data for JavaScript
-            $data = [
+            $data['events'] = $events;
+            $data['currentPage'] = $page;
+            $data['totalPages'] = $totalPages;
+            $data['filters'] = $filters;
+            $data['serverData'] = [
                 'events' => $events,
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
                 'filters' => $filters,
-                'serverData' => [
-                    'events' => $events,
-                    'currentPage' => $page,
-                    'totalPages' => $totalPages,
-                    'filters' => $filters,
-                    'apiEndpoint' => '/unipulse/public/Moderator/events/getEvents'
-                ]
+                'apiEndpoint' => '/unipulse/public/Moderator/events/getEvents'
             ];
             
         } catch (Exception $e) {
             // Log error and show user-friendly message
             error_log("Database error in ModeratorEvents::index: " . $e->getMessage());
-            $data = [
-                'error' => 'Unable to load events. Please try again later.',
+            $data['error'] = 'Unable to load events. Please try again later.';
+            $data['events'] = [];
+            $data['currentPage'] = 1;
+            $data['totalPages'] = 1;
+            $data['filters'] = [];
+            $data['serverData'] = [
                 'events' => [],
                 'currentPage' => 1,
                 'totalPages' => 1,
                 'filters' => [],
-                'serverData' => [
-                    'events' => [],
-                    'currentPage' => 1,
-                    'totalPages' => 1,
-                    'filters' => [],
-                    'apiEndpoint' => '/unipulse/public/moderator/events/getEvents'
-                ]
+                'apiEndpoint' => '/unipulse/public/moderator/events/getEvents'
             ];
         }
         
-        $this->view('events', $data);
+        $this->view('Moderator/events', $data);
     }
     
     /**
@@ -196,5 +209,151 @@ class ModeratorEvents extends Controller{
         }
         
         return $formattedEvent;
+    }
+    
+    /**
+     * Hide/Delete an event (soft delete)
+     */
+    public function hideEvent() {
+        header('Content-Type: application/json');
+        
+        // Check authentication
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized access'
+            ]);
+            exit;
+        }
+        
+        try {
+            // Get POST data
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($input['event_id']) || !isset($input['reason'])) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Event ID and reason are required'
+                ]);
+                exit;
+            }
+            
+            $eventId = intval($input['event_id']);
+            $reason = trim($input['reason']);
+            
+            if (empty($reason)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Please provide a reason for hiding this event'
+                ]);
+                exit;
+            }
+            
+            if (strlen($reason) < 10) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Reason must be at least 10 characters long'
+                ]);
+                exit;
+            }
+            
+            // Get current moderator
+            $currentUser = AuthService::getCurrentUser();
+            $moderator = $this->moderatorModel->findById($currentUser['id']);
+            
+            if (!$moderator) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Moderator not found'
+                ]);
+                exit;
+            }
+            
+            // Moderators can now moderate any event regardless of university
+            // University restriction removed as per requirements
+            
+            // Log the attempt
+            error_log("Moderator {$currentUser['id']} attempting to hide event $eventId with reason: $reason");
+            
+            // Soft delete the event
+            $result = $this->eventModel->softDelete($eventId, $currentUser['id'], $reason);
+            
+            error_log("softDelete result: " . ($result ? 'true' : 'false'));
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Event has been hidden and publisher has been notified'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to hide event. Please try again.'
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error hiding event: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'An error occurred while hiding the event'
+            ]);
+        }
+        
+        exit;
+    }
+    
+    /**
+     * Restore a hidden event (admin/moderator only)
+     */
+    public function restoreEvent() {
+        header('Content-Type: application/json');
+        
+        // Check authentication
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized access'
+            ]);
+            exit;
+        }
+        
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($input['event_id'])) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Event ID is required'
+                ]);
+                exit;
+            }
+            
+            $eventId = intval($input['event_id']);
+            
+            // Restore the event
+            $result = $this->eventModel->restore($eventId);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Event has been restored successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to restore event'
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error restoring event: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'An error occurred while restoring the event'
+            ]);
+        }
+        
+        exit;
     }
 }

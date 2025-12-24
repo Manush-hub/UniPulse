@@ -4,57 +4,66 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// Sample data for sponsor dashboard
-const sponsorData = {
-    companyName: 'Company',
-    contactPerson: 'John Smith',
-    email: 'john@techcorp.com',
-    totalSponsorships: 8,
-    pendingRequests: 5,
-    totalInvestment: 4200,
-    avatar: '/unipulse/public/assets/images/default-avatar.png'
-};
-
-const notifications = [
-    {
-        id: 1,
-        title: 'New Sponsorship Request',
-        message: 'Arts Club requested sponsorship for Cultural Festival',
-        time: '2 hours ago',
-        unread: true,
-        type: 'request'
-    },
-    {
-        id: 2,
-        event: 'Event Update',
-        message: 'Hackathon 2025 date has been changed to August 15-17',
-        time: '1 day ago',
-        unread: true,
-        type: 'update'
-    },
-    {
-        id: 3,
-        title: 'Payment Received',
-        message: 'Your sponsorship payment for Business Summit has been processed',
-        time: '3 days ago',
-        unread: false,
-        type: 'payment'
-    }
-];
-
-// Load sponsor data
+// Load sponsor data from backend
 function loadSponsorData() {
-    document.getElementById('username').textContent = sponsorData.companyName;
-    //document.getElementById('welcomeUsername').textContent = sponsorData.companyName;
-    document.getElementById('userRole').textContent = 'Sponsor';
-    //document.getElementById('totalSponsorships').textContent = sponsorData.totalSponsorships;
-    //document.getElementById('pendingRequests').textContent = sponsorData.pendingRequests;
-    //document.getElementById('totalInvestment').textContent = `LKR ${sponsorData.totalInvestment}`;
+    fetch('/unipulse/public/sponsor/dashboard/getUserProfile')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch sponsor data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const usernameElement = document.getElementById('username');
+                const userRoleElement = document.getElementById('userRole');
+                
+                if (usernameElement && data.companyName) {
+                    usernameElement.textContent = data.companyName;
+                }
+                
+                if (userRoleElement) {
+                    userRoleElement.textContent = 'Sponsor';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading sponsor data:', error);
+        });
 }
 
 
-// Load notifications
+// Load notifications from backend
 function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    const notificationBadge = document.getElementById('notificationBadge');
+
+    if (!notificationList || !notificationBadge) return;
+
+    fetch('/unipulse/public/sponsor/dashboard/getNotifications')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.notifications) {
+                displayNotifications(data.notifications);
+            } else {
+                notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+                notificationBadge.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            notificationList.innerHTML = '<div class="no-data">Failed to load notifications</div>';
+            notificationBadge.style.display = 'none';
+        });
+}
+
+// Display notifications
+function displayNotifications(notifications) {
     const notificationList = document.getElementById('notificationList');
     const notificationBadge = document.getElementById('notificationBadge');
 
@@ -63,6 +72,11 @@ function loadNotifications() {
     const unreadCount = notifications.filter(n => n.unread).length;
     notificationBadge.textContent = unreadCount;
     notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+
+    if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+        return;
+    }
 
     notifications.forEach(notification => {
         const notificationItem = createNotificationItem(notification);
@@ -114,15 +128,39 @@ function toggleUserMenu() {
 
 // Mark notification as read
 function markNotificationAsRead(notificationId) {
-    const notification = notifications.find(n => n.id === notificationId);
-    if (notification) {
-        notification.unread = false;
-        loadNotifications();
-    }
+    fetch('/unipulse/public/sponsor/dashboard/markNotificationRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notificationId: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
 }
 
 // Mark all notifications as read
 function markAllAsRead() {
-    notifications.forEach(n => n.unread = false);
-    loadNotifications();
+    fetch('/unipulse/public/sponsor/dashboard/markAllNotificationsRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+    });
 }
