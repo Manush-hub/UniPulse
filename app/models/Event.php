@@ -841,6 +841,55 @@ class Event {
     }
     
     /**
+     * Get all hidden (soft-deleted) events
+     */
+    public function getHiddenEvents($filters = []) {
+        $whereClause = ['is_deleted = 1']; // Only soft-deleted events
+        $params = [];
+        
+        // Apply filters
+        if (!empty($filters['category'])) {
+            $whereClause[] = 'category = :category';
+            $params['category'] = $filters['category'];
+        }
+        
+        if (!empty($filters['university'])) {
+            $whereClause[] = 'university = :university';
+            $params['university'] = $filters['university'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        $sql = "SELECT e.*, 
+                       m.full_name as moderator_name,
+                       m.email as moderator_email
+                FROM {$this->table} e
+                LEFT JOIN moderators m ON e.deleted_by = m.id";
+        
+        if (!empty($whereClause)) {
+            $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+        }
+        
+        $sql .= ' ORDER BY deleted_at DESC';
+        
+        // Add pagination if specified
+        if (isset($filters['limit'])) {
+            $sql .= ' LIMIT :limit';
+            $params['limit'] = $filters['limit'];
+            
+            if (isset($filters['offset'])) {
+                $sql .= ' OFFSET :offset';
+                $params['offset'] = $filters['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
+    
+    /**
      * Restore a soft-deleted event
      */
     public function restore($eventId) {
@@ -856,9 +905,51 @@ class Event {
                       WHERE id = :event_id";
             
             $stmt = $conn->prepare($query);
-            return $stmt->execute(['event_id' => $eventId]);
+            $result = $stmt->execute(['event_id' => $eventId]);
+            
+            if ($result) {
+                // Optionally notify the publisher that their event has been restored
+                $this->notifyPublisherOfRestoration($eventId);
+            }
+            
+            return $result;
         } catch (Exception $e) {
             error_log("restore error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Notify publisher of event restoration
+     */
+    private function notifyPublisherOfRestoration($eventId) {
+        try {
+            // Get event and publisher details
+            $event = $this->getEventWithPublisher($eventId);
+            
+            if (!$event) {
+                error_log("notifyPublisherOfRestoration: Event not found - $eventId");
+                return false;
+            }
+            
+            // Create notification in database (if the table exists)
+            $conn = $this->connect();
+            $query = "INSERT INTO event_moderation_notifications 
+                      (event_id, notification_type, message, created_at) 
+                      VALUES (:event_id, 'restored', :message, NOW())";
+            
+            $stmt = $conn->prepare($query);
+            $message = "Your event '{$event->title}' has been restored and is now visible again.";
+            
+            $stmt->execute([
+                'event_id' => $eventId,
+                'message' => $message
+            ]);
+            
+            return true;
+        } catch (Exception $e) {
+            // If notification fails, just log it - don't prevent restoration
+            error_log("notifyPublisherOfRestoration error: " . $e->getMessage());
             return false;
         }
     }

@@ -16,8 +16,9 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             </div>
             <nav class="nav">
                 <a href="/unipulse/public/moderator/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
-                <!-- <a href="/unipulse/public/moderator/publisher" class="<?= $activeNav === 'publisher' ? 'active' : '' ?>">Publishers</a> -->
                 <a href="/unipulse/public/moderator/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">Events</a>
+                <a href="/unipulse/public/moderator/events/hiddenEvents" class="<?= $activeNav === 'hidden-events' ? 'active' : '' ?>">Hidden Events</a>
+                <a href="/unipulse/public/moderator/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
             </nav>
             <div class="header-actions">
                 <div class="notifications">

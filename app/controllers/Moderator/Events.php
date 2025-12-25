@@ -356,4 +356,164 @@ class ModeratorEvents extends Controller{
         
         exit;
     }
+    
+    /**
+     * View hidden events page
+     */
+    public function hiddenEvents($a = '', $b = '', $c = '') {
+        // Check if user is logged in and is a moderator
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+        
+        $data = [];
+        
+        // Get moderator data for header
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            $moderatorModel = new Moderator();
+            $moderator = $moderatorModel->findById($currentUser['id']);
+            $data['moderator'] = $moderator;
+            $data['user'] = $currentUser;
+        } catch (Exception $e) {
+            error_log("Error loading moderator data: " . $e->getMessage());
+            $data['moderator'] = (object) ['full_name' => 'Moderator'];
+        }
+        
+        try {
+            // Get filters from request
+            $filters = [];
+            
+            if (isset($_GET['category']) && !empty($_GET['category'])) {
+                $filters['category'] = $_GET['category'];
+            }
+            
+            if (isset($_GET['university']) && !empty($_GET['university'])) {
+                $filters['university'] = $_GET['university'];
+            }
+            
+            if (isset($_GET['search']) && !empty($_GET['search'])) {
+                $filters['search'] = $_GET['search'];
+            }
+            
+            // Get pagination parameters
+            $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+            $limit = 6; // Events per page
+            $offset = ($page - 1) * $limit;
+            
+            $filters['limit'] = $limit;
+            $filters['offset'] = $offset;
+            
+            // Get hidden events from database
+            $hiddenEvents = $this->eventModel->getHiddenEvents($filters);
+            
+            // Get total count for pagination (without limit)
+            $totalHiddenEvents = $this->eventModel->getHiddenEvents();
+            $totalPages = ceil(count($totalHiddenEvents) / $limit);
+            
+            // Prepare data for view with server data for JavaScript
+            $data['events'] = $hiddenEvents;
+            $data['currentPage'] = $page;
+            $data['totalPages'] = $totalPages;
+            $data['filters'] = $filters;
+            $data['serverData'] = [
+                'events' => $hiddenEvents,
+                'currentPage' => $page,
+                'totalPages' => $totalPages,
+                'filters' => $filters,
+                'apiEndpoint' => '/unipulse/public/moderator/events/getHiddenEvents'
+            ];
+            
+        } catch (Exception $e) {
+            // Log error and show user-friendly message
+            error_log("Database error in ModeratorEvents::hiddenEvents: " . $e->getMessage());
+            $data['error'] = 'Unable to load hidden events. Please try again later.';
+            $data['events'] = [];
+            $data['currentPage'] = 1;
+            $data['totalPages'] = 1;
+            $data['filters'] = [];
+            $data['serverData'] = [
+                'events' => [],
+                'currentPage' => 1,
+                'totalPages' => 1,
+                'filters' => [],
+                'apiEndpoint' => '/unipulse/public/moderator/events/getHiddenEvents'
+            ];
+        }
+        
+        $this->view('Moderator/hidden_events', $data);
+    }
+    
+    /**
+     * API endpoint to get hidden events (AJAX)
+     */
+    public function getHiddenEvents() {
+        header('Content-Type: application/json');
+        
+        // Check authentication
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized access'
+            ]);
+            exit;
+        }
+        
+        try {
+            // Get filters from request
+            $filters = [];
+            
+            if (isset($_GET['category']) && !empty($_GET['category'])) {
+                $filters['category'] = $_GET['category'];
+            }
+            
+            if (isset($_GET['university']) && !empty($_GET['university'])) {
+                $filters['university'] = $_GET['university'];
+            }
+            
+            if (isset($_GET['search']) && !empty($_GET['search'])) {
+                $filters['search'] = $_GET['search'];
+            }
+            
+            // Get pagination parameters
+            $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+            $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 6;
+            $offset = ($page - 1) * $limit;
+            
+            $filters['limit'] = $limit;
+            $filters['offset'] = $offset;
+            
+            // Get hidden events from database
+            $hiddenEvents = $this->eventModel->getHiddenEvents($filters);
+            
+            // Get total count for pagination
+            $totalHiddenEvents = $this->eventModel->getHiddenEvents();
+            $totalPages = ceil(count($totalHiddenEvents) / $limit);
+            
+            // Format events data
+            $formattedEvents = array_map(function($event) {
+                return $this->formatEventData($event);
+            }, $hiddenEvents);
+            
+            echo json_encode([
+                'success' => true,
+                'events' => $formattedEvents,
+                'pagination' => [
+                    'currentPage' => $page,
+                    'totalPages' => $totalPages,
+                    'hasMore' => $page < $totalPages
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error fetching hidden events: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'An error occurred while fetching hidden events'
+            ]);
+        }
+        
+        exit;
+    }
 }

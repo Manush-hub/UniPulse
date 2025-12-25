@@ -308,4 +308,24 @@ class Publisher {
         $result = $this->getRow($query, ['university' => $university]);
         return $result ? (int)$result->count : 0;
     }
+    
+    /**
+     * Get all approved publishers by university
+     */
+    public function getApprovedByUniversity($university) {
+        $query = "SELECT * FROM publishers 
+                  WHERE university = :university 
+                  AND approval_status = 'approved' 
+                  ORDER BY society_name ASC";
+        
+        return $this->query($query, ['university' => $university]);
+    }
+    
+    /**
+     * Get a publisher by ID
+     */
+    public function getPublisherById($id) {
+        $query = "SELECT * FROM publishers WHERE id = :id LIMIT 1";
+        return $this->getRow($query, ['id' => $id]);
+    }
 }
