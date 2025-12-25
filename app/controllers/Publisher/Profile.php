@@ -1,6 +1,6 @@
 <?php
 
-class Publisherprofile extends Controller{
+class PublisherProfile extends Controller{
 
     private $publisherModel;
 
@@ -319,6 +319,427 @@ class Publisherprofile extends Controller{
             }
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+        }
+        exit();
+    }
+
+    // ==================== PHOTO GALLERY METHODS ====================
+    
+    /**
+     * Get all galleries for the current publisher
+     */
+    public function getGalleries($a = '', $b = '', $c = '') {
+        $this->jsonResponse(function() {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            $publisherId = $currentUser['id'];
+            $galleries = $this->publisherModel->getPublisherGalleries($publisherId);
+            
+            return ['success' => true, 'data' => $galleries];
+        });
+    }
+
+    /**
+     * Get a specific gallery by ID
+     */
+    public function getGallery($galleryId = null, $b = '', $c = '') {
+        $this->jsonResponse(function() use ($galleryId) {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            if (!$galleryId) {
+                return ['success' => false, 'message' => 'Gallery ID is required'];
+            }
+
+            $publisherId = $currentUser['id'];
+            $gallery = $this->publisherModel->getGalleryById($galleryId);
+            
+            if (!$gallery) {
+                return ['success' => false, 'message' => 'Gallery not found'];
+            }
+
+            // Verify ownership
+            if ($gallery['publisher_id'] != $publisherId) {
+                return ['success' => false, 'message' => 'Access denied'];
+            }
+
+            return ['success' => true, 'data' => $gallery];
+        });
+    }
+
+    /**
+     * Create a new gallery
+     */
+    public function createGallery($a = '', $b = '', $c = '') {
+        $this->jsonResponse(function() {
+            error_log("=== CREATE GALLERY START ===");
+            
+            $currentUser = AuthService::getCurrentUser();
+            error_log("Current user: " . json_encode($currentUser));
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                error_log("Authorization failed - User type: " . ($currentUser['type'] ?? 'none'));
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                error_log("Wrong method: " . $_SERVER['REQUEST_METHOD']);
+                return ['success' => false, 'message' => 'Method not allowed'];
+            }
+
+            $publisherId = $currentUser['id'];
+            error_log("Publisher ID: " . $publisherId);
+
+            // Validate input
+            $title = trim($_POST['title'] ?? '');
+            $description = trim($_POST['description'] ?? '');
+            
+            error_log("Title: " . $title);
+            error_log("Description: " . $description);
+            error_log("FILES data: " . json_encode($_FILES));
+
+            $errors = [];
+
+            if (empty($title)) {
+                $errors[] = 'Title is required';
+            } elseif (strlen($title) > 50) {
+                $errors[] = 'Title must not exceed 50 characters';
+            }
+
+            if (strlen($description) > 150) {
+                $errors[] = 'Description must not exceed 150 characters';
+            }
+
+            // Validate photos
+            if (!isset($_FILES['photos']) || empty($_FILES['photos']['name'][0])) {
+                $errors[] = 'At least one photo is required';
+                error_log("No photos uploaded");
+            }
+
+            if (!empty($errors)) {
+                error_log("Validation errors: " . implode(', ', $errors));
+                return ['success' => false, 'message' => implode(', ', $errors)];
+            }
+
+            // Process photo uploads
+            error_log("Starting photo upload...");
+            $uploadedPhotos = $this->uploadPhotos($_FILES['photos']);
+            error_log("Uploaded photos: " . json_encode($uploadedPhotos));
+
+            if (empty($uploadedPhotos)) {
+                error_log("Photo upload returned empty array");
+                return ['success' => false, 'message' => 'Photo upload failed'];
+            }
+
+            // Create gallery
+            error_log("Creating gallery in database...");
+            $galleryId = $this->publisherModel->createGallery($publisherId, $title, $description, $uploadedPhotos);
+            error_log("Gallery ID created: " . $galleryId);
+
+            if ($galleryId) {
+                $gallery = $this->publisherModel->getGalleryById($galleryId);
+                error_log("Gallery retrieved: " . json_encode($gallery));
+                error_log("=== CREATE GALLERY SUCCESS ===");
+                return ['success' => true, 'message' => 'Gallery created successfully', 'data' => $gallery];
+            } else {
+                error_log("Gallery ID is false/null");
+                error_log("=== CREATE GALLERY FAILED ===");
+                return ['success' => false, 'message' => 'Failed to create gallery'];
+            }
+        });
+    }
+
+    /**
+     * Update an existing gallery
+     */
+    public function updateGallery($galleryId = null, $b = '', $c = '') {
+        $this->jsonResponse(function() use ($galleryId) {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                return ['success' => false, 'message' => 'Method not allowed'];
+            }
+
+            if (!$galleryId) {
+                return ['success' => false, 'message' => 'Gallery ID is required'];
+            }
+
+            $publisherId = $currentUser['id'];
+
+            // Verify ownership
+            $gallery = $this->publisherModel->getGalleryById($galleryId);
+            
+            if (!$gallery) {
+                return ['success' => false, 'message' => 'Gallery not found'];
+            }
+
+            if ($gallery['publisher_id'] != $publisherId) {
+                return ['success' => false, 'message' => 'Access denied'];
+            }
+
+            // Validate input
+            $title = trim($_POST['title'] ?? '');
+            $description = trim($_POST['description'] ?? '');
+
+            $errors = [];
+
+            if (empty($title)) {
+                $errors[] = 'Title is required';
+            } elseif (strlen($title) > 50) {
+                $errors[] = 'Title must not exceed 50 characters';
+            }
+
+            if (strlen($description) > 150) {
+                $errors[] = 'Description must not exceed 150 characters';
+            }
+
+            if (!empty($errors)) {
+                return ['success' => false, 'message' => implode(', ', $errors)];
+            }
+
+            // Process new photo uploads if any
+            $newPhotos = [];
+            if (isset($_FILES['photos']) && !empty($_FILES['photos']['name'][0])) {
+                $newPhotos = $this->uploadPhotos($_FILES['photos']);
+            }
+
+            // Get existing photos to keep (from POST data as JSON array of URLs)
+            $keepPhotos = isset($_POST['keep_photos']) ? json_decode($_POST['keep_photos'], true) : [];
+            if (!is_array($keepPhotos)) {
+                $keepPhotos = [];
+            }
+
+            // Update gallery
+            $success = $this->publisherModel->updateGallery($galleryId, $title, $description, $keepPhotos, $newPhotos);
+
+            if ($success) {
+                $gallery = $this->publisherModel->getGalleryById($galleryId);
+                return ['success' => true, 'message' => 'Gallery updated successfully', 'data' => $gallery];
+            } else {
+                return ['success' => false, 'message' => 'Failed to update gallery'];
+            }
+        });
+    }
+
+    /**
+     * Delete a gallery
+     */
+    public function deleteGallery($galleryId = null, $b = '', $c = '') {
+        $this->jsonResponse(function() use ($galleryId) {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                return ['success' => false, 'message' => 'Method not allowed'];
+            }
+
+            if (!$galleryId) {
+                return ['success' => false, 'message' => 'Gallery ID is required'];
+            }
+
+            $publisherId = $currentUser['id'];
+
+            // Verify ownership
+            $gallery = $this->publisherModel->getGalleryById($galleryId);
+            
+            if (!$gallery) {
+                return ['success' => false, 'message' => 'Gallery not found'];
+            }
+
+            if ($gallery['publisher_id'] != $publisherId) {
+                return ['success' => false, 'message' => 'Access denied'];
+            }
+
+            // Delete gallery
+            $success = $this->publisherModel->deleteGallery($galleryId);
+
+            if ($success) {
+                return ['success' => true, 'message' => 'Gallery deleted successfully'];
+            } else {
+                return ['success' => false, 'message' => 'Failed to delete gallery'];
+            }
+        });
+    }
+
+    // ==================== EVENT METHODS ====================
+    
+    /**
+     * Get upcoming events for the current publisher
+     */
+    public function getUpcomingEvents($a = '', $b = '', $c = '') {
+        $this->jsonResponse(function() {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            $publisherId = $currentUser['id'];
+            $events = $this->publisherModel->getUpcomingEvents($publisherId);
+            
+            return ['success' => true, 'data' => $events];
+        });
+    }
+
+    /**
+     * Get past events for the current publisher
+     */
+    public function getPastEvents($a = '', $b = '', $c = '') {
+        $this->jsonResponse(function() {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                return ['success' => false, 'message' => 'Unauthorized'];
+            }
+
+            $publisherId = $currentUser['id'];
+            $events = $this->publisherModel->getPastEvents($publisherId);
+            
+            return ['success' => true, 'data' => $events];
+        });
+    }
+
+    /**
+     * Upload photos and return array of uploaded file paths
+     */
+    private function uploadPhotos($files) {
+        error_log("uploadPhotos called with: " . json_encode($files));
+        
+        $uploadedPhotos = [];
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        $maxPhotos = 10;
+
+        // Create upload directory if it doesn't exist
+        $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/UniPulse/public/uploads/gallery/';
+        error_log("Upload directory: " . $uploadDir);
+        
+        if (!file_exists($uploadDir)) {
+            error_log("Creating upload directory...");
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        if (!is_writable($uploadDir)) {
+            error_log("Upload directory is NOT writable!");
+            throw new Exception("Upload directory is not writable");
+        } else {
+            error_log("Upload directory is writable");
+        }
+
+        $fileCount = count($files['name']);
+        error_log("File count: " . $fileCount);
+        
+        if ($fileCount > $maxPhotos) {
+            throw new Exception("Maximum {$maxPhotos} photos allowed");
+        }
+
+        for ($i = 0; $i < $fileCount; $i++) {
+            error_log("Processing file {$i}: " . $files['name'][$i]);
+            error_log("File error code: " . $files['error'][$i]);
+            
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                error_log("Skipping file {$i} due to error: " . $files['error'][$i]);
+                continue;
+            }
+
+            // Validate file type
+            $fileType = $files['type'][$i];
+            error_log("File type: " . $fileType);
+            
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new Exception("Invalid file type. Only JPG and PNG allowed.");
+            }
+
+            // Validate file size
+            if ($files['size'][$i] > $maxSize) {
+                throw new Exception("File size must not exceed 5MB");
+            }
+
+            // Generate unique filename
+            $extension = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
+            $filename = uniqid('gallery_' . time() . '_') . '.' . $extension;
+            $targetPath = $uploadDir . $filename;
+            
+            error_log("Target path: " . $targetPath);
+            error_log("Temp file: " . $files['tmp_name'][$i]);
+
+            // Move uploaded file
+            if (move_uploaded_file($files['tmp_name'][$i], $targetPath)) {
+                $webPath = '/UniPulse/public/uploads/gallery/' . $filename;
+                $uploadedPhotos[] = $webPath;
+                error_log("Successfully uploaded file to: " . $webPath);
+            } else {
+                error_log("Failed to move uploaded file!");
+                throw new Exception("Failed to upload file");
+            }
+        }
+
+        error_log("Total uploaded photos: " . count($uploadedPhotos));
+        return $uploadedPhotos;
+    }
+
+    /**
+     * Get current publisher data for header
+     */
+    public function getCurrentPublisher() {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            exit();
+        }
+        
+        $publisherId = $currentUser['id'];
+        $publisherData = $this->publisherModel->findById($publisherId);
+        
+        if (!$publisherData) {
+            echo json_encode(['success' => false, 'message' => 'Publisher not found']);
+            exit();
+        }
+        
+        // Get profile data for logo
+        $profileData = $this->publisherModel->getProfileData($publisherId);
+        
+        echo json_encode([
+            'success' => true,
+            'publisher' => [
+                'id' => $publisherData->id,
+                'society_name' => $publisherData->society_name,
+                'email' => $publisherData->email,
+                'university' => $publisherData->university,
+                'faculty' => $publisherData->faculty,
+                'logo_url' => $profileData->logo_url ?? null
+            ]
+        ]);
+        exit();
+    }
+
+    /**
+     * Helper method to send JSON response
+     */
+    private function jsonResponse($callback) {
+        header('Content-Type: application/json');
+        try {
+            $result = $callback();
+            echo json_encode($result);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         exit();
     }

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    loadOrganizerData();
+    loadPublisherData();
     loadNotifications();
     setupEventListeners();
 });
@@ -16,6 +16,46 @@ const organizerData = {
     totalRevenue: 25600,
     avatar: '/unipulse/public/assets/images/organizer.jpg'
 };
+
+// Load publisher data from session
+async function loadPublisherData() {
+    try {
+        const response = await fetch('/UniPulse/public/publisher/profile/getCurrentPublisher');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.publisher) {
+                // Update username with organization name
+                const usernameElement = document.getElementById('username');
+                const userRoleElement = document.getElementById('userRole');
+                
+                if (usernameElement && data.publisher.society_name) {
+                    usernameElement.textContent = data.publisher.society_name;
+                }
+                
+                if (userRoleElement) {
+                    userRoleElement.textContent = data.publisher.society_name || 'Event Organizer';
+                }
+                
+                // Update avatar if available
+                const avatarElement = document.getElementById('headerAvatar');
+                if (avatarElement && data.publisher.logo_url) {
+                    avatarElement.src = data.publisher.logo_url;
+                }
+                
+                // Update organizer data object
+                organizerData.username = data.publisher.society_name || 'Organization';
+                organizerData.displayName = data.publisher.society_name || 'Organization';
+                organizerData.role = data.publisher.society_name || 'Event Organizer';
+                organizerData.university = data.publisher.university || '';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading publisher data:', error);
+    }
+    
+    // Load organizer stats after publisher data is loaded
+    loadOrganizerData();
+}
 
 const notifications = [
     {
@@ -51,8 +91,15 @@ const notifications = [
 function loadOrganizerData() {
     const welcomeSection = document.querySelector('.welcome-section');
     if (welcomeSection) {
+        // Update welcome text in dashboard
+        const welcomeUsername = document.getElementById('welcomeUsername');
+        if (welcomeUsername) {
+            welcomeUsername.textContent = organizerData.displayName;
+        }
+        
         const welcomeText = welcomeSection.querySelector('.welcome-text h1');
-        if (welcomeText) {
+        if (welcomeText && !welcomeUsername) {
+            // If there's no welcomeUsername element, update the whole h1
             welcomeText.textContent = `Welcome back, ${organizerData.displayName}!`;
         }
 
@@ -274,6 +321,7 @@ window.HeaderModule = {
     updateUserProfile,
     loadNotifications,
     loadOrganizerData,
+    loadPublisherData,
     setupDropdowns,
     markAllAsRead,
     toggleMobileMenu,

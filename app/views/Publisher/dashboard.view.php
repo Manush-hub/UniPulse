@@ -24,7 +24,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">Jennifer</span> ! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername">Organization</span>! 👋</h1>
                         <p>Manage your events and track performance from your organizer dashboard.</p>
                         <div class="quick-stats">
                             <div class="stat-item">

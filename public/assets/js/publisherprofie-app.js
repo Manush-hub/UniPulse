@@ -622,7 +622,7 @@ class ClubProfile {
         saveBtn.disabled = true;
 
         // Make AJAX call to update profile
-        fetch('/unipulse/public/publisher/profile/updateOrganizationInfo', {
+        fetch('/UniPulse/public/publisher/profile/updateOrganizationInfo', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -831,7 +831,7 @@ class ClubProfile {
             saveBtn.disabled = true;
 
             // Make AJAX call to update social links
-            fetch('/unipulse/public/publisher/profile/updateSocialLinks', {
+            fetch('/UniPulse/public/publisher/profile/updateSocialLinks', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1106,13 +1106,13 @@ function changeCover(event) {
         const formData = new FormData();
         formData.append('image', file);
 
-        console.log('Starting upload to /unipulse/public/publisher/profile/uploadCoverPhoto');
+        console.log('Starting upload to /UniPulse/public/publisher/profile/uploadCoverPhoto');
         
         if (typeof clubProfile !== 'undefined') {
             clubProfile.showNotification('Uploading cover photo...', 'info');
         }
 
-        fetch('/unipulse/public/publisher/profile/uploadCoverPhoto', {
+        fetch('/UniPulse/public/publisher/profile/uploadCoverPhoto', {
             method: 'POST',
             body: formData
         })
@@ -1174,7 +1174,7 @@ function changeProfileImage(event) {
 
         clubProfile.showNotification('Uploading profile logo...', 'info');
 
-        fetch('/unipulse/public/publisher/profile/uploadProfileImage', {
+        fetch('/UniPulse/public/publisher/profile/uploadProfileImage', {
             method: 'POST',
             body: formData
         })
@@ -1201,7 +1201,19 @@ function changeProfileImage(event) {
 // Initialize the club profile manager when DOM is loaded
 let clubProfile;
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded - Initializing...');
     clubProfile = new ClubProfile();
+    
+    // Load galleries on page load
+    console.log('About to call loadGalleries()...');
+    loadGalleries();
+    
+    // Load events on page load
+    loadEvents();
+    
+    // Add event filter listeners
+    setupEventFilters();
+    
     // Add some extra interactivity
     document.addEventListener('keydown', (e) => {
         // ESC key to close modals
@@ -1299,16 +1311,180 @@ let galleryPhotos = [
 ];
 
 let currentEditingGalleryId = null;
-const MAX_GALLERY_ENTRIES = 5;
+const MAX_GALLERY_ENTRIES = 100; // No practical limit
 const MAX_PHOTOS_PER_ENTRY = 10;
 
-// Add Gallery Photo
-function addGalleryPhoto() {
-    if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
-        // clubProfile.showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+// Load galleries from API on page load
+async function loadGalleries() {
+    console.log('=== loadGalleries() function called ===');
+    try {
+        console.log('Loading galleries...');
+        console.log('Fetching from: /UniPulse/public/publisher/profile/getGalleries');
+        const response = await fetch('/UniPulse/public/publisher/profile/getGalleries');
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            console.error('Response not OK:', response.status, response.statusText);
+            const text = await response.text();
+            console.error('Response text:', text);
+            return;
+        }
+        
+        // Get response as text first to see what we're getting
+        const text = await response.text();
+        console.log('Raw response text:', text);
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('First 500 chars of response:', text.substring(0, 500));
+            return;
+        }
+        
+        console.log('Gallery data received:', data);
+        
+        if (data.success && data.data) {
+            console.log('Displaying', data.data.length, 'galleries');
+            displayGalleries(data.data);
+        } else {
+            console.error('Failed to load galleries:', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading galleries:', error);
+    }
+}
+
+// Display galleries in the grid
+function displayGalleries(galleries) {
+    console.log('displayGalleries called with:', galleries);
+    const galleryGrid = document.getElementById('galleryGrid');
+    const noGalleriesMsg = document.getElementById('noGalleriesMessage');
+    
+    if (!galleryGrid) {
+        console.error('Gallery grid element not found!');
         return;
     }
     
+    if (!galleries || galleries.length === 0) {
+        console.log('No galleries to display');
+        galleryGrid.innerHTML = '';
+        if (noGalleriesMsg) {
+            noGalleriesMsg.style.display = 'block';
+        } else {
+            // Create the message if it doesn't exist
+            galleryGrid.innerHTML = `
+                <p class="text-center" style="padding: 20px; color: #999;" id="noGalleriesMessage">
+                    <i class="fas fa-images" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>
+                    No galleries yet. Click "Add Photo" to create your first gallery.
+                </p>
+            `;
+        }
+        return;
+    }
+    
+    console.log('Hiding no galleries message and rendering', galleries.length, 'galleries');
+    
+    // Clear existing content completely
+    galleryGrid.innerHTML = '';
+    
+    galleries.forEach((gallery, index) => {
+        console.log(`Creating gallery ${index + 1}:`, gallery);
+        const galleryItem = createGalleryElement(gallery);
+        galleryGrid.appendChild(galleryItem);
+    });
+    
+    console.log('Galleries rendered successfully');
+}
+
+// Create gallery element
+function createGalleryElement(gallery) {
+    console.log('createGalleryElement called with:', gallery);
+    const item = document.createElement('div');
+    item.className = 'gallery-item editable';
+    item.setAttribute('data-gallery-id', gallery.id);
+    
+    const images = gallery.images || [];
+    console.log('Gallery images:', images);
+    
+    if (images.length === 0) {
+        console.warn('No images in gallery!');
+    }
+    
+    // Create carousel images
+    let carouselImagesHTML = '';
+    images.forEach((imageUrl, index) => {
+        console.log(`Creating image ${index + 1}:`, imageUrl);
+        carouselImagesHTML += `
+            <div class="carousel-image ${index === 0 ? 'active' : ''}">
+                <img src="${imageUrl}" 
+                     alt="${escapeHtml(gallery.title)} - Photo ${index + 1}"
+                     onerror="console.error('Failed to load image:', this.src); this.style.border='2px solid red';"
+                     onload="console.log('Image loaded successfully:', this.src)">
+            </div>
+        `;
+    });
+    
+    // Create indicators
+    let indicatorsHTML = '';
+    images.forEach((_, index) => {
+        indicatorsHTML += `<span class="indicator ${index === 0 ? 'active' : ''}" onclick="setCarouselImage(${gallery.id}, ${index})"></span>`;
+    });
+    
+    item.innerHTML = `
+        <div class="gallery-images-container">
+            <div class="gallery-image-carousel">
+                ${carouselImagesHTML}
+            </div>
+            ${images.length > 1 ? `
+            <div class="carousel-controls">
+                <button class="carousel-btn prev" onclick="changeCarouselImage(${gallery.id}, -1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn next" onclick="changeCarouselImage(${gallery.id}, 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            ` : ''}
+            ${images.length > 1 ? `
+            <div class="carousel-indicators">
+                ${indicatorsHTML}
+            </div>
+            ` : ''}
+            <div class="gallery-actions-overlay">
+                <button type="button" class="gallery-action-btn edit" onclick="editGalleryItem(${gallery.id})" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(${gallery.id})" title="Remove">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        <div class="gallery-content">
+            <h4 class="gallery-title">${escapeHtml(gallery.title)}</h4>
+            <p class="gallery-description">${escapeHtml(gallery.description || '')}</p>
+        </div>
+    `;
+    
+    console.log('Gallery element HTML:', item.outerHTML.substring(0, 500));
+    return item;
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text ? text.replace(/[&<>"']/g, m => map[m]) : '';
+}
+
+// Add Gallery Photo
+function addGalleryPhoto() {
     currentEditingGalleryId = null;
     document.getElementById('galleryModalTitle').textContent = 'Add Photo Gallery';
     document.getElementById('galleryTitle').value = '';
@@ -1334,25 +1510,71 @@ function addGalleryPhoto() {
 }
 
 // Edit Gallery Item
-function editGalleryItem(galleryId) {
-    const photo = galleryPhotos.find(p => p.id === galleryId);
-    if (!photo) return;
-    
-    currentEditingGalleryId = galleryId;
-    document.getElementById('galleryModalTitle').textContent = 'Edit Photo';
-    document.getElementById('galleryTitle').value = photo.title;
-    document.getElementById('galleryDescription').value = photo.description;
-    
-    // Show modal
-    document.getElementById('galleryPhotoModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+async function editGalleryItem(galleryId) {
+    try {
+        const response = await fetch(`/UniPulse/public/publisher/profile/getGallery/${galleryId}`);
+        const data = await response.json();
+        
+        if (!data.success || !data.data) {
+            alert('Failed to load gallery');
+            return;
+        }
+        
+        const gallery = data.data;
+        currentEditingGalleryId = galleryId;
+        
+        document.getElementById('galleryModalTitle').textContent = 'Edit Photo Gallery';
+        document.getElementById('galleryTitle').value = gallery.title;
+        document.getElementById('galleryDescription').value = gallery.description || '';
+        
+        // Show existing images in preview
+        const images = gallery.images || [];
+        for (let i = 0; i < images.length && i < MAX_PHOTOS_PER_ENTRY; i++) {
+            const preview = document.getElementById(`galleryPreview${i + 1}`);
+            const uploadContent = document.querySelector(`#galleryFile${i + 1}`)?.parentElement?.querySelector('.upload-content');
+            
+            if (preview) {
+                preview.src = images[i];
+                preview.style.display = 'block';
+                preview.setAttribute('data-existing-url', images[i]);
+            }
+            if (uploadContent) {
+                uploadContent.style.display = 'none';
+            }
+        }
+        
+        // Show modal
+        document.getElementById('galleryPhotoModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+    } catch (error) {
+        console.error('Error loading gallery:', error);
+        alert('Failed to load gallery');
+    }
 }
 
 // Delete Gallery Item
-function deleteGalleryItem(galleryId) {
-    if (confirm('Are you sure you want to delete this photo?')) {
-        galleryPhotos = galleryPhotos.filter(p => p.id !== galleryId);
-        // clubProfile.showNotification('Photo deleted successfully!', 'success');
+async function deleteGalleryItem(galleryId) {
+    if (!confirm('Are you sure you want to delete this gallery? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/UniPulse/public/publisher/profile/deleteGallery/${galleryId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Gallery deleted successfully');
+            loadGalleries(); // Reload galleries
+        } else {
+            alert('Failed to delete gallery: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error deleting gallery:', error);
+        alert('Error deleting gallery');
     }
 }
 
@@ -1388,77 +1610,121 @@ function previewGalleryImage(event, photoIndex) {
 }
 
 // Save Gallery Photo
-function saveGalleryPhoto() {
+async function saveGalleryPhoto() {
     const title = document.getElementById('galleryTitle').value.trim();
     const description = document.getElementById('galleryDescription').value.trim();
     
     // Validation
     if (!title) {
-        // clubProfile.showNotification('Please enter a title for the gallery', 'error');
+        alert('Please enter a title for the gallery');
         return;
     }
     
-    if (!description) {
-        // clubProfile.showNotification('Please enter a description for the gallery', 'error');
-        return;
-    }
+    // Collect uploaded photos
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', description);
     
-    if (title.length > 50) {
-        // clubProfile.showNotification('Title must be 50 characters or less', 'error');
-        return;
-    }
+    let hasFiles = false;
+    let fileCount = 0;
+    const existingPhotos = []; // Track existing photos
     
-    if (description.length > 150) {
-        // clubProfile.showNotification('Description must be 150 characters or less', 'error');
-        return;
-    }
-    
-    // Collect uploaded images
-    const images = [];
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
         
-        if (fileInput && fileInput.files[0] && preview && preview.src) {
-            images.push(preview.src);
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            // New photo uploaded
+            formData.append(`photos[]`, fileInput.files[0]);
+            hasFiles = true;
+            fileCount++;
+        } else if (preview && preview.getAttribute('data-existing-url')) {
+            // Keep existing image URL for edit mode
+            existingPhotos.push(preview.getAttribute('data-existing-url'));
+            fileCount++;
         }
     }
     
-    if (images.length === 0 && !currentEditingGalleryId) {
-        // clubProfile.showNotification('Please upload at least one image', 'error');
+    // Add existing photos as JSON string for update
+    if (currentEditingGalleryId && existingPhotos.length > 0) {
+        formData.append('keep_photos', JSON.stringify(existingPhotos));
+    }
+    
+    if (fileCount === 0) {
+        alert('Please upload at least one photo');
         return;
     }
     
+    if (fileCount > MAX_PHOTOS_PER_ENTRY) {
+        alert(`You can upload a maximum of ${MAX_PHOTOS_PER_ENTRY} photos per gallery`);
+        return;
+    }
+    
+    // Determine endpoint
+    let endpoint;
     if (currentEditingGalleryId) {
-        // Update existing gallery entry
-        const photoIndex = galleryPhotos.findIndex(p => p.id === currentEditingGalleryId);
-        if (photoIndex !== -1) {
-            galleryPhotos[photoIndex].title = title;
-            galleryPhotos[photoIndex].description = description;
-            if (images.length > 0) {
-                galleryPhotos[photoIndex].images = images;
+        endpoint = `/UniPulse/public/publisher/profile/updateGallery/${currentEditingGalleryId}`;
+        formData.append('gallery_id', currentEditingGalleryId);
+    } else {
+        endpoint = '/UniPulse/public/publisher/profile/createGallery';
+    }
+    
+    try {
+        console.log('Sending request to:', endpoint);
+        console.log('FormData contents:');
+        for (let pair of formData.entries()) {
+            if (pair[1] instanceof File) {
+                console.log(pair[0], ':', pair[1].name, '(', pair[1].size, 'bytes)');
+            } else {
+                console.log(pair[0], ':', pair[1]);
             }
         }
-        // clubProfile.showNotification('Gallery updated successfully!', 'success');
-    } else {
-        // Add new gallery entry
-        if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
-            // clubProfile.showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            body: formData
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
+        const contentType = response.headers.get('content-type');
+        console.log('Content-Type:', contentType);
+        
+        const text = await response.text();
+        console.log('Raw response:', text);
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            alert('Server returned invalid JSON:\n\n' + text.substring(0, 500));
             return;
         }
         
-        const newGallery = {
-            id: Date.now(),
-            title: title,
-            description: description,
-            images: images
-        };
+        console.log('Parsed data:', data);
         
-        galleryPhotos.push(newGallery);
-        // clubProfile.showNotification('Gallery added successfully!', 'success');
+        if (data.success) {
+            // Close modal first
+            closeGalleryModal();
+            
+            // Wait a bit then reload galleries
+            setTimeout(() => {
+                console.log('Reloading galleries after save...');
+                loadGalleries();
+            }, 300);
+        } else {
+            console.error('API Error:', data);
+            alert('Failed to save gallery: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Catch block error:', error);
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        alert('Error saving gallery: ' + error.message + '\n\nCheck browser console (F12) for details.');
     }
-    
-    closeGalleryModal();
 }
 
 // Close Gallery Modal
@@ -1548,6 +1814,172 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
+
+// ==================== EVENT FUNCTIONS ====================
+
+let currentEventFilter = 'upcoming';
+
+// Load events based on filter
+async function loadEvents(filter = 'upcoming') {
+    try {
+        currentEventFilter = filter;
+        const endpoint = filter === 'upcoming' 
+            ? '/UniPulse/public/publisher/profile/getUpcomingEvents'
+            : '/UniPulse/public/publisher/profile/getPastEvents';
+        
+        console.log('Loading events:', filter);
+        const response = await fetch(endpoint);
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            console.log(`Loaded ${data.data.length} ${filter} events`);
+            displayEvents(data.data);
+        } else {
+            console.error('Failed to load events:', data.message);
+            displayEvents([]);
+        }
+    } catch (error) {
+        console.error('Error loading events:', error);
+        displayEvents([]);
+    }
+}
+
+// Display events in the grid
+function displayEvents(events) {
+    const container = document.getElementById('eventsContainer');
+    
+    if (!container) {
+        console.error('Events container not found');
+        return;
+    }
+    
+    if (!events || events.length === 0) {
+        container.innerHTML = `
+            <div class="no-events">
+                <i class="fas fa-calendar-times" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
+                <p>No ${currentEventFilter} events found.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    events.forEach(event => {
+        const eventCard = createEventCard(event);
+        container.appendChild(eventCard);
+    });
+}
+
+// Create event card element
+function createEventCard(event) {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    
+    const eventDate = new Date(event.event_date);
+    const formattedDate = eventDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    
+    const formattedTime = event.event_time ? event.event_time.substring(0, 5) : '';
+    
+    const badgeClass = currentEventFilter === 'upcoming' ? 'upcoming' : 'past';
+    const badgeText = currentEventFilter === 'upcoming' ? 'UPCOMING' : 'PAST';
+    
+    // Get category badge
+    const categoryBadge = `<span class="category-badge ${event.category}">${event.category ? event.category.charAt(0).toUpperCase() + event.category.slice(1) : ''}</span>`;
+    
+    // Fix image URL - add base path if needed
+    let imageUrl = event.image_url || event.cover_image;
+    if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+        imageUrl = '/UniPulse/public/' + imageUrl;
+    }
+    
+    card.innerHTML = `
+        <div class="event-image">
+            ${imageUrl
+                ? `<img src="${imageUrl}" alt="${escapeHtml(event.title)}" onerror="this.parentElement.innerHTML='<div class=\\'event-placeholder\\'><i class=\\'fas fa-calendar-alt\\'></i></div>';">`
+                : '<div class="event-placeholder"><i class="fas fa-calendar-alt"></i></div>'
+            }
+            ${categoryBadge}
+            <span class="event-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="event-info">
+            <h4>${escapeHtml(event.title)}</h4>
+            <p class="event-description">${escapeHtml((event.description || '').substring(0, 100))}${event.description && event.description.length > 100 ? '...' : ''}</p>
+            <p class="event-date">
+                <i class="fas fa-calendar"></i> 
+                ${formattedDate}${formattedTime ? ' at ' + formattedTime : ''}
+            </p>
+            <p class="event-location">
+                <i class="fas fa-map-marker-alt"></i> 
+                ${escapeHtml(event.location || event.venue_name || 'TBA')}${event.university_name ? ', ' + escapeHtml(event.university_name) : ''}
+            </p>
+            <p class="event-attendees">
+                <i class="fas fa-users"></i> 
+                ${event.current_participants || 0}/${event.max_participants || 'Unlimited'}
+            </p>
+            <div class="event-footer">
+                <span class="event-organizer">Organized by ${escapeHtml(event.organizer_name || event.organizer || 'You')}</span>
+                <span class="event-price ${event.ticket_type === 'free-all' ? 'free' : 'paid'}">
+                    ${event.ticket_type === 'free-all' ? 'Free' : 'Paid'}
+                </span>
+            </div>
+        </div>
+    `;
+    
+    // Make card clickable to view event details
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+        window.location.href = `/UniPulse/public/publisher/eventview/${event.id}`;
+    });
+    
+    return card;
+}
+
+// Setup event filter buttons
+function setupEventFilters() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Load events based on filter
+            const filter = this.getAttribute('data-filter');
+            loadEvents(filter);
+        });
+    });
+    
+    // Setup search functionality
+    const searchInput = document.getElementById('eventSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterEventsSearch(this.value);
+        });
+    }
+}
+
+// Filter events by search term
+function filterEventsSearch(searchTerm) {
+    const eventCards = document.querySelectorAll('.event-card');
+    const term = searchTerm.toLowerCase();
+    
+    eventCards.forEach(card => {
+        const title = card.querySelector('.event-title').textContent.toLowerCase();
+        const description = card.querySelector('.event-description').textContent.toLowerCase();
+        
+        if (title.includes(term) || description.includes(term)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 
 // Add Admin Modal Functions
 function closeAddAdminModal() {
