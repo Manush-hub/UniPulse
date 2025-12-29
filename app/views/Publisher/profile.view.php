@@ -316,20 +316,6 @@
                                 <span>Verified Organization</span>
                             </div>
                         </div>
-                        <div class="verification-details">
-                            <div class="verification-item">
-                                <span class="label">Verification Date:</span>
-                                <span class="value">August 15, 2024</span>
-                            </div>
-                            <div class="verification-item">
-                                <span class="label">Verification Type:</span>
-                                <span class="value">Educational Institution</span>
-                            </div>
-                            <div class="verification-item">
-                                <span class="label">Status:</span>
-                                <span class="value status-active">Active</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -382,88 +368,53 @@
                     </div>
                 </div>
 
-                <!-- Access Control -->
+                <!-- Access Control & Security -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Access Control & Security</h3>
                     </div>
                     <form id="security-form" class="form">
                         <div class="form-group">
-                            <label for="adminEmail"><i class="fas fa-user-shield"></i> Primary Admin Email</label>
-                            <input type="email" id="adminEmail" placeholder="Enter primary admin email">
-                            <small>This email has full administrative access</small>
+                            <label for="adminEmail">
+                                <i class="fas fa-user-shield"></i> Primary Admin Email
+                            </label>
+                            <input type="email" id="adminEmail" value="<?= htmlspecialchars($publisher->email) ?>" readonly style="background-color: #f5f5f5;">
+                            <small style="color: #666; display: block; margin-top: 5px;">This email has full administrative access</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
+                            <label for="currentPassword">
+                                <i class="fas fa-lock"></i> Current Password
+                            </label>
                             <input type="password" id="currentPassword" placeholder="Enter current password">
-                            <small>Required to change organization settings</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Required to change organization settings</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="newPassword"><i class="fas fa-key"></i> New Password</label>
+                            <label for="newPassword">
+                                <i class="fas fa-key"></i> New Password
+                            </label>
                             <input type="password" id="newPassword" placeholder="Enter new password">
-                            <small>Must be at least 8 characters long</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Must be at least 8 characters long</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="confirmPassword"><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                            <label for="confirmPassword">
+                                <i class="fas fa-check-circle"></i> Confirm New Password
+                            </label>
                             <input type="password" id="confirmPassword" placeholder="Confirm new password">
-                            <small>Must match your new password</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Must match your new password</small>
                         </div>
+
                         <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
+                            <button type="button" class="btn btn-primary" onclick="changePassword()">
                                 Save Changes
                             </button>
-                            <button type="button" class="btn btn-primary" onclick="cancelSecuritySettings()">
+                            <button type="button" class="btn btn-secondary" onclick="cancelSecurityForm()">
                                 Cancel
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <!-- Admin Management -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Administrator</h3>
-                        <button class="btn btn-small" onclick="addAdmin()">
-                            <i class="fas fa-user-plus"></i> Add Admin
-                        </button>
-                    </div>
-                    <div class="admin-list">
-                        <div class="admin-item">
-                            <div class="admin-info">
-                                <div class="admin-avatar">
-                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face" alt="Sarah Johnson">
-                                </div>
-                                <div class="admin-details">
-                                    <h4>Sarah Johnson</h4>
-                                    <p>Primary Administrator</p>
-                                    <small>sarah.j@berkeley.edu</small>
-                                </div>
-                            </div>
-                            <div class="admin-actions">
-                                <button class="btn btn-small btn-secondary" onclick="addAdmin()">
-                                    <i class="fas fa-exchange-alt"></i> Exchange
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="admin-item">
-                            <div class="admin-info">
-                                <div class="admin-avatar">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Michael Chen">
-                                </div>
-                                <div class="admin-details">
-                                    <h4>Michael Chen</h4>
-                                    <p>Co-Administrator</p>
-                                    <small>michael.c@berkeley.edu</small>
-                                </div>
-                            </div>
-                            <div class="admin-actions">
-                                <button class="btn btn-small btn-danger" onclick="removeAdmin('michael')">
-                                    <i class="fas fa-user-minus"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Danger Zone -->

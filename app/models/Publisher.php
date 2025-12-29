@@ -472,7 +472,7 @@ class Publisher {
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
             // Return relative URL
-            $url = '/unipulse/public/uploads/publisher_images/' . $publisherId . '/' . $filename;
+            $url = '/UniPulse/public/uploads/publisher_images/' . $publisherId . '/' . $filename;
             error_log("Upload successful, URL: " . $url);
             return $url;
         }
@@ -738,5 +738,26 @@ class Publisher {
         
         $events = $this->query($query, ['publisher_id' => $publisherId]);
         return $events ?: [];
+    }
+
+    /**
+     * Update publisher email
+     */
+    public function updateEmail($publisherId, $newEmail) {
+        $query = "UPDATE publishers SET email = :email, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['email' => $newEmail, 'id' => $publisherId]);
+    }
+
+    /**
+     * Update publisher password
+     */
+    public function updatePassword($publisherId, $newPassword) {
+        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $query = "UPDATE publishers SET password_hash = :password_hash, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['password_hash' => $passwordHash, 'id' => $publisherId]);
     }
 }

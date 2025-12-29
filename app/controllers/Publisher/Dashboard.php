@@ -139,6 +139,9 @@ class PublisherDashboard extends Controller{
         }
 
         try {
+            // Get filter from request (upcoming or past)
+            $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+            
             // Build query based on user role
             $whereClause = "";
             $params = [];
@@ -152,18 +155,27 @@ class PublisherDashboard extends Controller{
                 $whereClause = "WHERE 1=1"; // No filtering
             }
             
+            // Add date filter
+            if ($filter === 'upcoming') {
+                $whereClause .= " AND e.event_date >= CURDATE()";
+            } elseif ($filter === 'past') {
+                $whereClause .= " AND e.event_date < CURDATE()";
+            }
+            
             $query = "
                 SELECT 
                     e.*,
+                    p.society_name as organizer_name,
                     COUNT(ec.id) as comment_count,
                     COUNT(CASE WHEN ec.rating > 0 THEN 1 END) as rating_count,
                     AVG(CASE WHEN ec.rating > 0 THEN ec.rating END) as avg_rating
                 FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 LEFT JOIN event_comments ec ON e.id = ec.event_id AND ec.is_deleted = 0
                 $whereClause
                 GROUP BY e.id
-                ORDER BY e.created_at DESC
-                LIMIT 10
+                ORDER BY e.event_date DESC
+                LIMIT 50
             ";
             
             $stmt = $this->connect()->prepare($query);
@@ -171,21 +183,43 @@ class PublisherDashboard extends Controller{
             $events = $stmt->fetchAll(PDO::FETCH_OBJ);
             
             $formattedEvents = [];
+            $currentDate = date('Y-m-d');
+            
             foreach ($events as $event) {
+                // Calculate actual status based on event date
+                $eventStatus = $event->status;
+                if ($event->event_date < $currentDate) {
+                    $eventStatus = 'past';
+                } elseif ($event->event_date == $currentDate) {
+                    $eventStatus = 'ongoing';
+                } elseif ($event->event_date > $currentDate) {
+                    $eventStatus = 'upcoming';
+                }
+                
                 $formattedEvents[] = [
                     'id' => $event->id,
                     'title' => $event->title,
                     'description' => $event->description,
-                    'start_date' => $event->start_date,
-                    'end_date' => $event->end_date,
-                    'location' => $event->location,
-                    'status' => $event->status,
+                    'event_date' => $event->event_date,
+                    'event_time' => $event->event_time,
+                    'location_type' => $event->location_type,
+                    'exact_location' => $event->location ?? '', // Use 'location' field
+                    'venue_name' => $event->venue_name ?? '',
+                    'city' => $event->city ?? '',
+                    'university_name' => $event->university_name ?? '',
+                    'faculty_department' => $event->faculty_department ?? '',
+                    'status' => $eventStatus,
                     'category' => $event->category,
-                    'image_url' => $event->image_url,
-                    'comment_count' => (int)$event->comment_count,
-                    'rating_count' => (int)$event->rating_count,
-                    'avg_rating' => $event->avg_rating ? round((float)$event->avg_rating, 1) : null,
-                    'formatted_date' => $this->formatDate($event->start_date)
+                    'cover_image' => $event->cover_image ?? $event->image_url ?? '',
+                    'organizer_name' => $event->organizer_name ?? $event->organizer ?? '',
+                    'ticket_type' => $event->ticket_type ?? 'free-all',
+                    'ticket_price_free' => 0, // Not stored separately in database
+                    'ticket_price_paid' => 0, // Not stored separately in database
+                    'current_participants' => $event->current_participants ?? 0,
+                    'max_participants' => $event->max_participants ?? null,
+                    'comment_count' => (int)($event->comment_count ?? 0),
+                    'rating_count' => (int)($event->rating_count ?? 0),
+                    'avg_rating' => $event->avg_rating ? round((float)$event->avg_rating, 1) : null
                 ];
             }
             

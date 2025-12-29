@@ -415,23 +415,8 @@ class ClubProfile {
                     console.error('Error parsing preferences:', e);
                 }
             }
-        } else {
-            // Fallback to hardcoded data if publisherData is not available
-            Object.keys(this.organizationData).forEach(key => {
-                const element = document.getElementById(key) || document.getElementById('org' + key.charAt(0).toUpperCase() + key.slice(1));
-                if (element) {
-                    element.value = this.organizationData[key];
-                }
-            });
-
-            const profileName = document.getElementById('profileName');
-            const profileBio = document.getElementById('profileBio');
-            const profileImage = document.getElementById('profileImage');
-
-            if (profileName) profileName.textContent = this.organizationData.name;
-            if (profileBio) profileBio.textContent = this.organizationData.bio;
-            if (profileImage) profileImage.src = this.organizationData.logo;
         }
+        // If no publisherData, fields will remain empty (just showing placeholders)
 
         // Load focus areas
         this.loadFocusAreas();
@@ -1876,56 +1861,163 @@ function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
     
+    // Format date
     const eventDate = new Date(event.event_date);
-    const formattedDate = eventDate.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-    });
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    };
     
-    const formattedTime = event.event_time ? event.event_time.substring(0, 5) : '';
+    // Format time
+    const eventTime = event.event_time ? event.event_time.substring(0, 5) : '';
     
-    const badgeClass = currentEventFilter === 'upcoming' ? 'upcoming' : 'past';
-    const badgeText = currentEventFilter === 'upcoming' ? 'UPCOMING' : 'PAST';
+    // Capitalize first letter helper
+    const capitalizeFirstLetter = (str) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
     
-    // Get category badge
-    const categoryBadge = `<span class="category-badge ${event.category}">${event.category ? event.category.charAt(0).toUpperCase() + event.category.slice(1) : ''}</span>`;
+    // Determine location display based on location_type
+    let locationDisplay = '';
+    let secondaryInfo = '';
     
-    // Fix image URL - add base path if needed
-    let imageUrl = event.image_url || event.cover_image;
-    if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
-        imageUrl = '/UniPulse/public/' + imageUrl;
+    const locationType = event.location_type || 'inside-university';
+    const venueName = event.venue_name;
+    const city = event.city;
+    const exactLocation = event.exact_location;
+    const universityName = event.university_name;
+    const facultyDepartment = event.faculty_department;
+    
+    if (locationType === 'outside-university') {
+        // Outside university: show "Venue Name, City"
+        if (venueName && city) {
+            locationDisplay = `${venueName}, ${city}`;
+        } else if (venueName) {
+            locationDisplay = venueName;
+        } else if (city) {
+            locationDisplay = city;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        secondaryInfo = '';
+    } else {
+        // Inside university: show "Exact Location, University"
+        if (exactLocation && universityName) {
+            locationDisplay = `${exactLocation}, ${universityName}`;
+        } else if (exactLocation) {
+            locationDisplay = exactLocation;
+        } else if (universityName) {
+            locationDisplay = universityName;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        // Secondary info shows "Faculty, University"
+        if (facultyDepartment && universityName) {
+            secondaryInfo = `${facultyDepartment}, ${universityName}`;
+        } else if (facultyDepartment) {
+            secondaryInfo = facultyDepartment;
+        } else if (universityName) {
+            secondaryInfo = universityName;
+        }
     }
+    
+    // Build correct image path
+    let imagePath = '';
+    const coverImage = event.image_url || event.cover_image;
+    if (coverImage) {
+        if (coverImage.startsWith('http')) {
+            imagePath = coverImage;
+        } else if (coverImage.startsWith('/')) {
+            imagePath = coverImage;
+        } else {
+            imagePath = `/UniPulse/public/${coverImage}`;
+        }
+    }
+    
+    // Ticket price display
+    const getTicketPriceDisplay = (event) => {
+        const ticketType = event.ticket_type;
+        if (ticketType === 'free-all') {
+            return '<div class="event-price free">Free</div>';
+        } else if (ticketType === 'paid-all') {
+            const price = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
+        } else if (ticketType === 'both') {
+            const freePrice = parseFloat(event.ticket_price_free) || 0;
+            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
+        }
+        return '<div class="event-price">TBA</div>';
+    };
+    
+    const currentParticipants = event.current_participants || 0;
+    const maxParticipants = event.max_participants;
     
     card.innerHTML = `
         <div class="event-image">
-            ${imageUrl
-                ? `<img src="${imageUrl}" alt="${escapeHtml(event.title)}" onerror="this.parentElement.innerHTML='<div class=\\'event-placeholder\\'><i class=\\'fas fa-calendar-alt\\'></i></div>';">`
-                : '<div class="event-placeholder"><i class="fas fa-calendar-alt"></i></div>'
+            ${imagePath ? 
+                `<img src="${imagePath}" alt="${event.title}">` : 
+                `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>`
             }
-            ${categoryBadge}
-            <span class="event-badge ${badgeClass}">${badgeText}</span>
+            <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
+            <div class="event-status ${event.status}">${event.status}</div>
         </div>
-        <div class="event-info">
-            <h4>${escapeHtml(event.title)}</h4>
-            <p class="event-description">${escapeHtml((event.description || '').substring(0, 100))}${event.description && event.description.length > 100 ? '...' : ''}</p>
-            <p class="event-date">
-                <i class="fas fa-calendar"></i> 
-                ${formattedDate}${formattedTime ? ' at ' + formattedTime : ''}
-            </p>
-            <p class="event-location">
-                <i class="fas fa-map-marker-alt"></i> 
-                ${escapeHtml(event.location || event.venue_name || 'TBA')}${event.university_name ? ', ' + escapeHtml(event.university_name) : ''}
-            </p>
-            <p class="event-attendees">
-                <i class="fas fa-users"></i> 
-                ${event.current_participants || 0}/${event.max_participants || 'Unlimited'}
-            </p>
+        <div class="event-content">
+            <h3 class="event-title">${event.title}</h3>
+            <p class="event-description">${event.description}</p>
+            <div class="event-meta">
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>${formatDate(eventDate)} at ${eventTime}</span>
+                </div>
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>${locationDisplay}</span>
+                </div>
+                ${secondaryInfo ? `
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    <span>${secondaryInfo}</span>
+                </div>
+                ` : ''}
+            </div>
             <div class="event-footer">
-                <span class="event-organizer">Organized by ${escapeHtml(event.organizer_name || event.organizer || 'You')}</span>
-                <span class="event-price ${event.ticket_type === 'free-all' ? 'free' : 'paid'}">
-                    ${event.ticket_type === 'free-all' ? 'Free' : 'Paid'}
-                </span>
+                <div class="event-organizer">
+                    Organized by ${event.organizer_name || event.organizer || 'You'}
+                </div>
+                <div class="event-footer-right">
+                    ${getTicketPriceDisplay(event)}
+                    ${maxParticipants !== null && maxParticipants !== undefined ? `
+                    <div class="event-participants">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>${currentParticipants}/${maxParticipants}</span>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
         </div>
     `;
@@ -2161,4 +2253,66 @@ function createAdminItemHTML(adminData) {
             </div>
         </div>
     `;
+}
+// ==================== ACCESS CONTROL & SECURITY ====================
+
+function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    // Validation
+    if (!currentPassword) {
+        alert('Please enter your current password');
+        return;
+    }
+
+    if (!newPassword) {
+        alert('Please enter a new password');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        alert('New password must be at least 8 characters long');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alert('New passwords do not match');
+        return;
+    }
+
+    // Send request to backend
+    fetch('/UniPulse/public/publisher/profile/changePassword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while changing password');
+    });
+}
+
+function cancelSecurityForm() {
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
 }

@@ -375,26 +375,7 @@
                                         Public Users
                                     </label>
                                 </div>
-                                <div class="audience-option">
-                                    <input type="radio" id="both-audiences" name="audience" value="both" required>
-                                    <label for="both-audiences">
-                                        <i class="fas fa-globe" style="color: #10B981; font-size: 18px;"></i>
-                                        Both
-                                    </label>
-                                </div>
                             </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Maximum Participants</label>
-                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set the maximum number of people who can attend. Leave empty for unlimited participants.</p>
-                            <input type="number" name="max_participants" class="form-input" 
-                                min="1" max="100000"
-                                placeholder="Leave empty for unlimited participants">
-                            <p style="font-size: 11px; color: #999; margin-top: 5px;">
-                                <i class="fas fa-info-circle"></i> 
-                                This includes both free registrations and paid ticket purchases.
-                            </p>
                         </div>
 
                         <div class="form-group">
@@ -1210,16 +1191,6 @@
         const audience = document.querySelector('input[name="audience"]:checked');
         if (!audience) {
             errors.push('Target audience is required');
-        }
-        
-        // Validate Max Participants (optional field)
-        const maxParticipants = document.querySelector('input[name="max_participants"]').value;
-        if (maxParticipants) {
-            if (parseInt(maxParticipants) < 1) {
-                errors.push('Maximum participants must be at least 1');
-            } else if (parseInt(maxParticipants) > 100000) {
-                errors.push('Maximum participants cannot exceed 100,000');
-            }
         }
         
         // Validate Registration/Sale Dates based on ticket type

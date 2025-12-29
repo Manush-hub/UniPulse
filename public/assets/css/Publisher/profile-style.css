@@ -1037,20 +1037,26 @@ body {
 
 .event-card {
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     overflow: hidden;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .event-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .event-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, #1E3A8A, #F97316);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: relative;
-    height: 220px;
     overflow: hidden;
 }
 
@@ -1058,70 +1064,149 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
 }
 
-.event-card:hover .event-image img {
-    transform: scale(1.05);
+.event-image .placeholder-icon {
+    color: white;
+    opacity: 0.7;
 }
 
-.event-badge {
+.event-category {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    padding: 8px 16px;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(255,255,255,0.9);
+    color: #1E3A8A;
+    padding: 0.25rem 0.75rem;
     border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 600;
-    backdrop-filter: blur(10px);
-}
-
-.event-badge.upcoming {
-    background: rgba(76, 175, 80, 0.9);
-    color: white;
-}
-
-.event-badge.past {
-    background: rgba(117, 117, 117, 0.9);
-    color: white;
-}
-
-.event-badge.organized {
-    background: rgba(255, 152, 0, 0.9);
-    color: white;
-}
-
-.event-info {
-    padding: 25px;
-}
-
-.event-info h4 {
-    margin-bottom: 12px;
-    font-size: 1.3em;
-    color: #333;
+    font-size: 0.8rem;
     font-weight: 600;
 }
 
-.event-date,
-.event-location {
-    color: #666;
-    margin-bottom: 10px;
-    font-size: 0.95em;
+.event-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.event-status.upcoming {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.event-status.ongoing {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.event-status.completed,
+.event-status.past {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.event-content {
+    padding: 1.5rem;
+}
+
+.event-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.event-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.event-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.9rem;
 }
 
-.event-date i,
-.event-location i {
-    color: #4A5BCC;
+.meta-item svg {
     width: 16px;
+    height: 16px;
+    flex-shrink: 0;
 }
 
-.event-actions {
-    margin-top: 20px;
+.event-footer {
     display: flex;
-    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.event-organizer {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.event-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.event-price {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.event-price.free {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.event-price.paid {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.event-participants {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.event-participants svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* Organization Verification Status */

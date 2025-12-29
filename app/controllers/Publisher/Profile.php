@@ -591,7 +591,26 @@ class PublisherProfile extends Controller{
             $publisherId = $currentUser['id'];
             $events = $this->publisherModel->getUpcomingEvents($publisherId);
             
-            return ['success' => true, 'data' => $events];
+            // Format events with calculated status
+            $formattedEvents = [];
+            $currentDate = date('Y-m-d');
+            
+            foreach ($events as $event) {
+                $eventArray = (array) $event;
+                
+                // Calculate actual status based on event date
+                if ($eventArray['event_date'] < $currentDate) {
+                    $eventArray['status'] = 'past';
+                } elseif ($eventArray['event_date'] == $currentDate) {
+                    $eventArray['status'] = 'ongoing';
+                } elseif ($eventArray['event_date'] > $currentDate) {
+                    $eventArray['status'] = 'upcoming';
+                }
+                
+                $formattedEvents[] = $eventArray;
+            }
+            
+            return ['success' => true, 'data' => $formattedEvents];
         });
     }
 
@@ -609,7 +628,26 @@ class PublisherProfile extends Controller{
             $publisherId = $currentUser['id'];
             $events = $this->publisherModel->getPastEvents($publisherId);
             
-            return ['success' => true, 'data' => $events];
+            // Format events with calculated status
+            $formattedEvents = [];
+            $currentDate = date('Y-m-d');
+            
+            foreach ($events as $event) {
+                $eventArray = (array) $event;
+                
+                // Calculate actual status based on event date
+                if ($eventArray['event_date'] < $currentDate) {
+                    $eventArray['status'] = 'past';
+                } elseif ($eventArray['event_date'] == $currentDate) {
+                    $eventArray['status'] = 'ongoing';
+                } elseif ($eventArray['event_date'] > $currentDate) {
+                    $eventArray['status'] = 'upcoming';
+                }
+                
+                $formattedEvents[] = $eventArray;
+            }
+            
+            return ['success' => true, 'data' => $formattedEvents];
         });
     }
 
@@ -727,6 +765,115 @@ class PublisherProfile extends Controller{
                 'logo_url' => $profileData->logo_url ?? null
             ]
         ]);
+        exit();
+    }
+
+    /**
+     * Update primary admin email
+     */
+    public function updateAdminEmail($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $publisherId = $currentUser['id'];
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        $newEmail = $data['email'] ?? '';
+        $currentPassword = $data['current_password'] ?? '';
+
+        if (empty($newEmail) || empty($currentPassword)) {
+            echo json_encode(['success' => false, 'message' => 'Email and current password are required']);
+            exit();
+        }
+
+        // Validate email format
+        if (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+            exit();
+        }
+
+        // Verify current password
+        $publisher = $this->publisherModel->findById($publisherId);
+        if (!password_verify($currentPassword, $publisher->password_hash)) {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect']);
+            exit();
+        }
+
+        // Check if email already exists
+        $existingPublisher = $this->publisherModel->findByEmail($newEmail);
+        if ($existingPublisher && $existingPublisher->id != $publisherId) {
+            echo json_encode(['success' => false, 'message' => 'Email already in use by another organization']);
+            exit();
+        }
+
+        // Update email
+        $result = $this->publisherModel->updateEmail($publisherId, $newEmail);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Admin email updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update email']);
+        }
+        exit();
+    }
+
+    /**
+     * Change password
+     */
+    public function changePassword($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $publisherId = $currentUser['id'];
+        $data = json_decode(file_get_contents('php://input'), true);
+        
+        $currentPassword = $data['current_password'] ?? '';
+        $newPassword = $data['new_password'] ?? '';
+        $confirmPassword = $data['confirm_password'] ?? '';
+
+        // Validation
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            echo json_encode(['success' => false, 'message' => 'All fields are required']);
+            exit();
+        }
+
+        if (strlen($newPassword) < 8) {
+            echo json_encode(['success' => false, 'message' => 'New password must be at least 8 characters long']);
+            exit();
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            echo json_encode(['success' => false, 'message' => 'New passwords do not match']);
+            exit();
+        }
+
+        // Verify current password
+        $publisher = $this->publisherModel->findById($publisherId);
+        if (!password_verify($currentPassword, $publisher->password_hash)) {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect']);
+            exit();
+        }
+
+        // Update password
+        $result = $this->publisherModel->updatePassword($publisherId, $newPassword);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to change password']);
+        }
         exit();
     }
 

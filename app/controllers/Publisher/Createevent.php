@@ -122,7 +122,7 @@ class PublisherCreateevent extends Controller{
                 'university_name' => $universityName,
                 'organizer' => $user['name'] ?? $user['full_name'] ?? '',
                 'organizer_email' => $user['email'] ?? '',
-                'max_participants' => !empty($_POST['max_participants']) ? (int)$_POST['max_participants'] : 100,
+                'max_participants' => null,
                 'target_audience' => $_POST['audience'] ?? 'university-students',
                 'participants' => 0,
                 'status' => 'upcoming',
@@ -132,7 +132,7 @@ class PublisherCreateevent extends Controller{
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
                 'created_by' => $user['id'] ?? null,
-                'created_by_type' => ($user['type'] ?? '') === 'publisher' ? 'publisher' : 'publisher',
+                'created_by_type' => 'publisher', // Always set to publisher for events created in publisher section
                 'visibility' => 'public'
             ];
             
@@ -140,24 +140,35 @@ class PublisherCreateevent extends Controller{
             $ticketType = $_POST['ticketType'] ?? 'free-all';
             
             if ($ticketType === 'free-all') {
-                // For free events, use registration dates
-                $formData['registration_start_date'] = $_POST['registration_start_date'] ?? null;
-                $formData['registration_start_time'] = $_POST['registration_start_time'] ?? null;
-                $formData['registration_end_date'] = $_POST['registration_end_date'] ?? null;
-                $formData['registration_end_time'] = $_POST['registration_end_time'] ?? null;
+                // For free events, use registration dates (convert empty strings to null)
+                $formData['registration_start_date'] = !empty($_POST['registration_start_date']) ? $_POST['registration_start_date'] : null;
+                $formData['registration_start_time'] = !empty($_POST['registration_start_time']) ? $_POST['registration_start_time'] : null;
+                $formData['registration_end_date'] = !empty($_POST['registration_end_date']) ? $_POST['registration_end_date'] : null;
+                $formData['registration_end_time'] = !empty($_POST['registration_end_time']) ? $_POST['registration_end_time'] : null;
             } elseif ($ticketType === 'paid-all') {
-                // For paid events, map sale dates to registration dates
-                $formData['registration_start_date'] = $_POST['sale_start_date'] ?? null;
-                $formData['registration_start_time'] = $_POST['sale_start_time'] ?? null;
-                $formData['registration_end_date'] = $_POST['sale_end_date'] ?? null;
-                $formData['registration_end_time'] = $_POST['sale_end_time'] ?? null;
+                // For paid events, map sale dates to registration dates (convert empty strings to null)
+                $formData['registration_start_date'] = !empty($_POST['sale_start_date']) ? $_POST['sale_start_date'] : null;
+                $formData['registration_start_time'] = !empty($_POST['sale_start_time']) ? $_POST['sale_start_time'] : null;
+                $formData['registration_end_date'] = !empty($_POST['sale_end_date']) ? $_POST['sale_end_date'] : null;
+                $formData['registration_end_time'] = !empty($_POST['sale_end_time']) ? $_POST['sale_end_time'] : null;
             } elseif ($ticketType === 'mixed') {
                 // For mixed events, use registration dates for university students
-                // and sale dates for outside users (we'll use sale dates as primary)
-                $formData['registration_start_date'] = $_POST['mixed_registration_start_date'] ?? $_POST['mixed_sale_start_date'] ?? null;
-                $formData['registration_start_time'] = $_POST['mixed_registration_start_time'] ?? $_POST['mixed_sale_start_time'] ?? null;
-                $formData['registration_end_date'] = $_POST['mixed_registration_end_date'] ?? $_POST['mixed_sale_end_date'] ?? null;
-                $formData['registration_end_time'] = $_POST['mixed_registration_end_time'] ?? $_POST['mixed_sale_end_time'] ?? null;
+                // and sale dates for outside users (we'll use sale dates as primary, convert empty strings to null)
+                $regStartDate = !empty($_POST['mixed_registration_start_date']) ? $_POST['mixed_registration_start_date'] : null;
+                $saleStartDate = !empty($_POST['mixed_sale_start_date']) ? $_POST['mixed_sale_start_date'] : null;
+                $formData['registration_start_date'] = $regStartDate ?? $saleStartDate;
+                
+                $regStartTime = !empty($_POST['mixed_registration_start_time']) ? $_POST['mixed_registration_start_time'] : null;
+                $saleStartTime = !empty($_POST['mixed_sale_start_time']) ? $_POST['mixed_sale_start_time'] : null;
+                $formData['registration_start_time'] = $regStartTime ?? $saleStartTime;
+                
+                $regEndDate = !empty($_POST['mixed_registration_end_date']) ? $_POST['mixed_registration_end_date'] : null;
+                $saleEndDate = !empty($_POST['mixed_sale_end_date']) ? $_POST['mixed_sale_end_date'] : null;
+                $formData['registration_end_date'] = $regEndDate ?? $saleEndDate;
+                
+                $regEndTime = !empty($_POST['mixed_registration_end_time']) ? $_POST['mixed_registration_end_time'] : null;
+                $saleEndTime = !empty($_POST['mixed_sale_end_time']) ? $_POST['mixed_sale_end_time'] : null;
+                $formData['registration_end_time'] = $regEndTime ?? $saleEndTime;
             }
             
                         // Handle requirements if provided
@@ -402,15 +413,6 @@ class PublisherCreateevent extends Controller{
         // Validate Target Audience
         if (empty($postData['audience'])) {
             $errors['audience'] = 'Target audience is required';
-        }
-        
-        // Validate Max Participants (optional, but if provided must be valid)
-        if (!empty($postData['max_participants'])) {
-            if (!is_numeric($postData['max_participants']) || (int)$postData['max_participants'] < 1) {
-                $errors['max_participants'] = 'Maximum participants must be at least 1';
-            } elseif ((int)$postData['max_participants'] > 100000) {
-                $errors['max_participants'] = 'Maximum participants cannot exceed 100,000';
-            }
         }
         
         // Validate Category

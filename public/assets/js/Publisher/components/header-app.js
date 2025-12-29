@@ -38,8 +38,13 @@ async function loadPublisherData() {
                 
                 // Update avatar if available
                 const avatarElement = document.getElementById('headerAvatar');
-                if (avatarElement && data.publisher.logo_url) {
-                    avatarElement.src = data.publisher.logo_url;
+                if (avatarElement) {
+                    if (data.publisher.logo_url) {
+                        avatarElement.src = data.publisher.logo_url;
+                    } else {
+                        // Default avatar if no logo uploaded
+                        avatarElement.src = '/unipulse/public/assets/images/organizer.jpg';
+                    }
                 }
                 
                 // Update organizer data object

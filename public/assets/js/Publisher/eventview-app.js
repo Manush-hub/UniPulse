@@ -1,6 +1,5 @@
 // Get server data or use fallback
 let currentEvent = window.serverData?.event || null;
-let similarEvents = window.serverData?.similarEvents || [];
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
@@ -28,7 +27,6 @@ function loadEventDetails() {
     if (currentEvent) {
         // Use server data directly
         displayEventDetails(currentEvent);
-        loadSimilarEvents(similarEvents);
         hideLoading();
         showEventContainer();
     } else {
@@ -47,9 +45,7 @@ function loadEventDetails() {
             .then(data => {
                 if (data.success) {
                     currentEvent = data.event;
-                    similarEvents = data.similarEvents || [];
                     displayEventDetails(currentEvent);
-                    loadSimilarEvents(similarEvents);
                     hideLoading();
                     showEventContainer();
                 } else {
@@ -118,7 +114,6 @@ function displayEventDetails(event) {
     document.getElementById('eventCategory').textContent = capitalizeFirstLetter(event.category);
     document.getElementById('eventStatus').textContent = event.status;
     document.getElementById('eventTitle').textContent = event.title;
-    document.getElementById('eventSummary').textContent = event.description.substring(0, 150) + '...';
     
     // Event details grid
     const eventDate = event.event_date || event.date;
@@ -169,14 +164,6 @@ function displayEventDetails(event) {
         document.getElementById('venueInfo').style.display = 'none';
     }
     
-    // Show participants info only if max_participants is set
-    if (maxParticipants !== null && maxParticipants !== undefined) {
-        document.getElementById('participantsInfo').style.display = 'flex';
-        document.getElementById('eventParticipants').textContent = `${currentParticipants}/${maxParticipants}`;
-    } else {
-        document.getElementById('participantsInfo').style.display = 'none';
-    }
-    
     // Target audience
     document.getElementById('eventAudience').textContent = formatAudience(targetAudience);
     
@@ -191,8 +178,8 @@ function displayEventDetails(event) {
     // Full description
     document.getElementById('eventDescription').textContent = event.description;
     
-    // Registration Period
-    displayRegistrationPeriod(event);
+    // Registration & Ticket Periods
+    displayRegistrationTicketPeriods(event);
     
     // Schedule - hide card if no schedule data
     if (event.schedule && Array.isArray(event.schedule) && event.schedule.length > 0) {
@@ -225,6 +212,9 @@ function displayEventDetails(event) {
         }
     }
     
+    // Handle registration and ticketing sections
+    displayRegistrationTicketing(event);
+    
     // Volunteer information - hide card if not accepting volunteers
     if (event.needs_volunteers && event.needs_volunteers == 1) {
         displayVolunteerInfo(event);
@@ -245,24 +235,76 @@ function displayEventDetails(event) {
         }
     }
     
+    // Show volunteer/donation section if either is available
+    const hasVolunteer = event.needs_volunteers && event.needs_volunteers == 1;
+    const hasDonation = event.accepts_donations && event.accepts_donations == 1;
+    if (hasVolunteer || hasDonation) {
+        document.getElementById('volunteerDonationHeader').style.display = 'block';
+        document.getElementById('volunteerDonationGrid').style.display = 'grid';
+    } else {
+        document.getElementById('volunteerDonationHeader').style.display = 'none';
+        document.getElementById('volunteerDonationGrid').style.display = 'none';
+    }
+    
     // Organizer info
     document.getElementById('organizerName').textContent = event.organizer;
     
-    // Store organizer email for contact function
+    // Display organizer profile photo if available
+    const organizerAvatar = document.getElementById('organizerAvatar');
+    if (event.organizer_photo) {
+        organizerAvatar.innerHTML = `<img src="${event.organizer_photo}" alt="${event.organizer}" />`;
+    } else {
+        organizerAvatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+    }
+    
+    // Store organizer data for contact functions
     currentEvent.organizerEmail = organizerEmail;
+    currentEvent.organizerId = event.created_by;
+    currentEvent.organizerPhone = event.organizer_phone;
+    
+    // Setup phone button
+    const callBtn = document.getElementById('callOrganizerBtn');
+    if (event.organizer_phone) {
+        callBtn.onclick = () => window.location.href = `tel:${event.organizer_phone}`;
+        callBtn.setAttribute('title', `Call: ${event.organizer_phone}`);
+    } else {
+        callBtn.disabled = true;
+        callBtn.style.opacity = '0.5';
+        callBtn.setAttribute('title', 'Phone not available');
+    }
     
     // Statistics - only show if max_participants is set
     if (maxParticipants !== null && maxParticipants !== undefined) {
-        document.getElementById('eventStatsCard').style.display = 'block';
-        document.getElementById('totalParticipants').textContent = currentParticipants;
-        document.getElementById('availableSpots').textContent = maxParticipants - currentParticipants;
-        
-        // Participation percentage
-        const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
-        document.getElementById('participationPercentage').textContent = `${percentage}%`;
-        document.getElementById('participationFill').style.width = `${percentage}%`;
+        // Show in Registration Section
+        const statsRegSection = document.getElementById('eventStatsRegistration');
+        if (statsRegSection) {
+            statsRegSection.style.display = 'block';
+            document.getElementById('totalParticipantsReg').textContent = currentParticipants;
+            document.getElementById('availableSpotsReg').textContent = maxParticipants - currentParticipants;
+            document.getElementById('maxCapacityReg').textContent = maxParticipants;
+            
+            // Participation percentage
+            const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
+            document.getElementById('capacityPercentage').textContent = `${percentage}%`;
+            document.getElementById('capacityFill').style.width = `${percentage}%`;
+            
+            // Update capacity fill color based on percentage
+            const capacityFill = document.getElementById('capacityFill');
+            if (percentage >= 90) {
+                capacityFill.style.background = 'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)';
+            } else if (percentage >= 70) {
+                capacityFill.style.background = 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)';
+            } else {
+                capacityFill.style.background = 'linear-gradient(90deg, #10b981 0%, #059669 100%)';
+            }
+            
+            // Show ticket type breakdown for non-free events
+            displayTicketTypeBreakdown(event, currentParticipants, maxParticipants);
+        }
     } else {
-        document.getElementById('eventStatsCard').style.display = 'none';
+        if (document.getElementById('eventStatsRegistration')) {
+            document.getElementById('eventStatsRegistration').style.display = 'none';
+        }
     }
     
     // Set event link for sharing
@@ -278,6 +320,146 @@ function displayEventDetails(event) {
 }
 
 // Display registration period
+// Display registration and ticket periods
+function displayRegistrationTicketPeriods(event) {
+    const ticketType = event.ticket_type || 'free-all';
+    const hasRegistrationDates = event.registration_start_date && event.registration_end_date;
+    const hasTicketDates = event.ticket_sale_start_date && event.ticket_sale_end_date;
+    
+    const periodCard = document.getElementById('registrationTicketPeriodCard');
+    const freeRegSection = document.getElementById('freeRegistrationPeriod');
+    const ticketBuySection = document.getElementById('ticketBuyingPeriod');
+    const divider = document.getElementById('periodDivider');
+    
+    let showAnyPeriod = false;
+    
+    // For free-all events with registration
+    if (ticketType === 'free-all' && hasRegistrationDates) {
+        showAnyPeriod = true;
+        freeRegSection.style.display = 'block';
+        ticketBuySection.style.display = 'none';
+        
+        const startDate = formatDate(event.registration_start_date);
+        const endDate = formatDate(event.registration_end_date);
+        const status = getRegistrationStatus(event.registration_start_date, event.registration_end_date);
+        
+        document.getElementById('freeRegPeriodDates').innerHTML = `
+            <span class="period-date-item">
+                <i class="fas fa-calendar-plus"></i>
+                <strong>Opens:</strong> ${startDate}
+            </span>
+            <span class="period-date-separator">→</span>
+            <span class="period-date-item">
+                <i class="fas fa-calendar-times"></i>
+                <strong>Closes:</strong> ${endDate}
+            </span>
+        `;
+        
+        document.getElementById('freeRegPeriodStatus').innerHTML = `
+            <i class="fas fa-${status.icon}"></i>
+            ${status.text}
+        `;
+        document.getElementById('freeRegPeriodStatus').className = `period-status status-${status.class}`;
+    } else {
+        freeRegSection.style.display = 'none';
+    }
+    
+    // For paid or mixed events with ticket sales period
+    if ((ticketType === 'paid-all' || ticketType === 'mixed') && hasTicketDates) {
+        showAnyPeriod = true;
+        ticketBuySection.style.display = 'block';
+        
+        const startDate = formatDate(event.ticket_sale_start_date);
+        const endDate = formatDate(event.ticket_sale_end_date);
+        const status = getRegistrationStatus(event.ticket_sale_start_date, event.ticket_sale_end_date);
+        
+        document.getElementById('ticketPeriodDates').innerHTML = `
+            <span class="period-date-item">
+                <i class="fas fa-calendar-plus"></i>
+                <strong>Opens:</strong> ${startDate}
+            </span>
+            <span class="period-date-separator">→</span>
+            <span class="period-date-item">
+                <i class="fas fa-calendar-times"></i>
+                <strong>Closes:</strong> ${endDate}
+            </span>
+        `;
+        
+        document.getElementById('ticketPeriodStatus').innerHTML = `
+            <i class="fas fa-${status.icon}"></i>
+            ${status.text}
+        `;
+        document.getElementById('ticketPeriodStatus').className = `period-status status-${status.class}`;
+        
+        // Show both periods for mixed events if both dates exist
+        if (ticketType === 'mixed' && hasRegistrationDates) {
+            freeRegSection.style.display = 'block';
+            
+            const freeStartDate = formatDate(event.registration_start_date);
+            const freeEndDate = formatDate(event.registration_end_date);
+            const freeStatus = getRegistrationStatus(event.registration_start_date, event.registration_end_date);
+            
+            document.getElementById('freeRegPeriodDates').innerHTML = `
+                <span class="period-date-item">
+                    <i class="fas fa-calendar-plus"></i>
+                    <strong>Opens:</strong> ${freeStartDate}
+                </span>
+                <span class="period-date-separator">→</span>
+                <span class="period-date-item">
+                    <i class="fas fa-calendar-times"></i>
+                    <strong>Closes:</strong> ${freeEndDate}
+                </span>
+            `;
+            
+            document.getElementById('freeRegPeriodStatus').innerHTML = `
+                <i class="fas fa-${freeStatus.icon}"></i>
+                ${freeStatus.text}
+            `;
+            document.getElementById('freeRegPeriodStatus').className = `period-status status-${freeStatus.class}`;
+        }
+    }
+    
+    // Show/hide the entire period card
+    if (showAnyPeriod) {
+        periodCard.style.display = 'block';
+        // Show divider if both periods are visible
+        if (freeRegSection.style.display !== 'none' && ticketBuySection.style.display !== 'none') {
+            divider.style.display = 'block';
+        } else {
+            divider.style.display = 'none';
+        }
+    } else {
+        periodCard.style.display = 'none';
+    }
+}
+
+// Helper function to determine registration status
+function getRegistrationStatus(startDate, endDate) {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) {
+        return {
+            text: 'Opening Soon',
+            icon: 'clock',
+            class: 'upcoming'
+        };
+    } else if (now >= start && now <= end) {
+        return {
+            text: 'Open Now',
+            icon: 'check-circle',
+            class: 'open'
+        };
+    } else {
+        return {
+            text: 'Closed',
+            icon: 'times-circle',
+            class: 'closed'
+        };
+    }
+}
+
 function displayRegistrationPeriod(event) {
     const registrationPeriodCard = document.getElementById('registrationPeriodCard');
     const registrationPeriodContainer = document.getElementById('registrationPeriod');
@@ -354,31 +536,6 @@ function displayRequirements(requirements) {
     
     requirementsContainer.innerHTML = '';
     requirementsContainer.appendChild(requirementsList);
-}
-
-// Load similar events
-function loadSimilarEvents(events) {
-    const similarEventsContainer = document.getElementById('similarEvents');
-    
-    if (!events || events.length === 0) {
-        similarEventsContainer.innerHTML = '<p>No similar events found.</p>';
-        return;
-    }
-    
-    similarEventsContainer.innerHTML = '';
-    events.forEach(event => {
-        const eventCard = document.createElement('div');
-        eventCard.className = 'similar-event-card';
-        eventCard.onclick = () => viewEvent(event.id);
-        eventCard.innerHTML = `
-            <div class="similar-event-info">
-                <h5>${event.title}</h5>
-                <p class="similar-event-date">${formatDate(event.date)}</p>
-                <span class="similar-event-category">${capitalizeFirstLetter(event.category)}</span>
-            </div>
-        `;
-        similarEventsContainer.appendChild(eventCard);
-    });
 }
 
 // Update status styling
@@ -471,16 +628,15 @@ function confirmJoinEvent() {
             const maxParticipants = currentEvent.max_participants || currentEvent.maxParticipants;
             currentEvent.current_participants = newCurrentParticipants;
             
-            // Update participant count in detail section if visible
+            // Update participant count in registration section if visible
             if (maxParticipants !== null && maxParticipants !== undefined) {
-                document.getElementById('eventParticipants').textContent = `${newCurrentParticipants}/${maxParticipants}`;
-                document.getElementById('totalParticipants').textContent = newCurrentParticipants;
-                document.getElementById('availableSpots').textContent = maxParticipants - newCurrentParticipants;
+                document.getElementById('totalParticipantsReg').textContent = newCurrentParticipants;
+                document.getElementById('availableSpotsReg').textContent = maxParticipants - newCurrentParticipants;
                 
-                // Update participation percentage
+                // Update capacity percentage
                 const percentage = maxParticipants > 0 ? Math.round((newCurrentParticipants / maxParticipants) * 100) : 0;
-                document.getElementById('participationPercentage').textContent = `${percentage}%`;
-                document.getElementById('participationFill').style.width = `${percentage}%`;
+                document.getElementById('capacityPercentage').textContent = `${percentage}%`;
+                document.getElementById('capacityFill').style.width = `${percentage}%`;
             }
             
             closeJoinModal();
@@ -522,6 +678,15 @@ function contactOrganizer() {
         window.location.href = `mailto:${organizerEmail}?subject=Inquiry about ${currentEvent.title}`;
     } else {
         alert('Organizer contact information not available.');
+    }
+}
+
+function visitPublisherProfile() {
+    const publisherId = currentEvent?.organizerId || currentEvent?.created_by;
+    if (publisherId) {
+        window.location.href = `/unipulse/public/publisher/profile?id=${publisherId}`;
+    } else {
+        alert('Publisher profile not available.');
     }
 }
 
@@ -579,8 +744,9 @@ function formatAudience(audience) {
 
 function formatTicketType(ticketType) {
     const ticketMap = {
-        'free-all': 'Free for All',
-        'paid-all': 'Paid for All',
+        'free-students': 'Free for University Students',
+        'free-all': 'Free for University Students', // backward compatibility
+        'paid-all': 'Paid Tickets Required',
         'mixed': 'Free for Students, Paid for Others'
     };
     return ticketMap[ticketType] || ticketType;
@@ -592,42 +758,113 @@ function displayLocationDetails(event) {
     let locationHTML = '';
     
     if (locationType === 'outside-university') {
-        locationHTML = '<div class="location-detail-item">';
-        if (event.venue_name) {
-            locationHTML += `<div><strong>Venue:</strong> ${event.venue_name}</div>`;
-        }
-        if (event.street_address) {
-            locationHTML += `<div><strong>Address:</strong> ${event.street_address}</div>`;
-        }
-        if (event.city) {
-            locationHTML += `<div><strong>City:</strong> ${event.city}</div>`;
-        }
-        if (event.district_province) {
-            locationHTML += `<div><strong>District/Province:</strong> ${event.district_province}</div>`;
-        }
-        locationHTML += '</div>';
+        locationHTML = '';
         
-        if (locationHTML !== '<div class="location-detail-item"></div>') {
+        if (event.venue_name) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Venue</strong>
+                        <span>${event.venue_name}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.street_address) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-road"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Address</strong>
+                        <span>${event.street_address}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.city) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>City</strong>
+                        <span>${event.city}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.district_province) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>District/Province</strong>
+                        <span>${event.district_province}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (locationHTML) {
             document.getElementById('locationDetailsCard').style.display = 'block';
             document.getElementById('locationDetails').innerHTML = locationHTML;
         }
     } else {
         // Inside university - show university, faculty/department, and exact location
-        locationHTML = '<div class="location-detail-item">';
+        locationHTML = '';
         
         if (universityName) {
-            locationHTML += `<div><strong>University:</strong> ${universityName}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>University</strong>
+                        <span>${universityName}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.faculty_department) {
-            locationHTML += `<div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Faculty/Department</strong>
+                        <span>${event.faculty_department}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.location) {
-            locationHTML += `<div><strong>Exact Location:</strong> ${event.location}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Exact Location</strong>
+                        <span>${event.location}</span>
+                    </div>
+                </div>
+            `;
         }
-        
-        locationHTML += '</div>';
         
         // Only show if there's actual content
         if (universityName || event.faculty_department || event.location) {
@@ -688,20 +925,72 @@ function displayTicketDetails(event) {
         }
         
         if (Array.isArray(tickets) && tickets.length > 0) {
-            ticketHTML += '<div style="margin-top: 20px;"><strong style="font-size: 16px; color: #1f2937;">Available Tickets:</strong></div>';
-            ticketHTML += '<div class="ticket-types-list" style="margin-top: 10px;">';
+            ticketHTML += '<div style="margin-top: 25px; margin-bottom: 20px;"><strong style="font-size: 22px; color: #1f2937; letter-spacing: 0.5px;">Available Tickets:</strong></div>';
+            ticketHTML += '<div class="ticket-types-list" style="margin-top: 15px;">';
             
-            tickets.forEach(ticket => {
+            tickets.forEach((ticket, index) => {
+                // Calculate capacity percentage and determine colors
+                const totalCapacity = parseInt(ticket.total_capacity || ticket.quantity); // Use total_capacity from backend
+                const available = parseInt(ticket.quantity);
+                const sold = totalCapacity - available;
+                const soldPercentage = totalCapacity > 0 ? ((sold / totalCapacity) * 100).toFixed(1) : '0.0';
+                const availablePercentage = totalCapacity > 0 ? ((available / totalCapacity) * 100).toFixed(1) : '100.0';
+                
+                // Determine progress bar color based on availability
+                let progressColor, progressBg, statusText;
+                if (availablePercentage >= 50) {
+                    progressColor = '#10B981'; // Green - plenty available
+                    progressBg = '#D1FAE5';
+                    statusText = 'Good Availability';
+                } else if (availablePercentage >= 25) {
+                    progressColor = '#F59E0B'; // Amber - selling fast
+                    progressBg = '#FEF3C7';
+                    statusText = 'Selling Fast';
+                } else if (availablePercentage > 0) {
+                    progressColor = '#EF4444'; // Red - almost sold out
+                    progressBg = '#FEE2E2';
+                    statusText = 'Almost Sold Out';
+                } else {
+                    progressColor = '#6B7280'; // Gray - sold out
+                    progressBg = '#F3F4F6';
+                    statusText = 'Sold Out';
+                }
+                
                 ticketHTML += `
-                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: 600; font-size: 16px; color: #1f2937;">${ticket.name}</span>
-                            <span style="font-size: 18px; font-weight: 700; color: #3b82f6;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
-                        </div>
-                        ${ticket.description ? `<div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">${ticket.description}</div>` : ''}
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #6b7280;">
-                            <span><i class="fas fa-users"></i> Quantity: ${ticket.quantity}</span>
-                            ${ticket.benefits ? `<span><i class="fas fa-star"></i> ${ticket.benefits}</span>` : ''}
+                    <div class="ticket-option" data-ticket-index="${index}" data-ticket-name="${ticket.name}" data-ticket-price="${ticket.price}" data-ticket-quantity="${ticket.quantity}" style="background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%); border: 3px solid #d1d5db; border-radius: 16px; padding: 24px; margin-bottom: 18px; transition: all 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.08); cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 24px; color: #1f2937; margin-bottom: 10px; letter-spacing: 0.5px;">${ticket.name}</div>
+                                ${ticket.description ? `<div style="color: #6b7280; font-size: 16px; margin-bottom: 12px; line-height: 1.5;">${ticket.description}</div>` : ''}
+                                
+                                <!-- Capacity Indicator -->
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 13px; font-weight: 600; color: ${progressColor};">${statusText}</span>
+                                        <span style="font-size: 13px; font-weight: 600; color: #6b7280;">${soldPercentage}% Sold</span>
+                                    </div>
+                                    <div style="width: 100%; height: 12px; background: ${progressBg}; border-radius: 6px; overflow: hidden; position: relative;">
+                                        <div style="height: 100%; background: ${progressColor}; width: ${soldPercentage}%; transition: width 0.5s ease; border-radius: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: #9ca3af;">
+                                        <span>${sold} sold</span>
+                                        <span>${available} available</span>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; gap: 16px; font-size: 15px; color: #6b7280; margin-top: 8px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px; background: #e0f2fe; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: #0369a1;"><i class="fas fa-users" style="font-size: 16px;"></i> Available: ${ticket.quantity}</span>
+                                    ${ticket.benefits ? `<span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: #f59e0b;"><i class="fas fa-star" style="font-size: 14px;"></i> ${ticket.benefits}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                                <span style="font-size: 26px; font-weight: 800; color: #3b82f6; white-space: nowrap; letter-spacing: 0.5px;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
+                                <div class="quantity-selector" style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
+                                    <button type="button" class="quantity-btn" onclick="updateTicketQuantity(${index}, -1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">-</button>
+                                    <input type="number" id="ticket-quantity-${index}" value="0" min="0" max="${ticket.quantity}" style="width: 60px; text-align: center; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; height: 36px; font-weight: 600;" onchange="validateTicketQuantity(${index})" />
+                                    <button type="button" class="quantity-btn" onclick="updateTicketQuantity(${index}, 1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">+</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -773,6 +1062,584 @@ function displayVolunteerInfo(event) {
     
     document.getElementById('volunteerCard').style.display = 'block';
     document.getElementById('volunteerInfo').innerHTML = volunteerHTML;
+}
+
+// Display Registration and Ticketing Section
+function displayRegistrationTicketing(event) {
+    const ticketType = event.ticket_type || 'free-students';
+    const requiresRegistration = event.requires_registration === 1 || event.requires_registration === '1' || event.requires_registration === true;
+    
+    const freeSection = document.getElementById('freeRegistrationSection');
+    const paidSection = document.getElementById('paidTicketingSection');
+    const mixedSection = document.getElementById('mixedTicketingSection');
+    
+    // Hide all sections first
+    freeSection.style.display = 'none';
+    paidSection.style.display = 'none';
+    mixedSection.style.display = 'none';
+    
+    // Scenario 1: Free for University Students (free-students or free-all for backward compatibility)
+    if (ticketType === 'free-students' || ticketType === 'free-all') {
+        freeSection.style.display = 'block';
+        
+        if (requiresRegistration) {
+            // Free WITH registration required
+            document.getElementById('freeRegRequired').style.display = 'block';
+            document.getElementById('freeNoRegRequired').style.display = 'none';
+            document.getElementById('freeEntrySubtitle').textContent = 'Free entry with registration required';
+        } else {
+            // Free WITHOUT registration (walk-in)
+            document.getElementById('freeRegRequired').style.display = 'none';
+            document.getElementById('freeNoRegRequired').style.display = 'block';
+            document.getElementById('freeEntrySubtitle').textContent = 'Open entry - no registration needed';
+        }
+        
+    } else if (ticketType === 'paid-all') {
+        // Scenario 2: Paid for Everyone - all must buy tickets
+        paidSection.style.display = 'block';
+        
+        // Set initial ticket price to zero
+        const ticketPriceElement = document.getElementById('ticketPrice');
+        if (ticketPriceElement) {
+            ticketPriceElement.textContent = 'LKR 0.00';
+        }
+        
+    } else if (ticketType === 'mixed') {
+        // Scenario 3: Mixed - Free for uni students, Paid for others
+        mixedSection.style.display = 'block';
+        
+        if (requiresRegistration) {
+            // Free WITH registration for students
+            document.getElementById('studentRegRequired').style.display = 'block';
+            document.getElementById('studentNoRegRequired').style.display = 'none';
+        } else {
+            // Free WITHOUT registration for students (walk-in with student ID)
+            document.getElementById('studentRegRequired').style.display = 'none';
+            document.getElementById('studentNoRegRequired').style.display = 'block';
+        }
+        
+        // Display public tickets in the details card
+        displayMixedPublicTickets(event);
+    }
+}
+
+// Display tickets for General Public in mixed events - same as paid tickets
+function displayMixedPublicTickets(event) {
+    const ticketDetailsCard = document.getElementById('mixedTicketDetailsCard');
+    const ticketDetailsDiv = document.getElementById('mixedTicketDetails');
+    
+    if (!ticketDetailsCard || !ticketDetailsDiv) return;
+    
+    let ticketHTML = '';
+    
+    // Add Ticket Type and Registration Period at the top (inside scrollable area)
+    ticketHTML += '<div style="margin-bottom: 20px;">';
+    ticketHTML += '<div style="margin-bottom: 15px;">';
+    ticketHTML += '<strong style="font-size: 16px;">Ticket Type:</strong> ';
+    ticketHTML += '<span style="color: #3b82f6; font-weight: 600; font-size: 16px;">Paid Tickets Required</span>';
+    ticketHTML += '</div>';
+    
+    if (event.registration_start_date && event.registration_end_date) {
+        ticketHTML += '<div style="margin-bottom: 15px;">';
+        ticketHTML += '<strong style="font-size: 16px;">Registration Period:</strong> ';
+        ticketHTML += `<span style="font-size: 16px;">${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</span>`;
+        ticketHTML += '</div>';
+    }
+    ticketHTML += '</div>';
+    
+    // Check if we have ticket types
+    if (event.ticket_types) {
+        let tickets = event.ticket_types;
+        
+        // Parse if it's a JSON string
+        if (typeof tickets === 'string') {
+            try {
+                tickets = JSON.parse(tickets);
+            } catch (e) {
+                console.error('Error parsing ticket_types:', e);
+                tickets = [];
+            }
+        }
+        
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            ticketHTML += '<div style="margin-top: 25px; margin-bottom: 20px;"><strong style="font-size: 22px; color: #1f2937; letter-spacing: 0.5px;">Available Tickets:</strong></div>';
+            ticketHTML += '<div class="ticket-types-list" style="margin-top: 15px;">';
+            
+            tickets.forEach((ticket, index) => {
+                // Calculate capacity percentage and determine colors
+                const totalCapacity = parseInt(ticket.total_capacity || ticket.quantity);
+                const available = parseInt(ticket.quantity);
+                const sold = totalCapacity - available;
+                const soldPercentage = totalCapacity > 0 ? ((sold / totalCapacity) * 100).toFixed(1) : '0.0';
+                const availablePercentage = totalCapacity > 0 ? ((available / totalCapacity) * 100).toFixed(1) : '100.0';
+                
+                // Determine progress bar color based on availability
+                let progressColor, progressBg, statusText;
+                if (availablePercentage >= 50) {
+                    progressColor = '#10B981';
+                    progressBg = '#D1FAE5';
+                    statusText = 'Good Availability';
+                } else if (availablePercentage >= 25) {
+                    progressColor = '#F59E0B';
+                    progressBg = '#FEF3C7';
+                    statusText = 'Selling Fast';
+                } else if (availablePercentage > 0) {
+                    progressColor = '#EF4444';
+                    progressBg = '#FEE2E2';
+                    statusText = 'Almost Sold Out';
+                } else {
+                    progressColor = '#6B7280';
+                    progressBg = '#F3F4F6';
+                    statusText = 'Sold Out';
+                }
+                
+                ticketHTML += `
+                    <div class="ticket-option" data-ticket-index="${index}" data-ticket-name="${ticket.name}" data-ticket-price="${ticket.price}" data-ticket-quantity="${ticket.quantity}" style="background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%); border: 3px solid #d1d5db; border-radius: 16px; padding: 24px; margin-bottom: 18px; transition: all 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.08); cursor: pointer;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 24px; color: #1f2937; margin-bottom: 10px; letter-spacing: 0.5px;">${ticket.name}</div>
+                                ${ticket.description ? `<div style="color: #6b7280; font-size: 16px; margin-bottom: 12px; line-height: 1.5;">${ticket.description}</div>` : ''}
+                                
+                                <!-- Capacity Indicator -->
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 13px; font-weight: 600; color: ${progressColor};">${statusText}</span>
+                                        <span style="font-size: 13px; font-weight: 600; color: #6b7280;">${soldPercentage}% Sold</span>
+                                    </div>
+                                    <div style="width: 100%; height: 12px; background: ${progressBg}; border-radius: 6px; overflow: hidden; position: relative;">
+                                        <div style="height: 100%; background: ${progressColor}; width: ${soldPercentage}%; transition: width 0.5s ease; border-radius: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: #9ca3af;">
+                                        <span>${sold} sold</span>
+                                        <span>${available} available</span>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; gap: 16px; font-size: 15px; color: #6b7280; margin-top: 8px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px; background: #e0f2fe; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: #0369a1;"><i class="fas fa-users" style="font-size: 16px;"></i> Available: ${ticket.quantity}</span>
+                                    ${ticket.benefits ? `<span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: #f59e0b;"><i class="fas fa-star" style="font-size: 14px;"></i> ${ticket.benefits}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                                <span style="font-size: 26px; font-weight: 800; color: #3b82f6; white-space: nowrap; letter-spacing: 0.5px;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
+                                <div class="quantity-selector" style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
+                                    <button type="button" class="quantity-btn" onclick="updateMixedTicketQuantity(${index}, -1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">-</button>
+                                    <input type="number" id="mixed-ticket-quantity-${index}" value="0" min="0" max="${ticket.quantity}" style="width: 60px; text-align: center; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; height: 36px; font-weight: 600;" onchange="validateMixedTicketQuantity(${index})" />
+                                    <button type="button" class="quantity-btn" onclick="updateMixedTicketQuantity(${index}, 1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            ticketHTML += '</div>';
+        }
+    }
+    
+    ticketDetailsDiv.innerHTML = ticketHTML;
+}
+
+// Display Ticket Type Breakdown for capacity
+function displayTicketTypeBreakdown(event, currentParticipants, maxParticipants) {
+    const ticketType = event.ticket_type || 'free-students';
+    const breakdownSection = document.getElementById('ticketTypeBreakdown');
+    const ticketStatsDiv = document.getElementById('ticketTypeStats');
+    
+    // Only show breakdown for paid-all and mixed events (not for free-students)
+    if (ticketType === 'free-students' || ticketType === 'free-all') {
+        breakdownSection.style.display = 'none';
+        return;
+    }
+    
+    // Check if we have ticket types with quantities
+    if (!event.ticket_types) {
+        breakdownSection.style.display = 'none';
+        return;
+    }
+    
+    let tickets = event.ticket_types;
+    if (typeof tickets === 'string') {
+        try {
+            tickets = JSON.parse(tickets);
+        } catch (e) {
+            console.error('Error parsing ticket_types:', e);
+            breakdownSection.style.display = 'none';
+            return;
+        }
+    }
+    
+    if (!Array.isArray(tickets) || tickets.length === 0) {
+        breakdownSection.style.display = 'none';
+        return;
+    }
+    
+    // Display breakdown
+    breakdownSection.style.display = 'block';
+    
+    let breakdownHTML = '';
+    tickets.forEach(ticket => {
+        const quantity = parseInt(ticket.quantity) || 0;
+        const price = parseFloat(ticket.price) || 0;
+        const isFree = price === 0;
+        
+        // For now, showing total quantity as available (TODO: track actual registrations per ticket type)
+        const available = quantity;
+        
+        breakdownHTML += `
+            <div class="ticket-stat-item ${isFree ? 'free' : 'paid'}">
+                <div class="ticket-stat-left">
+                    <div class="ticket-stat-name">${ticket.name}</div>
+                    <div class="ticket-stat-price ${isFree ? 'free-price' : ''}">
+                        ${isFree ? 'FREE' : 'LKR ' + price.toFixed(2)}
+                    </div>
+                </div>
+                <div class="ticket-stat-right">
+                    <div class="ticket-stat-available">${available}</div>
+                    <div class="ticket-stat-total">of ${quantity} available</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    ticketStatsDiv.innerHTML = breakdownHTML;
+}
+
+// Functions for registration and ticket purchase
+function registerForEvent() {
+    alert('Registration functionality will be implemented here');
+    // You can redirect to registration page or open a modal
+}
+
+function selectTicket(index) {
+    // This function is no longer needed as selection is based on quantity > 0
+    // Kept for backward compatibility
+    updateTotalPrice();
+}
+
+// Mixed ticket quantity functions
+function updateMixedTicketQuantity(index, change) {
+    const input = document.getElementById(`mixed-ticket-quantity-${index}`);
+    const currentValue = parseInt(input.value) || 0;
+    const maxValue = parseInt(input.max);
+    const newValue = Math.max(0, Math.min(maxValue, currentValue + change));
+    input.value = newValue;
+    
+    // Update visual selection based on quantity
+    const ticketOption = input.closest('.ticket-option');
+    if (ticketOption) {
+        if (newValue > 0) {
+            ticketOption.style.border = '3px solid #3b82f6';
+            ticketOption.style.background = 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+        } else {
+            ticketOption.style.border = '3px solid #d1d5db';
+            ticketOption.style.background = 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)';
+        }
+    }
+    
+    updateMixedTotalPrice();
+}
+
+function validateMixedTicketQuantity(index) {
+    const input = document.getElementById(`mixed-ticket-quantity-${index}`);
+    const value = parseInt(input.value) || 0;
+    const maxValue = parseInt(input.max);
+    input.value = Math.max(0, Math.min(maxValue, value));
+    
+    // Update visual selection based on quantity
+    const ticketOption = input.closest('.ticket-option');
+    if (ticketOption) {
+        if (input.value > 0) {
+            ticketOption.style.border = '3px solid #3b82f6';
+            ticketOption.style.background = 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+        } else {
+            ticketOption.style.border = '3px solid #d1d5db';
+            ticketOption.style.background = 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)';
+        }
+    }
+    
+    updateMixedTotalPrice();
+}
+
+function updateMixedTotalPrice() {
+    // Get all mixed ticket options
+    const mixedTicketsContainer = document.getElementById('mixedTicketDetails');
+    if (!mixedTicketsContainer) return;
+    
+    const allTickets = mixedTicketsContainer.querySelectorAll('.ticket-option');
+    
+    let totalPrice = 0;
+    const selectedItems = [];
+    
+    allTickets.forEach(ticket => {
+        const index = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        
+        // Only count tickets with quantity > 0
+        if (quantity > 0) {
+            const price = parseFloat(ticket.dataset.ticketPrice);
+            totalPrice += price * quantity;
+            
+            selectedItems.push({
+                name: ticket.dataset.ticketName,
+                quantity: quantity,
+                price: price
+            });
+        }
+    });
+    
+    const mixedTicketPriceElement = document.getElementById('mixedTicketPrice');
+    if (mixedTicketPriceElement) {
+        mixedTicketPriceElement.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+}
+
+function updateTicketQuantity(index, change) {
+    const input = document.getElementById(`ticket-quantity-${index}`);
+    const currentValue = parseInt(input.value) || 0;
+    const maxValue = parseInt(input.max);
+    const newValue = Math.max(0, Math.min(maxValue, currentValue + change));
+    input.value = newValue;
+    
+    // Update visual selection based on quantity
+    const ticketOption = document.querySelector(`[data-ticket-index="${index}"]`);
+    if (ticketOption) {
+        if (newValue > 0) {
+            ticketOption.style.border = '2px solid #3b82f6';
+            ticketOption.style.background = '#eff6ff';
+        } else {
+            ticketOption.style.border = '2px solid #e5e7eb';
+            ticketOption.style.background = '#f9fafb';
+        }
+    }
+    
+    updateTotalPrice();
+}
+
+function validateTicketQuantity(index) {
+    const input = document.getElementById(`ticket-quantity-${index}`);
+    const value = parseInt(input.value) || 0;
+    const maxValue = parseInt(input.max);
+    input.value = Math.max(0, Math.min(maxValue, value));
+    
+    // Update visual selection based on quantity
+    const ticketOption = document.querySelector(`[data-ticket-index="${index}"]`);
+    if (ticketOption) {
+        if (input.value > 0) {
+            ticketOption.style.border = '2px solid #3b82f6';
+            ticketOption.style.background = '#eff6ff';
+        } else {
+            ticketOption.style.border = '2px solid #e5e7eb';
+            ticketOption.style.background = '#f9fafb';
+        }
+    }
+    
+    updateTotalPrice();
+}
+
+function updateTotalPrice() {
+    // Get all ticket options
+    const allTickets = document.querySelectorAll('.ticket-option');
+    
+    let totalPrice = 0;
+    const selectedItems = [];
+    
+    allTickets.forEach(ticket => {
+        const index = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        
+        // Only count tickets with quantity > 0
+        if (quantity > 0) {
+            const price = parseFloat(ticket.dataset.ticketPrice);
+            totalPrice += price * quantity;
+            
+            selectedItems.push({
+                name: ticket.dataset.ticketName,
+                quantity: quantity,
+                price: price
+            });
+        }
+    });
+    
+    const ticketPriceElement = document.getElementById('ticketPrice');
+    const mixedTicketPriceElement = document.getElementById('mixedTicketPrice');
+    
+    if (ticketPriceElement) {
+        ticketPriceElement.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+    if (mixedTicketPriceElement) {
+        mixedTicketPriceElement.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+}
+
+function purchaseTicket() {
+    // Check if registration/sale period is active
+    if (!isRegistrationPeriodActive()) {
+        const periodInfo = getRegistrationPeriodInfo();
+        if (periodInfo.status === 'upcoming') {
+            alert(`Ticket sales have not started yet.\n\nSales will open on ${periodInfo.startDate}`);
+        } else if (periodInfo.status === 'closed') {
+            alert(`Ticket sales have ended.\n\nSales closed on ${periodInfo.endDate}`);
+        } else {
+            alert('Ticket sales are not currently available for this event.');
+        }
+        return;
+    }
+    
+    const allTickets = document.querySelectorAll('.ticket-option');
+    const ticketSelections = [];
+    let totalPrice = 0;
+    
+    allTickets.forEach(ticket => {
+        const ticketIndex = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`ticket-quantity-${ticketIndex}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        
+        // Only include tickets with quantity > 0
+        if (quantity > 0) {
+            const ticketName = ticket.dataset.ticketName;
+            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
+            const subtotal = ticketPrice * quantity;
+            
+            ticketSelections.push({
+                index: ticketIndex,
+                name: ticketName,
+                price: ticketPrice,
+                quantity: quantity,
+                subtotal: subtotal
+            });
+            
+            totalPrice += subtotal;
+        }
+    });
+    
+    if (ticketSelections.length === 0) {
+        alert('Please select at least one ticket by setting quantity greater than 0');
+        return;
+    }
+    
+    // Store ticket selections for payment
+    sessionStorage.setItem('selectedTickets', JSON.stringify({
+        tickets: ticketSelections,
+        total: totalPrice,
+        eventId: currentEventData.id
+    }));
+    
+    // Build confirmation message
+    let message = 'Selected Tickets:\n\n';
+    ticketSelections.forEach(ticket => {
+        message += `${ticket.quantity}x ${ticket.name} - LKR ${ticket.subtotal.toFixed(2)}\n`;
+    });
+    message += `\nTotal: LKR ${totalPrice.toFixed(2)}\n\nProceeding to payment...`;
+    
+    alert(message);
+    // Redirect to payment gateway
+    // window.location.href = '/unipulse/public/payment?event_id=' + currentEventData.id;
+}
+
+// Check if registration/sale period is active
+function isRegistrationPeriodActive() {
+    if (!currentEventData) return false;
+    
+    const now = new Date();
+    const startDate = currentEventData.registration_start_date;
+    const startTime = currentEventData.registration_start_time;
+    const endDate = currentEventData.registration_end_date;
+    const endTime = currentEventData.registration_end_time;
+    
+    // If no registration period is set, allow purchase
+    if (!startDate && !endDate) return true;
+    
+    // Build start datetime
+    let startDateTime = null;
+    if (startDate) {
+        startDateTime = new Date(startDate);
+        if (startTime) {
+            const [hours, minutes] = startTime.split(':');
+            startDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        }
+    }
+    
+    // Build end datetime
+    let endDateTime = null;
+    if (endDate) {
+        endDateTime = new Date(endDate);
+        if (endTime) {
+            const [hours, minutes] = endTime.split(':');
+            endDateTime.setHours(parseInt(hours), parseInt(minutes), 59, 999);
+        } else {
+            // If no end time, set to end of day
+            endDateTime.setHours(23, 59, 59, 999);
+        }
+    }
+    
+    // Check if current time is within the period
+    if (startDateTime && now < startDateTime) return false;
+    if (endDateTime && now > endDateTime) return false;
+    
+    return true;
+}
+
+// Get registration period information
+function getRegistrationPeriodInfo() {
+    if (!currentEventData) return { status: 'unknown' };
+    
+    const now = new Date();
+    const startDate = currentEventData.registration_start_date;
+    const startTime = currentEventData.registration_start_time;
+    const endDate = currentEventData.registration_end_date;
+    const endTime = currentEventData.registration_end_time;
+    
+    // Build start datetime
+    let startDateTime = null;
+    if (startDate) {
+        startDateTime = new Date(startDate);
+        if (startTime) {
+            const [hours, minutes] = startTime.split(':');
+            startDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        }
+    }
+    
+    // Build end datetime
+    let endDateTime = null;
+    if (endDate) {
+        endDateTime = new Date(endDate);
+        if (endTime) {
+            const [hours, minutes] = endTime.split(':');
+            endDateTime.setHours(parseInt(hours), parseInt(minutes), 59, 999);
+        } else {
+            endDateTime.setHours(23, 59, 59, 999);
+        }
+    }
+    
+    if (startDateTime && now < startDateTime) {
+        return {
+            status: 'upcoming',
+            startDate: startDateTime.toLocaleDateString() + ' ' + (startTime || '00:00')
+        };
+    }
+    
+    if (endDateTime && now > endDateTime) {
+        return {
+            status: 'closed',
+            endDate: endDateTime.toLocaleDateString() + ' ' + (endTime || '23:59')
+        };
+    }
+    
+    return { status: 'open' };
+}
+
+function applyVolunteer() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+    
+    if (eventId) {
+        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
+    } else {
+        alert('Event ID not found');
+    }
 }
 
 // Modal functions

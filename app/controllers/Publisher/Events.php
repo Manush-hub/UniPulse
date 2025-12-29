@@ -178,6 +178,18 @@ class PublisherEvents extends Controller{
     private function formatEventForResponse($event) {
         $formattedEvent = (array) $event;
         
+        // Calculate actual status based on event date
+        $currentDate = date('Y-m-d');
+        if (isset($formattedEvent['event_date'])) {
+            if ($formattedEvent['event_date'] < $currentDate) {
+                $formattedEvent['status'] = 'past';
+            } elseif ($formattedEvent['event_date'] == $currentDate) {
+                $formattedEvent['status'] = 'ongoing';
+            } elseif ($formattedEvent['event_date'] > $currentDate) {
+                $formattedEvent['status'] = 'upcoming';
+            }
+        }
+        
         // Decode JSON fields
         if (isset($formattedEvent['requirements']) && is_string($formattedEvent['requirements'])) {
             $formattedEvent['requirements'] = json_decode($formattedEvent['requirements'], true) ?: [];
