@@ -52,6 +52,36 @@
             border-left-color: #10b981;
         }
 
+        .comment-card.comment-hidden {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+            opacity: 0.85;
+        }
+
+        .hidden-banner {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .hidden-banner i {
+            font-size: 1.2rem;
+        }
+
+        .hidden-reason {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.85rem;
+            opacity: 0.95;
+            font-style: italic;
+        }
+
         .comment-header {
             display: flex;
             justify-content: space-between;
@@ -212,6 +242,192 @@
             margin-left: 0.5rem;
         }
 
+        .review-btn.reject {
+            background: #ef4444;
+            color: white;
+        }
+
+        .review-btn.view {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .review-btn.hide {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .review-btn.unhide {
+            background: #10b981;
+            color: white;
+        }
+
+        .review-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .review-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .warning-text {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 6px;
+            color: #92400e;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: start;
+            gap: 0.75rem;
+        }
+
+        .warning-text i {
+            margin-top: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .event-status {
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
@@ -264,15 +480,15 @@
                         <p>Review and manage user comments across all events</p>
                         <div class="quick-stats">
                             <div class="stat-item">
-                                <span class="stat-number" id="pendingComments">34</span>
-                                <span class="stat-label">Pending Review</span>
+                                <span class="stat-number" id="pendingComments">0</span>
+                                <span class="stat-label">Visible Comments</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number" id="flaggedToday">12</span>
-                                <span class="stat-label">Flagged Today</span>
+                                <span class="stat-number" id="flaggedToday">0</span>
+                                <span class="stat-label">Hidden Comments</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number" id="moderatedToday">28</span>
+                                <span class="stat-number" id="moderatedToday">0</span>
                                 <span class="stat-label">Moderated Today</span>
                             </div>
                         </div>
@@ -368,101 +584,11 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Comments for Review</h2>
-                    <span class="badge" id="commentsCount">34 comments</span>
+                    <span class="badge" id="commentsCount">0 comments</span>
                 </div>
 
                 <div class="comments-list" id="commentsList">
-                    <!-- Comment 1 -->
-                    <div class="comment-card flagged">
-                        <div class="comment-header">
-                            <div class="comment-user">
-                                <img src="/unipulse/public/assets/images/user1.jpg" alt="User" class="user-avatar">
-                                <div class="user-info">
-                                    <h4>Alex Johnson</h4>
-                                    <div class="user-role">Student</div>
-                                </div>
-                            </div>
-                            <div class="comment-meta">
-                                <span><i class="fas fa-calendar"></i> 2 hours ago</span>
-                                <span class="sentiment-negative"><i class="fas fa-frown"></i> Negative</span>
-                            </div>
-                        </div>
-
-                        <div class="flag-reason">
-                            <strong>Flagged for:</strong> Inappropriate language
-                        </div>
-
-                        <div class="comment-content">
-                            "This event was completely disorganized and a waste of time. The organizers had no idea what
-                            they were doing and the speakers were unprepared. Would not recommend to anyone!"
-                        </div>
-
-                        <div class="comment-event">
-                            <strong>Event:</strong> Annual Tech Symposium 2024
-                        </div>
-
-                        <div class="comment-actions">
-                            <input type="checkbox" class="comment-checkbox" value="1">
-                            <button class="review-btn approve" onclick="approveComment(1)">
-                                <i class="fas fa-check"></i>
-                                Approve
-                            </button>
-                            <button class="review-btn reject" onclick="rejectComment(1)">
-                                <i class="fas fa-times"></i>
-                                Reject
-                            </button>
-                            <button class="review-btn view" onclick="viewCommentContext(1)">
-                                <i class="fas fa-eye"></i>
-                                View Context
-                            </button>
-                            <button class="review-btn" onclick="warnUser(1)">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                Warn User
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Comment 2 -->
-                    <div class="comment-card">
-                        <div class="comment-header">
-                            <div class="comment-user">
-                                <img src="/unipulse/public/assets/images/user2.jpg" alt="User" class="user-avatar">
-                                <div class="user-info">
-                                    <h4>Sarah Miller</h4>
-                                    <div class="user-role">Faculty</div>
-                                </div>
-                            </div>
-                            <div class="comment-meta">
-                                <span><i class="fas fa-calendar"></i> 4 hours ago</span>
-                                <span class="sentiment-positive"><i class="fas fa-smile"></i> Positive</span>
-                            </div>
-                        </div>
-
-                        <div class="comment-content">
-                            "Excellent event! The guest speakers were very knowledgeable and the networking
-                            opportunities were fantastic. Looking forward to the next one!"
-                        </div>
-
-                        <div class="comment-event">
-                            <strong>Event:</strong> Annual Tech Symposium 2024
-                        </div>
-
-                        <div class="comment-actions">
-                            <input type="checkbox" class="comment-checkbox" value="2">
-                            <button class="review-btn approve" onclick="approveComment(2)">
-                                <i class="fas fa-check"></i>
-                                Approve
-                            </button>
-                            <button class="review-btn reject" onclick="rejectComment(2)">
-                                <i class="fas fa-times"></i>
-                                Reject
-                            </button>
-                            <button class="review-btn view" onclick="viewCommentContext(2)">
-                                <i class="fas fa-eye"></i>
-                                View Context
-                            </button>
-                        </div>
-                    </div>
+                    <!-- Comments will be loaded dynamically from database via JavaScript -->
                 </div>
             </div>
         </section>

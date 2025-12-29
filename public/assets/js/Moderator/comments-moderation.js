@@ -2,7 +2,6 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeCommentsModeration();
-    loadComments();
 });
 
 function initializeCommentsModeration() {
@@ -36,14 +35,20 @@ function loadUniversityComments() {
             'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('API Response:', data);
         hideLoadingState();
         
         if (data.success) {
+            console.log('Comments loaded:', data.comments.length);
             displayComments(data.comments);
             updateStats(data);
         } else {
+            console.error('API Error:', data.error);
             showError('Failed to load comments: ' + (data.error || 'Unknown error'));
         }
     })
@@ -87,9 +92,18 @@ function createCommentCard(comment) {
     const sentimentClass = getSentimentClass(comment.rating);
     const sentimentIcon = getSentimentIcon(comment.rating);
     const sentimentText = getSentimentText(comment.rating);
+    const isHidden = comment.is_hidden;
+    const hiddenClass = isHidden ? 'comment-hidden' : '';
     
     return `
-        <div class="comment-card" data-comment-id="${comment.id}">
+        <div class="comment-card ${hiddenClass}" data-comment-id="${comment.id}">
+            ${isHidden ? `
+                <div class="hidden-banner">
+                    <i class="fas fa-eye-slash"></i>
+                    <span>Hidden by ${escapeHtml(comment.hidden_by_name || 'Moderator')}</span>
+                    <span class="hidden-reason">Reason: ${escapeHtml(comment.hidden_reason)}</span>
+                </div>
+            ` : ''}
             <div class="comment-header">
                 <div class="comment-user">
                     <div class="user-avatar">${getInitials(comment.user_name)}</div>
@@ -116,17 +130,20 @@ function createCommentCard(comment) {
 
             <div class="comment-actions">
                 <input type="checkbox" class="comment-checkbox" value="${comment.id}">
-                <button class="review-btn approve" onclick="approveComment(${comment.id})">
-                    <i class="fas fa-check"></i>
-                    Approve
-                </button>
-                <button class="review-btn reject" onclick="rejectComment(${comment.id})">
-                    <i class="fas fa-times"></i>
-                    Reject
-                </button>
+                ${isHidden ? `
+                    <button class="review-btn unhide" onclick="unhideComment(${comment.id})">
+                        <i class="fas fa-eye"></i>
+                        Unhide
+                    </button>
+                ` : `
+                    <button class="review-btn hide" onclick="hideComment(${comment.id})">
+                        <i class="fas fa-eye-slash"></i>
+                        Hide
+                    </button>
+                `}
                 <button class="review-btn view" onclick="viewCommentContext(${comment.id})">
                     <i class="fas fa-eye"></i>
-                    View Event
+                    View Context
                 </button>
             </div>
         </div>
@@ -361,7 +378,27 @@ function showNotification(message, type) {
 
 function updateStats(data) {
     // Update stats if provided
-    if (data.total !== undefined) {
+    if (data.stats) {
+        const pendingComments = document.getElementById('pendingComments');
+        const flaggedToday = document.getElementById('flaggedToday');
+        const moderatedToday = document.getElementById('moderatedToday');
+        
+        if (pendingComments) {
+            // Show visible comments (not hidden) as pending review
+            pendingComments.textContent = data.stats.visible_comments || 0;
+        }
+        
+        if (flaggedToday) {
+            // Show hidden comments as flagged
+            flaggedToday.textContent = data.stats.hidden_comments || 0;
+        }
+        
+        if (moderatedToday) {
+            // Show comments moderated (hidden) today
+            moderatedToday.textContent = data.stats.moderated_today || 0;
+        }
+    } else if (data.total !== undefined) {
+        // Fallback for backward compatibility
         const pendingComments = document.getElementById('pendingComments');
         if (pendingComments) {
             pendingComments.textContent = data.total;
@@ -397,3 +434,166 @@ window.rejectSelectedComments = rejectSelectedComments;
 window.toggleNotifications = toggleNotifications;
 window.toggleUserMenu = toggleUserMenu;
 window.markAllAsRead = markAllAsRead;
+window.hideComment = hideComment;
+window.unhideComment = unhideComment;
+
+/**
+ * Hide a comment with reason
+ */
+function hideComment(commentId) {
+    // Create modal for hide reason
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'hideCommentModal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Hide Comment</h2>
+                <button class="modal-close" onclick="closeHideModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="warning-text">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    This comment will be hidden from public view. The user will be notified with your reason.
+                </p>
+                <div class="form-group">
+                    <label for="hideReason">Reason for hiding this comment: <span class="required">*</span></label>
+                    <textarea 
+                        id="hideReason" 
+                        rows="4" 
+                        maxlength="500"
+                        placeholder="E.g., Inappropriate language, spam, offensive content..."
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"
+                    ></textarea>
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        <span id="reasonCharCount">0</span> / 500 characters (minimum 10)
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeHideModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmHideComment(${commentId})">
+                    <i class="fas fa-eye-slash"></i> Hide Comment
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Setup character counter
+    const textarea = document.getElementById('hideReason');
+    const charCount = document.getElementById('reasonCharCount');
+    textarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+}
+
+/**
+ * Close hide comment modal
+ */
+function closeHideModal() {
+    const modal = document.getElementById('hideCommentModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+/**
+ * Confirm hide comment action
+ */
+async function confirmHideComment(commentId) {
+    const reason = document.getElementById('hideReason').value.trim();
+    
+    if (!reason) {
+        showError('Please provide a reason for hiding this comment');
+        return;
+    }
+    
+    if (reason.length < 10) {
+        showError('Reason must be at least 10 characters long');
+        return;
+    }
+    
+    const confirmBtn = document.querySelector('.modal-footer .btn-danger');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding...';
+    
+    try {
+        const response = await fetch('/unipulse/public/moderator/comments/hideComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                comment_id: commentId,
+                reason: reason
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Comment hidden successfully. User has been notified.');
+            closeHideModal();
+            // Reload comments
+            loadUniversityComments();
+        } else {
+            showError(data.error || 'Failed to hide comment');
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment';
+        }
+    } catch (error) {
+        console.error('Error hiding comment:', error);
+        showError('An error occurred while hiding the comment');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment';
+    }
+}
+
+/**
+ * Unhide a comment
+ */
+async function unhideComment(commentId) {
+    if (!confirm('Are you sure you want to unhide this comment? It will become visible to everyone again.')) {
+        return;
+    }
+    
+    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
+    const unhideBtn = commentCard.querySelector('.unhide');
+    
+    unhideBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unhiding...';
+    unhideBtn.disabled = true;
+    
+    try {
+        const response = await fetch('/unipulse/public/moderator/comments/unhideComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                comment_id: commentId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Comment unhidden successfully. User has been notified.');
+            // Reload comments
+            loadUniversityComments();
+        } else {
+            showError(data.error || 'Failed to unhide comment');
+            unhideBtn.innerHTML = '<i class="fas fa-eye"></i> Unhide';
+            unhideBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error unhiding comment:', error);
+        showError('An error occurred while unhiding the comment');
+        unhideBtn.innerHTML = '<i class="fas fa-eye"></i> Unhide';
+        unhideBtn.disabled = false;
+    }
+}
+
+window.closeHideModal = closeHideModal;
+window.confirmHideComment = confirmHideComment;
