@@ -260,9 +260,14 @@ function setupEventFilters() {
 }
 
 // Display events from API
+// --- Event Slider Pagination ---
+let eventsSliderPage = 0;
+const EVENTS_PER_PAGE = 3;
+let eventsSliderData = [];
+
 function displayEvents(events) {
     const eventsList = document.querySelector('#eventsManagementList');
-    
+    eventsSliderData = events;
     if (events.length === 0) {
         const filterText = currentEventFilter === 'upcoming' ? 'upcoming ' : currentEventFilter === 'past' ? 'past ' : '';
         eventsList.innerHTML = `
@@ -282,12 +287,43 @@ function displayEvents(events) {
         `;
         return;
     }
+    // Show only a page of events
+    renderEventsSliderPage();
+    setupSliderButtons();
+}
 
+function renderEventsSliderPage() {
+    const eventsList = document.querySelector('#eventsManagementList');
     eventsList.innerHTML = '';
-    events.forEach(event => {
+    const start = eventsSliderPage * EVENTS_PER_PAGE;
+    const end = start + EVENTS_PER_PAGE;
+    const pageEvents = eventsSliderData.slice(start, end);
+    pageEvents.forEach(event => {
         const eventCard = createEventCard(event);
         eventsList.appendChild(eventCard);
     });
+}
+
+function setupSliderButtons() {
+    const prevBtn = document.getElementById('prevEventsBtn');
+    const nextBtn = document.getElementById('nextEventsBtn');
+    if (!prevBtn || !nextBtn) return;
+    prevBtn.disabled = eventsSliderPage === 0;
+    nextBtn.disabled = (eventsSliderPage + 1) * EVENTS_PER_PAGE >= eventsSliderData.length;
+    prevBtn.onclick = function() {
+        if (eventsSliderPage > 0) {
+            eventsSliderPage--;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
+    nextBtn.onclick = function() {
+        if ((eventsSliderPage + 1) * EVENTS_PER_PAGE < eventsSliderData.length) {
+            eventsSliderPage++;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
 }
 
 // Create event card with same UI as events page

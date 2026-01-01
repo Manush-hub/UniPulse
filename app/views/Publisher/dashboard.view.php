@@ -133,6 +133,10 @@
                         <button class="filter-btn" data-filter="upcoming">Upcoming</button>
                         <button class="filter-btn" data-filter="past">Past</button>
                     </div>
+                    <div class="event-slider-controls" style="margin-top: 1rem;">
+                        <button class="btn btn-outline" id="prevEventsBtn" type="button"><i class="fas fa-chevron-left"></i> Prev</button>
+                        <button class="btn btn-outline" id="nextEventsBtn" type="button">Next <i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
                 <div class="events-grid" id="eventsManagementList">
                     <!-- Events will be loaded here -->

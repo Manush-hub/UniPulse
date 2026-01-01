@@ -434,7 +434,7 @@
                                     <div class="form-group">
                                         <label class="form-label">Registration Limit (Optional)</label>
                                         <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
-                                        <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
+                                        <input type="number" name="free_registration_limit" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
                                     </div>
 
                                     <div class="form-group">
@@ -583,7 +583,7 @@
                                         <div class="form-group">
                                             <label class="form-label">Registration Limit (Optional)</label>
                                             <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Set a maximum number of registrations if needed</p>
-                                            <input type="number" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
+                                            <input type="number" name="mixed_registration_limit" class="form-input" placeholder="Leave empty for unlimited registrations" min="1">
                                         </div>
 
                                         <div class="form-group">
@@ -1700,6 +1700,29 @@
     // Handle form submission
     document.getElementById('create-event').addEventListener('submit', function(e) {
         e.preventDefault();
+        
+        // Get ticket type
+        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+        
+        // Create a hidden input for registration_limit if it doesn't exist
+        let registrationLimitInput = this.querySelector('input[name="registration_limit"]');
+        if (!registrationLimitInput) {
+            registrationLimitInput = document.createElement('input');
+            registrationLimitInput.type = 'hidden';
+            registrationLimitInput.name = 'registration_limit';
+            this.appendChild(registrationLimitInput);
+        }
+        
+        // Set the value based on ticket type
+        if (ticketType === 'free-all') {
+            const freeLimit = document.querySelector('input[name="free_registration_limit"]')?.value;
+            registrationLimitInput.value = freeLimit || '';
+        } else if (ticketType === 'mixed') {
+            const mixedLimit = document.querySelector('input[name="mixed_registration_limit"]')?.value;
+            registrationLimitInput.value = mixedLimit || '';
+        } else {
+            registrationLimitInput.value = '';
+        }
         
         // Collect all dynamic data before validation
         collectAndStoreFormData();

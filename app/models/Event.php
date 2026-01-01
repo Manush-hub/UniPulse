@@ -34,6 +34,7 @@ class Event {
         'requirements',
         'schedule',
         'ticket_type',
+        'requires_registration',
         'registration_limit',
         'registration_start_date',
         'registration_start_time',
@@ -329,8 +330,8 @@ class Event {
             return false;
         }
         
-        // Check if max_participants is set and if we've reached the limit
-        if ($event->max_participants !== null && $event->current_participants >= $event->max_participants) {
+        // Check if registration_limit is set and if we've reached the limit
+        if ($event->registration_limit !== null && $event->current_participants >= $event->registration_limit) {
             return false; // Event is full
         }
         
@@ -358,12 +359,12 @@ class Event {
             return false;
         }
         
-        // If max_participants is not set (NULL), unlimited spots available
-        if ($event->max_participants === null) {
+        // If registration_limit is not set (NULL), unlimited spots available
+        if ($event->registration_limit === null) {
             return true;
         }
         
-        return $event->current_participants < $event->max_participants;
+        return $event->current_participants < $event->registration_limit;
     }
     
     /**
@@ -375,12 +376,12 @@ class Event {
             return 0;
         }
         
-        // If max_participants is not set (NULL), return null to indicate unlimited
-        if ($event->max_participants === null) {
+        // If registration_limit is not set (NULL), return null to indicate unlimited
+        if ($event->registration_limit === null) {
             return null;
         }
         
-        return max(0, $event->max_participants - $event->current_participants);
+        return max(0, $event->registration_limit - $event->current_participants);
     }
     
     /**

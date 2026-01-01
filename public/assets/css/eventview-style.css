@@ -250,11 +250,11 @@ body {
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    /* margin-bottom: 2rem; */
 }
 
 .content-card h3 {
-    display: flex;
+    /* display: flex; */
     align-items: center;
     gap: 1rem;
     font-size: 1.5rem;
@@ -803,9 +803,9 @@ body {
 }
 
 /* Volunteer info */
-.volunteer-detail-item {
+/* .volunteer-detail-item {
     padding: 0.5rem 0;
-}
+} */
 
 .volunteer-sources-list,
 .volunteer-positions-list {
@@ -1552,10 +1552,11 @@ body {
 
 /* Volunteer & Donation Grid */
 .volunteer-donation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
     margin-bottom: 2rem;
+    align-items: center;
 }
 
 .volunteer-card,
@@ -1563,6 +1564,9 @@ body {
     position: relative;
     overflow: hidden;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
 }
 
 .volunteer-card:hover,
@@ -1636,10 +1640,6 @@ body {
     }
     
     .details-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .volunteer-donation-grid {
         grid-template-columns: 1fr;
     }
 }

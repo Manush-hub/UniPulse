@@ -1045,14 +1045,14 @@ function displayVolunteerInfo(event) {
         volunteerHTML += '</ul>';
     }
     
-    if (event.volunteer_positions && Array.isArray(event.volunteer_positions)) {
-        volunteerHTML += '<div><strong>Available Positions:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-positions-list">';
-        event.volunteer_positions.forEach(position => {
-            volunteerHTML += `<li>${position}</li>`;
-        });
-        volunteerHTML += '</ul>';
-    }
+    // if (event.volunteer_positions && Array.isArray(event.volunteer_positions)) {
+    //     volunteerHTML += '<div><strong>Available Positions:</strong></div>';
+    //     volunteerHTML += '<ul class="volunteer-positions-list">';
+    //     event.volunteer_positions.forEach(position => {
+    //         volunteerHTML += `<li>${position}</li>`;
+    //     });
+    //     volunteerHTML += '</ul>';
+    // }
     
     volunteerHTML += '<div style="margin-top: 15px;">';
     volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
@@ -1088,7 +1088,7 @@ function displayRegistrationTicketing(event) {
             document.getElementById('freeNoRegRequired').style.display = 'none';
             document.getElementById('freeEntrySubtitle').textContent = 'Free entry with registration required';
         } else {
-            // Free WITHOUT registration (walk-in)
+            // Free WITHOUT registration (open entry/walk-in)
             document.getElementById('freeRegRequired').style.display = 'none';
             document.getElementById('freeNoRegRequired').style.display = 'block';
             document.getElementById('freeEntrySubtitle').textContent = 'Open entry - no registration needed';
@@ -1629,17 +1629,6 @@ function getRegistrationPeriodInfo() {
     }
     
     return { status: 'open' };
-}
-
-function applyVolunteer() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('id');
-    
-    if (eventId) {
-        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
-    } else {
-        alert('Event ID not found');
-    }
 }
 
 // Modal functions

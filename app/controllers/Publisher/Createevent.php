@@ -145,12 +145,21 @@ class PublisherCreateevent extends Controller{
                 $formData['registration_start_time'] = !empty($_POST['registration_start_time']) ? $_POST['registration_start_time'] : null;
                 $formData['registration_end_date'] = !empty($_POST['registration_end_date']) ? $_POST['registration_end_date'] : null;
                 $formData['registration_end_time'] = !empty($_POST['registration_end_time']) ? $_POST['registration_end_time'] : null;
+                
+                // Set requires_registration based on whether registration period is filled
+                $formData['requires_registration'] = (!empty($_POST['registration_start_date']) || 
+                                                      !empty($_POST['registration_end_date']) ||
+                                                      !empty($_POST['registration_start_time']) || 
+                                                      !empty($_POST['registration_end_time'])) ? 1 : 0;
             } elseif ($ticketType === 'paid-all') {
                 // For paid events, map sale dates to registration dates (convert empty strings to null)
                 $formData['registration_start_date'] = !empty($_POST['sale_start_date']) ? $_POST['sale_start_date'] : null;
                 $formData['registration_start_time'] = !empty($_POST['sale_start_time']) ? $_POST['sale_start_time'] : null;
                 $formData['registration_end_date'] = !empty($_POST['sale_end_date']) ? $_POST['sale_end_date'] : null;
                 $formData['registration_end_time'] = !empty($_POST['sale_end_time']) ? $_POST['sale_end_time'] : null;
+                
+                // Paid events always require registration (ticket purchase)
+                $formData['requires_registration'] = 1;
             } elseif ($ticketType === 'mixed') {
                 // For mixed events, use registration dates for university students
                 // and sale dates for outside users (we'll use sale dates as primary, convert empty strings to null)
@@ -169,6 +178,12 @@ class PublisherCreateevent extends Controller{
                 $regEndTime = !empty($_POST['mixed_registration_end_time']) ? $_POST['mixed_registration_end_time'] : null;
                 $saleEndTime = !empty($_POST['mixed_sale_end_time']) ? $_POST['mixed_sale_end_time'] : null;
                 $formData['registration_end_time'] = $regEndTime ?? $saleEndTime;
+                
+                // Set requires_registration based on whether university registration period is filled
+                $formData['requires_registration'] = (!empty($_POST['mixed_registration_start_date']) || 
+                                                      !empty($_POST['mixed_registration_end_date']) ||
+                                                      !empty($_POST['mixed_registration_start_time']) || 
+                                                      !empty($_POST['mixed_registration_end_time'])) ? 1 : 0;
             }
             
                         // Handle requirements if provided

@@ -525,10 +525,6 @@
                             <div id="volunteerInfo" class="volunteer-info">
                                 <p>We're looking for enthusiastic volunteers to help make this event a success!</p>
                             </div>
-                            <button class="btn btn-outline btn-large" onclick="applyVolunteer()">
-                                <i class="fas fa-hand-paper"></i>
-                                Apply to Volunteer
-                            </button>
                         </div>
 
                         <!-- Donation Information -->
