@@ -16,6 +16,7 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
+                    <img id="coverPhoto" src="<?= isset($profile->cover_photo_url) && $profile->cover_photo_url ? $profile->cover_photo_url : 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=300&fit=crop' ?>" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -24,6 +25,7 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
+                    <img id="profileImage" src="<?= isset($profile->logo_url) && $profile->logo_url ? $profile->logo_url : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop' ?>" alt="Profile Logo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
@@ -138,65 +140,53 @@
                     <div class="card-header">
                         <h3>Organization Preferences</h3>
                     </div>
+                    
+                    <?php if (isset($_SESSION['success'])): ?>
+                        <div class="alert alert-success">
+                            <?php 
+                            echo htmlspecialchars($_SESSION['success']); 
+                            unset($_SESSION['success']);
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if (isset($_SESSION['error'])): ?>
+                        <div class="alert alert-error">
+                            <?php 
+                            echo htmlspecialchars($_SESSION['error']); 
+                            unset($_SESSION['error']);
+                            ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <button type="button" class="preference-btn" data-preference="technology">Technology</button>
-                            <button type="button" class="preference-btn" data-preference="innovation">Innovation</button>
-                            <button type="button" class="preference-btn" data-preference="entrepreneurship">Entrepreneurship</button>
-                            <button type="button" class="preference-btn" data-preference="ai-ml">AI & Machine Learning</button>
-                            <button type="button" class="preference-btn" data-preference="web-dev">Web Development</button>
-                            <button type="button" class="preference-btn" data-preference="networking">Networking</button>
-                            <button type="button" class="preference-btn" data-preference="research">Research</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Executive Committee</h3>
-                        <button class="btn btn-small" onclick="manageExecutiveCommittee()">
-                            <i class="fas fa-user-cog"></i> Manage
-                        </button>
-                    </div>
-                    <div class="leadership-grid">
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=150&h=150&fit=crop&crop=face" alt="Sarah Johnson">
-                            </div>
-                            <div class="member-info">
-                                <h4>Sarah Johnson</h4>
-                                <p class="member-role">President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Michael Chen">
-                            </div>
-                            <div class="member-info">
-                                <h4>Michael Chen</h4>
-                                <p class="member-role">Vice President</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" alt="Emily Rodriguez">
-                            </div>
-                            <div class="member-info">
-                                <h4>Emily Rodriguez</h4>
-                                <p class="member-role">Secretary</p>
-                            </div>
-                        </div>
-
-                        <div class="member-card leadership">
-                            <div class="member-avatar">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="David Park">
-                            </div>
-                            <div class="member-info">
-                                <h4>David Park</h4>
-                                <p class="member-role">Treasurer</p>
-                            </div>
+                            <?php 
+                            // Decode preferences from JSON
+                            $selectedPreferences = [];
+                            if (!empty($data['profile']->preferences)) {
+                                $selectedPreferences = json_decode($data['profile']->preferences, true) ?? [];
+                            }
+                            
+                            // Define all available preferences
+                            $allPreferences = [
+                                'technology' => 'Technology',
+                                'innovation' => 'Innovation',
+                                'entrepreneurship' => 'Entrepreneurship',
+                                'ai-ml' => 'AI & Machine Learning',
+                                'web-dev' => 'Web Development',
+                                'networking' => 'Networking',
+                                'research' => 'Research'
+                            ];
+                            
+                            foreach ($allPreferences as $key => $label):
+                                $activeClass = in_array($key, $selectedPreferences) ? ' active' : '';
+                                $activeStyle = in_array($key, $selectedPreferences) ? ' style="background: linear-gradient(135deg, #4A5BCC 0%, #23387f 100%); border-color: #4A5BCC; color: white; box-shadow: 0 4px 15px rgba(74, 91, 204, 0.3);"' : '';
+                            ?>
+                                <button type="button" class="preference-btn-custom<?php echo $activeClass; ?>" data-preference="<?php echo htmlspecialchars($key); ?>"<?php echo $activeStyle; ?>>
+                                    <?php echo htmlspecialchars($label); ?>
+                                </button>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
@@ -216,127 +206,11 @@
                             <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 10 photos each. Each gallery entry should include a title and description.</p>
                         </div>
                         <div class="gallery-grid" id="galleryGrid">
-                            <div class="gallery-item editable" data-gallery-id="1">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Gallery Photo 1-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 1-2">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 1-3">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop" alt="Gallery Photo 1-4">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1551836022-deb4988cc6c0?w=600&h=400&fit=crop" alt="Gallery Photo 1-5">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 3)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 4)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(1)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Organization Events</h4>
-                                    <p class="gallery-description">Highlights from our recent tech conferences and networking events</p>
-                                </div>
-                            </div>
-
-                            <div class="gallery-item editable" data-gallery-id="2">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 2-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop" alt="Gallery Photo 2-2">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop" alt="Gallery Photo 2-3">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=600&h=400&fit=crop" alt="Gallery Photo 2-4">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 2)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 3)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(2)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Team Building</h4>
-                                    <p class="gallery-description">Building stronger connections through collaborative activities</p>
-                                </div>
-                            </div>
-
-                            <div class="gallery-item editable" data-gallery-id="3">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 3-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=600&h=400&fit=crop" alt="Gallery Photo 3-2">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(3, 1)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(3)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Community Outreach</h4>
-                                    <p class="gallery-description">Making a positive impact in our local community</p>
-                                </div>
-                            </div>
+                            <!-- Galleries will be loaded dynamically here -->
+                            <p class="text-center" style="padding: 20px; color: #999;" id="noGalleriesMessage">
+                                <i class="fas fa-images" style="font-size: 48px; display: block; margin-bottom: 10px;"></i>
+                                No galleries yet. Click "Add Photo" to create your first gallery.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -442,20 +316,6 @@
                                 <span>Verified Organization</span>
                             </div>
                         </div>
-                        <div class="verification-details">
-                            <div class="verification-item">
-                                <span class="label">Verification Date:</span>
-                                <span class="value">August 15, 2024</span>
-                            </div>
-                            <div class="verification-item">
-                                <span class="label">Verification Type:</span>
-                                <span class="value">Educational Institution</span>
-                            </div>
-                            <div class="verification-item">
-                                <span class="label">Status:</span>
-                                <span class="value status-active">Active</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -508,88 +368,53 @@
                     </div>
                 </div>
 
-                <!-- Access Control -->
+                <!-- Access Control & Security -->
                 <div class="card">
                     <div class="card-header">
                         <h3>Access Control & Security</h3>
                     </div>
                     <form id="security-form" class="form">
                         <div class="form-group">
-                            <label for="adminEmail"><i class="fas fa-user-shield"></i> Primary Admin Email</label>
-                            <input type="email" id="adminEmail" placeholder="Enter primary admin email">
-                            <small>This email has full administrative access</small>
+                            <label for="adminEmail">
+                                <i class="fas fa-user-shield"></i> Primary Admin Email
+                            </label>
+                            <input type="email" id="adminEmail" value="<?= htmlspecialchars($publisher->email) ?>" readonly style="background-color: #f5f5f5;">
+                            <small style="color: #666; display: block; margin-top: 5px;">This email has full administrative access</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
+                            <label for="currentPassword">
+                                <i class="fas fa-lock"></i> Current Password
+                            </label>
                             <input type="password" id="currentPassword" placeholder="Enter current password">
-                            <small>Required to change organization settings</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Required to change organization settings</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="newPassword"><i class="fas fa-key"></i> New Password</label>
+                            <label for="newPassword">
+                                <i class="fas fa-key"></i> New Password
+                            </label>
                             <input type="password" id="newPassword" placeholder="Enter new password">
-                            <small>Must be at least 8 characters long</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Must be at least 8 characters long</small>
                         </div>
+
                         <div class="form-group">
-                            <label for="confirmPassword"><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                            <label for="confirmPassword">
+                                <i class="fas fa-check-circle"></i> Confirm New Password
+                            </label>
                             <input type="password" id="confirmPassword" placeholder="Confirm new password">
-                            <small>Must match your new password</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">Must match your new password</small>
                         </div>
+
                         <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">
+                            <button type="button" class="btn btn-primary" onclick="changePassword()">
                                 Save Changes
                             </button>
-                            <button type="button" class="btn btn-primary" onclick="cancelSecuritySettings()">
+                            <button type="button" class="btn btn-secondary" onclick="cancelSecurityForm()">
                                 Cancel
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <!-- Admin Management -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Administrator</h3>
-                        <button class="btn btn-small" onclick="addAdmin()">
-                            <i class="fas fa-user-plus"></i> Add Admin
-                        </button>
-                    </div>
-                    <div class="admin-list">
-                        <div class="admin-item">
-                            <div class="admin-info">
-                                <div class="admin-avatar">
-                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b5bb?w=60&h=60&fit=crop&crop=face" alt="Sarah Johnson">
-                                </div>
-                                <div class="admin-details">
-                                    <h4>Sarah Johnson</h4>
-                                    <p>Primary Administrator</p>
-                                    <small>sarah.j@berkeley.edu</small>
-                                </div>
-                            </div>
-                            <div class="admin-actions">
-                                <button class="btn btn-small btn-secondary" onclick="addAdmin()">
-                                    <i class="fas fa-exchange-alt"></i> Exchange
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="admin-item">
-                            <div class="admin-info">
-                                <div class="admin-avatar">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop&crop=face" alt="Michael Chen">
-                                </div>
-                                <div class="admin-details">
-                                    <h4>Michael Chen</h4>
-                                    <p>Co-Administrator</p>
-                                    <small>michael.c@berkeley.edu</small>
-                                </div>
-                            </div>
-                            <div class="admin-actions">
-                                <button class="btn btn-small btn-danger" onclick="removeAdmin('michael')">
-                                    <i class="fas fa-user-minus"></i> Remove
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Danger Zone -->
@@ -816,116 +641,6 @@
         </div>
     </div>
 
-    <!-- Executive Committee Management Modal -->
-    <div id="executiveCommitteeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Manage Executive Committee</h3>
-                <button class="close-modal" onclick="closeExecutiveCommitteeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="committee-management-grid">
-                    <!-- President Section -->
-                    <div class="committee-member-section">
-                        <h4>President</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('presidentPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="presidentPreview" class="photo-preview" style="display: none;" alt="President Photo">
-                                </div>
-                                <input type="file" id="presidentPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'president')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="presidentFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="presidentLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vice President Section -->
-                    <div class="committee-member-section">
-                        <h4>Vice President</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('vicePresidentPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="vicePresidentPreview" class="photo-preview" style="display: none;" alt="Vice President Photo">
-                                </div>
-                                <input type="file" id="vicePresidentPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'vicePresident')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="vicePresidentFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="vicePresidentLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Secretary Section -->
-                    <div class="committee-member-section">
-                        <h4>Secretary</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('secretaryPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="secretaryPreview" class="photo-preview" style="display: none;" alt="Secretary Photo">
-                                </div>
-                                <input type="file" id="secretaryPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'secretary')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="secretaryFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="secretaryLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Treasurer Section -->
-                    <div class="committee-member-section">
-                        <h4>Treasurer</h4>
-                        <div class="member-form">
-                            <div class="photo-upload-section">
-                                <div class="committee-photo-upload" onclick="document.getElementById('treasurerPhoto').click()">
-                                    <div class="upload-placeholder">
-                                        <i class="fas fa-camera"></i>
-                                        <p>Upload Photo</p>
-                                        <small>JPG, PNG up to 5MB</small>
-                                    </div>
-                                    <img id="treasurerPreview" class="photo-preview" style="display: none;" alt="Treasurer Photo">
-                                </div>
-                                <input type="file" id="treasurerPhoto" accept="image/*" style="display: none;" onchange="previewCommitteePhoto(event, 'treasurer')">
-                            </div>
-                            <div class="name-fields">
-                                <input type="text" id="treasurerFirstName" placeholder="First Name" maxlength="50">
-                                <input type="text" id="treasurerLastName" placeholder="Last Name" maxlength="50">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-primary" onclick="saveExecutiveCommittee()">
-                        Save Committee
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeExecutiveCommitteeModal()">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Add Admin Modal -->
     <div id="addAdminModal" class="modal">
         <div class="modal-content">
@@ -1003,6 +718,101 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <script>
+        // Pass publisher data from PHP to JavaScript
+        const publisherData = <?= $publisherJson ?? '{}' ?>;
+        
+        // Add event listeners for preference buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.preference-btn-custom').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    togglePreferenceBtn(this);
+                });
+            });
+        });
+        
+        // Toggle preference button and auto-save to database
+        function togglePreferenceBtn(button) {
+            // Toggle active class
+            const wasActive = button.classList.contains('active');
+            button.classList.toggle('active');
+            const isNowActive = button.classList.contains('active');
+            
+            console.log('Button:', button.getAttribute('data-preference'), 'Was active:', wasActive, 'Now active:', isNowActive);
+            
+            // Apply inline styles based on new state
+            if (isNowActive) {
+                button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                button.style.borderColor = '#4A5BCC';
+                button.style.color = 'white';
+                button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+            } else {
+                button.style.background = '#fafafa';
+                button.style.borderColor = '#e0e0e0';
+                button.style.color = '#666';
+                button.style.boxShadow = 'none';
+            }
+            
+            // Get all active preferences after toggle
+            const activePreferences = [];
+            document.querySelectorAll('.preference-btn-custom.active').forEach(btn => {
+                const preference = btn.getAttribute('data-preference');
+                if (preference) {
+                    activePreferences.push(preference);
+                }
+            });
+            
+            console.log('Active preferences now:', activePreferences);
+            
+            // Auto-save to database via AJAX
+            fetch('/unipulse/public/publisher/profile/updatePreferences', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'selected_preferences=' + encodeURIComponent(JSON.stringify(activePreferences))
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('✓ Saved successfully');
+                } else {
+                    console.error('✗ Failed:', data.message);
+                    // Revert on error
+                    button.classList.toggle('active');
+                    if (wasActive) {
+                        button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                        button.style.borderColor = '#4A5BCC';
+                        button.style.color = 'white';
+                        button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+                    } else {
+                        button.style.background = '#fafafa';
+                        button.style.borderColor = '#e0e0e0';
+                        button.style.color = '#666';
+                        button.style.boxShadow = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('✗ Error:', error);
+                // Revert on error
+                button.classList.toggle('active');
+                if (wasActive) {
+                    button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
+                    button.style.borderColor = '#4A5BCC';
+                    button.style.color = 'white';
+                    button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
+                } else {
+                    button.style.background = '#fafafa';
+                    button.style.borderColor = '#e0e0e0';
+                    button.style.color = '#666';
+                    button.style.boxShadow = 'none';
+                }
+            });
+        }
+    </script>
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>
 </html>

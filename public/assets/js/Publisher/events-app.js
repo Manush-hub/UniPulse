@@ -266,10 +266,9 @@ function createEventCard(event) {
             </div>
             <div class="event-footer">
                 <div class="event-organizer">
-                    Organized by ${event.organizer}
+                    Organized by ${event.organizer_name || event.organizer || 'Unknown'}
                 </div>
-                <div class="event-footer-right">
-                    ${getTicketPriceDisplay(event)}
+                <div class="event-footer-right">${getTicketPriceDisplay(event)}
                     ${maxParticipants !== null && maxParticipants !== undefined ? `
                     <div class="event-participants">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

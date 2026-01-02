@@ -34,6 +34,7 @@ class Event {
         'requirements',
         'schedule',
         'ticket_type',
+        'requires_registration',
         'registration_limit',
         'registration_start_date',
         'registration_start_time',
@@ -59,32 +60,33 @@ class Event {
         
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'category = :category';
+            $whereClause[] = 'e.category = :category';
             $params['category'] = $filters['category'];
         }
         
         if (!empty($filters['university'])) {
-            $whereClause[] = 'university = :university';
+            $whereClause[] = 'e.university = :university';
             $params['university'] = $filters['university'];
         }
         
         if (!empty($filters['status'])) {
-            $whereClause[] = 'status = :status';
+            $whereClause[] = 'e.status = :status';
             $params['status'] = $filters['status'];
         }
         
         if (!empty($filters['search'])) {
-            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';
         }
         
-        $sql = "SELECT * FROM {$this->table}";
+        $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
         
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
         }
         
-        $sql .= ' ORDER BY event_date ASC, event_time ASC';
+        $sql .= ' ORDER BY e.event_date ASC, e.event_time ASC';
         
         // Add pagination if specified
         if (isset($filters['limit'])) {
@@ -207,15 +209,15 @@ class Event {
                 if (!empty($value)) {
                     switch ($key) {
                         case 'category':
-                            $whereClause[] = 'category = :category';
+                            $whereClause[] = 'e.category = :category';
                             $params['category'] = $value;
                             break;
                         case 'university':
-                            $whereClause[] = 'university = :university';
+                            $whereClause[] = 'e.university = :university';
                             $params['university'] = $value;
                             break;
                         case 'search':
-                            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+                            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
                             $params['search'] = '%' . $value . '%';
                             break;
                     }
@@ -223,8 +225,10 @@ class Event {
             }
             
             // Exclude completed events for regular users
-            $whereClause[] = "status != 'completed'";
+            $whereClause[] = "e.status != 'completed'";
             
+            $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
+                    LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
             // Exclude soft-deleted events
             $whereClause[] = "is_deleted = 0";
             
@@ -234,7 +238,7 @@ class Event {
                 $sql .= ' WHERE ' . implode(' AND ', $whereClause);
             }
             
-            $sql .= ' ORDER BY event_date ASC, event_time ASC';
+            $sql .= ' ORDER BY e.event_date ASC, e.event_time ASC';
             
             // Add pagination if specified
             if (isset($filters['limit'])) {
@@ -330,8 +334,8 @@ class Event {
             return false;
         }
         
-        // Check if max_participants is set and if we've reached the limit
-        if ($event->max_participants !== null && $event->current_participants >= $event->max_participants) {
+        // Check if registration_limit is set and if we've reached the limit
+        if ($event->registration_limit !== null && $event->current_participants >= $event->registration_limit) {
             return false; // Event is full
         }
         
@@ -359,12 +363,12 @@ class Event {
             return false;
         }
         
-        // If max_participants is not set (NULL), unlimited spots available
-        if ($event->max_participants === null) {
+        // If registration_limit is not set (NULL), unlimited spots available
+        if ($event->registration_limit === null) {
             return true;
         }
         
-        return $event->current_participants < $event->max_participants;
+        return $event->current_participants < $event->registration_limit;
     }
     
     /**
@@ -376,12 +380,12 @@ class Event {
             return 0;
         }
         
-        // If max_participants is not set (NULL), return null to indicate unlimited
-        if ($event->max_participants === null) {
+        // If registration_limit is not set (NULL), return null to indicate unlimited
+        if ($event->registration_limit === null) {
             return null;
         }
         
-        return max(0, $event->max_participants - $event->current_participants);
+        return max(0, $event->registration_limit - $event->current_participants);
     }
     
     /**
@@ -459,15 +463,6 @@ class Event {
             $errors['university_name'] = 'University name is required';
         }
         
-        // Validate max_participants
-        if (isset($data['max_participants'])) {
-            if (!is_numeric($data['max_participants']) || $data['max_participants'] <= 0) {
-                $errors['max_participants'] = 'Maximum participants must be a valid positive number';
-            }
-        } else {
-            $errors['max_participants'] = 'Maximum participants is required';
-        }
-        
         return $errors;
     }
     
@@ -490,6 +485,12 @@ class Event {
         }
         
         if (isset($data['ticket_types']) && is_array($data['ticket_types'])) {
+            // Ensure each ticket has total_capacity set to initial quantity
+            foreach ($data['ticket_types'] as &$ticket) {
+                if (!isset($ticket['total_capacity'])) {
+                    $ticket['total_capacity'] = $ticket['quantity'];
+                }
+            }
             $data['ticket_types'] = json_encode($data['ticket_types']);
         }
         
@@ -544,6 +545,12 @@ class Event {
         }
         
         if (isset($data['ticket_types']) && is_array($data['ticket_types'])) {
+            // Ensure each ticket has total_capacity set
+            foreach ($data['ticket_types'] as &$ticket) {
+                if (!isset($ticket['total_capacity'])) {
+                    $ticket['total_capacity'] = $ticket['quantity'];
+                }
+            }
             $data['ticket_types'] = json_encode($data['ticket_types']);
         }
         

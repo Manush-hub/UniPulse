@@ -1,3 +1,6 @@
+// Global state
+let currentEventFilter = 'all';
+
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
     try {
@@ -6,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         loadVolunteerData();
         loadRecentActivity();
         setupEventListeners();
+        setupEventFilters();
         animateProgressBars();
         
         // Load comments last and independently
@@ -183,8 +187,8 @@ function initializeDashboard() {
 
 
 // Load events management
-function loadEventsManagement() {
-    const eventsList = document.querySelector('.events-list');
+function loadEventsManagement(filter = 'all') {
+    const eventsList = document.querySelector('#eventsManagementList');
     if (!eventsList) {
         console.log('Events list container not found');
         return;
@@ -198,15 +202,22 @@ function loadEventsManagement() {
         </div>
     `;
 
-    fetch('/unipulse/public/publisher/dashboard/getMyEvents')
+    const url = `/UniPulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
+    
+    console.log('Loading events from:', url); // Debug log
+    
+    fetch(url)
         .then(response => {
+            console.log('Response status:', response.status); // Debug log
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
+            console.log('Events data received:', data); // Debug log
             if (data.success) {
+                console.log('Number of events:', data.events.length); // Debug log
                 displayEvents(data.events);
             } else {
                 console.error('Events API error:', data.error);
@@ -219,16 +230,46 @@ function loadEventsManagement() {
         })
         .catch(error => {
             console.error('Error loading events:', error);
-            // Fallback to static data for now
-            displayStaticEvents();
+            eventsList.innerHTML = `
+                <div class="error-message">
+                    <p>Failed to load events. Please try again.</p>
+                    <small style="color: #999;">${error.message}</small>
+                </div>
+            `;
         });
 }
 
-// Display events from API
-function displayEvents(events) {
-    const eventsList = document.querySelector('.events-list');
+// Setup event filter buttons
+function setupEventFilters() {
+    const filterButtons = document.querySelectorAll('.event-filters .filter-btn');
     
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get filter value
+            const filter = this.getAttribute('data-filter');
+            currentEventFilter = filter;
+            
+            // Reload events
+            loadEventsManagement(filter);
+        });
+    });
+}
+
+// Display events from API
+// --- Event Slider Pagination ---
+let eventsSliderPage = 0;
+const EVENTS_PER_PAGE = 3;
+let eventsSliderData = [];
+
+function displayEvents(events) {
+    const eventsList = document.querySelector('#eventsManagementList');
+    eventsSliderData = events;
     if (events.length === 0) {
+        const filterText = currentEventFilter === 'upcoming' ? 'upcoming ' : currentEventFilter === 'past' ? 'past ' : '';
         eventsList.innerHTML = `
             <div class="no-events">
                 <div class="no-events-icon">
@@ -239,52 +280,214 @@ function displayEvents(events) {
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
                 </div>
-                <h3>No Events Yet</h3>
-                <p>Start creating events to manage them from your dashboard.</p>
-                <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">
-                    Create Your First Event
-                </button>
+                <h3>No ${filterText}Events</h3>
+                <p>${currentEventFilter === 'all' ? 'Start creating events to manage them from your dashboard.' : `You don't have any ${filterText}events.`}</p>
+                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
             </div>
         `;
         return;
     }
+    // Show only a page of events
+    renderEventsSliderPage();
+    setupSliderButtons();
+}
 
+function renderEventsSliderPage() {
+    const eventsList = document.querySelector('#eventsManagementList');
     eventsList.innerHTML = '';
-    events.forEach(event => {
-        const eventItem = document.createElement('div');
-        eventItem.className = 'event-item';
-        
-        const statusClass = getStatusClass(event.status);
-        const eventImage = event.image_url || '/unipulse/public/assets/images/default-event.jpg';
-        
-        eventItem.innerHTML = `
-            <div class="event-image" style="background-image: url('${eventImage}'); background-size: cover; background-position: center;"></div>
-            <div class="event-details">
-                <h3 class="event-title">${event.title}</h3>
-                <div class="event-meta">
-                    <span><i class="fas fa-calendar"></i> ${event.formatted_date}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${event.location}</span>
-                </div>
-                <div class="event-stats">
-                    <span><i class="fas fa-comments"></i> ${event.comment_count} comments</span>
-                    ${event.avg_rating ? `<span><i class="fas fa-star"></i> ${event.avg_rating}/5</span>` : ''}
-                </div>
-                <span class="event-status ${statusClass}">${capitalizeFirstLetter(event.status)}</span>
-            </div>
-            <div class="event-actions">
-                <button class="action-btn" onclick="viewEvent(${event.id})">
-                    <i class="fas fa-eye"></i> View
-                </button>
-                <button class="action-btn" onclick="editEvent(${event.id})">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="action-btn delete" onclick="showDeleteModal(${event.id})">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-        `;
-        eventsList.appendChild(eventItem);
+    const start = eventsSliderPage * EVENTS_PER_PAGE;
+    const end = start + EVENTS_PER_PAGE;
+    const pageEvents = eventsSliderData.slice(start, end);
+    pageEvents.forEach(event => {
+        const eventCard = createEventCard(event);
+        eventsList.appendChild(eventCard);
     });
+}
+
+function setupSliderButtons() {
+    const prevBtn = document.getElementById('prevEventsBtn');
+    const nextBtn = document.getElementById('nextEventsBtn');
+    if (!prevBtn || !nextBtn) return;
+    prevBtn.disabled = eventsSliderPage === 0;
+    nextBtn.disabled = (eventsSliderPage + 1) * EVENTS_PER_PAGE >= eventsSliderData.length;
+    prevBtn.onclick = function() {
+        if (eventsSliderPage > 0) {
+            eventsSliderPage--;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
+    nextBtn.onclick = function() {
+        if ((eventsSliderPage + 1) * EVENTS_PER_PAGE < eventsSliderData.length) {
+            eventsSliderPage++;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
+}
+
+// Create event card with same UI as events page
+function createEventCard(event) {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    
+    // Format date
+    const eventDate = new Date(event.event_date);
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    };
+    
+    const eventTime = event.event_time ? event.event_time.substring(0, 5) : '';
+    
+    // Capitalize helper
+    const capitalizeFirstLetter = (str) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
+    
+    // Location display
+    let locationDisplay = '';
+    let secondaryInfo = '';
+    const locationType = event.location_type || 'inside-university';
+    
+    if (locationType === 'outside-university') {
+        if (event.venue_name && event.city) {
+            locationDisplay = `${event.venue_name}, ${event.city}`;
+        } else if (event.venue_name) {
+            locationDisplay = event.venue_name;
+        } else if (event.city) {
+            locationDisplay = event.city;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+    } else {
+        if (event.exact_location && event.university_name) {
+            locationDisplay = `${event.exact_location}, ${event.university_name}`;
+        } else if (event.exact_location) {
+            locationDisplay = event.exact_location;
+        } else if (event.university_name) {
+            locationDisplay = event.university_name;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        if (event.faculty_department && event.university_name) {
+            secondaryInfo = `${event.faculty_department}, ${event.university_name}`;
+        } else if (event.faculty_department) {
+            secondaryInfo = event.faculty_department;
+        } else if (event.university_name) {
+            secondaryInfo = event.university_name;
+        }
+    }
+    
+    // Image path
+    let imagePath = '';
+    const coverImage = event.cover_image;
+    if (coverImage) {
+        if (coverImage.startsWith('http')) {
+            imagePath = coverImage;
+        } else if (coverImage.startsWith('/')) {
+            imagePath = coverImage;
+        } else {
+            imagePath = `/UniPulse/public/${coverImage}`;
+        }
+    }
+    
+    // Ticket price display
+    const getTicketPriceDisplay = (event) => {
+        const ticketType = event.ticket_type;
+        if (ticketType === 'free-all') {
+            return '<div class="event-price free">Free</div>';
+        } else if (ticketType === 'paid-all') {
+            const price = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
+        } else if (ticketType === 'both') {
+            const freePrice = parseFloat(event.ticket_price_free) || 0;
+            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
+        }
+        return '<div class="event-price">TBA</div>';
+    };
+    
+    const currentParticipants = event.current_participants || 0;
+    const maxParticipants = event.max_participants;
+    
+    card.innerHTML = `
+        <div class="event-image">
+            ${imagePath ? 
+                `<img src="${imagePath}" alt="${event.title}">` : 
+                `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>`
+            }
+            <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
+            <div class="event-status ${event.status}">${event.status}</div>
+        </div>
+        <div class="event-content">
+            <h3 class="event-title">${event.title}</h3>
+            <p class="event-description">${event.description}</p>
+            <div class="event-meta">
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>${formatDate(eventDate)} at ${eventTime}</span>
+                </div>
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>${locationDisplay}</span>
+                </div>
+                ${secondaryInfo ? `
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    <span>${secondaryInfo}</span>
+                </div>
+                ` : ''}
+            </div>
+            <div class="event-footer">
+                <div class="event-organizer">
+                    Organized by ${event.organizer_name || 'You'}
+                </div>
+                <div class="event-footer-right">
+                    ${getTicketPriceDisplay(event)}
+                    ${maxParticipants !== null && maxParticipants !== undefined ? `
+                    <div class="event-participants">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>${currentParticipants}/${maxParticipants}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Make card clickable
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+        window.location.href = `/UniPulse/public/publisher/eventview/${event.id}`;
+    });
+    
+    return card;
 }
 
 // Fallback to display static events
@@ -796,7 +999,7 @@ function loadRecentComments() {
         </div>
     `;
 
-    fetch('/unipulse/public/publisher/dashboard/getRecentComments')
+    fetch('/UniPulse/public/publisher/dashboard/getRecentComments')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
