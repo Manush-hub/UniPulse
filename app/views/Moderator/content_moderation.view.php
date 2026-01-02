@@ -179,6 +179,7 @@
     </div>
 
     <script src="/unipulse/public/assets/js/Moderator/content-moderation.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>

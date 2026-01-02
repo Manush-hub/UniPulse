@@ -22,6 +22,25 @@ input, select, button, textarea {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
+    color: inherit;
+}
+
+/* Restore button cursor */
+button {
+    cursor: pointer;
+}
+
+/* Ensure header buttons maintain proper styling */
+.header button,
+.notification-btn,
+.user-dropdown-btn {
+    cursor: pointer;
+    color: #666;
+}
+
+.header .notification-btn i,
+.header .user-dropdown-btn i {
+    color: inherit;
 }
 
 body {
@@ -237,9 +256,19 @@ body {
     color: #92400e;
 }
 
-.event-status.completed {
+.event-status.completed,
+.event-status.past {
     background: #f3f4f6;
     color: #6b7280;
+}
+
+.event-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    /* margin-top: 0.5rem; */
+    align-self: flex-start;
 }
 
 .event-content {
@@ -262,7 +291,7 @@ body {
     font-size: 0.9rem;
     margin-bottom: 1rem;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

@@ -25,6 +25,44 @@ class AdminDashboard extends Controller {
             'total_admins' => count($activeAdmins)
         ];
         
+        // Get recent registrations from all user types
+        $universityUser = new UniversityUser();
+        $publicUser = new PublicUser();
+        $publisher = new Publisher();
+        $sponsor = new Sponsor();
+        
+        // Get recent registrations (limit 5 from each)
+        $universityRegistrations = $universityUser->getRecentRegistrations(5);
+        $publicRegistrations = $publicUser->getRecentRegistrations(5);
+        $publisherRegistrations = $publisher->getRecentRegistrations(5);
+        $sponsorRegistrations = $sponsor->getRecentRegistrations(5);
+        
+        // Merge all registrations
+        $recentRegistrations = array_merge(
+            is_array($universityRegistrations) ? $universityRegistrations : [],
+            is_array($publicRegistrations) ? $publicRegistrations : [],
+            is_array($publisherRegistrations) ? $publisherRegistrations : [],
+            is_array($sponsorRegistrations) ? $sponsorRegistrations : []
+        );
+        
+        // Sort by created_at descending
+        if (count($recentRegistrations) > 0) {
+            usort($recentRegistrations, function($a, $b) {
+                $timeA = is_object($a) ? strtotime($a->created_at) : strtotime($a['created_at']);
+                $timeB = is_object($b) ? strtotime($b->created_at) : strtotime($b['created_at']);
+                return $timeB - $timeA;
+            });
+        }
+        
+        // Get only top 10
+        $recentRegistrations = array_slice($recentRegistrations, 0, 10);
+        
+        $data['recent_registrations'] = $recentRegistrations;
+        
+        // Get pending publisher approvals from all universities
+        $pendingPublishers = $publisher->getAllPending();
+        $data['pending_approvals'] = is_array($pendingPublishers) ? $pendingPublishers : [];
+        
         $this->view('Admin/dashboard', $data);
     }
     
@@ -344,5 +382,210 @@ class AdminDashboard extends Controller {
         if ($time < 2628000) return floor($time/86400) . ' days ago';
         
         return date('M j, Y', strtotime($datetime));
+    }
+    
+    /**
+     * Suspend a user account
+     */
+    public function suspendUser() {
+        header('Content-Type: application/json');
+        
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+        
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $data['user_id'] ?? null;
+        $userType = $data['user_type'] ?? null;
+        $reason = $data['reason'] ?? '';
+        
+        if (!$userId || !$userType || !$reason) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            exit();
+        }
+        
+        // Get admin ID
+        $adminUser = AuthService::getCurrentUser();
+        $adminId = $adminUser['id'];
+        
+        // Determine table name
+        $tableName = $this->getUserTable($userType);
+        if (!$tableName) {
+            echo json_encode(['success' => false, 'message' => 'Invalid user type']);
+            exit();
+        }
+        
+        try {
+            $conn = $this->connect();
+            $query = "UPDATE {$tableName} SET 
+                      is_suspended = 1, 
+                      suspension_reason = :reason,
+                      suspended_at = NOW(),
+                      suspended_by = :admin_id
+                      WHERE id = :user_id";
+            
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute([
+                'reason' => $reason,
+                'admin_id' => $adminId,
+                'user_id' => $userId
+            ]);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Account suspended successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to suspend account']);
+            }
+        } catch (Exception $e) {
+            error_log("Suspension error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    }
+    
+    /**
+     * Reactivate a suspended user account
+     */
+    public function reactivateUser() {
+        header('Content-Type: application/json');
+        
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+        
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $data['user_id'] ?? null;
+        $userType = $data['user_type'] ?? null;
+        
+        if (!$userId || !$userType) {
+            echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            exit();
+        }
+        
+        // Determine table name
+        $tableName = $this->getUserTable($userType);
+        if (!$tableName) {
+            echo json_encode(['success' => false, 'message' => 'Invalid user type']);
+            exit();
+        }
+        
+        try {
+            $conn = $this->connect();
+            $query = "UPDATE {$tableName} SET 
+                      is_suspended = 0, 
+                      suspension_reason = NULL,
+                      suspended_at = NULL,
+                      suspended_by = NULL
+                      WHERE id = :user_id";
+            
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute(['user_id' => $userId]);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Account reactivated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to reactivate account']);
+            }
+        } catch (Exception $e) {
+            error_log("Reactivation error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    }
+    
+    /**
+     * Helper to get table name from user type
+     */
+    private function getUserTable($userType) {
+        $tables = [
+            'university' => 'university_users',
+            'public' => 'public_users',
+            'publisher' => 'publishers',
+            'sponsor' => 'sponsors'
+        ];
+        
+        return $tables[$userType] ?? null;
+    }
+    
+    /**
+     * Approve a publisher registration
+     */
+    public function approvePublisher() {
+        header('Content-Type: application/json');
+        
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+        
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $publisherId = $input['publisher_id'] ?? null;
+            
+            if (!$publisherId) {
+                echo json_encode(['success' => false, 'message' => 'Publisher ID is required']);
+                return;
+            }
+            
+            $publisher = new Publisher();
+            $admin = AuthService::getCurrentUser();
+            
+            $result = $publisher->approve($publisherId, $admin['id']);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Publisher approved successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to approve publisher']);
+            }
+        } catch (Exception $e) {
+            error_log("Approval error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    }
+    
+    /**
+     * Reject a publisher registration
+     */
+    public function rejectPublisher() {
+        header('Content-Type: application/json');
+        
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+        
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $publisherId = $input['publisher_id'] ?? null;
+            $rejectionReason = $input['rejection_reason'] ?? '';
+            
+            if (!$publisherId) {
+                echo json_encode(['success' => false, 'message' => 'Publisher ID is required']);
+                return;
+            }
+            
+            if (empty($rejectionReason)) {
+                echo json_encode(['success' => false, 'message' => 'Rejection reason is required']);
+                return;
+            }
+            
+            $publisher = new Publisher();
+            $admin = AuthService::getCurrentUser();
+            
+            $result = $publisher->reject($publisherId, $admin['id'], $rejectionReason);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Publisher rejected successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to reject publisher']);
+            }
+        } catch (Exception $e) {
+            error_log("Rejection error: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
     }
 }

@@ -31,6 +31,24 @@ class Sponsor {
         return $user !== false;
     }
     
+    public function getRecentRegistrations($limit = 10) {
+        $limit = (int)$limit; // Ensure it's an integer
+        $query = "SELECT 
+            id,
+            company_name as name,
+            email,
+            created_at,
+            verification_status,
+            is_suspended,
+            suspension_reason,
+            'sponsor' as user_type
+        FROM sponsors 
+        ORDER BY created_at DESC 
+        LIMIT {$limit}";
+        
+        return $this->query($query, []);
+    }
+    
     public function validateData($data) {
         $errors = [];
         

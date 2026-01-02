@@ -118,7 +118,6 @@ function displayEventDetails(event) {
     document.getElementById('eventCategory').textContent = capitalizeFirstLetter(event.category);
     document.getElementById('eventStatus').textContent = event.status;
     document.getElementById('eventTitle').textContent = event.title;
-    document.getElementById('eventSummary').textContent = event.description.substring(0, 150) + '...';
     
     // Event details grid
     const eventDate = event.event_date || event.date;
@@ -560,22 +559,65 @@ function displayLocationDetails(event) {
     let locationHTML = '';
     
     if (locationType === 'outside-university') {
-        locationHTML = '<div class="location-detail-item">';
-        if (event.venue_name) {
-            locationHTML += `<div><strong>Venue:</strong> ${event.venue_name}</div>`;
-        }
-        if (event.street_address) {
-            locationHTML += `<div><strong>Address:</strong> ${event.street_address}</div>`;
-        }
-        if (event.city) {
-            locationHTML += `<div><strong>City:</strong> ${event.city}</div>`;
-        }
-        if (event.district_province) {
-            locationHTML += `<div><strong>District/Province:</strong> ${event.district_province}</div>`;
-        }
-        locationHTML += '</div>';
+        locationHTML = '';
         
-        if (locationHTML !== '<div class="location-detail-item"></div>') {
+        if (event.venue_name) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Venue</strong>
+                        <span>${event.venue_name}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.street_address) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-road"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>Address</strong>
+                        <span>${event.street_address}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.city) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>City</strong>
+                        <span>${event.city}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (event.district_province) {
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>District/Province</strong>
+                        <span>${event.district_province}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (locationHTML) {
             document.getElementById('locationDetailsCard').style.display = 'block';
             document.getElementById('locationDetails').innerHTML = locationHTML;
         }

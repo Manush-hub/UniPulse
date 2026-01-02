@@ -11,132 +11,13 @@ document.addEventListener('DOMContentLoaded', function() {
             loadPendingReviews();
             loadRecentActivity();
             loadUserReports();
-            setupEventListeners();
+            setupDashboardListeners();
             console.log('Dashboard initialization complete');
         } catch (error) {
             console.error('Error during dashboard initialization:', error);
         }
     }, 100);
 });
-
-// Sample data for moderator dashboard
-const moderatorData = {
-    pendingReviews: 12,
-    eventsReviewed: 84,
-    reportsHandled: 23,
-    approvalRate: 92,
-    approvedEvents: 64,
-    rejectedEvents: 8,
-    editedEvents: 12,
-    verifiedOrganizers: 15
-};
-
-const pendingReviews = [
-    {
-        id: 1,
-        title: 'Tech Workshop 2025',
-        organizer: 'UCSC IEEE Student Branch',
-        submitted: '2 hours ago',
-        category: 'Technology'
-    },
-    {
-        id: 2,
-        title: 'Annual Cultural Festival',
-        organizer: 'Cultural Society',
-        submitted: '5 hours ago',
-        category: 'Cultural'
-    },
-    {
-        id: 3,
-        title: 'AI Research Symposium',
-        organizer: 'Computer Science Department',
-        submitted: '1 day ago',
-        category: 'Academic'
-    },
-    {
-        id: 4,
-        title: 'Startup Pitch Competition',
-        organizer: 'Entrepreneurship Club',
-        submitted: '1 day ago',
-        category: 'Business'
-    }
-];
-
-const recentActivity = [
-    {
-        id: 1,
-        type: 'approval',
-        title: 'Event Approved',
-        description: 'Tech Conference 2025 approved',
-        time: '10 minutes ago',
-        icon: 'check-circle'
-    },
-    {
-        id: 2,
-        type: 'rejection',
-        title: 'Event Rejected',
-        description: 'Inappropriate content in "Summer Party"',
-        time: '45 minutes ago',
-        icon: 'times-circle'
-    },
-    {
-        id: 3,
-        type: 'edit',
-        title: 'Event Edited',
-        description: 'Fixed date in "Career Fair" event',
-        time: '1 hour ago',
-        icon: 'edit'
-    },
-    {
-        id: 4,
-        type: 'verification',
-        title: 'Organizer Verified',
-        description: 'Verified credentials for Music Society',
-        time: '2 hours ago',
-        icon: 'user-check'
-    },
-    {
-        id: 5,
-        type: 'report',
-        title: 'Report Handled',
-        description: 'Resolved user report on event comments',
-        time: '5 hours ago',
-        icon: 'flag'
-    }
-];
-
-const userReports = [
-    {
-        id: 1,
-        content: 'Tech Workshop 2025',
-        type: 'inappropriate',
-        submitted: '2 hours ago',
-        status: 'pending'
-    },
-    {
-        id: 2,
-        content: 'User comment on Cultural Festival',
-        type: 'spam',
-        submitted: '5 hours ago',
-        status: 'in-progress'
-    },
-    {
-        id: 3,
-        content: 'AI Symposium description',
-        type: 'misinformation',
-        submitted: '1 day ago',
-        status: 'resolved'
-    },
-    {
-        id: 4,
-        content: 'Startup Competition registration',
-        type: 'inappropriate',
-        submitted: '1 day ago',
-        status: 'pending'
-    }
-];
-
-
 
 // Dashboard initialization
 function initializeDashboard() {
@@ -177,7 +58,7 @@ function loadModeratorData() {
     console.log('Moderator data loaded successfully');
 }
 
-// Load pending reviews
+// Load pending reviews from backend
 function loadPendingReviews() {
     console.log('Loading pending reviews...');
     const reviewsList = document.getElementById('reviewsList');
@@ -186,9 +67,41 @@ function loadPendingReviews() {
         return;
     }
     
+    reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
+    
+    fetch('/unipulse/public/moderator/dashboard/getPendingReviews')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch pending reviews');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.reviews) {
+                displayPendingReviews(data.reviews);
+            } else {
+                reviewsList.innerHTML = '<div class="no-data">No pending reviews</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading pending reviews:', error);
+            reviewsList.innerHTML = '<div class="no-data">Failed to load reviews</div>';
+        });
+}
+
+// Display pending reviews
+function displayPendingReviews(reviews) {
+    const reviewsList = document.getElementById('reviewsList');
+    if (!reviewsList) return;
+    
     reviewsList.innerHTML = '';
     
-    pendingReviews.forEach(review => {
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<div class="no-data">No pending reviews</div>';
+        return;
+    }
+    
+    reviews.forEach(review => {
         const reviewItem = document.createElement('div');
         reviewItem.className = 'review-item';
         reviewItem.innerHTML = `
@@ -230,7 +143,7 @@ function loadPendingReviews() {
     console.log('Pending reviews loaded successfully');
 }
 
-// Load recent activity
+// Load recent activity from backend
 function loadRecentActivity() {
     try {
         console.log('Loading recent activity...');
@@ -240,51 +153,81 @@ function loadRecentActivity() {
             return;
         }
         
-        console.log('Activity list element found, populating with', recentActivity.length, 'activities');
-        activityList.innerHTML = '';
+        activityList.innerHTML = '<tr><td colspan="5" class="loading">Loading activities...</td></tr>';
         
-        // Show first 2 activities initially
-        for (let i = 0; i < recentActivity.length; i++) {
-            const activity = recentActivity[i];
-            const activityRow = document.createElement('tr');
-            
-            // Hide rows after the first 2
-            if (i >= 2) {
-                activityRow.classList.add('hidden-row');
-                activityRow.style.display = 'none';
-            }
-            
-            // Determine type and status
-            let typeClass = 'type-' + activity.type;
-            let statusClass = 'status-completed';
-            let statusText = 'Completed';
-            
-            if (activity.type === 'report') {
-                statusClass = 'status-resolved';
-                statusText = 'Resolved';
-            }
-            
-            activityRow.innerHTML = `
-                <td class="activity-title">
-                    <i class="fas fa-${activity.icon}"></i>
-                    ${activity.title}
-                </td>
-                <td><span class="activity-type ${typeClass}">${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}</span></td>
-                <td>${activity.description}</td>
-                <td>${activity.time}</td>
-                <td><span class="activity-status ${statusClass}">${statusText}</span></td>
-            `;
-            activityList.appendChild(activityRow);
-        }
-        
-        console.log('Recent activity loaded successfully. Added', recentActivity.length, 'activity rows');
-        
+        fetch('/unipulse/public/moderator/dashboard/getRecentActivity')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recent activity');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.activities) {
+                    displayRecentActivity(data.activities);
+                } else {
+                    activityList.innerHTML = '<tr><td colspan="5" class="no-data">No recent activities</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading recent activity:', error);
+                activityList.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load activities</td></tr>';
+            });
     } catch (error) {
-        console.error('Error loading recent activity:', error);
+        console.error('Error in loadRecentActivity:', error);
     }
 }
 
-// Load user reports
+// Display recent activity
+function displayRecentActivity(activities) {
+    const activityList = document.getElementById('activityList');
+    if (!activityList) return;
+    
+    activityList.innerHTML = '';
+    
+    if (activities.length === 0) {
+        activityList.innerHTML = '<tr><td colspan="5" class="no-data">No recent activities</td></tr>';
+        return;
+    }
+    
+    // Show first 2 activities initially
+    for (let i = 0; i < activities.length; i++) {
+        const activity = activities[i];
+        const activityRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (i >= 2) {
+            activityRow.classList.add('hidden-row');
+            activityRow.style.display = 'none';
+        }
+        
+        // Determine type and status
+        let typeClass = 'type-' + activity.type;
+        let statusClass = 'status-completed';
+        let statusText = 'Completed';
+        
+        if (activity.type === 'report') {
+            statusClass = 'status-resolved';
+            statusText = 'Resolved';
+        }
+        
+        activityRow.innerHTML = `
+            <td class="activity-title">
+                <i class="fas fa-${activity.icon}"></i>
+                ${activity.title}
+            </td>
+            <td><span class="activity-type ${typeClass}">${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}</span></td>
+            <td>${activity.description}</td>
+            <td>${activity.time}</td>
+            <td><span class="activity-status ${statusClass}">${statusText}</span></td>
+        `;
+        activityList.appendChild(activityRow);
+    }
+    
+    console.log('Recent activity loaded successfully. Added', activities.length, 'activity rows');
+}
+
+// Load user reports from backend
 function loadUserReports() {
     try {
         console.log('Loading user reports...');
@@ -294,63 +237,93 @@ function loadUserReports() {
             return;
         }
         
-        console.log('Reports table body found, populating with', userReports.length, 'reports');
-        reportsTableBody.innerHTML = '';
+        reportsTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading reports...</td></tr>';
         
-        // Show first 2 reports initially
-        for (let i = 0; i < userReports.length; i++) {
-            const report = userReports[i];
-            const reportRow = document.createElement('tr');
-            
-            // Hide rows after the first 2
-            if (i >= 2) {
-                reportRow.classList.add('hidden-row');
-                reportRow.style.display = 'none';
-            }
-            
-            // Determine type and status classes
-            let typeClass = 'type-' + report.type;
-            let statusClass = 'status-' + report.status;
-            let statusText = report.status.charAt(0).toUpperCase() + report.status.slice(1);
-            
-            if (report.status === 'in-progress') {
-                statusText = 'In Progress';
-            }
-            
-            reportRow.innerHTML = `
-                <td class="report-content">${report.content}</td>
-                <td><span class="report-type ${typeClass}">${report.type}</span></td>
-                <td>${report.submitted}</td>
-                <td><span class="report-status ${statusClass}">${statusText}</span></td>
-                <td>
-                    <div class="table-actions">
-                        <button class="action-btn view" onclick="viewReport(${report.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="action-btn resolve" onclick="resolveReport(${report.id})">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteReport(${report.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
-            
-            reportsTableBody.appendChild(reportRow);
+        fetch('/unipulse/public/moderator/dashboard/getUserReports')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user reports');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.reports) {
+                    displayUserReports(data.reports);
+                } else {
+                    reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No reports found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user reports:', error);
+                reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load reports</td></tr>';
+            });
+    } catch (error) {
+        console.error('Error in loadUserReports:', error);
+    }
+}
+
+// Display user reports
+function displayUserReports(reports) {
+    const reportsTableBody = document.getElementById('reportsTableBody');
+    if (!reportsTableBody) return;
+    
+    reportsTableBody.innerHTML = '';
+    
+    if (reports.length === 0) {
+        reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No reports found</td></tr>';
+        return;
+    }
+    
+    // Show first 2 reports initially
+    for (let i = 0; i < reports.length; i++) {
+        const report = reports[i];
+        const reportRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (i >= 2) {
+            reportRow.classList.add('hidden-row');
+            reportRow.style.display = 'none';
         }
         
-        console.log('User reports loaded successfully. Added', userReports.length, 'report rows');
+        // Determine type and status classes
+        let typeClass = 'type-' + report.type;
+        let statusClass = 'status-' + report.status;
+        let statusText = report.status.charAt(0).toUpperCase() + report.status.slice(1);
         
-    } catch (error) {
-        console.error('Error loading user reports:', error);
+        if (report.status === 'in-progress') {
+            statusText = 'In Progress';
+        }
+        
+        reportRow.innerHTML = `
+            <td class="report-content">${report.content}</td>
+            <td><span class="report-type ${typeClass}">${report.type}</span></td>
+            <td>${report.submitted}</td>
+            <td><span class="report-status ${statusClass}">${statusText}</span></td>
+            <td>
+                <div class="table-actions">
+                    <button class="action-btn view" onclick="viewReport(${report.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="action-btn resolve" onclick="resolveReport(${report.id})">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteReport(${report.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        
+        reportsTableBody.appendChild(reportRow);
     }
+    
+    console.log('User reports loaded successfully. Added', reports.length, 'report rows');
 }
 
 
 
 // Setup event listeners
-function setupEventListeners() {
+function setupDashboardListeners() {
     // Quick action cards
     const actionCards = document.querySelectorAll('.action-card');
     actionCards.forEach(card => {

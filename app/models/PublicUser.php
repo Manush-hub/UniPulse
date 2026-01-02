@@ -62,9 +62,25 @@ class PublicUser
         $user = $this->findByNIC($nic);
         return $user !== false;
     }
-
-    public function validateData($data)
-    {
+    
+    public function getRecentRegistrations($limit = 10) {
+        $limit = (int)$limit; // Ensure it's an integer
+        $query = "SELECT 
+            id,
+            full_name as name,
+            email,
+            created_at,
+            is_suspended,
+            suspension_reason,
+            'public' as user_type
+        FROM public_users 
+        ORDER BY created_at DESC 
+        LIMIT {$limit}";
+        
+        return $this->query($query, []);
+    }
+    
+    public function validateData($data) {
         $errors = [];
 
         // Required fields validation

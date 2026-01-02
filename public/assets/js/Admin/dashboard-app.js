@@ -3,26 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     loadAdminData();
     loadRecentActivity();
-    loadPendingApprovals();
-    loadUserTable();
+    // loadPendingApprovals(); // Commented out - Pending approvals are now rendered server-side in PHP
+    // loadUserTable(); // Commented out - User table is now rendered server-side in PHP
     setupEventListeners();
     animateProgressBars();
 });
-
-// Sample data for admin dashboard (fallback)
-const adminData = {
-    totalUsers: 2847,
-    activeEvents: 124,
-    pendingApprovals: 18,
-    systemHealth: 98,
-    newUsersThisWeek: 127,
-    userActiveRate: 94,
-    eventsThisWeek: 42,
-    attendanceRate: 78,
-    systemUptime: 98,
-    avgResponseTime: '1.2s',
-    errorRate: '0.2%'
-};
 
 // Dashboard initialization
 function initializeDashboard() {
@@ -47,8 +32,7 @@ function loadAdminData() {
         })
         .catch(error => {
             console.error('Error loading admin data:', error);
-            console.log('Loading static fallback data...');
-            updateDashboardStats(adminData);
+            showToast('Failed to load dashboard statistics', 'error');
         });
 }
 
@@ -109,7 +93,10 @@ function loadRecentActivity() {
         })
         .catch(error => {
             console.error('Error loading recent activity:', error);
-            displayRecentActivity(getSampleActivity());
+            const activityList = document.getElementById('activityList');
+            if (activityList) {
+                activityList.innerHTML = '<div class="no-data">Failed to load activities</div>';
+            }
         });
 }
 
@@ -149,52 +136,6 @@ function displayRecentActivity(activities) {
     });
 }
 
-// Get sample activity data
-function getSampleActivity() {
-    return [
-        {
-            id: 1,
-            type: 'user',
-            title: 'New user registration',
-            description: 'Sarah Connor registered as Event Organizer',
-            time: '10 minutes ago',
-            icon: 'user-plus'
-        },
-        {
-            id: 2,
-            type: 'event',
-            title: 'Event published',
-            description: 'Tech Workshop 2025 published by UCSC IEEE',
-            time: '45 minutes ago',
-            icon: 'calendar'
-        },
-        {
-            id: 3,
-            type: 'system',
-            title: 'System backup completed',
-            description: 'Nightly database backup successful',
-            time: '2 hours ago',
-            icon: 'database'
-        },
-        {
-            id: 4,
-            type: 'user',
-            title: 'User profile updated',
-            description: 'John Doe updated their profile information',
-            time: '3 hours ago',
-            icon: 'user-edit'
-        },
-        {
-            id: 5,
-            type: 'event',
-            title: 'Event registration',
-            description: '25 new registrations for AI Summit 2025',
-            time: '4 hours ago',
-            icon: 'users'
-        }
-    ];
-}
-
 // Load pending approvals
 function loadPendingApprovals() {
     const approvalList = document.getElementById('approvalList');
@@ -214,7 +155,10 @@ function loadPendingApprovals() {
         })
         .catch(error => {
             console.error('Error loading pending approvals:', error);
-            displayPendingApprovals(getSampleApprovals());
+            const approvalList = document.getElementById('approvalList');
+            if (approvalList) {
+                approvalList.innerHTML = '<div class="no-data">Failed to load approvals</div>';
+            }
         });
 }
 
@@ -255,36 +199,6 @@ function displayPendingApprovals(approvals) {
     });
 }
 
-// Get sample approvals data
-function getSampleApprovals() {
-    return [
-        {
-            id: 1,
-            name: 'UCSC Coding Club',
-            type: 'Organization Verification',
-            submitted: '2 hours ago'
-        },
-        {
-            id: 2,
-            name: 'Tech Innovation Summit',
-            type: 'Event Approval',
-            submitted: '5 hours ago'
-        },
-        {
-            id: 3,
-            name: 'Startup Meetup 2025',
-            type: 'Event Approval',
-            submitted: '8 hours ago'
-        },
-        {
-            id: 4,
-            name: 'Academic Excellence Awards',
-            type: 'Sponsor Registration',
-            submitted: '1 day ago'
-        }
-    ];
-}
-
 // Load user table
 function loadUserTable() {
     const userTableBody = document.getElementById('userTableBody');
@@ -304,7 +218,10 @@ function loadUserTable() {
         })
         .catch(error => {
             console.error('Error loading users:', error);
-            displayUserTable(getSampleUsers());
+            const userTableBody = document.getElementById('userTableBody');
+            if (userTableBody) {
+                userTableBody.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load users</td></tr>';
+            }
         });
 }
 
@@ -382,57 +299,6 @@ function displayUserTable(users) {
         
         userTableBody.appendChild(userRow);
     });
-}
-
-// Get sample users data
-function getSampleUsers() {
-    return [
-        {
-            id: 1,
-            name: 'Sarah Connor',
-            email: 'sarah.connor@example.com',
-            role: 'Event Organizer',
-            registrationDate: '2025-03-15',
-            status: 'active',
-            avatar: 'SC'
-        },
-        {
-            id: 2,
-            name: 'Mike Johnson',
-            email: 'mike.johnson@example.com',
-            role: 'Student',
-            registrationDate: '2025-03-14',
-            status: 'active',
-            avatar: 'MJ'
-        },
-        {
-            id: 3,
-            name: 'Emily Davis',
-            email: 'emily.davis@example.com',
-            role: 'Publisher',
-            registrationDate: '2025-03-13',
-            status: 'active',
-            avatar: 'ED'
-        },
-        {
-            id: 4,
-            name: 'Robert Brown',
-            email: 'robert.brown@example.com',
-            role: 'Sponsor',
-            registrationDate: '2025-03-12',
-            status: 'pending',
-            avatar: 'RB'
-        },
-        {
-            id: 5,
-            name: 'Lisa Wilson',
-            email: 'lisa.wilson@example.com',
-            role: 'Volunteer',
-            registrationDate: '2025-03-11',
-            status: 'active',
-            avatar: 'LW'
-        }
-    ];
 }
 
 // Setup event listeners

@@ -41,7 +41,7 @@ class ModeratorComments extends Controller {
                 'page_title' => 'Comments Moderation'
             ];
 
-            parent::view('comments_moderation', $data);
+            parent::view('Moderator/comments_moderation', $data);
 
         } catch (Exception $e) {
             error_log("Error loading comments moderation page: " . $e->getMessage());
@@ -52,7 +52,7 @@ class ModeratorComments extends Controller {
                 'error' => 'Unable to load comments data'
             ];
 
-            parent::view('comments_moderation', $data);
+            parent::view('Moderator/comments_moderation', $data);
         }
     }
     
@@ -85,43 +85,33 @@ class ModeratorComments extends Controller {
                 return;
             }
             
-            $query = "
-                SELECT 
-                    c.*,
-                    e.title as event_title,
-                    e.status as event_status,
-                    p.society_name as publisher_name,
-                    CASE 
-                        WHEN c.user_type = 'university' THEN uu.full_name
-                        WHEN c.user_type = 'public' THEN pu.full_name
-                        WHEN c.user_type = 'publisher' THEN pub.society_name
-                        WHEN c.user_type = 'sponsor' THEN s.company_name
-                    END as user_name,
-                    CASE 
-                        WHEN c.user_type = 'university' THEN uu.email
-                        WHEN c.user_type = 'public' THEN pu.email
-                        WHEN c.user_type = 'publisher' THEN pub.email
-                        WHEN c.user_type = 'sponsor' THEN s.email
-                    END as user_email
-                FROM event_comments c
-                LEFT JOIN events e ON c.event_id = e.id
-                LEFT JOIN publishers p ON e.created_by_type = 'publisher' AND e.created_by = p.id
-                LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
-                LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
-                LEFT JOIN publishers pub ON c.user_type = 'publisher' AND c.user_id = pub.id
-                LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
-                WHERE c.is_deleted = 0
-                AND p.university = :university
-                ORDER BY c.created_at DESC
-                LIMIT 50
-            ";
+            // Get all comments for moderation (includes hidden ones)
+            $comments = $this->commentModel->getAllCommentsForModeration($moderator->university);
             
-            $stmt = $this->connect()->prepare($query);
-            $stmt->execute(['university' => $moderator->university]);
-            $comments = $stmt->fetchAll(PDO::FETCH_OBJ);
+            // Handle case where query returns false (no results)
+            if ($comments === false) {
+                $comments = [];
+            }
+            
+            // Calculate statistics
+            $totalComments = count($comments);
+            $hiddenCount = 0;
+            $visibleCount = 0;
+            $todayHiddenCount = 0;
+            $today = date('Y-m-d');
             
             $formattedComments = [];
             foreach ($comments as $comment) {
+                if ($comment->is_hidden) {
+                    $hiddenCount++;
+                    // Check if hidden today
+                    if ($comment->hidden_at && strpos($comment->hidden_at, $today) === 0) {
+                        $todayHiddenCount++;
+                    }
+                } else {
+                    $visibleCount++;
+                }
+                
                 $formattedComments[] = [
                     'id' => $comment->id,
                     'event_id' => $comment->event_id,
@@ -134,6 +124,10 @@ class ModeratorComments extends Controller {
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
                     'is_edited' => (bool)$comment->is_edited,
+                    'is_hidden' => (bool)$comment->is_hidden,
+                    'hidden_by_name' => $comment->hidden_by_name ?? null,
+                    'hidden_at' => $comment->hidden_at ?? null,
+                    'hidden_reason' => $comment->hidden_reason ?? null,
                     'created_at' => $comment->created_at,
                     'updated_at' => $comment->updated_at,
                     'formatted_date' => $this->formatDate($comment->created_at)
@@ -144,12 +138,19 @@ class ModeratorComments extends Controller {
                 'success' => true,
                 'comments' => $formattedComments,
                 'university' => $moderator->university,
-                'total' => count($formattedComments)
+                'total' => $totalComments,
+                'stats' => [
+                    'total_comments' => $totalComments,
+                    'visible_comments' => $visibleCount,
+                    'hidden_comments' => $hiddenCount,
+                    'moderated_today' => $todayHiddenCount
+                ]
             ]);
             
         } catch (Exception $e) {
             error_log("Error getting moderator comments: " . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => 'Failed to load comments']);
+            error_log("Stack trace: " . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'error' => 'Failed to load comments', 'debug' => $e->getMessage()]);
         }
     }
     
@@ -254,5 +255,142 @@ class ModeratorComments extends Controller {
             return $date->format('M j, Y');
         }
     }
+    
+    /**
+     * Hide a comment (AJAX endpoint)
+     */
+    public function hideComment() {
+        header('Content-Type: application/json');
+        
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if ($currentUser['type'] !== 'moderator') {
+                echo json_encode(['success' => false, 'error' => 'Moderator access required']);
+                return;
+            }
+            
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($input['comment_id']) || !isset($input['reason'])) {
+                echo json_encode(['success' => false, 'error' => 'Comment ID and reason are required']);
+                return;
+            }
+            
+            $commentId = (int)$input['comment_id'];
+            $reason = trim($input['reason']);
+            
+            // Validate reason length
+            if (strlen($reason) < 10) {
+                echo json_encode(['success' => false, 'error' => 'Reason must be at least 10 characters long']);
+                return;
+            }
+            
+            if (strlen($reason) > 500) {
+                echo json_encode(['success' => false, 'error' => 'Reason must not exceed 500 characters']);
+                return;
+            }
+            
+            // Get comment to verify it belongs to moderator's university
+            $comment = $this->commentModel->getCommentById($commentId);
+            if (!$comment) {
+                echo json_encode(['success' => false, 'error' => 'Comment not found']);
+                return;
+            }
+            
+            // Get moderator's university
+            $modQuery = "SELECT university FROM moderators WHERE id = :mod_id";
+            $modStmt = $this->connect()->prepare($modQuery);
+            $modStmt->execute(['mod_id' => $currentUser['id']]);
+            $moderator = $modStmt->fetch(PDO::FETCH_OBJ);
+            
+            // Get event details
+            $eventQuery = "SELECT * FROM events WHERE id = :event_id";
+            $eventStmt = $this->connect()->prepare($eventQuery);
+            $eventStmt->execute(['event_id' => $comment->event_id]);
+            $event = $eventStmt->fetch(PDO::FETCH_OBJ);
+            
+            if (!$event || $event->university !== $moderator->university) {
+                echo json_encode(['success' => false, 'error' => 'You can only moderate comments from your university']);
+                return;
+            }
+            
+            // Hide the comment
+            $result = $this->commentModel->hideComment($commentId, $currentUser['id'], $reason);
+            
+            echo json_encode($result);
+            
+        } catch (Exception $e) {
+            error_log("Error hiding comment: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to hide comment']);
+        }
+    }
+    
+    /**
+     * Unhide a comment (AJAX endpoint)
+     */
+    public function unhideComment() {
+        header('Content-Type: application/json');
+        
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if ($currentUser['type'] !== 'moderator') {
+                echo json_encode(['success' => false, 'error' => 'Moderator access required']);
+                return;
+            }
+            
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($input['comment_id'])) {
+                echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
+                return;
+            }
+            
+            $commentId = (int)$input['comment_id'];
+            
+            // Get comment to verify it belongs to moderator's university
+            $comment = $this->commentModel->getCommentById($commentId);
+            if (!$comment) {
+                echo json_encode(['success' => false, 'error' => 'Comment not found']);
+                return;
+            }
+            
+            // Get moderator's university
+            $modQuery = "SELECT university FROM moderators WHERE id = :mod_id";
+            $modStmt = $this->connect()->prepare($modQuery);
+            $modStmt->execute(['mod_id' => $currentUser['id']]);
+            $moderator = $modStmt->fetch(PDO::FETCH_OBJ);
+            
+            // Get event details
+            $eventQuery = "SELECT * FROM events WHERE id = :event_id";
+            $eventStmt = $this->connect()->prepare($eventQuery);
+            $eventStmt->execute(['event_id' => $comment->event_id]);
+            $event = $eventStmt->fetch(PDO::FETCH_OBJ);
+            
+            if (!$event || $event->university !== $moderator->university) {
+                echo json_encode(['success' => false, 'error' => 'You can only moderate comments from your university']);
+                return;
+            }
+            
+            // Unhide the comment
+            $result = $this->commentModel->unhideComment($commentId, $currentUser['id']);
+            
+            echo json_encode($result);
+            
+        } catch (Exception $e) {
+            error_log("Error unhiding comment: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to unhide comment']);
+        }
+    }
 }
-?>

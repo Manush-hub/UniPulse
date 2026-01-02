@@ -8,89 +8,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-// Sample data (replace with actual API calls)
-// const userData = {
-//     username: 'Manush-hub',
-//     displayName: 'Manush',
-//     university: 'University of Colombo',
-//     avatar: '/unipulse/public/assets/images/default-avatar.png'
-// };
-
-const upcomingEvents = [
-    {
-        id: 1,
-        title: 'Tech Conference 2025',
-        date: '2025-09-15',
-        time: '09:00 AM',
-        category: 'Technology',
-        location: 'Main Auditorium'
-    },
-    {
-        id: 2,
-        title: 'Cultural Night',
-        date: '2025-09-20',
-        time: '06:00 PM',
-        category: 'Cultural',
-        location: 'Arts Theatre'
-    },
-    {
-        id: 3,
-        title: 'AI Workshop',
-        date: '2025-09-05',
-        time: '02:00 PM',
-        category: 'Workshop',
-        location: 'Computer Lab 1'
-    }
-];
-
-const featuredEvents = [
-    {
-        id: 4,
-        title: 'Inter-University Cricket Championship',
-        description: 'Annual cricket tournament between top universities in Sri Lanka.',
-        category: 'Sports',
-        university: 'University of Peradeniya',
-        date: '2025-08-25',
-        organizer: 'Sports Club'
-    },
-    {
-        id: 5,
-        title: 'Academic Research Symposium',
-        description: 'Present your research findings and learn from peer researchers.',
-        category: 'Academic',
-        university: 'University of Kelaniya',
-        date: '2025-09-10',
-        organizer: 'Graduate School'
-    }
-];
-
-const recentActivity = [
-    {
-        id: 1,
-        type: 'joined',
-        title: 'Joined Tech Conference 2025',
-        description: 'You successfully registered for the upcoming tech conference',
-        time: '2 hours ago',
-        icon: 'calendar'
-    },
-    {
-        id: 3,
-        type: 'reminder',
-        title: 'Event Reminder',
-        description: 'AI Workshop starts in 2 days',
-        time: '2 days ago',
-        icon: 'bell'
-    },
-    {
-        id: 4,
-        type: 'achievement',
-        title: 'Achievement Unlocked',
-        description: 'Earned "Donator" badge',
-        time: '3 days ago',
-        icon: 'award'
-    }
-];
-
 // Initialize dashboard
 function initializeDashboard() {
     // Set current date and time
@@ -112,9 +29,38 @@ function loadUserData() {
     }
 }
 
-// Load upcoming events
+// Load upcoming events from backend
 function loadUpcomingEvents() {
     const carousel = document.getElementById('upcomingEventsCarousel');
+    if (!carousel) return;
+    
+    carousel.innerHTML = '<div class="loading">Loading events...</div>';
+    
+    fetch('/unipulse/public/user/dashboard/getUpcomingEvents')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch upcoming events');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.events) {
+                displayUpcomingEvents(data.events);
+            } else {
+                carousel.innerHTML = '<div class="no-data">No upcoming events</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading upcoming events:', error);
+            carousel.innerHTML = '<div class="no-data">Failed to load events</div>';
+        });
+}
+
+// Display upcoming events
+function displayUpcomingEvents(events) {
+    const carousel = document.getElementById('upcomingEventsCarousel');
+    if (!carousel) return;
+    
     carousel.innerHTML = '';
 
     upcomingEvents.forEach(event => {
@@ -154,9 +100,38 @@ function createUpcomingEventCard(event) {
     return card;
 }
 
-// Load featured events
+// Load featured events from backend
 function loadFeaturedEvents() {
     const grid = document.getElementById('featuredEventsGrid');
+    if (!grid) return;
+    
+    grid.innerHTML = '<div class="loading">Loading featured events...</div>';
+    
+    fetch('/unipulse/public/user/dashboard/getFeaturedEvents')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch featured events');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.events) {
+                displayFeaturedEvents(data.events);
+            } else {
+                grid.innerHTML = '<div class="no-data">No featured events</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading featured events:', error);
+            grid.innerHTML = '<div class="no-data">Failed to load events</div>';
+        });
+}
+
+// Display featured events
+function displayFeaturedEvents(events) {
+    const grid = document.getElementById('featuredEventsGrid');
+    if (!grid) return;
+    
     grid.innerHTML = '';
 
     featuredEvents.forEach(event => {
@@ -194,9 +169,38 @@ function createFeaturedEventCard(event) {
     return card;
 }
 
-// Load recent activity
+// Load recent activity from backend
 function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
+    if (!activityList) return;
+    
+    activityList.innerHTML = '<div class="loading">Loading activity...</div>';
+    
+    fetch('/unipulse/public/user/dashboard/getRecentActivity')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch recent activity');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.activities) {
+                displayRecentActivity(data.activities);
+            } else {
+                activityList.innerHTML = '<div class="no-data">No recent activity</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading recent activity:', error);
+            activityList.innerHTML = '<div class="no-data">Failed to load activity</div>';
+        });
+}
+
+// Display recent activity
+function displayRecentActivity(activities) {
+    const activityList = document.getElementById('activityList');
+    if (!activityList) return;
+    
     activityList.innerHTML = '';
 
     recentActivity.forEach(activity => {
@@ -293,31 +297,6 @@ function setupScrollAnimations() {
         element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(element);
     });
-}
-
-// Utility functions for API integration
-async function fetchUserData() {
-    try {
-        // Replace with actual API call
-        const response = await fetch('/api/user/dashboard');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        return userData; // Fallback to sample data
-    }
-}
-
-async function fetchEvents(type = 'upcoming') {
-    try {
-        // Replace with actual API call
-        const response = await fetch(`/api/events?type=${type}&limit=10`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching events:', error);
-        return type === 'upcoming' ? upcomingEvents : featuredEvents;
-    }
 }
 
 // Add smooth scrolling for carousel

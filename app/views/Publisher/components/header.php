@@ -34,8 +34,12 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <h3>Notifications</h3>
                         <button onclick="markAllAsRead()">Mark all as read</button>
                     </div>
-                    <div class="notification-list" id="notificationList">
-                        <!-- Notifications will be loaded here -->
+                </div>
+                <div class="user-menu">
+                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar" id="headerAvatar">
+                    <div class="user-info">
+                        <span class="username" id="username">Organization</span>
+                        <span class="user-role" id="userRole">Loading...</span>
                     </div>
                 </div>
             </div>

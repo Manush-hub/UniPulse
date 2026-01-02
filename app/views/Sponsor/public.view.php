@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Innovation Corp - UniPulse</title>
-    <link rel="stylesheet" href="/UniPulse/public/assets/css/sponsor/public-style.css">
+    <link rel="stylesheet" href="/UniPulse/public/assets/css/sponsor/sponsorpublic-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+
+    <?php 
+    $pageConfig = ['activeNav' => ''];
+    include __DIR__ .'/../publisher/components/header.php'; 
+    ?>
+
     <div class="container">
         <!-- Organization Header -->
         <header class="org-header">
@@ -503,6 +509,9 @@
             </section>
         </main>
     </div>
+
+    <!-- Footer -->
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script src="/UniPulse/public/assets/js/sponsorpublic-app.js"></script>
 </body>
