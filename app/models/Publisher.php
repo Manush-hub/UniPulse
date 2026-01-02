@@ -41,6 +41,24 @@ class Publisher {
         return $user !== false;
     }
     
+    public function getRecentRegistrations($limit = 10) {
+        $limit = (int)$limit; // Ensure it's an integer
+        $query = "SELECT 
+            id,
+            society_name as name,
+            email,
+            created_at,
+            approval_status,
+            is_suspended,
+            suspension_reason,
+            'publisher' as user_type
+        FROM publishers 
+        ORDER BY created_at DESC 
+        LIMIT {$limit}";
+        
+        return $this->query($query, []);
+    }
+    
     public function validateData($data) {
         $errors = [];
         
@@ -158,10 +176,9 @@ class Publisher {
      * Get all pending publisher registrations
      */
     public function getAllPending() {
-        $query = "SELECT p.*, u.name as university_name FROM publishers p 
-                  LEFT JOIN universities u ON p.university = u.code 
-                  WHERE p.approval_status = 'pending' 
-                  ORDER BY p.created_at ASC";
+        $query = "SELECT * FROM publishers 
+                  WHERE approval_status = 'pending' 
+                  ORDER BY created_at ASC";
         return $this->query($query);
     }
     

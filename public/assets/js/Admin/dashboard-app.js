@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     loadAdminData();
     loadRecentActivity();
-    loadPendingApprovals();
-    loadUserTable();
+    // loadPendingApprovals(); // Commented out - Pending approvals are now rendered server-side in PHP
+    // loadUserTable(); // Commented out - User table is now rendered server-side in PHP
     setupEventListeners();
     animateProgressBars();
 });
