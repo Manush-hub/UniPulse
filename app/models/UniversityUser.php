@@ -50,6 +50,23 @@ class UniversityUser {
         return $user !== false;
     }
     
+    public function getRecentRegistrations($limit = 10) {
+        $limit = (int)$limit; // Ensure it's an integer
+        $query = "SELECT 
+            id,
+            full_name as name,
+            email,
+            created_at,
+            is_suspended,
+            suspension_reason,
+            'university' as user_type
+        FROM university_users 
+        ORDER BY created_at DESC 
+        LIMIT {$limit}";
+        
+        return $this->query($query, []);
+    }
+    
     public function studentStaffIdExists($student_staff_id) {
         $user = $this->findByStudentStaffId($student_staff_id);
         return $user !== false;

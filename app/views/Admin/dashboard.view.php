@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Admin Dashboard</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/suspension-system.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -220,7 +221,43 @@
                     </button>
                 </div>
                 <div class="approval-list" id="approvalList">
-                    <!-- Initial 2 approval items will be loaded here -->
+                    <?php if (!empty($pending_approvals)): ?>
+                        <?php foreach (array_slice($pending_approvals, 0, 2) as $approval): ?>
+                            <div class="approval-item">
+                                <div class="approval-info">
+                                    <div class="info-group">
+                                        <span class="label">Society Name:</span>
+                                        <span class="value"><?= htmlspecialchars($approval->society_name ?? 'N/A') ?></span>
+                                    </div>
+                                    <div class="info-group">
+                                        <span class="label">University:</span>
+                                        <span class="value"><?= htmlspecialchars($approval->university ?? 'N/A') ?></span>
+                                    </div>
+                                    <div class="info-group">
+                                        <span class="label">Faculty:</span>
+                                        <span class="value"><?= htmlspecialchars($approval->faculty ?? 'N/A') ?></span>
+                                    </div>
+                                    <div class="info-group">
+                                        <span class="label">Submitted:</span>
+                                        <span class="value"><?= date('M d, Y', strtotime($approval->created_at)) ?></span>
+                                    </div>
+                                </div>
+                                <div class="approval-actions">
+                                    <button onclick="approvePublisher(<?= $approval->id ?>)" class="btn-approve">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button onclick="rejectPublisher(<?= $approval->id ?>)" class="btn-reject">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="no-approvals">
+                            <i class="fas fa-check-circle"></i>
+                            <p>No pending approvals at this time</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
@@ -247,7 +284,103 @@
                             </tr>
                         </thead>
                         <tbody id="userTableBody">
-                            <!-- Initial 2 user rows will be loaded here -->
+                            <?php if (!empty($recent_registrations)): ?>
+                                <?php foreach ($recent_registrations as $index => $registration): ?>
+                                    <?php 
+                                        // Determine status based on user type
+                                        $status = 'Active';
+                                        $statusClass = 'status-active';
+                                        
+                                        if (is_object($registration)) {
+                                            $name = htmlspecialchars($registration->name ?? 'N/A');
+                                            $email = htmlspecialchars($registration->email ?? 'N/A');
+                                            $userType = ucfirst($registration->user_type ?? 'User');
+                                            $createdAt = date('M j, Y', strtotime($registration->created_at));
+                                            
+                                            // Check status based on user type
+                                            if ($registration->user_type === 'publisher' && isset($registration->approval_status)) {
+                                                if ($registration->approval_status === 'pending') {
+                                                    $status = 'Pending Approval';
+                                                    $statusClass = 'status-pending';
+                                                } elseif ($registration->approval_status === 'rejected') {
+                                                    $status = 'Rejected';
+                                                    $statusClass = 'status-rejected';
+                                                } elseif ($registration->approval_status === 'approved') {
+                                                    $status = 'Approved';
+                                                    $statusClass = 'status-active';
+                                                } else {
+                                                    $status = 'Pending';
+                                                    $statusClass = 'status-pending';
+                                                }
+                                            } elseif ($registration->user_type === 'sponsor' && isset($registration->verification_status)) {
+                                                if ($registration->verification_status === 'pending') {
+                                                    $status = 'Pending Verification';
+                                                    $statusClass = 'status-pending';
+                                                } elseif ($registration->verification_status === 'rejected') {
+                                                    $status = 'Rejected';
+                                                    $statusClass = 'status-rejected';
+                                                } elseif ($registration->verification_status === 'verified') {
+                                                    $status = 'Verified';
+                                                    $statusClass = 'status-active';
+                                                } else {
+                                                    $status = 'Pending';
+                                                    $statusClass = 'status-pending';
+                                                }
+                                            } else {
+                                                // For university and public users - default to Registered
+                                                $status = 'Registered';
+                                                $statusClass = 'status-active';
+                                            }
+                                        } else {
+                                            // Array format fallback
+                                            $name = htmlspecialchars($registration['name'] ?? 'N/A');
+                                            $email = htmlspecialchars($registration['email'] ?? 'N/A');
+                                            $userType = ucfirst($registration['user_type'] ?? 'User');
+                                            $createdAt = date('M j, Y', strtotime($registration['created_at']));
+                                            
+                                            if (isset($registration['is_active']) && !$registration['is_active']) {
+                                                $status = 'Inactive';
+                                                $statusClass = 'status-inactive';
+                                            }
+                                        }
+                                        
+                                        // Add hidden-row class for rows beyond the first 5
+                                        $rowClass = $index >= 5 ? 'hidden-row' : '';
+                                        $rowStyle = $index >= 5 ? 'style="display: none;"' : '';
+                                    ?>
+                                    <tr class="<?php echo $rowClass; ?>" <?php echo $rowStyle; ?>>
+                                        <td>
+                                            <div class="user-info">
+                                                <!-- <div class="user-avatar"><?php echo strtoupper(substr($name, 0, 1)); ?></div> -->
+                                                <div>
+                                                    <div class="user-name"><?php echo $name; ?></div>
+                                                    <div class="user-email"><?php echo $email; ?></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="role-badge role-<?php echo strtolower($userType); ?>"><?php echo $userType; ?></span></td>
+                                        <td><?php echo $createdAt; ?></td>
+                                        <td><span class="status-badge <?php echo $statusClass; ?>"><?php echo $status; ?></span></td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <?php if (isset($registration->is_suspended) && $registration->is_suspended): ?>
+                                                    <button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>')">
+                                                        <i class="fas fa-check-circle"></i>
+                                                    </button>
+                                                <?php else: ?>
+                                                    <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>', '<?php echo htmlspecialchars($name); ?>')">
+                                                        <i class="fas fa-ban"></i>
+                                                    </button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px;">No recent registrations found</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -266,6 +399,23 @@
             <h3 id="modalTitle">User Details</h3>
             <div class="modal-body" id="modalBody">
                 <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Suspension Modal -->
+    <div id="suspensionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeSuspensionModal()">&times;</span>
+            <h3>Suspend Account</h3>
+            <div class="modal-body">
+                <p>You are about to suspend <strong id="suspendUserName"></strong>'s account.</p>
+                <p>Please provide a reason for the suspension:</p>
+                <textarea id="suspensionReason" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Enter reason for suspension..."></textarea>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button onclick="closeSuspensionModal()" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="confirmSuspension()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Suspend Account</button>
+                </div>
             </div>
         </div>
     </div>
@@ -347,8 +497,11 @@
             const btnText = btn.querySelector('.btn-text');
             
             if (hiddenRows.length > 0) {
+                const firstHiddenRow = hiddenRows[0];
+                const isCurrentlyHidden = firstHiddenRow.style.display === 'none' || !firstHiddenRow.style.display;
+                
                 hiddenRows.forEach(row => {
-                    if (row.style.display === 'none') {
+                    if (isCurrentlyHidden) {
                         row.style.display = 'table-row';
                         icon.style.transform = 'rotate(180deg)';
                         btnText.textContent = 'Show Less';
@@ -359,6 +512,157 @@
                     }
                 });
             }
+        }
+    </script>
+    
+    <script>
+        // Suspension system
+        let pendingSuspension = { userId: null, userType: null };
+        
+        function suspendAccount(userId, userType, userName) {
+            pendingSuspension = { userId, userType };
+            document.getElementById('suspendUserName').textContent = userName;
+            document.getElementById('suspensionModal').style.display = 'block';
+        }
+        
+        function closeSuspensionModal() {
+            document.getElementById('suspensionModal').style.display = 'none';
+            document.getElementById('suspensionReason').value = '';
+            pendingSuspension = { userId: null, userType: null };
+        }
+        
+        function confirmSuspension() {
+            const reason = document.getElementById('suspensionReason').value.trim();
+            
+            if (!reason) {
+                alert('Please provide a reason for suspension');
+                return;
+            }
+            
+            fetch('/unipulse/public/admin/dashboard/suspendUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: pendingSuspension.userId,
+                    user_type: pendingSuspension.userType,
+                    reason: reason
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Account suspended successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to suspend account'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while suspending the account');
+            });
+            
+            closeSuspensionModal();
+        }
+        
+        function reactivateAccount(userId, userType) {
+            if (!confirm('Are you sure you want to reactivate this account?')) {
+                return;
+            }
+            
+            fetch('/unipulse/public/admin/dashboard/reactivateUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    user_type: userType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Account reactivated successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to reactivate account'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while reactivating the account');
+            });
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('suspensionModal');
+            if (event.target == modal) {
+                closeSuspensionModal();
+            }
+        }
+        
+        // Publisher approval functions
+        function approvePublisher(publisherId) {
+            if (!confirm('Are you sure you want to approve this publisher?')) {
+                return;
+            }
+            
+            fetch('/unipulse/public/Admin/Dashboard/approvePublisher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ publisher_id: publisherId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Publisher approved successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to approve publisher'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while approving the publisher');
+            });
+        }
+        
+        function rejectPublisher(publisherId) {
+            const reason = prompt('Please provide a reason for rejection:');
+            if (!reason || reason.trim() === '') {
+                alert('Rejection reason is required');
+                return;
+            }
+            
+            fetch('/unipulse/public/Admin/Dashboard/rejectPublisher', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    publisher_id: publisherId,
+                    rejection_reason: reason 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Publisher rejected successfully');
+                    location.reload();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to reject publisher'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while rejecting the publisher');
+            });
         }
     </script>
 </body>

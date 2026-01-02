@@ -55,7 +55,7 @@ class Event {
      * Get all events with optional filters
      */
     public function getAllEvents($filters = []) {
-        $whereClause = [];
+        $whereClause = ['is_deleted = 0']; // Exclude soft-deleted events
         $params = [];
         
         // Apply filters
@@ -107,7 +107,7 @@ class Event {
      * These are typically upcoming events that accept donations or need funding
      */
     public function getEventsSeekingSponsors($filters = []) {
-        $whereClause = ['status = :status'];
+        $whereClause = ['status = :status', 'is_deleted = 0']; // Exclude soft-deleted events
         $params = ['status' => 'upcoming'];
         
         // Apply filters
@@ -229,6 +229,10 @@ class Event {
             
             $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
                     LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
+            // Exclude soft-deleted events
+            $whereClause[] = "is_deleted = 0";
+            
+            $sql = "SELECT * FROM {$this->table}";
             
             if (!empty($whereClause)) {
                 $sql .= ' WHERE ' . implode(' AND ', $whereClause);
@@ -804,5 +808,332 @@ class Event {
             'type' => $type,
             'message' => $message
         ]);
+    }
+    
+    /**
+     * Soft delete (hide) an event
+     */
+    public function softDelete($eventId, $moderatorId, $reason = '') {
+        try {
+            $conn = $this->connect();
+            
+            $query = "UPDATE events 
+                      SET is_deleted = 1,
+                          deleted_at = NOW(),
+                          deleted_by = :moderator_id,
+                          deletion_reason = :reason,
+                          updated_at = NOW()
+                      WHERE id = :event_id";
+            
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute([
+                'event_id' => $eventId,
+                'moderator_id' => $moderatorId,
+                'reason' => $reason
+            ]);
+            
+            if ($result) {
+                // Notify publisher about the deletion
+                $this->notifyPublisherOfDeletion($eventId, $moderatorId, $reason);
+                error_log("softDelete successful for event_id: $eventId");
+                return true;
+            }
+            
+            error_log("softDelete failed - query returned false for event_id: $eventId");
+            return false;
+        } catch (Exception $e) {
+            error_log("softDelete error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get all hidden (soft-deleted) events
+     */
+    public function getHiddenEvents($filters = []) {
+        $whereClause = ['is_deleted = 1']; // Only soft-deleted events
+        $params = [];
+        
+        // Apply filters
+        if (!empty($filters['category'])) {
+            $whereClause[] = 'category = :category';
+            $params['category'] = $filters['category'];
+        }
+        
+        if (!empty($filters['university'])) {
+            $whereClause[] = 'university = :university';
+            $params['university'] = $filters['university'];
+        }
+        
+        if (!empty($filters['search'])) {
+            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $params['search'] = '%' . $filters['search'] . '%';
+        }
+        
+        $sql = "SELECT e.*, 
+                       m.full_name as moderator_name,
+                       m.email as moderator_email
+                FROM {$this->table} e
+                LEFT JOIN moderators m ON e.deleted_by = m.id";
+        
+        if (!empty($whereClause)) {
+            $sql .= ' WHERE ' . implode(' AND ', $whereClause);
+        }
+        
+        $sql .= ' ORDER BY deleted_at DESC';
+        
+        // Add pagination if specified
+        if (isset($filters['limit'])) {
+            $sql .= ' LIMIT :limit';
+            $params['limit'] = $filters['limit'];
+            
+            if (isset($filters['offset'])) {
+                $sql .= ' OFFSET :offset';
+                $params['offset'] = $filters['offset'];
+            }
+        }
+        
+        return $this->query($sql, $params);
+    }
+    
+    /**
+     * Restore a soft-deleted event
+     */
+    public function restore($eventId) {
+        try {
+            $conn = $this->connect();
+            
+            $query = "UPDATE events 
+                      SET is_deleted = 0,
+                          deleted_at = NULL,
+                          deleted_by = NULL,
+                          deletion_reason = NULL,
+                          updated_at = NOW()
+                      WHERE id = :event_id";
+            
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute(['event_id' => $eventId]);
+            
+            if ($result) {
+                // Optionally notify the publisher that their event has been restored
+                $this->notifyPublisherOfRestoration($eventId);
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("restore error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Notify publisher of event restoration
+     */
+    private function notifyPublisherOfRestoration($eventId) {
+        try {
+            // Get event and publisher details
+            $event = $this->getEventWithPublisher($eventId);
+            
+            if (!$event) {
+                error_log("notifyPublisherOfRestoration: Event not found - $eventId");
+                return false;
+            }
+            
+            // Create notification in database (if the table exists)
+            $conn = $this->connect();
+            $query = "INSERT INTO event_moderation_notifications 
+                      (event_id, notification_type, message, created_at) 
+                      VALUES (:event_id, 'restored', :message, NOW())";
+            
+            $stmt = $conn->prepare($query);
+            $message = "Your event '{$event->title}' has been restored and is now visible again.";
+            
+            $stmt->execute([
+                'event_id' => $eventId,
+                'message' => $message
+            ]);
+            
+            return true;
+        } catch (Exception $e) {
+            // If notification fails, just log it - don't prevent restoration
+            error_log("notifyPublisherOfRestoration error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Get event with publisher details (for notifications)
+     */
+    public function getEventWithPublisher($eventId) {
+        $query = "SELECT e.*, p.email as publisher_email, p.full_name as publisher_name, p.university as publisher_university
+                  FROM events e
+                  LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                  WHERE e.id = :event_id";
+        
+        $result = $this->query($query, ['event_id' => $eventId]);
+        return $result ? $result[0] : null;
+    }
+    
+    /**
+     * Notify publisher of event deletion
+     */
+    private function notifyPublisherOfDeletion($eventId, $moderatorId, $reason) {
+        try {
+            // Get event and publisher details
+            $event = $this->getEventWithPublisher($eventId);
+            
+            if (!$event) {
+                error_log("notifyPublisherOfDeletion: Event not found - $eventId");
+                return false;
+            }
+            
+            // Get moderator details
+            $moderatorModel = new Moderator();
+            $moderator = $moderatorModel->findById($moderatorId);
+            
+            // Create notification in database
+            $conn = $this->connect();
+            $query = "INSERT INTO event_moderation_notifications 
+                      (event_id, moderator_id, notification_type, message, created_at) 
+                      VALUES (:event_id, :moderator_id, 'deleted', :message, NOW())";
+            
+            $message = "Your event '{$event->title}' has been hidden by a moderator. Reason: {$reason}";
+            
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute([
+                'event_id' => $eventId,
+                'moderator_id' => $moderatorId,
+                'message' => $message
+            ]);
+            
+            if ($result) {
+                error_log("Publisher notification created for event $eventId");
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("notifyPublisherOfDeletion error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Check if moderator can moderate this event (same university)
+     */
+    public function canModeratorModerateEvent($eventId, $moderatorUniversity) {
+        $query = "SELECT e.*, p.university as publisher_university
+                  FROM events e
+                  LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                  WHERE e.id = :event_id";
+        
+        $result = $this->query($query, ['event_id' => $eventId]);
+        
+        if (!$result || count($result) === 0) {
+            return false;
+        }
+        
+        $event = $result[0];
+        
+        // Check if event belongs to moderator's university
+        return $event->publisher_university === $moderatorUniversity;
+    }
+    
+    /**
+     * Get recent moderation activities
+     */
+    public function getRecentModerationActivities($moderatorId = null, $limit = 10) {
+        try {
+            $conn = $this->connect();
+            
+            // Build UNION query to get hidden events, approved publishers, rejected publishers, and pending publishers
+            $query = "
+                (SELECT 
+                    e.id as item_id,
+                    e.title as item_title,
+                    e.deleted_at as activity_time,
+                    e.deletion_reason as activity_reason,
+                    m.full_name as moderator_name,
+                    m.university_name as university,
+                    p.society_name as related_name,
+                    'hidden_event' as activity_type
+                FROM events e
+                LEFT JOIN moderators m ON e.deleted_by = m.id
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                WHERE e.is_deleted = 1";
+            
+            if ($moderatorId) {
+                $query .= " AND e.deleted_by = :moderator_id1";
+            }
+            
+            $query .= ")
+                UNION ALL
+                (SELECT 
+                    pub.id as item_id,
+                    pub.society_name as item_title,
+                    pub.approved_at as activity_time,
+                    NULL as activity_reason,
+                    m.full_name as moderator_name,
+                    m.university_name as university,
+                    pub.society_name as related_name,
+                    'publisher_approved' as activity_type
+                FROM publishers pub
+                LEFT JOIN moderators m ON pub.approved_by = m.id
+                WHERE pub.approval_status = 'approved' AND pub.approved_at IS NOT NULL";
+            
+            if ($moderatorId) {
+                $query .= " AND pub.approved_by = :moderator_id2";
+            }
+            
+            $query .= ")
+                UNION ALL
+                (SELECT 
+                    pub.id as item_id,
+                    pub.society_name as item_title,
+                    pub.approved_at as activity_time,
+                    pub.rejection_reason as activity_reason,
+                    m.full_name as moderator_name,
+                    m.university_name as university,
+                    pub.society_name as related_name,
+                    'publisher_rejected' as activity_type
+                FROM publishers pub
+                LEFT JOIN moderators m ON pub.approved_by = m.id
+                WHERE pub.approval_status = 'rejected' AND pub.approved_at IS NOT NULL";
+            
+            if ($moderatorId) {
+                $query .= " AND pub.approved_by = :moderator_id3";
+            }
+            
+            $query .= ")
+                UNION ALL
+                (SELECT 
+                    pub.id as item_id,
+                    pub.society_name as item_title,
+                    pub.created_at as activity_time,
+                    NULL as activity_reason,
+                    NULL as moderator_name,
+                    NULL as university,
+                    pub.society_name as related_name,
+                    'publisher_pending' as activity_type
+                FROM publishers pub
+                WHERE pub.approval_status = 'pending'
+                )
+                ORDER BY activity_time DESC
+                LIMIT :limit";
+            
+            $stmt = $conn->prepare($query);
+            
+            if ($moderatorId) {
+                $stmt->bindValue(':moderator_id1', $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id2', $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id3', $moderatorId, PDO::PARAM_INT);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            error_log("getRecentModerationActivities error: " . $e->getMessage());
+            return [];
+        }
     }
 }

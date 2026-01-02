@@ -51,6 +51,24 @@ class Signin extends Controller{
             // Authenticate user across all user tables
             $authResult = $this->authService->authenticate($email, $password);
             
+            if ($authResult === 'suspended') {
+                // Account is suspended - show suspension info and appeal option
+                $suspensionInfo = $_SESSION['suspension_info'] ?? null;
+                if ($suspensionInfo) {
+                    $data = [
+                        'suspended' => true,
+                        'suspension_reason' => $suspensionInfo['reason'],
+                        'user_email' => $suspensionInfo['email'],
+                        'user_id' => $suspensionInfo['user_id'],
+                        'user_type' => $suspensionInfo['user_type']
+                    ];
+                    $this->view('signin', $data);
+                } else {
+                    $this->view('signin', ['error' => 'Your account has been suspended. Please contact support.']);
+                }
+                return;
+            }
+            
             if ($authResult) {
                 // Login successful - start session
                 $this->authService->startSession($authResult);

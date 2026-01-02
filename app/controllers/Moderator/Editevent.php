@@ -62,7 +62,7 @@ class PublisherEditevent extends Controller{
         $data['event'] = $event;
         $data['event_id'] = $eventId;
         
-        $this->view('editevent', $data);
+        $this->view('Moderator/editevent', $data);
     }
     
     private function handleFormSubmission($eventId) {

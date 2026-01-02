@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Publisher Events</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/events-style.css">
+    <title>UniPulse - Moderator Events</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Moderator/events-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
@@ -13,6 +14,7 @@
     <!-- Header -->
     <?php
     $pageConfig = ['activeNav' => 'events'];
+    $headerCssLoaded = true;
     include __DIR__ . '/components/header.php';
     ?>
 
@@ -126,5 +128,6 @@
     </script>
 
     <script src="/unipulse/public/assets/js/Moderator/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 </html>

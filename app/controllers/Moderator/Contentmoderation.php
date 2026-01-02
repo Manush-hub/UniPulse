@@ -37,6 +37,7 @@ class ModeratorContentmoderation extends Controller {
                 'title' => 'Content Moderation',
                 'page' => 'content_moderation',
                 'moderator' => $moderator,
+                'user' => $currentUser,
                 'pendingEvents' => $pendingEvents,
                 'moderationStats' => $moderationStats,
                 'permissions' => $permissions

@@ -108,10 +108,29 @@ class ModeratorController extends Controller {
      * Events moderation page
      */
     public function events() {
-        $data = [
-            'title' => 'Events Moderation',
-            'page' => 'events'
-        ];
+        try {
+            // Get current moderator
+            $currentUser = AuthService::getCurrentUser();
+            
+            // Get moderator details
+            $moderator = new Moderator();
+            $moderatorData = $moderator->findById($currentUser['id']);
+            
+            $data = [
+                'title' => 'Events Moderation',
+                'page' => 'events',
+                'moderator' => $moderatorData,
+                'user' => $currentUser
+            ];
+        } catch (Exception $e) {
+            error_log("Error loading events page: " . $e->getMessage());
+            
+            $data = [
+                'title' => 'Events Moderation',
+                'page' => 'events',
+                'moderator' => (object) ['full_name' => 'Moderator']
+            ];
+        }
         
         $this->view('Moderator/events', $data);
     }
@@ -120,12 +139,68 @@ class ModeratorController extends Controller {
      * Publishers management page
      */
     public function publishers() {
-        $data = [
-            'title' => 'Publishers Management',
-            'page' => 'publishers'
-        ];
+        try {
+            // Get current moderator
+            $currentUser = AuthService::getCurrentUser();
+            
+            // Get moderator details
+            $moderator = new Moderator();
+            $moderatorData = $moderator->findById($currentUser['id']);
+            
+            $data = [
+                'title' => 'Publishers Management',
+                'page' => 'publishers',
+                'moderator' => $moderatorData,
+                'user' => $currentUser
+            ];
+        } catch (Exception $e) {
+            error_log("Error loading publishers page: " . $e->getMessage());
+            
+            $data = [
+                'title' => 'Publishers Management',
+                'page' => 'publishers',
+                'moderator' => (object) ['full_name' => 'Moderator']
+            ];
+        }
         
         $this->view('Moderator/publishers', $data);
+    }
+    
+    /**
+     * Publisher approval page
+     */
+    public function publisherapproval() {
+        try {
+            // Get current moderator
+            $currentUser = AuthService::getCurrentUser();
+            
+            // Get moderator details
+            $moderatorModel = new Moderator();
+            $moderator = $moderatorModel->findById($currentUser['id']);
+            
+            // Get pending publishers for this university
+            $publisherModel = new Publisher();
+            $pendingPublishers = $publisherModel->getPendingByUniversity($moderator->university);
+            
+            $data = [
+                'title' => 'Publisher Approvals',
+                'page' => 'publisher_approval',
+                'moderator' => $moderator,
+                'user' => $currentUser,
+                'pendingPublishers' => $pendingPublishers
+            ];
+        } catch (Exception $e) {
+            error_log("Error loading publisher approval page: " . $e->getMessage());
+            
+            $data = [
+                'title' => 'Publisher Approvals',
+                'page' => 'publisher_approval',
+                'moderator' => (object) ['full_name' => 'Moderator'],
+                'pendingPublishers' => []
+            ];
+        }
+        
+        $this->view('Moderator/publisher_approval', $data);
     }
 }
 ?>

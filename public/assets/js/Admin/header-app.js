@@ -4,64 +4,59 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// Admin user data - can be overridden by server data or dashboard data
-let userData = {
-    username: 'Admin',
-    role: 'System Administrator',
-    avatar: '/unipulse/public/assets/images/admin.png'
-};
-
-const notifications = [
-    {
-        id: 1,
-        title: 'System Update',
-        message: 'New system update available for installation',
-        time: '30 min ago',
-        unread: true,
-        type: 'warning'
-    },
-    {
-        id: 2,
-        title: 'New Registration',
-        message: '5 new user registrations in the last hour',
-        time: '1 hour ago',
-        unread: true,
-        type: 'info'
-    },
-    {
-        id: 3,
-        title: 'High Traffic',
-        message: 'Unusual traffic spike detected',
-        time: '2 hours ago',
-        unread: false,
-        type: 'warning'
-    },
-    {
-        id: 4,
-        title: 'Backup Completed',
-        message: 'Nightly backup completed successfully',
-        time: '5 hours ago',
-        unread: false,
-        type: 'success'
-    },
-    {
-        id: 5,
-        title: 'Security Alert',
-        message: 'Multiple failed login attempts detected',
-        time: 'Yesterday',
-        unread: true,
-        type: 'error'
-    }
-];
+// Load user data from backend
 function loadUserData() {
-    const usernameElement = document.getElementById('username');
-    if (usernameElement) {
-        usernameElement.textContent = userData.username;
-    }
+    fetch('/unipulse/public/admin/dashboard/getUserProfile')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch user data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const usernameElement = document.getElementById('username');
+                if (usernameElement && data.username) {
+                    usernameElement.textContent = data.username;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading user data:', error);
+        });
 }
 
-// Load notifications
+// Load notifications from backend
 function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    const notificationBadge = document.getElementById('notificationBadge');
+    
+    if (!notificationList || !notificationBadge) return;
+    
+    fetch('/unipulse/public/admin/dashboard/getNotifications')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.notifications) {
+                displayNotifications(data.notifications);
+            } else {
+                notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+                notificationBadge.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            notificationList.innerHTML = '<div class="no-data">Failed to load notifications</div>';
+            notificationBadge.style.display = 'none';
+        });
+}
+
+// Display notifications
+function displayNotifications(notifications) {
     const notificationList = document.getElementById('notificationList');
     const notificationBadge = document.getElementById('notificationBadge');
     
@@ -72,6 +67,11 @@ function loadNotifications() {
     const unreadCount = notifications.filter(n => n.unread).length;
     notificationBadge.textContent = unreadCount;
     notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    
+    if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+        return;
+    }
     
     notifications.forEach(notification => {
         const notificationItem = createNotificationItem(notification);
@@ -130,18 +130,43 @@ function toggleUserMenu() {
 
 // Mark notification as read
 function markNotificationAsRead(notificationId) {
-    const notification = notifications.find(n => n.id === notificationId);
-    if (notification) {
-        notification.unread = false;
-        loadNotifications();
-    }
+    fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notificationId: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
 }
 
 // Mark all notifications as read
 function markAllAsRead() {
-    notifications.forEach(n => n.unread = false);
-    loadNotifications();
-    showToast('All notifications marked as read', 'success')
+    fetch('/unipulse/public/admin/dashboard/markAllNotificationsRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+            showToast('All notifications marked as read', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+        showToast('Failed to mark notifications as read', 'error');
+    });
 }
 
 function showToast(message, type = 'info') {

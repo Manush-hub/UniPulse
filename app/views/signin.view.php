@@ -27,7 +27,73 @@
 
             <!-- Sign In Form -->
             <div class="signin-form-container">
-                <?php if (isset($error)): ?>
+                <?php if (isset($suspended) && $suspended): ?>
+                    <!-- Suspension Notice -->
+                    <div class="suspension-notice">
+                        <div class="suspension-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <h2>Account Suspended</h2>
+                        <div class="suspension-reason">
+                            <strong>Reason:</strong>
+                            <p><?= htmlspecialchars($suspension_reason) ?></p>
+                        </div>
+                        
+                        <div class="appeal-section">
+                            <h3>Submit an Appeal</h3>
+                            <p>If you believe this suspension is unjust, you can submit an appeal to the administrators.</p>
+                            <textarea id="appealMessage" rows="5" placeholder="Explain why you believe this suspension should be lifted..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0;"></textarea>
+                            <button type="button" onclick="submitAppeal()" class="submit-button" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                                Submit Appeal
+                            </button>
+                            <a href="/unipulse/public/signin" style="display: block; text-align: center; margin-top: 15px; color: #666;">Back to Sign In</a>
+                        </div>
+                        
+                        <div id="appealResult" style="margin-top: 15px; display: none;"></div>
+                    </div>
+                    
+                    <script>
+                        function submitAppeal() {
+                            const message = document.getElementById('appealMessage').value.trim();
+                            
+                            if (!message) {
+                                alert('Please enter your appeal message');
+                                return;
+                            }
+                            
+                            fetch('/unipulse/public/submit_appeal.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    user_id: <?= $user_id ?>,
+                                    user_type: '<?= str_replace('_users', '', $user_type) ?>',
+                                    appeal_message: message
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                const resultDiv = document.getElementById('appealResult');
+                                resultDiv.style.display = 'block';
+                                
+                                if (data.success) {
+                                    resultDiv.innerHTML = '<div style="padding: 15px; background: #d4edda; color: #155724; border-radius: 4px;"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
+                                    document.getElementById('appealMessage').value = '';
+                                    setTimeout(() => {
+                                        window.location.href = '/unipulse/public/signin';
+                                    }, 3000);
+                                } else {
+                                    resultDiv.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('An error occurred while submitting your appeal');
+                            });
+                        }
+                    </script>
+                <?php elseif (isset($error)): ?>
                     <div class="error-message-box">
                         <i class="fas fa-exclamation-circle"></i>
                         <?= htmlspecialchars($error) ?>
@@ -41,6 +107,7 @@
                     </div>
                 <?php endif; ?>
 
+                <?php if (!isset($suspended) || !$suspended): ?>
                 <form class="signin-form" method="POST" action="/unipulse/public/signin">
                     <div class="form-header">
                         <h2>Sign In</h2>
@@ -97,6 +164,7 @@
                         <a href="/unipulse/public/signup">Create Account</a>
                     </div>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
     </main>

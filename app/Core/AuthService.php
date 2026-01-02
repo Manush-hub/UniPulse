@@ -49,6 +49,10 @@ class AuthService {
         foreach ($userTables as $table => $config) {
             error_log("Checking table: $table");
             $user = $this->findUserInTable($table, $email, $password);
+            if ($user === 'suspended') {
+                error_log("User is suspended");
+                return 'suspended';
+            }
             if ($user) {
                 error_log("User found in table: $table");
                 return [
@@ -75,6 +79,18 @@ class AuthService {
         
         if ($user) {
             error_log("User found in $table, verifying password");
+            
+            // Check if account is suspended
+            if (isset($user->is_suspended) && $user->is_suspended) {
+                error_log("Login denied - account is suspended");
+                $_SESSION['suspension_info'] = [
+                    'email' => $email,
+                    'reason' => $user->suspension_reason ?? 'No reason provided',
+                    'user_type' => $table,
+                    'user_id' => $user->id
+                ];
+                return 'suspended';
+            }
             
             // Special check for publishers - they must be approved
             if ($table === 'publishers') {

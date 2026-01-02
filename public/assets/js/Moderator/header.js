@@ -1,64 +1,46 @@
 document.addEventListener('DOMContentLoaded', function() {
-    updateModeratorProfile();
+    // Username is already loaded from server-side PHP
+    // No need to fetch from API
     loadNotifications();
-    setupDropdowns();
     setupEventListeners();
 });
 
-const moderatorData = {
-    username: 'Moderator',
-    displayName: 'Moderator',
-    role: 'Moderator',
-}
 
-const notifications = [
-    {
-        id: 1,
-        title: 'New Event Submission',
-        message: '3 new events waiting for review',
-        time: '30 min ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'User Report',
-        message: 'New user report submitted',
-        time: '1 hour ago',
-        read: false
-    },
-    {
-        id: 3,
-        title: 'Guidelines Updated',
-        message: 'Moderation guidelines have been updated',
-        time: '2 hours ago',
-        read: true
-    },
-    {
-        id: 4,
-        title: 'Weekly Summary',
-        message: 'Your weekly moderation summary is ready',
-        time: 'Yesterday',
-        read: true
-    }
-];
-
-// Update moderator profile in the header
-function updateModeratorProfile() {
-    const usernameElement = document.getElementById('username');
-    const userRoleElement = document.getElementById('userRole');
-    
-    if (usernameElement) {
-        usernameElement.textContent = moderatorData.username;
-    }
-    
-    if (userRoleElement) {
-        userRoleElement.textContent = moderatorData.role;
-    }
-}
-
-
-// Load notifications
+// Load notifications from backend
 function loadNotifications() {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    fetch('/unipulse/public/moderator/dashboard/getNotifications')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch notifications');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.notifications) {
+                displayNotifications(data.notifications);
+            } else {
+                notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+                const notificationBadge = document.getElementById('notificationBadge');
+                if (notificationBadge) {
+                    notificationBadge.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading notifications:', error);
+            notificationList.innerHTML = '<div class="no-data">Failed to load notifications</div>';
+            const notificationBadge = document.getElementById('notificationBadge');
+            if (notificationBadge) {
+                notificationBadge.style.display = 'none';
+            }
+        });
+}
+
+// Display notifications
+function displayNotifications(notifications) {
     const notificationList = document.getElementById('notificationList');
     if (!notificationList) return;
     
@@ -69,6 +51,11 @@ function loadNotifications() {
     if (notificationBadge) {
         notificationBadge.textContent = unreadCount;
         notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+    
+    if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="no-data">No notifications</div>';
+        return;
     }
     
     notifications.forEach(notification => {
@@ -85,102 +72,119 @@ function loadNotifications() {
     });
 }
 
-// Setup event listeners
+// Setup all event listeners (consolidated)
 function setupEventListeners() {
-    // Notification dropdown toggle
+    // Get all necessary elements
     const notificationBtn = document.querySelector('.notification-btn');
     const notificationDropdown = document.getElementById('notificationDropdown');
+    const userMenu = document.querySelector('.user-menu');
+    const userDropdown = document.getElementById('userDropdown');
+    const userDropdownBtn = document.querySelector('.user-dropdown-btn');
     
+    // Notification dropdown toggle
     if (notificationBtn && notificationDropdown) {
         notificationBtn.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Close user dropdown if open
+            if (userDropdown) {
+                userDropdown.classList.remove('show');
+            }
             notificationDropdown.classList.toggle('show');
         });
     }
     
-    // User dropdown toggle
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
+    // User dropdown toggle - use the dropdown button specifically
+    if (userDropdownBtn && userDropdown) {
+        userDropdownBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Close notification dropdown if open
+            if (notificationDropdown) {
+                notificationDropdown.classList.remove('show');
+            }
+            userDropdown.classList.toggle('show');
+        });
+    }
     
+    // Alternative: clicking on the user menu area
     if (userMenu && userDropdown) {
         userMenu.addEventListener('click', function(e) {
             e.stopPropagation();
+            // Close notification dropdown if open
+            if (notificationDropdown) {
+                notificationDropdown.classList.remove('show');
+            }
             userDropdown.classList.toggle('show');
         });
     }
     
     // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+        if (notificationDropdown && !notificationDropdown.contains(e.target) && 
+            notificationBtn && !notificationBtn.contains(e.target)) {
             notificationDropdown.classList.remove('show');
         }
         
-        if (userDropdown && !userDropdown.contains(e.target) && !userMenu.contains(e.target)) {
+        if (userDropdown && !userDropdown.contains(e.target) && 
+            userMenu && !userMenu.contains(e.target)) {
             userDropdown.classList.remove('show');
         }
     });
-}
-
-
-
-// Setup dropdowns
-function setupDropdowns() {
-    // User dropdown
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
     
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function() {
-            userDropdown.classList.toggle('show');
+    // Mark all as read button
+    const markAllReadBtn = document.querySelector('.notification-header button');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            markAllAsRead();
         });
     }
-    
-    // Notification dropdown
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function() {
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (userDropdown && !userDropdown.contains(e.target) && userMenu && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-        
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && notificationBtn && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
-    });
 }
 
-// Toggle notifications dropdown
+// Toggle notifications dropdown (for backward compatibility with inline handlers)
 function toggleNotifications() {
     const dropdown = document.getElementById('notificationDropdown');
+    const userDropdown = document.getElementById('userDropdown');
     if (dropdown) {
+        // Close user dropdown if open
+        if (userDropdown) {
+            userDropdown.classList.remove('show');
+        }
         dropdown.classList.toggle('show');
     }
 }
 
-// Toggle user menu dropdown
+// Toggle user menu dropdown (for backward compatibility with inline handlers)
 function toggleUserMenu() {
     const dropdown = document.getElementById('userDropdown');
+    const notificationDropdown = document.getElementById('notificationDropdown');
     if (dropdown) {
+        // Close notification dropdown if open
+        if (notificationDropdown) {
+            notificationDropdown.classList.remove('show');
+        }
         dropdown.classList.toggle('show');
     }
 }
 
 // Mark all notifications as read
 function markAllAsRead() {
-    notifications.forEach(notification => {
-        notification.read = true;
+    fetch('/unipulse/public/moderator/dashboard/markAllNotificationsRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications();
+            showToast('All notifications marked as read', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+        showToast('Failed to mark notifications as read', 'error');
     });
-    
-    loadNotifications();
-    showToast('All notifications marked as read', 'success');
 }
 
 // Show toast notification
