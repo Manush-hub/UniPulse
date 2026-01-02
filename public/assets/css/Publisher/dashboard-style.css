@@ -71,6 +71,7 @@ body {
     background: white;
     color: #1E3A8A;
     border-color: #1E3A8A;
+    height: 37px;
 }
 
 .btn-outline:hover {
@@ -230,7 +231,7 @@ body {
 
 /* Section Headers */
 .section-header {
-    display: flex;
+    /* display: flex; */
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
@@ -258,6 +259,7 @@ body {
 .event-filters {
     display: flex;
     gap: 0.5rem;
+    margin-top: 1rem;
 }
 
 .event-filters .filter-btn {
@@ -281,6 +283,14 @@ body {
     background: #1E3A8A;
     border-color: #1E3A8A;
     color: white;
+}
+
+/* Event Slider Controls */
+.event-slider-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
 /* Event Management */
