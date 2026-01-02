@@ -42,7 +42,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 <div class="user-menu">
                     <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar">
                     <div class="user-info">
-                        <span class="username" id="username">Jennifer King</span>
+                        <span class="username" id="username"><?= isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'User' ?></span>
                         <span class="user-role" id="userRole">Event Organizer</span>
                     </div>
                     <button class="user-dropdown-btn" onclick="toggleUserMenu()">

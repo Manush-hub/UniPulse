@@ -1,6 +1,10 @@
 <?php
 $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+
+// Get current user data from session
+$currentUser = AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null;
+$userName = $currentUser ? ($currentUser['name'] ?? 'User') : 'User';
 ?>
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
@@ -39,7 +43,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 <div class="user-menu">
                     <img src="/unipulse/public/assets/images/default-avatar.png" alt="User Avatar" class="avatar">
                     <div class="user-info">
-                        <span class="username" id="username">Manush-hub</span>
+                        <span class="username" id="username"><?php echo htmlspecialchars($userName); ?></span>
                     </div>
                     <button class="user-dropdown-btn" onclick="toggleUserMenu()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

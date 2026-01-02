@@ -22,7 +22,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">Manush</span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?php echo htmlspecialchars($user['name'] ?? 'User'); ?></span>! 👋</h1>
                         <p>Ready to discover amazing events and connect with your university community?</p>
                     </div>
                 </div>
@@ -161,6 +161,15 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <!-- Pass user data to JavaScript -->
+    <script>
+        window.userData = <?php echo json_encode([
+                                'name' => $user['name'] ?? 'User',
+                                'email' => $user['email'] ?? '',
+                                'type' => $user['type'] ?? 'user',
+                                'university' => $user['university'] ?? ''
+                            ]); ?>;
+    </script>
     <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
 
