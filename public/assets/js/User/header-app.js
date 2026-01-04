@@ -1,12 +1,12 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
     loadNotifications();
     setupEventListeners();
 });
 
-const userData = {
+let userData = {
     username: 'User',
-    // displayName: 'Manush',
+    name: 'User',
     university: 'University of Colombo',
     avatar: '/unipulse/public/assets/images/default-avatar.png'
 };
@@ -38,22 +38,37 @@ const notifications = [
     }
 ];
 
-function loadUserData() {
-    document.getElementById('username').textContent = userData.username;
-    // document.getElementById('welcomeUsername').textContent = userData.displayName;
+async function loadUserData() {
+    try {
+        // Fetch user data from API
+        const response = await fetch('/unipulse/public/user/dashboard/getUserData');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+                userData = data.user;
+                const usernameElement = document.getElementById('username');
+                if (usernameElement) {
+                    usernameElement.textContent = data.user.name || 'User';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        // Keep default username if API fails
+    }
 }
 
 // Load notifications
 function loadNotifications() {
     const notificationList = document.getElementById('notificationList');
     const notificationBadge = document.getElementById('notificationBadge');
-    
+
     notificationList.innerHTML = '';
-    
+
     const unreadCount = notifications.filter(n => n.unread).length;
     notificationBadge.textContent = unreadCount;
     notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    
+
     notifications.forEach(notification => {
         const notificationItem = createNotificationItem(notification);
         notificationList.appendChild(notificationItem);
@@ -65,7 +80,7 @@ function createNotificationItem(notification) {
     const item = document.createElement('div');
     item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
     item.onclick = () => markNotificationAsRead(notification.id);
-    
+
     item.innerHTML = `
         <div class="notification-content">
             <h4>${notification.title}</h4>
@@ -73,14 +88,14 @@ function createNotificationItem(notification) {
             <div class="notification-time">${notification.time}</div>
         </div>
     `;
-    
+
     return item;
 }
 
 // Setup event listeners
 function setupEventListeners() {
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('.notifications')) {
             document.getElementById('notificationDropdown').classList.remove('show');
         }

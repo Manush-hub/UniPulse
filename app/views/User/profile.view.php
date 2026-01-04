@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,23 +22,25 @@
         <header class="profile-header">
             <div class="cover-photo-section">
                 <!-- Cover Photo -->
-                <div class="cover-photo">
-                    <div class="cover-overlay" onclick="uploadCover()">
+                <div class="cover-photo" style="background-color: #f0f0f0; min-height: 300px; position: relative; overflow: hidden;">
+                    <img id="coverPhoto" src="" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div class="cover-overlay" onclick="uploadCover()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
                     </div>
                 </div>
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
                 <!-- Profile Photo -->
-                <div class="profile-photo">
-                    <div class="profile-overlay" onclick="uploadProfileImage()">
-                        <i class="fas fa-camera"></i>
-                        Change Photo
+                <div class="profile-photo" style="width: 150px; height: 150px; border-radius: 50%; position: absolute; bottom: -75px; left: 30px; background-color: white; border: 4px solid white; overflow: hidden;">
+                    <img id="profilePhoto" src="" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div class="profile-overlay" onclick="uploadProfileImage()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
+                        <i class="fas fa-camera" style="color: white;"></i>
+                        <span style="color: white; font-size: 11px; text-align: center;">Change Photo</span>
                     </div>
                 </div>
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
             </div>
-            
+
             <!-- Profile Banner -->
             <div class="profile-banner">
             </div>
@@ -73,29 +76,28 @@
                             <label for="lastname">Last Name</label>
                             <input type="text" id="lastname" placeholder="Enter your last name">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="university">University</label>
-                            <input type="text" id="university" placeholder="Enter your university name">
+                            <input type="text" id="university" placeholder="Enter your university name" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
                             <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" placeholder="Enter your faculty">
+                            <input type="text" id="faculty" placeholder="Enter your faculty" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
 
                         <div class="form-group">
-                            <label for="student/staffid">Student/Staff ID</label>
-                            <input type="text" id="student/staffid" placeholder="Enter your student/staff id">
+                            <label for="student_staff_id">Student/Staff ID</label>
+                            <input type="text" id="student_staff_id" placeholder="Enter your student/staff id" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
-                            <label for="academicyear">Academic Year</label>
-                            <input type="text" id="academicyear" placeholder="Enter your academic year">
+                            <label for="academic_year">Academic Year</label>
+                            <input type="text" id="academic_year" placeholder="Enter your academic year">
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="dob">Date of Birth</label>
-                            <input type="date" id="dob" placeholder="Select your date of birth">
-                        </div>
+
                         <div class="form-group">
                             <label for="gender">Gender</label>
                             <div class="gender-buttons">
@@ -104,48 +106,28 @@
                             </div>
                             <input type="hidden" id="gender">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" placeholder="Enter your email address">
+                            <input type="email" id="email" placeholder="Enter your email address" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
                             <input type="tel" id="phone" placeholder="Enter your phone number">
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="currentCity">Current Town/City</label>
-                            <input type="text" id="currentCity" placeholder="Enter your current city">
-                        </div>
-                        <div class="form-group">
-                            <label for="homeTown">Home Town</label>
-                            <input type="text" id="homeTown" placeholder="Enter your home town">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="role">Role</label>
-                            <div class="role-buttons">
-                                <button type="button" class="role-btn" data-role="student">Student</button>
-                                <button type="button" class="role-btn" data-role="staff">Staff</button>
-                                <button type="button" class="role-btn" data-role="public">Public</button>
-                            </div>
-                            <input type="hidden" id="role">
-                        </div>
+
                         <div class="form-group">
                             <label for="nic">NIC</label>
-                            <input type="text" id="nic" placeholder="Enter your NIC">
+                            <input type="text" id="nic" placeholder="Enter your NIC" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
-                        
-                        <div class="form-group full-width">
-                            <label for="headline">Headline</label>
-                            <textarea id="headline" rows="1" placeholder="Enter a brief headline about yourself"></textarea>
-                        </div>
+
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
                             <textarea id="bio" rows="4" placeholder="Tell us about yourself, your interests, and what you're passionate about"></textarea>
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
                                 Save Changes
@@ -344,7 +326,7 @@
                             </label>
                             <input type="text" id="discord" value="" placeholder="username#1234">
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveSocialLinks()">
                                 Save Changes
@@ -523,13 +505,13 @@
                         <input type="text" id="galleryTitle" placeholder="Enter a title for your photo" maxlength="50" required>
                         <small>Maximum 50 characters</small>
                     </div>
-                    
+
                     <div class="form-group full-width">
                         <label for="galleryDescription">Description</label>
                         <textarea id="galleryDescription" rows="3" placeholder="Write a brief description of your photo" maxlength="150" required></textarea>
                         <small>Maximum 150 characters</small>
                     </div>
-                    
+
                     <div class="form-group full-width" id="galleryImageUpload">
                         <label>Photo Upload (Up to 5 photos)</label>
                         <div class="multi-photo-upload">
@@ -545,7 +527,7 @@
                                 </div>
                                 <input type="file" id="galleryFile1" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 1)" required>
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile2" class="photo-upload-label">Photo 2 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile2').click()">
@@ -558,7 +540,7 @@
                                 </div>
                                 <input type="file" id="galleryFile2" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 2)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile3" class="photo-upload-label">Photo 3 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile3').click()">
@@ -571,7 +553,7 @@
                                 </div>
                                 <input type="file" id="galleryFile3" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 3)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile4" class="photo-upload-label">Photo 4 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile4').click()">
@@ -584,7 +566,7 @@
                                 </div>
                                 <input type="file" id="galleryFile4" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 4)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile5" class="photo-upload-label">Photo 5 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile5').click()">
@@ -599,7 +581,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="modal-actions">
                         <button type="button" class="btn btn-primary" onclick="saveGalleryPhoto()">
                             Save Gallery
@@ -615,6 +597,13 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <script>
+        window.profileApi = {
+            get: '/unipulse/public/user/profile/getProfile',
+            update: '/unipulse/public/user/profile/updateProfile'
+        };
+    </script>
     <script src="/UniPulse/public/assets/js/userprofile-app.js"></script>
 </body>
+
 </html>
