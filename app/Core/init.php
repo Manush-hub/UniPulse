@@ -2,16 +2,29 @@
 
 spl_autoload_register(function($classname){
     // Check for model files first
-    $modelFile = "../app/models/".ucfirst($classname). ".php";
+    $modelFile = "../app/models/".$classname. ".php";
     if (file_exists($modelFile)) {
         require_once $modelFile;
         return;
     }
     
     // Check for core files
-    $coreFile = "../app/Core/".ucfirst($classname). ".php";
+    $coreFile = "../app/Core/".$classname. ".php";
     if (file_exists($coreFile)) {
         require_once $coreFile;
+        return;
+    }
+    
+    // Fallback: try with ucfirst for backward compatibility
+    $modelFileUcfirst = "../app/models/".ucfirst($classname). ".php";
+    if (file_exists($modelFileUcfirst)) {
+        require_once $modelFileUcfirst;
+        return;
+    }
+    
+    $coreFileUcfirst = "../app/Core/".ucfirst($classname). ".php";
+    if (file_exists($coreFileUcfirst)) {
+        require_once $coreFileUcfirst;
         return;
     }
 });
@@ -23,6 +36,7 @@ require_once 'Database.php';
 require_once 'Model.php';
 require_once 'DatabaseInitializer.php';
 require_once 'App.php';
+require_once 'AuthService.php';
 
 // Auto-initialize database on first run
 try {

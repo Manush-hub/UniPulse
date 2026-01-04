@@ -325,6 +325,457 @@ class Publisher {
         $result = $this->getRow($query, ['university' => $university]);
         return $result ? (int)$result->count : 0;
     }
+
+    /**
+     * Get profile data for a publisher
+     */
+    public function getProfileData($publisherId) {
+        // First check if profile exists
+        $query = "SELECT * FROM publisher_profiles WHERE publisher_id = :publisher_id LIMIT 1";
+        $profile = $this->getRow($query, ['publisher_id' => $publisherId]);
+        
+        if (!$profile) {
+            // Create empty profile if doesn't exist
+            $this->createEmptyProfile($publisherId);
+            $profile = $this->getRow($query, ['publisher_id' => $publisherId]);
+        }
+        
+        return $profile;
+    }
+
+    /**
+     * Create empty profile for publisher
+     */
+    private function createEmptyProfile($publisherId) {
+        try {
+            $query = "INSERT INTO publisher_profiles (publisher_id) VALUES (:publisher_id)";
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['publisher_id' => $publisherId]);
+        } catch (Exception $e) {
+            error_log("Error creating empty profile: " . $e->getMessage());
+            // Return a stdClass object with default values if insert fails
+            $defaultProfile = new stdClass();
+            $defaultProfile->publisher_id = $publisherId;
+            $defaultProfile->org_type = null;
+            $defaultProfile->address = null;
+            $defaultProfile->established_year = null;
+            $defaultProfile->member_count = null;
+            $defaultProfile->headline = null;
+            $defaultProfile->bio = null;
+            $defaultProfile->mission = null;
+            $defaultProfile->website = null;
+            $defaultProfile->facebook = null;
+            $defaultProfile->instagram = null;
+            $defaultProfile->linkedin = null;
+            $defaultProfile->twitter = null;
+            $defaultProfile->discord = null;
+            $defaultProfile->youtube = null;
+            $defaultProfile->logo_url = null;
+            $defaultProfile->cover_photo_url = null;
+            return $defaultProfile;
+        }
+    }
+
+    /**
+     * Update basic publisher information
+     */
+    public function updateBasicInfo($publisherId, $data) {
+        $allowedFields = ['society_name', 'phone', 'university', 'faculty'];
+        
+        $updateFields = [];
+        $updateData = ['id' => $publisherId];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $updateFields[] = "$field = :$field";
+                $updateData[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($updateFields)) {
+            return true; // No fields to update
+        }
+        
+        $query = "UPDATE publishers SET " . implode(', ', $updateFields) . ", updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($updateData);
+        } catch (Exception $e) {
+            error_log("Error updating basic info: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update publisher profile data
+     */
+    public function updateProfileData($publisherId, $data) {
+        $allowedFields = ['org_type', 'address', 'established_year', 'member_count', 'headline', 'bio', 
+                         'mission', 'website', 'facebook', 'instagram', 'linkedin', 'twitter', 
+                         'discord', 'youtube', 'logo_url', 'cover_photo_url', 'preferences'];
+        
+        $updateFields = [];
+        $updateData = ['publisher_id' => $publisherId];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $updateFields[] = "$field = :$field";
+                $updateData[$field] = $data[$field];
+            }
+        }
+        
+        if (empty($updateFields)) {
+            return true; // No fields to update
+        }
+        
+        // Check if profile exists
+        $existsQuery = "SELECT id FROM publisher_profiles WHERE publisher_id = :publisher_id";
+        $exists = $this->getRow($existsQuery, ['publisher_id' => $publisherId]);
+        
+        if (!$exists) {
+            $this->createEmptyProfile($publisherId);
+        }
+        
+        $query = "UPDATE publisher_profiles SET " . implode(', ', $updateFields) . ", updated_at = CURRENT_TIMESTAMP WHERE publisher_id = :publisher_id";
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($updateData);
+        } catch (Exception $e) {
+            error_log("Error updating profile data: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Upload and save image
+     */
+    public function uploadImage($file, $type, $publisherId) {
+        error_log("uploadImage called with type: $type, publisherId: $publisherId");
+        error_log("File info: " . print_r($file, true));
+        
+        // Validate file
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($file['type'], $allowedTypes)) {
+            error_log("Invalid file type: " . $file['type']);
+            return false;
+        }
+
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($file['size'] > $maxSize) {
+            error_log("File too large: " . $file['size']);
+            return false;
+        }
+
+        // Create upload directory if it doesn't exist
+        $uploadDir = __DIR__ . '/../../public/uploads/publisher_images/' . $publisherId . '/';
+        error_log("Upload directory: " . $uploadDir);
+        
+        if (!file_exists($uploadDir)) {
+            $result = mkdir($uploadDir, 0755, true);
+            error_log("Directory created: " . ($result ? 'YES' : 'NO'));
+        }
+
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = $type . '_' . time() . '_' . uniqid() . '.' . $extension;
+        $filePath = $uploadDir . $filename;
+        error_log("Target file path: " . $filePath);
+
+        // Move uploaded file
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Return relative URL
+            $url = '/UniPulse/public/uploads/publisher_images/' . $publisherId . '/' . $filename;
+            error_log("Upload successful, URL: " . $url);
+            return $url;
+        }
+
+        error_log("move_uploaded_file failed");
+        return false;
+    }
+
+    // ==================== GALLERY METHODS ====================
+    
+    /**
+     * Get all galleries for a specific publisher
+     */
+    public function getPublisherGalleries($publisherId) {
+        $query = "SELECT 
+                    id,
+                    publisher_id,
+                    title,
+                    description,
+                    images,
+                    created_at,
+                    updated_at
+                FROM publisher_profiles_gallery
+                WHERE publisher_id = :publisher_id
+                ORDER BY created_at DESC";
+        
+        $galleries = $this->query($query, ['publisher_id' => $publisherId]);
+        
+        // Decode JSON images for each gallery
+        if ($galleries) {
+            $result = [];
+            foreach ($galleries as $gallery) {
+                // Convert object to array
+                $galleryArray = (array) $gallery;
+                $galleryArray['images'] = json_decode($galleryArray['images'], true) ?? [];
+                $galleryArray['photo_count'] = count($galleryArray['images']);
+                $result[] = $galleryArray;
+            }
+            return $result;
+        }
+        
+        return [];
+    }
+    
+    /**
+     * Get a specific gallery by ID with its images
+     */
+    public function getGalleryById($galleryId) {
+        $query = "SELECT * FROM publisher_profiles_gallery WHERE id = :id LIMIT 1";
+        $result = $this->query($query, ['id' => $galleryId]);
+        $gallery = $result ? $result[0] : null;
+        
+        if ($gallery) {
+            // Convert object to array
+            $gallery = (array) $gallery;
+            $gallery['images'] = json_decode($gallery['images'], true) ?? [];
+        }
+        
+        return $gallery;
+    }
+    
+    /**
+     * Create a new gallery with images
+     */
+    public function createGallery($publisherId, $title, $description, $imageUrls) {
+        try {
+            error_log("Publisher::createGallery called");
+            error_log("Publisher ID: " . $publisherId);
+            error_log("Title: " . $title);
+            error_log("Description: " . $description);
+            error_log("Image URLs: " . json_encode($imageUrls));
+            
+            $conn = $this->connect();
+            error_log("Database connected");
+            
+            // Encode images as JSON
+            $imagesJson = json_encode($imageUrls);
+            error_log("Images JSON: " . $imagesJson);
+            
+            // Insert gallery
+            $query = "INSERT INTO publisher_profiles_gallery (publisher_id, title, description, images) 
+                    VALUES (:publisher_id, :title, :description, :images)";
+            
+            error_log("SQL Query: " . $query);
+            
+            $stmt = $conn->prepare($query);
+            error_log("Statement prepared");
+            
+            $params = [
+                'publisher_id' => $publisherId,
+                'title' => $title,
+                'description' => $description,
+                'images' => $imagesJson
+            ];
+            error_log("Params: " . json_encode($params));
+            
+            $result = $stmt->execute($params);
+            error_log("Execute result: " . ($result ? 'true' : 'false'));
+            
+            $lastId = $conn->lastInsertId();
+            error_log("Last insert ID: " . $lastId);
+            
+            return $lastId;
+            
+        } catch (Exception $e) {
+            error_log("ERROR in createGallery: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+            throw $e;
+        }
+    }
+    
+    /**
+     * Update an existing gallery
+     */
+    public function updateGallery($galleryId, $title, $description, $keepImageUrls = [], $newImageUrls = []) {
+        try {
+            $conn = $this->connect();
+            
+            // Get current gallery
+            $gallery = $this->getGalleryById($galleryId);
+            if (!$gallery) {
+                throw new Exception("Gallery not found");
+            }
+            
+            // Ensure gallery is array
+            if (is_object($gallery)) {
+                $gallery = (array) $gallery;
+            }
+            
+            $currentImages = $gallery['images'] ?? [];
+            
+            // Delete physical files that are not being kept
+            foreach ($currentImages as $imageUrl) {
+                if (!in_array($imageUrl, $keepImageUrls)) {
+                    $this->deleteGalleryFile($imageUrl);
+                }
+            }
+            
+            // Merge kept images with new images
+            $updatedImages = array_merge($keepImageUrls, $newImageUrls);
+            
+            // Validate total images count (max 10)
+            if (count($updatedImages) > 10) {
+                throw new Exception("Maximum 10 photos allowed per gallery");
+            }
+            
+            // Update gallery
+            $imagesJson = json_encode($updatedImages);
+            
+            $query = "UPDATE publisher_profiles_gallery 
+                    SET title = :title, description = :description, images = :images, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = :id";
+            
+            $stmt = $conn->prepare($query);
+            $stmt->execute([
+                'id' => $galleryId,
+                'title' => $title,
+                'description' => $description,
+                'images' => $imagesJson
+            ]);
+            
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("Error updating gallery: " . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    /**
+     * Delete a gallery and all its images
+     */
+    public function deleteGallery($galleryId) {
+        try {
+            $conn = $this->connect();
+            
+            // Get gallery with images before deletion
+            $gallery = $this->getGalleryById($galleryId);
+            
+            if (!$gallery) {
+                throw new Exception("Gallery not found");
+            }
+            
+            // Ensure gallery is array
+            if (is_object($gallery)) {
+                $gallery = (array) $gallery;
+            }
+            
+            // Delete gallery from database
+            $deleteGalleryQuery = "DELETE FROM publisher_profiles_gallery WHERE id = :id";
+            $stmt = $conn->prepare($deleteGalleryQuery);
+            $stmt->execute(['id' => $galleryId]);
+            
+            // Delete physical files
+            if (!empty($gallery['images'])) {
+                foreach ($gallery['images'] as $imageUrl) {
+                    $this->deleteGalleryFile($imageUrl);
+                }
+            }
+            
+            return true;
+            
+        } catch (Exception $e) {
+            error_log("Error deleting gallery: " . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    /**
+     * Delete physical gallery file from server
+     */
+    private function deleteGalleryFile($imageUrl) {
+        $filePath = $_SERVER['DOCUMENT_ROOT'] . $imageUrl;
+        if (file_exists($filePath)) {
+            @unlink($filePath);
+        }
+    }
+
+    // ==================== EVENT METHODS ====================
+    
+    /**
+     * Get upcoming events for a specific publisher
+     */
+    public function getUpcomingEvents($publisherId) {
+        $query = "SELECT e.*, p.society_name as organizer_name 
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id
+                WHERE e.created_by = :publisher_id 
+                AND e.created_by_type = 'publisher'
+                AND e.event_date >= CURDATE()
+                ORDER BY e.event_date ASC, e.event_time ASC";
+        
+        $events = $this->query($query, ['publisher_id' => $publisherId]);
+        return $events ?: [];
+    }
+    
+    /**
+     * Get past events for a specific publisher
+     */
+    public function getPastEvents($publisherId) {
+        $query = "SELECT e.*, p.society_name as organizer_name 
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id
+                WHERE e.created_by = :publisher_id 
+                AND e.created_by_type = 'publisher'
+                AND e.event_date < CURDATE()
+                ORDER BY e.event_date DESC, e.event_time DESC";
+        
+        $events = $this->query($query, ['publisher_id' => $publisherId]);
+        return $events ?: [];
+    }
+    
+    /**
+     * Get all events for a specific publisher (for profile display)
+     */
+    public function getAllPublisherEvents($publisherId) {
+        $query = "SELECT e.*, p.society_name as organizer_name 
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id
+                WHERE e.created_by = :publisher_id 
+                AND e.created_by_type = 'publisher'
+                ORDER BY e.event_date DESC";
+        
+        $events = $this->query($query, ['publisher_id' => $publisherId]);
+        return $events ?: [];
+    }
+
+    /**
+     * Update publisher email
+     */
+    public function updateEmail($publisherId, $newEmail) {
+        $query = "UPDATE publishers SET email = :email, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['email' => $newEmail, 'id' => $publisherId]);
+    }
+
+    /**
+     * Update publisher password
+     */
+    public function updatePassword($publisherId, $newPassword) {
+        $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+        $query = "UPDATE publishers SET password_hash = :password_hash, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['password_hash' => $passwordHash, 'id' => $publisherId]);
     
     /**
      * Get all approved publishers by university

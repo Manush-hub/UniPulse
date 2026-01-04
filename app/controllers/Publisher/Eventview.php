@@ -50,13 +50,16 @@ class PublisherEventview extends Controller {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
                         }
                         
+                        // Format event data to include organizer photo
+                        $formattedEvent = $this->formatEventForResponse($event);
+                        
                         // Pass server data to view for JavaScript
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
                             'isOwner' => $isOwner,
                             'serverData' => [
-                                'event' => $event,
+                                'event' => $formattedEvent,
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,
@@ -317,6 +320,26 @@ class PublisherEventview extends Controller {
         
         if (isset($eventData['schedule']) && is_string($eventData['schedule'])) {
             $eventData['schedule'] = json_decode($eventData['schedule'], true) ?: [];
+        }
+        
+        // Fetch organizer profile photo and phone if event is created by publisher
+        if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
+            $publisherModel = new Publisher();
+            
+            // Get publisher basic info (includes phone)
+            $publisherInfo = $publisherModel->where(['id' => $eventData['created_by']]);
+            if ($publisherInfo && count($publisherInfo) > 0) {
+                $publisher = $publisherInfo[0];
+                if (!empty($publisher->phone)) {
+                    $eventData['organizer_phone'] = $publisher->phone;
+                }
+            }
+            
+            // Get publisher profile (includes logo)
+            $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
+            if ($publisherProfile && !empty($publisherProfile->logo_url)) {
+                $eventData['organizer_photo'] = $publisherProfile->logo_url;
+            }
         }
         
         return $eventData;

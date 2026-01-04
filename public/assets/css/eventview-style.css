@@ -112,7 +112,7 @@ body {
     padding: 3rem 0;
     margin-bottom: 2rem;
     position: relative;
-    min-height: 400px;
+    min-height: 600px;
     overflow: hidden;
 }
 
@@ -148,9 +148,9 @@ body {
 }
 
 .hero-content h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 .event-meta {
@@ -200,17 +200,21 @@ body {
 
 .event-details-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
     background: rgba(255, 255, 255, 0.1);
     padding: 2rem;
     border-radius: 12px;
+    margin-top: 100px;
 }
 
 .detail-item {
+    height: 60px;
+    width: 300px;
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
 }
 
 .detail-item i {
@@ -241,15 +245,16 @@ body {
 }
 
 .content-card {
+    /* height: 350px; */
     background: white;
     border-radius: 12px;
     padding: 2rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    /* margin-bottom: 2rem; */
 }
 
 .content-card h3 {
-    display: flex;
+    /* display: flex; */
     align-items: center;
     gap: 1rem;
     font-size: 1.5rem;
@@ -289,6 +294,31 @@ body {
     color: #4b5563;
 }
 
+/* Quantity Selector Highlighting */
+.quantity-selector {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    padding: 4px 6px;
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
+}
+
+.quantity-selector label {
+    color: #1e40af !important;
+    font-weight: 700 !important;
+    font-size: 11px !important;
+}
+
+.quantity-btn {
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+    background: #3b82f6 !important;
+    color: white !important;
+    border-color: #2563eb !important;
+}
+
 /* Requirements */
 .requirements-list {
     list-style: none;
@@ -313,7 +343,7 @@ body {
 
 /* Organizer Info */
 .organizer-info {
-    display: flex;
+    /* display: flex; */
     align-items: center;
     gap: 1rem;
 }
@@ -338,6 +368,35 @@ body {
 .organizer-details p {
     color: #6b7280;
     margin-bottom: 1rem;
+}
+
+.organizer-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn-icon {
+    width: 70px;
+    height: 50px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.2);
+}
+
+.btn-icon:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
 /* Statistics */
@@ -385,41 +444,6 @@ body {
     text-align: center;
     color: #6b7280;
     font-size: 0.9rem;
-}
-
-/* Similar Events */
-.similar-event-card {
-    padding: 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.similar-event-card:hover {
-    border-color: #1e3a8a;
-    transform: translateY(-2px);
-}
-
-.similar-event-card h5 {
-    margin-bottom: 0.5rem;
-    color: #1f2937;
-}
-
-.similar-event-date {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.similar-event-category {
-    background: #f1f5f9;
-    color: #1e3a8a;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
 }
 
 /* Buttons */
@@ -670,10 +694,79 @@ body {
 /* Location details */
 .location-detail-item {
     padding: 0.5rem 0;
+    font-size: 1.15rem;
 }
 
 .location-detail-item div {
     margin-bottom: 0.5rem;
+}
+
+/* #locationDetails {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+} */
+
+.location-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+
+.location-box:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.location-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.location-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.location-content {
+    flex: 1;
+}
+
+.location-content strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.location-content span {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
+}
+
+@media (max-width: 1024px) {
+    #locationDetails {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Ticket details */
@@ -710,9 +803,9 @@ body {
 }
 
 /* Volunteer info */
-.volunteer-detail-item {
+/* .volunteer-detail-item {
     padding: 0.5rem 0;
-}
+} */
 
 .volunteer-sources-list,
 .volunteer-positions-list {
@@ -765,7 +858,7 @@ body {
 }
 
 .custom-amount label {
-    display: block;
+    /* display: block; */
     margin-bottom: 0.5rem;
     font-weight: 500;
     color: #374151;
@@ -810,4 +903,1029 @@ body {
     .volunteer-positions-list li {
         font-size: 0.9rem;
     }
+}
+/* ==========================================
+   NEW PROFESSIONAL LAYOUT STYLES
+   ========================================== */
+
+/* Section Headers */
+.section-header {
+    margin: 3rem 0 2rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #1e3a8a;
+}
+
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Description & Organizer Grid */
+.description-organizer-grid {
+    /* display: grid; */
+    /* grid-template-columns: 2fr 1fr; */
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.description-content {
+    min-width: 0;
+}
+
+.organizer-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.organizer-card {
+    /* position: sticky; */
+    top: 20px;
+}
+
+.organizer-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    overflow: hidden;
+}
+
+.organizer-avatar i {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.organizer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.organizer-details {
+    text-align: center;
+}
+
+.organizer-details h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.organizer-role {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.btn-block {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Details Grid */
+.details-grid {
+    /* display: grid; */
+    /* grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); */
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Registration Section */
+.registration-section {
+    margin-bottom: 2rem;
+}
+
+/* Event Statistics in Registration Section */
+.event-stats-registration {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #bae6fd;
+    margin-bottom: 1.5rem;
+}
+
+.stats-registration-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-box:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon.registered {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.stat-icon.available {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+}
+
+.stat-icon.capacity {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-box .stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-box .stat-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.capacity-bar-container {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 12px;
+}
+
+.capacity-bar {
+    height: 20px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.capacity-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    position: relative;
+}
+
+.capacity-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.capacity-text {
+    text-align: center;
+    color: #374151;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.capacity-text span {
+    color: #1e3a8a;
+    font-size: 1.25rem;
+}
+
+/* Ticket Type Breakdown */
+.ticket-breakdown-divider {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #bae6fd, transparent);
+    margin: 1.5rem 0;
+}
+
+.breakdown-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.breakdown-title i {
+    color: #3b82f6;
+}
+
+.ticket-type-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ticket-stat-item {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid;
+}
+
+.ticket-stat-item.free {
+    border-left-color: #10b981;
+}
+
+.ticket-stat-item.paid {
+    border-left-color: #3b82f6;
+}
+
+.ticket-stat-left {
+    flex: 1;
+}
+
+.ticket-stat-name {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.ticket-stat-price {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.ticket-stat-price.free-price {
+    color: #10b981;
+    font-weight: 600;
+}
+
+.ticket-stat-right {
+    text-align: right;
+}
+
+.ticket-stat-available {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.ticket-stat-total {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+.registration-card {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+}
+
+.registration-type {
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.registration-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.registration-icon {
+    font-size: 1.75rem;
+    color: #1e3a8a;
+}
+
+.registration-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.registration-subtitle {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0.25rem 0 0 0;
+}
+
+.registration-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    /* border: 2px dashed #e2e8f0; */
+    text-align: center;
+}
+
+.price-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.price-label {
+    font-size: 1.1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.price-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e3a8a;
+}
+
+.price-value.free {
+    color: #10b981;
+}
+
+.btn-large {
+    padding: 1rem 3rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.registration-note {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.registration-note i {
+    color: #1e3a8a;
+}
+
+.divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 2rem 0;
+}
+
+/* Registration & Ticket Period Sections */
+.period-section {
+    margin-bottom: 1.5rem;
+}
+
+.period-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid #fbbf24;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(251, 191, 36, 0.2);
+}
+
+.period-header:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.period-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.period-icon.free-period {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.period-icon.ticket-period {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
+}
+
+.period-content {
+    flex: 1;
+}
+
+.period-content h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.75rem 0;
+}
+
+.period-dates {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #4b5563;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.period-date-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.period-date-item i {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.period-date-separator {
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.period-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+.period-status.status-upcoming {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.period-status.status-open {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.period-status.status-closed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.period-status i {
+    font-size: 0.75rem;
+}
+
+/* Ticket Purchase Section */
+.ticket-details-section {
+    margin: 1rem 0;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.ticket-details-section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ticket-details-section::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.ticket-details-section::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.ticket-details-section::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.ticket-purchase {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    text-align: center;
+}
+
+.ticket-price-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 10px;
+    border: 2px solid #86efac;
+}
+
+.ticket-price-box .price-value {
+    color: #059669;
+}
+
+/* Open Entry Message */
+.open-entry-message {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid #86efac;
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.open-entry-message i {
+    font-size: 2.5rem;
+    color: #10b981;
+    margin-bottom: 0.75rem;
+}
+
+.open-entry-message h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #065f46;
+    margin-bottom: 0.5rem;
+}
+
+.open-entry-message p {
+    font-size: 1rem;
+    color: #059669;
+    line-height: 1.6;
+}
+
+.open-entry-message.compact {
+    padding: 1.5rem;
+}
+
+.open-entry-message.compact i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.open-entry-message.compact h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.open-entry-message.compact p {
+    font-size: 0.9rem;
+}
+
+/* Mixed Ticketing Grid */
+/* .mixed-ticketing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+} */
+
+.mixed-student {
+    margin-bottom: 1rem;
+    /* border: 2px solid #10b981; */
+}
+
+.mixed-student .registration-icon {
+    color: #10b981;
+}
+
+.mixed-public {
+    margin-top: 1rem;
+    border: 2px solid #3b82f6;
+}
+
+.mixed-public .registration-icon {
+    color: #3b82f6;
+}
+
+.ticket-price-box.compact {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Volunteer & Donation Grid */
+.volunteer-donation-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: center;
+}
+
+.volunteer-card,
+.donation-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.volunteer-card:hover,
+.donation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2.5rem;
+}
+
+.volunteer-icon {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+}
+
+.donation-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.volunteer-card h3,
+.donation-card h3 {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.volunteer-info,
+.donation-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.volunteer-info p,
+.donation-info p {
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+/* Button Styles */
+.btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .description-organizer-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .organizer-card {
+        position: relative;
+        top: 0;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-title {
+        font-size: 1.5rem;
+    }
+    
+    .stats-registration-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stat-box {
+        padding: 1rem;
+    }
+    
+    .stat-box .stat-number {
+        font-size: 1.75rem;
+    }
+    
+    .breakdown-title {
+        font-size: 1rem;
+    }
+    
+    .ticket-stat-item {
+        padding: 0.875rem 1rem;
+    }
+    
+    .ticket-stat-name {
+        font-size: 0.9rem;
+    }
+    
+    .ticket-stat-price {
+        font-size: 0.8rem;
+    }
+    
+    .ticket-stat-available {
+        font-size: 1.25rem;
+    }
+    
+    /* Period sections responsive */
+    .period-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.25rem;
+    }
+    
+    .period-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        margin: 0 auto;
+    }
+    
+    .period-content h4 {
+        font-size: 1.1rem;
+    }
+    
+    .period-dates {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .period-date-separator {
+        display: none;
+    }
+    
+    .period-status {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    /* Mixed ticketing responsive */
+    .mixed-ticketing-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .open-entry-message {
+        padding: 1.5rem;
+    }
+    
+    .open-entry-message i {
+        font-size: 2.5rem;
+    }
+    
+    .open-entry-message h4 {
+        font-size: 1.25rem;
+    }
+    
+    .registration-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .registration-header h3 {
+        font-size: 1.4rem;
+    }
+    
+    .price-display {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .price-value {
+        font-size: 2rem;
+    }
+    
+    .btn-large {
+        padding: 0.875rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+/* Free Event Registration Card Styles */
+#freeEventRegistrationCard {
+    border: 2px solid #10B981;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.free-event-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #d1fae5;
+}
+
+.free-event-icon {
+    width: 60px;
+    height: 60px;
+    background: #10B981;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: white;
+}
+
+.free-event-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+}
+
+.free-event-subtitle {
+    margin: 0.25rem 0 0 0;
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+.free-event-price {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 2px dashed #10B981;
+}
+
+.free-event-price .price-label {
+    display: block;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.free-event-price .price-value {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #10B981;
+}
+
+.free-event-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.free-event-message {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.25rem;
+    background: #d1fae5;
+    border-radius: 8px;
+    border-left: 4px solid #10B981;
+}
+
+.free-event-message > i {
+    font-size: 2rem;
+    color: #059669;
+    flex-shrink: 0;
+}
+
+.free-event-message h4 {
+    margin: 0 0 0.5rem 0;
+    color: #065f46;
+    font-size: 1.1rem;
+}
+
+.free-event-message p {
+    margin: 0;
+    color: #047857;
+    line-height: 1.5;
+}
+
+.free-event-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #d1d5db, transparent);
+    margin: 1.5rem 0;
+}
+
+.free-event-register-section {
+    text-align: center;
+}
+
+.register-optional-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #eff6ff;
+    border: 1px solid #3b82f6;
+    border-radius: 20px;
+    color: #1e40af;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.register-optional-text {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 1rem 0 1.5rem 0;
+}
+
+.free-event-register-section .btn-large {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+}
+
+.btn-large.registered {
+    background: #10B981;
+    border-color: #10B981;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.btn-large.registered:hover {
+    background: #10B981;
+    border-color: #10B981;
+}
+
+.registration-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #eff6ff;
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.registration-info-banner i {
+    color: #3b82f6;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.registration-info-banner p {
+    margin: 0;
+    color: #1e40af;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Publisher Dashboard</title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/dashboard-style.css">
+    <link rel="stylesheet" href="/UniPulse/public/assets/css/Publisher/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
 </head>
@@ -24,7 +24,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">Jennifer</span> ! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?php echo htmlspecialchars($data['user']['name'] ?? 'Organization'); ?></span>! 👋</h1>
                         <p>Manage your events and track performance from your organizer dashboard.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
@@ -42,7 +42,7 @@
                         </div>
                     </div>
                     <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">
+                        <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -51,7 +51,7 @@
                             </svg>
                             Create Event
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/sponsors'">
+                        <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/sponsors'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -128,9 +128,17 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Your Events</h2>
-                    <a href="my-events.html" class="view-all">View All</a>
+                    <div class="event-filters">
+                        <button class="filter-btn active" data-filter="all">All Events</button>
+                        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+                        <button class="filter-btn" data-filter="past">Past</button>
+                    </div>
+                    <div class="event-slider-controls" style="margin-top: 1rem;">
+                        <button class="btn btn-outline" id="prevEventsBtn" type="button"><i class="fas fa-chevron-left"></i> Prev</button>
+                        <button class="btn btn-outline" id="nextEventsBtn" type="button">Next <i class="fas fa-chevron-right"></i></button>
+                    </div>
                 </div>
-                <div class="events-list" id="eventsManagementList">
+                <div class="events-grid" id="eventsManagementList">
                     <!-- Events will be loaded here -->
                 </div>
             </div>
