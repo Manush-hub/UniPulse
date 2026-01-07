@@ -136,4 +136,33 @@ class Sponsor {
         
         return $this->getRow($query);
     }
+    
+    /**
+     * Update sponsor profile images (cover photo and/or logo)
+     * @param int $id Sponsor ID
+     * @param string|null $coverPhotoUrl URL to cover photo
+     * @param string|null $logoUrl URL to logo
+     * @return bool Success
+     */
+    public function updateProfileImages($id, $coverPhotoUrl = null, $logoUrl = null) {
+        $updates = [];
+        $params = ['id' => $id];
+        
+        if ($coverPhotoUrl !== null) {
+            $updates[] = 'cover_photo = :cover_photo';
+            $params['cover_photo'] = $coverPhotoUrl;
+        }
+        
+        if ($logoUrl !== null) {
+            $updates[] = 'logo = :logo';
+            $params['logo'] = $logoUrl;
+        }
+        
+        if (empty($updates)) {
+            return false;
+        }
+        
+        $query = 'UPDATE sponsors SET ' . implode(', ', $updates) . ' WHERE id = :id';
+        return $this->query($query, $params) !== false;
+    }
 }

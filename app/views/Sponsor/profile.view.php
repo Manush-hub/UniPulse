@@ -20,6 +20,7 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
+                    <img id="coverPhoto" src="<?= htmlspecialchars($user['cover_photo'] ?? '/UniPulse/public/assets/images/default-cover.jpg') ?>">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -28,6 +29,7 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
+                    <img id="profileImage" src="<?= htmlspecialchars($user['logo'] ?? '/UniPulse/public/assets/images/default-avatar.png') ?>">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
@@ -107,7 +109,7 @@
                             <input type="email" id="sponsorEmail" placeholder="Contact email address">
                         </div>
                         <div class="form-group">
-                            <label for="sponsorPhone">Phone Number</label>
+                            <label for="sponsorPhone">Contact Number</label>
                             <input type="tel" id="sponsorPhone" placeholder="Contact phone number">
                         </div>
                         
@@ -118,20 +120,22 @@
                             <textarea id="sponsorAddress" rows="2" placeholder="Business address"></textarea>
                         </div>
                         
+                        <!--
                         <div class="form-group full-width">
                             <label for="headline">Headline</label>
                             <textarea id="headline" rows="1" placeholder="Brief description of your mission or purpose"></textarea>
-                        </div>
+                        </div>-->
                         <div class="form-group full-width">
                             <label for="about">About Sponsor</label>
                             <textarea id="about" rows="4" placeholder="Tell us about your organization or yourself"></textarea>
                         </div>
 
                         <!-- Mission/Vision for Companies -->
+                         <!--
                         <div class="form-group full-width">
                             <label for="mission">Mission Statement</label>
                             <textarea id="mission" rows="3" placeholder="Company mission or vision statement"></textarea>
-                        </div>
+                        </div>-->
                         
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveSponsorInfo()">

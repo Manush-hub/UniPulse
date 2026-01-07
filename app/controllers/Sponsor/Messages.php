@@ -26,6 +26,34 @@ class SponsorMessages extends Controller {
         
         parent::view('Sponsor/messages', $data);
     }
+    //Newly added method for dashboard
+    public function index() {
+    $currentUser = AuthService::getCurrentUser();
+    if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+        header('Location: /unipulse/public/signin');
+        exit();
+    }
+    
+    // Get sponsor statistics
+    $sponsorshipModel = new Sponsorship();
+    $donationModel = new Donation();
+    
+    $data = [
+        'user' => $currentUser,
+        'recent_messages' => $recentMessages,
+        'unread_count' => $unreadCount,
+        'stats' => [
+            'total_sponsorships' => $sponsorshipModel->getCountBySponsor($currentUser['id']),
+            'active_sponsorships' => $sponsorshipModel->getActiveBySponsor($currentUser['id']),
+            'total_donations' => $donationModel->getTotalBySponsor($currentUser['id']),
+            'upcoming_events' => $sponsorshipModel->getUpcomingEvents($currentUser['id'])
+        ],
+        'page_title' => 'Dashboard'
+    ];
+    
+    $this->view('Sponsor/dashboard', $data);
+    } 
+    //close newly added method
     
     public function details($messageId = '') {
         // Require sponsor authentication

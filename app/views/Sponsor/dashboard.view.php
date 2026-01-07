@@ -22,7 +22,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($user['company_name'] ?? 'Sponsor') ?></span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($user['name'] ?? 'Sponsor') ?></span>! 👋</h1>
                         <p>Manage your sponsorships and discover new opportunities to support university events.</p>
                         <div class="quick-stats">
                             <div class="stat-item">

@@ -709,14 +709,34 @@ function uploadCover() {
 function changeCover(event) {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
+        // Preview immediately
         const reader = new FileReader();
         reader.onload = (e) => {
             const coverImg = document.getElementById('coverPhoto');
-            if (coverImg) {
-                coverImg.src = e.target.result;
-            }
+            if (coverImg) coverImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
+
+        // Upload to server
+        const form = new FormData();
+        form.append('image', file);
+        form.append('type', 'cover');
+
+        fetch('/unipulse/public/api/sponsor_upload.php', { method: 'POST', body: form })
+            .then(res => res.json())
+            .then(data => {
+                if (data.url) {
+                    const coverImg = document.getElementById('coverPhoto');
+                    if (coverImg) coverImg.src = data.url;
+                    alert('Cover photo uploaded successfully');
+                } else {
+                    console.error(data);
+                    alert('Upload failed');
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Upload failed');
+            });
     }
 }
 
@@ -728,14 +748,34 @@ function uploadProfileImage() {
 function changeProfileImage(event) {
     const file = event.target.files[0];
     if (file && file.type.startsWith('image/')) {
+        // Preview immediately
         const reader = new FileReader();
         reader.onload = (e) => {
             const profileImg = document.getElementById('profileImage');
-            if (profileImg) {
-                profileImg.src = e.target.result;
-            }
+            if (profileImg) profileImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
+
+        // Upload to server
+        const form = new FormData();
+        form.append('image', file);
+        form.append('type', 'logo');
+
+        fetch('/unipulse/public/api/sponsor_upload.php', { method: 'POST', body: form })
+            .then(res => res.json())
+            .then(data => {
+                if (data.url) {
+                    const profileImg = document.getElementById('profileImage');
+                    if (profileImg) profileImg.src = data.url;
+                    alert('Logo uploaded successfully');
+                } else {
+                    console.error(data);
+                    alert('Upload failed');
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Upload failed');
+            });
     }
 }
 
