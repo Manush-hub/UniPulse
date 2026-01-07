@@ -120,8 +120,14 @@ class Event {
         }
         
         if (!empty($filters['search'])) {
-            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
-            $params['search'] = '%' . $filters['search'] . '%';
+            // Use a single :search parameter that matches multiple columns
+            $search = '%' . $filters['search'] . '%';
+            $whereClause[] = '(title LIKE :search1 OR description LIKE :search2 OR university_name LIKE :search3 OR organizer LIKE :search4 OR location LIKE :search5)';
+            $params['search1'] = $search;
+            $params['search2'] = $search;
+            $params['search3'] = $search;
+            $params['search4'] = $search;
+            $params['search5'] = $search;
         }
         
         $sql = "SELECT * FROM {$this->table}";
@@ -132,15 +138,14 @@ class Event {
         
         $sql .= ' ORDER BY event_date ASC, event_time ASC';
         
-        // Add pagination if specified
-        if (isset($filters['limit'])) {
-            $sql .= ' LIMIT :limit';
-            $params['limit'] = $filters['limit'];
-            
-            if (isset($filters['offset'])) {
-                $sql .= ' OFFSET :offset';
-                $params['offset'] = $filters['offset'];
-            }
+        // Add pagination if specified (use direct integers, not named parameters)
+        if (isset($filters['limit']) && isset($filters['offset'])) {
+            $limit = intval($filters['limit']);
+            $offset = intval($filters['offset']);
+            $sql .= " LIMIT {$limit} OFFSET {$offset}";
+        } elseif (isset($filters['limit'])) {
+            $limit = intval($filters['limit']);
+            $sql .= " LIMIT {$limit}";
         }
         
         return $this->query($sql, $params);

@@ -4,11 +4,13 @@ class SponsorEventview extends Controller {
     
     private $eventModel;
     private $registrationModel;
+    private $sponsorPostModel;
     
     public function __construct() {
         // Initialize Event model
         $this->eventModel = new Event();
         $this->registrationModel = new EventRegistration();
+        $this->sponsorPostModel = new SponsorPost();
     }
     
     public function index($id = null) {
@@ -39,6 +41,9 @@ class SponsorEventview extends Controller {
                             3
                         );
                         
+                        // Get approved sponsor posts for this event
+                        $sponsorPosts = $this->sponsorPostModel->getApprovedPostsByEvent($eventId);
+                        
                         // Check if sponsor is already registered
                         $currentUser = AuthService::getCurrentUser();
                         $currentSponsorId = ($currentUser && $currentUser['type'] === 'sponsor') ? $currentUser['id'] : null;
@@ -51,9 +56,11 @@ class SponsorEventview extends Controller {
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
+                            'sponsorPosts' => $sponsorPosts,
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
+                                'sponsorPosts' => $sponsorPosts,
                                 'isRegistered' => $isRegistered,
                                 'apiEndpoint' => '/unipulse/public/sponsor/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/sponsor/eventview/joinEvent'
@@ -314,6 +321,101 @@ class SponsorEventview extends Controller {
             $eventData['schedule'] = json_decode($eventData['schedule'], true) ?: [];
         }
         
+        // Add sponsorship needs based on event data
+        $eventData['sponsorship_needs'] = $this->generateSponsorshipNeeds($event);
+        $eventData['sponsorship_benefits'] = $this->generateSponsorshipBenefits($event);
+        
         return $eventData;
+    }
+    
+    /**
+     * Generate sponsorship needs for event based on event properties
+     */
+    private function generateSponsorshipNeeds($event) {
+        $needs = [];
+        
+        // Infrastructure/Venue needs
+        if (isset($event->venue_name) && !empty($event->venue_name)) {
+            $needs[] = [
+                'category' => 'Venue & Infrastructure',
+                'items' => ['Venue rental', 'Sound system', 'Lighting equipment', 'Seating arrangements']
+            ];
+        }
+        
+        // Participant support needs
+        if (isset($event->max_participants) && $event->max_participants > 100) {
+            $needs[] = [
+                'category' => 'Participant Support',
+                'items' => ['Refreshments', 'Meals', 'Transportation', 'Event materials & merchandise']
+            ];
+        }
+        
+        // Volunteer support if volunteers needed
+        if (isset($event->needs_volunteers) && $event->needs_volunteers) {
+            $needs[] = [
+                'category' => 'Volunteer Support',
+                'items' => ['Volunteer coordination', 'Team training', 'Recognition & incentives']
+            ];
+        }
+        
+        // Marketing & promotion
+        $needs[] = [
+            'category' => 'Marketing & Promotion',
+            'items' => ['Advertising budget', 'Social media campaign', 'Promotional materials', 'Event branding']
+        ];
+        
+        // Technical support if applicable
+        if (in_array($event->category, ['technology', 'workshop', 'business'])) {
+            $needs[] = [
+                'category' => 'Technical Support',
+                'items' => ['Technology equipment', 'Software licenses', 'Technical staff', 'IT support']
+            ];
+        }
+        
+        // Default basic needs if array is empty
+        if (empty($needs)) {
+            $needs[] = [
+                'category' => 'General Support',
+                'items' => ['Event operations', 'Equipment rental', 'Marketing & promotion', 'Participant support']
+            ];
+        }
+        
+        return $needs;
+    }
+    
+    /**
+     * Generate sponsorship benefits for event
+     */
+    private function generateSponsorshipBenefits($event) {
+        return [
+            'Brand Visibility' => 'Logo and name featured in event promotions, materials, and venue',
+            'Audience Engagement' => 'Direct interaction with ' . (isset($event->max_participants) ? $event->max_participants : '100+') . '+ attendees from ' . (isset($event->university_name) ? $event->university_name : 'the university'),
+            'Media Recognition' => 'Mention in event press releases, social media, and university communications',
+            'Networking Opportunity' => 'Connect with university students, faculty, and community members',
+            'CSR Impact' => 'Demonstrate corporate social responsibility and community engagement',
+            'Student Outreach' => 'Build relationship with future employees and potential talent pipeline'
+        ];
+    }
+    
+    /**
+     * Track sponsor post click/view analytics
+     */
+    public function trackPostClick($postId = '') {
+        header('Content-Type: application/json');
+        
+        if (!$postId || !is_numeric($postId)) {
+            echo json_encode(['success' => false]);
+            exit;
+        }
+        
+        try {
+            $this->sponsorPostModel->trackClick($postId);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            error_log("Error tracking post click: " . $e->getMessage());
+            echo json_encode(['success' => false]);
+        }
+        
+        exit;
     }
 }

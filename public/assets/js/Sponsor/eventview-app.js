@@ -1,6 +1,7 @@
 // Get server data or use fallback
 let currentEvent = window.serverData?.event || null;
 let similarEvents = window.serverData?.similarEvents || [];
+let sponsorPosts = window.serverData?.sponsorPosts || [];
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
@@ -29,6 +30,7 @@ function loadEventDetails() {
         // Use server data directly
         displayEventDetails(currentEvent);
         loadSimilarEvents(similarEvents);
+        displaySponsorPosts(sponsorPosts);
         hideLoading();
         showEventContainer();
     } else {
@@ -208,6 +210,9 @@ function displayEventDetails(event) {
         }
     }
     
+    // Sponsorship information - show if sponsorship data present
+    displaySponsorshipInfo(event);
+    
     // Organizer info
     document.getElementById('organizerName').textContent = event.organizer;
     
@@ -384,7 +389,15 @@ function closeJoinModal() {
 }
 
 function openShareModal() {
-    document.getElementById('shareModal').style.display = 'flex';
+    const shareModal = document.getElementById('shareModal');
+    const shareLink = document.getElementById('shareLink');
+    
+    // Set the current page URL in the share link input
+    if (shareLink) {
+        shareLink.value = window.location.href;
+    }
+    
+    shareModal.style.display = 'flex';
 }
 
 function closeShareModal() {
@@ -493,29 +506,86 @@ function contactOrganizer() {
     }
 }
 
+// Called from sponsorship section button
+function contactSponsorshipOrganizer() {
+    const organizerEmail = currentEvent?.organizerEmail || currentEvent?.organizer_email;
+    if (organizerEmail) {
+        // Prefill subject and open mail client
+        const subject = `Sponsorship Inquiry - ${currentEvent.title}`;
+        window.location.href = `mailto:${organizerEmail}?subject=${encodeURIComponent(subject)}`;
+    } else {
+        // Fallback to in-app message modal
+        openMessageModal();
+    }
+}
+
 // Share functions
 function shareViaFacebook() {
     const url = encodeURIComponent(window.location.href);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    closeShareModal();
 }
 
 function shareViaTwitter() {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(`Check out this event: ${currentEvent.title}`);
-    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+    const text = encodeURIComponent(`Check out this event: ${currentEvent?.title || 'Exciting Event'}`);
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+    closeShareModal();
+}
+
+function shareViaLinkedIn() {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+    closeShareModal();
 }
 
 function shareViaWhatsApp() {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent(`Check out this event: ${currentEvent.title} - ${url}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    const text = encodeURIComponent(`Check out this event: ${currentEvent?.title || 'Exciting Event'}`);
+    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
+    closeShareModal();
+}
+
+function copyShareLink() {
+    const shareLink = document.getElementById('shareLink');
+    
+    if (!shareLink) {
+        alert('Share link not available');
+        return;
+    }
+    
+    shareLink.select();
+    shareLink.setSelectionRange(0, 99999); // For mobile devices
+    
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareLink.value)
+            .then(() => {
+                // Show success feedback
+                const copyBtn = event.target;
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '';
+                }, 2000);
+            })
+            .catch(() => {
+                // Fallback to execCommand
+                document.execCommand('copy');
+                alert('Event link copied to clipboard!');
+            });
+    } else {
+        // Fallback for older browsers
+        document.execCommand('copy');
+        alert('Event link copied to clipboard!');
+    }
 }
 
 function copyEventLink() {
-    const eventLink = document.getElementById('eventLink');
-    eventLink.select();
-    document.execCommand('copy');
-    alert('Event link copied to clipboard!');
+    copyShareLink();
 }
 
 // UI state management
@@ -696,6 +766,140 @@ function displayVolunteerInfo(event) {
     document.getElementById('volunteerInfo').innerHTML = volunteerHTML;
 }
 
+/**
+ * Display sponsorship needs and benefits
+ */
+function displaySponsorshipInfo(event) {
+    const card = document.getElementById('sponsorshipCard');
+    if (!card) return;
+
+    const needsContainer = document.getElementById('sponsorshipNeeds');
+    const benefitsContainer = document.getElementById('sponsorshipBenefits');
+
+    const needs = event.sponsorship_needs || [];
+    const benefits = event.sponsorship_benefits || {};
+
+    if ((Array.isArray(needs) && needs.length > 0) || (benefits && Object.keys(benefits).length > 0)) {
+        card.style.display = 'block';
+
+        // Populate needs
+        if (needsContainer) {
+            let html = '';
+            needs.forEach(n => {
+                html += `<div class="need-category"><strong>${n.category}</strong><ul>`;
+                (n.items || []).forEach(item => {
+                    html += `<li>${item}</li>`;
+                });
+                html += `</ul></div>`;
+            });
+            needsContainer.innerHTML = html || '<p>No specific sponsorship needs listed.</p>';
+        }
+
+        // Populate benefits
+        if (benefitsContainer) {
+            let html = '';
+            if (Array.isArray(benefits)) {
+                benefits.forEach(b => html += `<li>${b}</li>`);
+            } else if (typeof benefits === 'object') {
+                Object.keys(benefits).forEach(k => {
+                    html += `<li><strong>${k}:</strong> ${benefits[k]}</li>`;
+                });
+            } else {
+                html = '<li>No benefits listed.</li>';
+            }
+            benefitsContainer.innerHTML = html;
+        }
+    } else {
+        card.style.display = 'none';
+    }
+}
+
+/**
+ * Display approved sponsor posts for the event
+ */
+function displaySponsorPosts(posts) {
+    const card = document.getElementById('sponsorPostsCard');
+    const container = document.getElementById('sponsorPostsContainer');
+    
+    if (!card || !container) return;
+    
+    // Check if there are any approved posts
+    const approvedPosts = Array.isArray(posts) ? posts : [];
+    
+    if (approvedPosts.length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    card.style.display = 'block';
+    
+    let html = '';
+    approvedPosts.forEach(post => {
+        html += renderSponsorPost(post);
+    });
+    
+    container.innerHTML = html;
+}
+
+/**
+ * Render a single sponsor post
+ */
+function renderSponsorPost(post) {
+    const imageUrl = post.image_url || '';
+    const logoUrl = post.brand_logo_url || '';
+    const ctaText = post.call_to_action_text || '';
+    const ctaUrl = post.call_to_action_url || '#';
+    
+    return `
+        <div class="sponsor-post-card" data-post-id="${post.id}">
+            ${imageUrl ? `<div class="sponsor-post-image"><img src="${escapeHtml(imageUrl)}" alt="Post Image"></div>` : ''}
+            
+            <div class="sponsor-post-content">
+                ${logoUrl ? `<img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(post.sponsor_name)}" class="sponsor-logo">` : ''}
+                
+                <h4 class="sponsor-post-title">${escapeHtml(post.title)}</h4>
+                
+                <p class="sponsor-post-text">${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+                
+                <div class="sponsor-post-footer">
+                    ${ctaText ? `
+                        <a href="${escapeHtml(ctaUrl)}" class="btn btn-sponsor-cta" target="_blank" rel="noopener noreferrer" onclick="trackSponsorPostClick(${post.id})">
+                            <i class="fas fa-arrow-right"></i> ${escapeHtml(ctaText)}
+                        </a>
+                    ` : ''}
+                    
+                    ${post.website_url ? `
+                        <a href="${escapeHtml(post.website_url)}" class="sponsor-website-link" target="_blank" rel="noopener noreferrer" title="Visit sponsor website">
+                            <i class="fas fa-globe"></i> Website
+                        </a>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Track sponsor post click analytics
+ */
+function trackSponsorPostClick(postId) {
+    fetch(`/unipulse/public/sponsor/eventview/trackPostClick/${postId}`, {
+        method: 'POST'
+    }).catch(error => {
+        console.log('Analytics tracking:', error);
+        // Don't prevent navigation on tracking error
+    });
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Modal functions
 function openDonationModal() {
     document.getElementById('donationModal').style.display = 'flex';
@@ -746,6 +950,47 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Message modal functions for sponsorship contact
+function openMessageModal() {
+    const modal = document.getElementById('messageModal');
+    if (!modal) return;
+    // Prefill subject with event title
+    const subjectField = document.getElementById('sponsorshipSubject');
+    if (subjectField && currentEvent && currentEvent.title) {
+        subjectField.value = `Sponsorship Inquiry - ${currentEvent.title}`;
+    }
+    modal.style.display = 'flex';
+}
+
+function closeMessageModal() {
+    const modal = document.getElementById('messageModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+}
+
+function sendSponsorshipMessage() {
+    const subject = document.getElementById('sponsorshipSubject')?.value || '';
+    const message = document.getElementById('sponsorshipMessage')?.value || '';
+
+    if (!subject.trim() || !message.trim()) {
+        alert('Please enter both subject and message before sending.');
+        return;
+    }
+
+    const organizerEmail = currentEvent?.organizerEmail || currentEvent?.organizer_email;
+    const eventUrl = window.location.href;
+
+    if (organizerEmail) {
+        // Use mailto as a quick fallback to contact organizer
+        const mailto = `mailto:${organizerEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message + "\n\nEvent link: " + eventUrl)}`;
+        window.location.href = mailto;
+    } else {
+        alert('Organizer contact not available. Please use the Contact button or try again later.');
+    }
+
+    closeMessageModal();
+}
+
 function showEventContainer() {
     document.getElementById('eventContainer').style.display = 'block';
 }
@@ -757,16 +1002,67 @@ if (joinBtn && !isUserRegistered) {
 }
 document.getElementById('shareBtn').addEventListener('click', openShareModal);
 
+// Share button event listeners
+const shareButtons = {
+    facebook: document.querySelector('.share-btn.facebook'),
+    twitter: document.querySelector('.share-btn.twitter'),
+    linkedin: document.querySelector('.share-btn.linkedin'),
+    whatsapp: document.querySelector('.share-btn.whatsapp')
+};
+
+if (shareButtons.facebook) {
+    shareButtons.facebook.addEventListener('click', shareViaFacebook);
+}
+if (shareButtons.twitter) {
+    shareButtons.twitter.addEventListener('click', shareViaTwitter);
+}
+if (shareButtons.linkedin) {
+    shareButtons.linkedin.addEventListener('click', shareViaLinkedIn);
+}
+if (shareButtons.whatsapp) {
+    shareButtons.whatsapp.addEventListener('click', shareViaWhatsApp);
+}
+
+// Sponsor post button
+const sponsorPostBtn = document.getElementById('sponsorPostBtn');
+if (sponsorPostBtn && currentEvent) {
+    sponsorPostBtn.addEventListener('click', function() {
+        const eventId = currentEvent.id || getEventIdFromURL();
+        if (eventId) {
+            window.location.href = `/unipulse/public/sponsor/events/createPost/${eventId}`;
+        }
+    });
+}
+
+// Propose sponsorship terms button
+const proposeTermsBtn = document.getElementById('proposeTermsBtn');
+if (proposeTermsBtn && currentEvent) {
+    proposeTermsBtn.addEventListener('click', function() {
+        const eventId = currentEvent.id || getEventIdFromURL();
+        if (eventId) {
+            window.location.href = `/unipulse/public/sponsor/events/proposeTerms/${eventId}`;
+        }
+    });
+}
+
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
+    const messageModal = document.getElementById('messageModal');
+    const donationModal = document.getElementById('donationModal');
     
     if (event.target === joinModal) {
         closeJoinModal();
     }
     if (event.target === shareModal) {
         closeShareModal();
+    }
+    if (event.target === messageModal) {
+        closeMessageModal();
+    }
+    if (event.target === donationModal) {
+        closeDonationModal();
     }
 });
 

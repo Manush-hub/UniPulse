@@ -45,27 +45,16 @@ function initializeSearch() {
     
     if (searchBtn) {
         searchBtn.addEventListener('click', applyFilters);
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleSearch();
-            }
-        });
     }
+}
 
-    // Filter functionality
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', handleFilters);
-    }
-
-    if (universityFilter) {
-        universityFilter.addEventListener('change', handleFilters);
-    }
-
-    // Clear filters
-    if (clearFiltersBtn) {
-        clearFiltersBtn.addEventListener('click', clearAllFilters);
-    }
-
+/**
+ * Initialize event action buttons
+ */
+function initializeEventActions() {
+    const sponsorBtns = document.querySelectorAll('.sponsor-btn');
+    const viewDetailsBtns = document.querySelectorAll('.view-details-btn');
+    
     // Sponsor buttons
     sponsorBtns.forEach(btn => {
         btn.addEventListener('click', handleSponsorClick);
@@ -77,19 +66,19 @@ function initializeSearch() {
     });
 }
 
-function handleSearch() {
+/**
+ * Apply all active filters
+ */
+function applyFilters() {
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        const searchValue = searchInput.value.trim();
-        updateURL({ search: searchValue });
-    }
-}
-
-function handleFilters() {
     const categoryFilter = document.getElementById('categoryFilter');
     const universityFilter = document.getElementById('universityFilter');
     
     const filters = {};
+    
+    if (searchInput && searchInput.value.trim()) {
+        filters.search = searchInput.value.trim();
+    }
     
     if (categoryFilter && categoryFilter.value) {
         filters.category = categoryFilter.value;
@@ -99,13 +88,15 @@ function handleFilters() {
         filters.university = universityFilter.value;
     }
     
-    // Keep existing search value
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput && searchInput.value.trim()) {
-        filters.search = searchInput.value.trim();
-    }
-    
     updateURL(filters);
+}
+
+function handleSearch() {
+    applyFilters();
+}
+
+function handleFilters() {
+    applyFilters();
 }
 
 function clearAllFilters() {
@@ -169,7 +160,7 @@ function handleViewDetails(event) {
     }
     
     // Redirect to event details page
-    window.location.href = `/unipulse/public/sponsor/events/view/${eventId}`;
+    window.location.href = `/unipulse/public/sponsor/events/viewEvent/${eventId}`;
 }
 
 function showNotification(message, type = 'info') {

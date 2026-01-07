@@ -20,7 +20,6 @@
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
-                    <img id="coverPhoto" src="<?= htmlspecialchars($user['cover_photo'] ?? '/UniPulse/public/assets/images/default-cover.jpg') ?>">
                     <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
@@ -29,7 +28,6 @@
                 
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
-                    <img id="profileImage" src="<?= htmlspecialchars($user['logo'] ?? '/UniPulse/public/assets/images/default-avatar.png') ?>">
                     <div class="avatar-overlay" onclick="uploadProfileImage()">
                         <i class="fas fa-camera"></i>
                         Change Logo
@@ -40,7 +38,8 @@
                     </div>
                 </div>
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
-                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCover(event)">
+                    <input type="file" id="profileInput" name="logo-file" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
+                    <input type="file" id="coverInput" name="cover-file" accept="image/*" style="display:none" onchange="changeCover(event)">
             </div>
             
             <div class="profile-banner">
@@ -69,7 +68,7 @@
                     <div class="card-header">
                         <h3>Basic Information</h3>
                     </div>
-                    <form id="sponsor-form" class="form">
+                    <form id="sponsor-form" class="form" method="post" enctype="multipart/form-data">
                         <!-- First Row: Sponsor Name and Type -->
                         <div class="form-group">
                             <label for="sponsorName">Sponsor Name</label>

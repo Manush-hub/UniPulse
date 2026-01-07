@@ -30,12 +30,18 @@
         <div id="errorContainer" class="error-container" <?php echo isset($error) ? 'style="display: block;"' : 'style="display: none;"'; ?>>
             <div class="error-content">
                 <i class="fas fa-exclamation-triangle"></i>
-                <h2>Event Not Found</h2>
-                <p><?php echo isset($error) ? htmlspecialchars($error) : 'The event you\'re looking for could not be found.'; ?></p>
-                <a href="/unipulse/public/sponsor/events" class="btn btn-primary">
-                    <i class="fas fa-arrow-left"></i>
-                    Back to Events
-                </a>
+                <h2 id="errorTitle">Event Not Found</h2>
+                <p id="errorMessage"><?php echo isset($error) ? htmlspecialchars($error) : 'The event you\'re looking for could not be found.'; ?></p>
+                <div class="error-actions">
+                    <a href="/unipulse/public/sponsor/events" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Events
+                    </a>
+                    <button class="btn btn-outline" onclick="location.reload()">
+                        <i class="fas fa-redo"></i>
+                        Retry
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -52,6 +58,14 @@
                         <button class="btn btn-outline" id="shareBtn">
                             <i class="fas fa-share"></i>
                             Share Event
+                        </button>
+                        <button class="btn btn-secondary" id="sponsorPostBtn" title="Create a promotional post for this event">
+                            <i class="fas fa-pen-fancy"></i>
+                            Sponsor Post
+                        </button>
+                        <button class="btn btn-secondary" id="proposeTermsBtn" title="Propose custom sponsorship terms">
+                            <i class="fas fa-handshake"></i>
+                            Propose Terms
                         </button>
                         <button class="btn btn-primary" id="joinBtn">
                             <i class="fas fa-calendar-plus"></i>
@@ -227,6 +241,35 @@
                                 </div>
                             </div>
 
+                            <!-- Sponsorship Opportunities -->
+                            <div class="content-card" id="sponsorshipCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-handshake"></i>
+                                    Sponsorship Opportunities
+                                </h3>
+                                <div id="sponsorshipInfo" class="sponsorship-info">
+                                    <div class="sponsorship-needs">
+                                        <h4>Sponsorship Needs</h4>
+                                        <div id="sponsorshipNeeds" class="needs-list">
+                                            Loading sponsorship needs...
+                                        </div>
+                                    </div>
+                                    <div class="sponsorship-benefits">
+                                        <h4>Benefits of Sponsorship</h4>
+                                        <ul id="sponsorshipBenefits" class="benefits-list">
+                                            <li>Loading benefits...</li>
+                                        </ul>
+                                    </div>
+                                    <div class="sponsorship-contact">
+                                        <p><strong>Contact the organizer to discuss sponsorship opportunities</strong></p>
+                                        <button class="btn btn-primary" onclick="contactSponsorshipOrganizer()">
+                                            <i class="fas fa-envelope"></i>
+                                            Message Organizer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Donation Information -->
                             <div class="content-card" id="donationCard" style="display: none;">
                                 <h3>
@@ -239,6 +282,17 @@
                                         <i class="fas fa-heart"></i>
                                         Make a Donation
                                     </button>
+                                </div>
+                            </div>
+
+                            <!-- Sponsor Posts Section -->
+                            <div class="content-card" id="sponsorPostsCard" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-bullhorn"></i>
+                                    Featured Sponsor Posts
+                                </h3>
+                                <div id="sponsorPostsContainer" class="sponsor-posts-grid">
+                                    <!-- Sponsor posts will be loaded here -->
                                 </div>
                             </div>
                         </div>
@@ -365,6 +419,36 @@
                     <input type="text" id="shareLink" readonly>
                     <button onclick="copyShareLink()">Copy Link</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Organizer Modal -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Contact Organizer</h3>
+                <button class="close-btn" onclick="closeMessageModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Send a message to the event organizer about sponsorship opportunities.</p>
+                <div class="form-group">
+                    <label for="sponsorshipSubject">Subject</label>
+                    <input type="text" id="sponsorshipSubject" placeholder="e.g., Sponsorship Inquiry - [Event Name]">
+                </div>
+                <div class="form-group">
+                    <label for="sponsorshipMessage">Message</label>
+                    <textarea id="sponsorshipMessage" placeholder="Tell the organizer about your interest in sponsoring this event..." rows="6"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeMessageModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="sendSponsorshipMessage()">
+                    <i class="fas fa-envelope"></i>
+                    Send Message
+                </button>
             </div>
         </div>
     </div>
