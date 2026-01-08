@@ -1576,3 +1576,12 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+function visitPublisherProfile() {
+    const publisherId = currentEvent?.organizerId || currentEvent?.created_by;
+    if (publisherId) {
+        window.location.href = `/unipulse/public/publisher/public?id=${publisherId}`;
+    } else {
+        alert('Publisher profile not available.');
+    }
+}

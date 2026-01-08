@@ -776,6 +776,7 @@ class Publisher {
         $conn = $this->connect();
         $stmt = $conn->prepare($query);
         return $stmt->execute(['password_hash' => $passwordHash, 'id' => $publisherId]);
+    }
     
     /**
      * Get all approved publishers by university

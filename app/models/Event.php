@@ -55,7 +55,7 @@ class Event {
      * Get all events with optional filters
      */
     public function getAllEvents($filters = []) {
-        $whereClause = ['is_deleted = 0']; // Exclude soft-deleted events
+        $whereClause = ['e.is_deleted = 0']; // Exclude soft-deleted events
         $params = [];
         
         // Apply filters
@@ -107,26 +107,26 @@ class Event {
      * These are typically upcoming events that accept donations or need funding
      */
     public function getEventsSeekingSponsors($filters = []) {
-        $whereClause = ['status = :status', 'is_deleted = 0']; // Exclude soft-deleted events
+        $whereClause = ['e.status = :status', 'e.is_deleted = 0']; // Exclude soft-deleted events
         $params = ['status' => 'upcoming'];
         
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'category = :category';
+            $whereClause[] = 'e.category = :category';
             $params['category'] = $filters['category'];
         }
         
         if (!empty($filters['university'])) {
-            $whereClause[] = 'university = :university';
+            $whereClause[] = 'e.university = :university';
             $params['university'] = $filters['university'];
         }
         
         if (!empty($filters['search'])) {
-            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';
         }
         
-        $sql = "SELECT * FROM {$this->table}";
+        $sql = "SELECT e.* FROM {$this->table} e";
         
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
@@ -227,12 +227,11 @@ class Event {
             // Exclude completed events for regular users
             $whereClause[] = "e.status != 'completed'";
             
+            // Exclude soft-deleted events
+            $whereClause[] = "e.is_deleted = 0";
+            
             $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
                     LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
-            // Exclude soft-deleted events
-            $whereClause[] = "is_deleted = 0";
-            
-            $sql = "SELECT * FROM {$this->table}";
             
             if (!empty($whereClause)) {
                 $sql .= ' WHERE ' . implode(' AND ', $whereClause);
