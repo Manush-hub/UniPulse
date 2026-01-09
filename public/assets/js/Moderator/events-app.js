@@ -8,7 +8,7 @@ const eventsPerPage = 6;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/moderator/events/getEvents';
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadEvents();
     setupEventsListeners();
 });
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventsListeners() {
     // Search input listener
     document.getElementById('searchInput').addEventListener('input', debounce(searchEvents, 300));
-    
+
     // Filter change listeners
     document.getElementById('categoryFilter').addEventListener('change', filterEvents);
     document.getElementById('universityFilter').addEventListener('change', filterEvents);
@@ -43,24 +43,24 @@ function loadEvents(useAjax = false) {
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     // Show loading spinner
     loadingSpinner.style.display = 'flex';
     noEvents.style.display = 'none';
-    
+
     if (useAjax) {
         // Make AJAX call for filtered/searched events
         const params = new URLSearchParams();
-        
+
         // Add filters
         if (activeFilters.category) params.append('category', activeFilters.category);
         if (activeFilters.university) params.append('university', activeFilters.university);
         if (activeFilters.status) params.append('status', activeFilters.status);
         if (activeFilters.search) params.append('search', activeFilters.search);
-        
+
         params.append('page', currentPage);
         params.append('limit', eventsPerPage);
-        
+
         fetch(`${apiEndpoint}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
@@ -83,12 +83,12 @@ function loadEvents(useAjax = false) {
         // Use initial server data
         setTimeout(() => {
             loadingSpinner.style.display = 'none';
-            
+
             if (filteredEvents.length === 0) {
                 displayNoEvents();
                 return;
             }
-            
+
             displayEvents(filteredEvents);
             updatePagination();
         }, 500);
@@ -98,17 +98,17 @@ function loadEvents(useAjax = false) {
 function displayEvents(events) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     // Clear existing events if it's a new search/filter
     if (currentPage === 1) {
         eventsGrid.innerHTML = '';
     }
-    
+
     // Add events
     events.forEach(event => {
         eventsGrid.appendChild(createEventCard(event));
     });
-    
+
     // Show/hide load more button
     if (events.length < eventsPerPage) {
         loadMoreSection.style.display = 'none';
@@ -120,14 +120,14 @@ function displayEvents(events) {
 function displayNoEvents() {
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     noEvents.style.display = 'block';
     loadMoreSection.style.display = 'none';
 }
 
 function updatePagination(pagination = null) {
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     if (pagination) {
         // Use server pagination data
         if (!pagination.hasMore) {
@@ -150,25 +150,29 @@ function updatePagination(pagination = null) {
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
-    
+
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
     const maxParticipants = event.max_participants || event.maxParticipants;
     const imageUrl = event.image_url || event.image;
-    
+    const eventDate = event.event_date || event.date;
+
+    // Calculate event status based on event date
+    const calculatedStatus = getEventStatus(eventDate);
+
     card.innerHTML = `
         <div class="event-image">
-            ${imageUrl ? 
-                `<img src="${imageUrl}" alt="${event.title}">` : 
-                `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            ${imageUrl ?
+            `<img src="${imageUrl}" alt="${event.title}">` :
+            `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>`
-            }
+        }
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
-            <div class="event-status ${event.status}">${event.status}</div>
+            <div class="event-status ${calculatedStatus}">${calculatedStatus}</div>
         </div>
         <div class="event-content" onclick="viewEventDetails(${event.id})" style="cursor: pointer;">
             <h3 class="event-title">${event.title}</h3>
@@ -222,8 +226,28 @@ function createEventCard(event) {
             </button>
         </div>
     `;
-    
+
     return card;
+}
+
+// Calculate event status based on event date
+function getEventStatus(eventDate) {
+    if (!eventDate) return 'upcoming';
+
+    const eventDateObj = new Date(eventDate);
+    const today = new Date();
+
+    // Reset time to compare dates only
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+
+    if (eventDateObj < today) {
+        return 'completed';
+    } else if (eventDateObj.getTime() === today.getTime()) {
+        return 'ongoing';
+    } else {
+        return 'upcoming';
+    }
 }
 
 // Search events
@@ -240,9 +264,25 @@ function filterEvents() {
     activeFilters.category = document.getElementById('categoryFilter').value;
     activeFilters.university = document.getElementById('universityFilter').value;
     activeFilters.status = document.getElementById('statusFilter').value;
-    
+
     currentPage = 1;
-    loadEvents(true);
+
+    // If status filter is applied, filter events locally first
+    if (activeFilters.status) {
+        const selectedStatus = activeFilters.status.toLowerCase();
+        const filtered = allEvents.filter(event => {
+            const calculatedStatus = getEventStatus(event.event_date || event.date);
+            return calculatedStatus === selectedStatus;
+        });
+        filteredEvents = filtered;
+
+        // Display filtered events without AJAX call for status filtering
+        displayEvents(filtered);
+        updatePagination();
+    } else {
+        // Use AJAX for other filters
+        loadEvents(true);
+    }
 }
 
 // Clear all filters
@@ -251,10 +291,10 @@ function clearFilters() {
     document.getElementById('categoryFilter').value = '';
     document.getElementById('universityFilter').value = '';
     document.getElementById('statusFilter').value = '';
-    
+
     activeFilters = {};
     currentPage = 1;
-    
+
     // Reset to initial server data
     filteredEvents = window.serverData?.events || [];
     loadEvents(false);
@@ -278,10 +318,10 @@ function capitalizeFirstLetter(string) {
 }
 
 function formatDate(dateString) {
-    const options = { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }
@@ -292,7 +332,7 @@ function addScrollAnimations() {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -301,7 +341,7 @@ function addScrollAnimations() {
             }
         });
     }, observerOptions);
-    
+
     // Observe all event cards
     document.querySelectorAll('.event-card').forEach(card => {
         card.style.opacity = '0';
@@ -325,7 +365,7 @@ function showMessage(message, type = 'info') {
             <span>${message}</span>
         </div>
     `;
-    
+
     // Add styles
     messageDiv.style.cssText = `
         position: fixed;
@@ -344,16 +384,16 @@ function showMessage(message, type = 'info') {
         transform: translateX(100%);
         transition: all 0.3s ease;
     `;
-    
+
     // Add to page
     document.body.appendChild(messageDiv);
-    
+
     // Animate in
     setTimeout(() => {
         messageDiv.style.opacity = '1';
         messageDiv.style.transform = 'translateX(0)';
     }, 100);
-    
+
     // Remove after 4 seconds
     setTimeout(() => {
         messageDiv.style.opacity = '0';
@@ -401,14 +441,14 @@ function showHideEventModal(eventId, eventTitle) {
             </div>
         </div>
     `;
-    
+
     // Add modal to page
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
+
     // Add character counter
     const textarea = document.getElementById('hideReason');
     const charCount = document.getElementById('charCount');
-    textarea.addEventListener('input', function() {
+    textarea.addEventListener('input', function () {
         const count = this.value.length;
         charCount.textContent = count;
         if (count > 500) {
@@ -416,7 +456,7 @@ function showHideEventModal(eventId, eventTitle) {
             charCount.textContent = 500;
         }
     });
-    
+
     // Focus textarea
     setTimeout(() => textarea.focus(), 100);
 }
@@ -435,22 +475,22 @@ function closeHideEventModal(event) {
 // Confirm hide event
 async function confirmHideEvent(eventId) {
     const reason = document.getElementById('hideReason').value.trim();
-    
+
     if (!reason) {
         showMessage('Please provide a reason for hiding this event', 'error');
         return;
     }
-    
+
     if (reason.length < 10) {
         showMessage('Reason must be at least 10 characters long', 'error');
         return;
     }
-    
+
     // Disable button to prevent double submission
     const hideButton = document.querySelector('.modal-footer .btn-danger');
     hideButton.disabled = true;
     hideButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding...';
-    
+
     try {
         const response = await fetch('/unipulse/public/moderator/events/hideEvent', {
             method: 'POST',
@@ -462,13 +502,13 @@ async function confirmHideEvent(eventId) {
                 reason: reason
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showMessage(data.message || 'Event hidden successfully. Publisher has been notified.', 'success');
             closeHideEventModal();
-            
+
             // Reload events after 1 second
             setTimeout(() => {
                 loadEvents(true);
