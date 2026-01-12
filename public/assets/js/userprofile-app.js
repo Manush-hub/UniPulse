@@ -529,14 +529,27 @@ class UniPulseProfile {
     }
 
     async savePersonalInfo() {
-        // Only save editable fields - excludes University, Faculty, Student/Staff ID, Email, NIC, Academic Year
-        const payload = {
-            firstname: document.getElementById('firstname')?.value || '',
-            lastname: document.getElementById('lastname')?.value || '',
-            phone: document.getElementById('phone')?.value || '',
-            gender: document.getElementById('gender')?.value || '',
-            bio: document.getElementById('bio')?.value || ''
-        };
+        // Collect field values
+        const firstname = document.getElementById('firstname')?.value?.trim() || '';
+        const lastname = document.getElementById('lastname')?.value?.trim() || '';
+        const phone = document.getElementById('phone')?.value?.trim() || '';
+        const gender = document.getElementById('gender')?.value || '';
+        const bio = document.getElementById('bio')?.value?.trim() || '';
+
+        // Build payload - only include fields that have values
+        const payload = {};
+
+        if (firstname) payload.firstname = firstname;
+        if (lastname) payload.lastname = lastname;
+        if (phone) payload.phone = phone;
+        if (gender) payload.gender = gender;
+        if (bio) payload.bio = bio;
+
+        // If no fields to update, show error
+        if (Object.keys(payload).length === 0) {
+            this.showNotification('Please fill in at least one field to update', 'error');
+            return;
+        }
 
         try {
             const url = (window.profileApi && window.profileApi.update) || '/unipulse/public/user/profile/updateProfile';
@@ -549,23 +562,36 @@ class UniPulseProfile {
             const json = await res.json();
             if (json.success) {
                 // Update local userData to reflect saved changes
-                this.userData.firstName = payload.firstname;
-                this.userData.lastName = payload.lastname;
-                this.userData.phone = payload.phone;
-                this.userData.gender = payload.gender;
-                this.userData.bio = payload.bio;
+                if (firstname) this.userData.firstName = firstname;
+                if (lastname) this.userData.lastName = lastname;
+                if (phone) this.userData.phone = phone;
+                if (gender) this.userData.gender = gender;
+                if (bio) this.userData.bio = bio;
 
-                const profileName = document.getElementById('profileName');
-                if (profileName) profileName.textContent = `${payload.firstname} ${payload.lastname}`.trim();
-                // Update header username if present
-                const headerUsername = document.getElementById('username');
-                if (headerUsername) headerUsername.textContent = `${payload.firstname} ${payload.lastname}`.trim() || headerUsername.textContent;
+                // Update profile name display if name was changed
+                if (firstname || lastname) {
+                    const fullName = `${firstname || this.userData.firstName || ''} ${lastname || this.userData.lastName || ''}`.trim();
+                    const profileName = document.getElementById('profileName');
+                    if (profileName) profileName.textContent = fullName;
+
+                    // Update header username if present
+                    const headerUsername = document.getElementById('username');
+                    if (headerUsername && fullName) headerUsername.textContent = fullName;
+                }
 
                 // Show success message
                 this.showNotification('Profile updated successfully!', 'success');
             } else {
-                console.error('Update failed', json.error);
-                this.showNotification('Failed to update profile: ' + (json.error || json.message || 'Unknown error'), 'error');
+                console.error('Update failed', json);
+                let errorMsg = 'Unknown error';
+                if (json.error) {
+                    errorMsg = json.error;
+                } else if (json.errors && Array.isArray(json.errors)) {
+                    errorMsg = json.errors.join(', ');
+                } else if (json.message) {
+                    errorMsg = json.message;
+                }
+                this.showNotification('Failed to update profile: ' + errorMsg, 'error');
             }
         } catch (e) {
             console.error('Failed to update profile:', e);
@@ -798,21 +824,79 @@ function uploadCover() {
     document.getElementById('coverInput').click();
 }
 
+function showImageUploadStatus(message, type = 'info', duration = 3000) {
+    let statusDiv = document.getElementById('imageUploadStatus');
+    if (!statusDiv) {
+        statusDiv = document.createElement('div');
+        statusDiv.id = 'imageUploadStatus';
+        statusDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 10000;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        `;
+        document.body.appendChild(statusDiv);
+    }
+
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+
+    if (type === 'success') {
+        statusDiv.style.backgroundColor = '#4CAF50';
+        statusDiv.style.color = 'white';
+    } else if (type === 'error') {
+        statusDiv.style.backgroundColor = '#f44336';
+        statusDiv.style.color = 'white';
+    } else {
+        statusDiv.style.backgroundColor = '#2196F3';
+        statusDiv.style.color = 'white';
+    }
+
+    if (duration > 0) {
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, duration);
+    }
+}
+
 function changeCoverImage(event) {
     const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const coverImg = document.getElementById('coverPhoto');
-            if (coverImg) {
-                coverImg.src = e.target.result;
-                coverImg.style.display = 'block';
-                // Save to database
-                saveCoverImage(e.target.result);
-            }
-        };
-        reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showImageUploadStatus('Please select a valid image file', 'error');
+        return;
     }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showImageUploadStatus('Image size must be less than 5MB', 'error');
+        return;
+    }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const coverImg = document.getElementById('coverPhoto');
+        if (coverImg) {
+            coverImg.src = e.target.result;
+            coverImg.style.display = 'block';
+        }
+        // Show saving status
+        showImageUploadStatus('Saving cover photo...', 'info', 0);
+        // Save to database using FormData
+        saveCoverImageFormData(file);
+    };
+    reader.onerror = () => {
+        showImageUploadStatus('Error reading file', 'error');
+    };
+    reader.readAsDataURL(file);
 }
 
 function uploadProfileImage() {
@@ -821,21 +905,100 @@ function uploadProfileImage() {
 
 function changeProfileImage(event) {
     const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const profileImg = document.getElementById('profilePhoto');
-            if (profileImg) {
-                profileImg.src = e.target.result;
-                profileImg.style.display = 'block';
-                // Save to database
-                saveProfileImage(e.target.result);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showImageUploadStatus('Please select a valid image file', 'error');
+        return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showImageUploadStatus('Image size must be less than 5MB', 'error');
+        return;
+    }
+
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const profileImg = document.getElementById('profilePhoto');
+        if (profileImg) {
+            profileImg.src = e.target.result;
+            profileImg.style.display = 'block';
+        }
+        // Show saving status
+        showImageUploadStatus('Saving profile photo...', 'info', 0);
+        // Save to database using FormData
+        saveProfileImageFormData(file);
+    };
+    reader.onerror = () => {
+        showImageUploadStatus('Error reading file', 'error');
+    };
+    reader.readAsDataURL(file);
+}
+
+async function saveCoverImageFormData(file) {
+    try {
+        const formData = new FormData();
+        formData.append('cover_photo', file);
+
+        const response = await fetch('/unipulse/public/user/profile/updateProfile', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showImageUploadStatus('Cover photo saved successfully!', 'success');
+            console.log('Cover photo saved successfully');
+        } else {
+            // Handle different error formats
+            let errorMsg = result.error || result.message;
+            if (result.errors && Array.isArray(result.errors)) {
+                errorMsg = result.errors.join(', ');
             }
-        };
-        reader.readAsDataURL(file);
+            showImageUploadStatus('Failed to save cover photo: ' + (errorMsg || 'Unknown error'), 'error');
+            console.error('Failed to save cover photo:', result);
+        }
+    } catch (error) {
+        showImageUploadStatus('Error saving cover photo', 'error');
+        console.error('Error saving cover photo:', error);
     }
 }
 
+async function saveProfileImageFormData(file) {
+    try {
+        const formData = new FormData();
+        formData.append('profile_photo', file);
+
+        const response = await fetch('/unipulse/public/user/profile/updateProfile', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showImageUploadStatus('Profile photo saved successfully!', 'success');
+            console.log('Profile photo saved successfully');
+        } else {
+            // Handle different error formats
+            let errorMsg = result.error || result.message;
+            if (result.errors && Array.isArray(result.errors)) {
+                errorMsg = result.errors.join(', ');
+            }
+            showImageUploadStatus('Failed to save profile photo: ' + (errorMsg || 'Unknown error'), 'error');
+            console.error('Failed to save profile photo:', result);
+        }
+    } catch (error) {
+        showImageUploadStatus('Error saving profile photo', 'error');
+        console.error('Error saving profile photo:', error);
+    }
+}
+
+// Keep backward compatibility with old function names
 async function saveCoverImage(imageData) {
     try {
         const response = await fetch('/unipulse/public/user/profile/updateProfile', {

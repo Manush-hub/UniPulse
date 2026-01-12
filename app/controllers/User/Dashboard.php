@@ -12,6 +12,9 @@ class UserDashboard extends Controller
             exit();
         }
 
+        // Load profile photo into session for header display
+        $this->loadUserProfilePhotoToSession();
+
         // Pass user data to view
         $data = [
             'user' => $currentUser
