@@ -1129,35 +1129,7 @@ loadingStyle.textContent = `
 `;
 document.head.appendChild(loadingStyle);
 
-let galleryPhotos = [
-    {
-        id: 1,
-        title: 'Hackathon Victory',
-        description: 'Celebrating 2nd place win at Berkeley Hackathon 2024',
-        images: [
-            'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop',
-            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop',
-            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop'
-        ]
-    },
-    {
-        id: 2,
-        title: 'Research Presentation',
-        description: 'Presenting climate prediction research at symposium',
-        images: [
-            'https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop',
-            'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop'
-        ]
-    },
-    {
-        id: 3,
-        title: 'Team Collaboration',
-        description: 'Working with fellow students on group projects',
-        images: [
-            'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop'
-        ]
-    }
-];
+let galleryPhotos = [];
 
 let currentEditingGalleryId = null;
 const MAX_GALLERY_ENTRIES = 5;
@@ -1195,27 +1167,48 @@ function editGalleryItem(galleryId) {
     if (!photo) return;
 
     currentEditingGalleryId = galleryId;
-    document.getElementById('galleryModalTitle').textContent = 'Edit Photo';
+    document.getElementById('galleryModalTitle').textContent = 'Edit Photo Album';
     document.getElementById('galleryTitle').value = photo.title;
     document.getElementById('galleryDescription').value = photo.description;
 
-    const preview = document.getElementById('galleryPreview');
-    const uploadContent = document.querySelector('.upload-content');
-    preview.src = photo.image;
-    preview.style.display = 'block';
-    uploadContent.style.display = 'none';
+    // Load existing images into previews
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const preview = document.getElementById(`galleryPreview${i}`);
+        const uploadContent = document.querySelector(`#galleryFile${i}`).parentElement.querySelector('.upload-content');
 
-    document.getElementById('galleryImageUpload').style.display = 'none';
+        if (photo.images && photo.images[i - 1]) {
+            preview.src = photo.images[i - 1];
+            preview.style.display = 'block';
+            if (uploadContent) uploadContent.style.display = 'none';
+        } else {
+            preview.style.display = 'none';
+            preview.src = '';
+            if (uploadContent) uploadContent.style.display = 'flex';
+        }
+    }
 
     document.getElementById('galleryPhotoModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
 
 function deleteGalleryItem(galleryId) {
-    if (confirm('Are you sure you want to delete this photo?')) {
-        galleryPhotos = galleryPhotos.filter(p => p.id !== galleryId);
+    if (confirm('Are you sure you want to delete this photo album? This action cannot be undone.')) {
+        // Remove the specific gallery item
+        const indexToRemove = galleryPhotos.findIndex(p => p.id === galleryId);
+        if (indexToRemove === -1) {
+            showNotification('Gallery item not found!', 'error');
+            return;
+        }
+
+        galleryPhotos.splice(indexToRemove, 1);
+
+        // Re-render the gallery
         renderGallery();
-        showNotification('Photo deleted successfully!', 'success');
+
+        // Save to backend
+        saveGalleryToBackend();
+
+        showNotification('Photo album deleted successfully!', 'success');
     }
 }
 
@@ -1271,12 +1264,12 @@ function saveGalleryPhoto() {
         return;
     }
 
+    // Collect all images (both existing previews and new uploads)
     const images = [];
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
-        const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
 
-        if (fileInput && fileInput.files[0] && preview && preview.src) {
+        if (preview && preview.src && preview.style.display !== 'none' && !preview.src.includes('data:,')) {
             images.push(preview.src);
         }
     }
@@ -1287,13 +1280,19 @@ function saveGalleryPhoto() {
     }
 
     if (currentEditingGalleryId) {
+        // Update existing gallery
         const photoIndex = galleryPhotos.findIndex(p => p.id === currentEditingGalleryId);
         if (photoIndex !== -1) {
             galleryPhotos[photoIndex].title = title;
             galleryPhotos[photoIndex].description = description;
+            galleryPhotos[photoIndex].images = images;
+            showNotification('Gallery updated successfully!', 'success');
+        } else {
+            showNotification('Gallery not found!', 'error');
+            return;
         }
-        showNotification('Gallery updated successfully!', 'success');
     } else {
+        // Add new gallery
         if (galleryPhotos.length >= MAX_GALLERY_ENTRIES) {
             showNotification('You can only create a maximum of 5 gallery entries.', 'warning');
             return;
@@ -1310,7 +1309,12 @@ function saveGalleryPhoto() {
         showNotification('Gallery added successfully!', 'success');
     }
 
+    // Re-render gallery
     renderGallery();
+
+    // Save to backend
+    saveGalleryToBackend();
+
     closeGalleryModal();
 }
 
@@ -1318,16 +1322,23 @@ function closeGalleryModal() {
     document.getElementById('galleryPhotoModal').style.display = 'none';
     document.body.style.overflow = 'auto';
 
+    // Reset form fields
     document.getElementById('galleryTitle').value = '';
     document.getElementById('galleryDescription').value = '';
-    document.getElementById('galleryFileInput').value = '';
 
-    const preview = document.getElementById('galleryPreview');
-    const uploadContent = document.querySelector('.upload-content');
-    preview.style.display = 'none';
-    uploadContent.style.display = 'flex';
+    // Reset all file inputs and previews
+    for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
+        const fileInput = document.getElementById(`galleryFile${i}`);
+        const preview = document.getElementById(`galleryPreview${i}`);
+        const uploadContent = document.querySelector(`#galleryFile${i}`).parentElement.querySelector('.upload-content');
 
-    document.getElementById('galleryImageUpload').style.display = 'block';
+        if (fileInput) fileInput.value = '';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.src = '';
+        }
+        if (uploadContent) uploadContent.style.display = 'flex';
+    }
 
     currentEditingGalleryId = null;
 }
@@ -1335,36 +1346,72 @@ function closeGalleryModal() {
 function renderGallery() {
     const galleryGrid = document.getElementById('galleryGrid');
 
+    if (!galleryGrid) return;
+
     if (galleryPhotos.length === 0) {
         galleryGrid.innerHTML = `
-            <div class="gallery-empty">
-                <i class="fas fa-images"></i>
-                <h4>No Photos Yet</h4>
-                <p>Add some photos to showcase your experiences and memories!</p>
+            <div class="gallery-empty" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-images" style="font-size: 48px; margin-bottom: 16px; color: #ddd;"></i>
+                <h4>No Photo Albums Yet</h4>
+                <p>Click the "Add Album" button to create your first photo album!</p>
             </div>
         `;
         return;
     }
 
-    galleryGrid.innerHTML = galleryPhotos.map(photo => `
-        <div class="gallery-item editable" data-gallery-id="${photo.id}">
-            <div class="gallery-image">
-                <img src="${photo.image}" alt="${photo.title}">
-                <div class="gallery-actions-overlay">
-                    <button type="button" class="gallery-action-btn edit" onclick="editGalleryItem(${photo.id})" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(${photo.id})" title="Delete">
-                        <i class="fas fa-trash"></i>
-                    </button>
+    galleryGrid.innerHTML = galleryPhotos.map(photo => {
+        const images = photo.images || [];
+        if (images.length === 0) return '';
+
+        const carouselImages = images.map((img, index) => `
+            <div class="carousel-image ${index === 0 ? 'active' : ''}">
+                <img src="${img}" alt="${escapeHtml(photo.title)} - Photo ${index + 1}">
+            </div>
+        `).join('');
+
+        const indicators = images.map((_, index) => `
+            <span class="indicator ${index === 0 ? 'active' : ''}" onclick="setCarouselImage(${photo.id}, ${index})"></span>
+        `).join('');
+
+        const showControls = images.length > 1;
+
+        return `
+            <div class="gallery-item editable" data-gallery-id="${photo.id}">
+                <div class="gallery-images-container">
+                    <div class="gallery-image-carousel">
+                        ${carouselImages}
+                    </div>
+                    ${showControls ? `
+                        <div class="carousel-controls">
+                            <button class="carousel-btn prev" onclick="changeCarouselImage(${photo.id}, -1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="carousel-btn next" onclick="changeCarouselImage(${photo.id}, 1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${images.length > 1 ? `
+                        <div class="carousel-indicators">
+                            ${indicators}
+                        </div>
+                    ` : ''}
+                    <div class="gallery-actions-overlay">
+                        <button type="button" class="gallery-action-btn edit" onclick="editGalleryItem(${photo.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(${photo.id})" title="Remove">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="gallery-content">
+                    <h4 class="gallery-title">${escapeHtml(photo.title)}</h4>
+                    <p class="gallery-description">${escapeHtml(photo.description)}</p>
                 </div>
             </div>
-            <div class="gallery-content">
-                <h4 class="gallery-title">${escapeHtml(photo.title)}</h4>
-                <p class="gallery-description">${escapeHtml(photo.description)}</p>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).filter(html => html !== '').join('');
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1415,6 +1462,252 @@ function escapeHtml(text) {
     };
     return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 }
+
+// Global notification function for gallery operations
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    document.querySelectorAll('.gallery-notification').forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `gallery-notification notification-${type}`;
+
+    const iconMap = {
+        'success': 'fa-check-circle',
+        'error': 'fa-exclamation-circle',
+        'warning': 'fa-exclamation-triangle',
+        'info': 'fa-info-circle'
+    };
+
+    const colorMap = {
+        'success': '#10b981',
+        'error': '#ef4444',
+        'warning': '#f59e0b',
+        'info': '#3b82f6'
+    };
+
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${iconMap[type] || iconMap['info']}"></i>
+            <span>${message}</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: ${colorMap[type] || colorMap['info']};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        z-index: 10000;
+        animation: slideInRight 0.3s ease;
+        max-width: 400px;
+        font-weight: 500;
+    `;
+
+    // Add animation styles if not already present
+    if (!document.querySelector('style[data-gallery-notification]')) {
+        const style = document.createElement('style');
+        style.setAttribute('data-gallery-notification', 'true');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .notification-content {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .notification-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.2em;
+                cursor: pointer;
+                margin-left: auto;
+                opacity: 0.8;
+                transition: opacity 0.3s ease;
+            }
+            .notification-close:hover {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+// Backend integration for gallery
+function saveGalleryToBackend() {
+    console.log('Saving gallery to backend...', galleryPhotos);
+    console.log('Gallery array length:', galleryPhotos.length);
+    console.log('Gallery to save:', JSON.stringify(galleryPhotos).substring(0, 200) + '...');
+
+    // Always save to localStorage as backup
+    try {
+        localStorage.setItem('galleryPhotos', JSON.stringify(galleryPhotos));
+        console.log('✓ Gallery saved to localStorage');
+    } catch (e) {
+        console.warn('Failed to save to localStorage:', e);
+    }
+
+    // Prepare the request body
+    const requestBody = JSON.stringify({ gallery: galleryPhotos });
+    console.log('Request body size:', requestBody.length, 'bytes');
+
+    // Save gallery data to backend
+    fetch('/unipulse/public/user/profile/updateGallery', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: requestBody
+    })
+        .then(async (response) => {
+            console.log('✓ Fetch completed with status:', response.status);
+            const contentType = response.headers.get('content-type');
+            console.log('Response Content-Type:', contentType);
+
+            let text = '';
+            try {
+                text = await response.text();
+                console.log('Response body length:', text.length);
+                console.log('Response text:', text.substring(0, 300));
+            } catch (e) {
+                console.error('Failed to read response text:', e);
+                showNotification('Gallery saved locally. Sync status unclear.', 'warning');
+                return;
+            }
+
+            if (!text || text.trim() === '') {
+                console.error('Backend returned empty response');
+                showNotification('Gallery saved locally. Server response empty.', 'warning');
+                return;
+            }
+
+            let data = null;
+            try {
+                data = JSON.parse(text);
+                console.log('✓ Response parsed as JSON:', data);
+            } catch (e) {
+                console.error('Failed to parse response as JSON:', e);
+                console.error('Attempted to parse:', text);
+                showNotification('Gallery saved locally. Server response format issue.', 'warning');
+                return;
+            }
+
+            if (response.status !== 200 && response.status !== 201) {
+                const msg = data?.message || data?.error || `HTTP ${response.status}`;
+                console.warn('Backend returned non-success status:', response.status, msg);
+                showNotification(`Server error ${response.status}. Saved locally.`, 'warning');
+                return;
+            }
+
+            if (data?.success === true) {
+                console.log('✓ Gallery saved to backend successfully');
+                showNotification('Gallery saved successfully!', 'success');
+            } else {
+                const msg = data?.message || data?.error || 'Unknown error';
+                console.warn('Backend returned success=false:', msg);
+                showNotification(`Server error. Saved locally.`, 'warning');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch failed with error:', error);
+            console.error('Error type:', error.name);
+            console.error('Error message:', error.message);
+            showNotification('Gallery saved locally (offline mode)', 'warning');
+        });
+}
+
+function loadGalleryFromBackend() {
+    // Load gallery data from backend
+    console.log('Loading gallery from backend...');
+
+    fetch('/unipulse/public/user/profile/getGallery', {
+        credentials: 'same-origin'
+    })
+        .then(async (response) => {
+            console.log('Backend response status:', response.status);
+            let data = null;
+            try {
+                const text = await response.text();
+                console.log('Backend response:', text);
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse response:', e);
+                throw e;
+            }
+
+            if (data.success && data.gallery && Array.isArray(data.gallery) && data.gallery.length > 0) {
+                console.log('✓ Gallery loaded from backend:', data.gallery.length, 'albums');
+                galleryPhotos = data.gallery;
+                renderGallery();
+            } else {
+                console.log('No gallery data from backend, checking localStorage...');
+                const stored = localStorage.getItem('galleryPhotos');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            console.log('✓ Gallery loaded from localStorage:', parsed.length, 'albums');
+                            galleryPhotos = parsed;
+                            renderGallery();
+                            return;
+                        }
+                    } catch (e) {
+                        console.warn('Failed to parse localStorage:', e);
+                    }
+                }
+                console.log('No gallery found, showing empty state');
+                renderGallery();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading gallery from backend:', error);
+            console.log('Falling back to localStorage...');
+
+            const stored = localStorage.getItem('galleryPhotos');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        console.log('✓ Gallery loaded from localStorage:', parsed.length, 'albums');
+                        galleryPhotos = parsed;
+                        renderGallery();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse localStorage:', e);
+                }
+            }
+            renderGallery();
+        });
+}
+
+// Initialize gallery on page load
+document.addEventListener('DOMContentLoaded', function () {
+    // Load gallery from backend
+    loadGalleryFromBackend();
+});
 
 // Close gallery modal when clicking outside
 document.addEventListener('click', function (event) {

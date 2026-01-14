@@ -159,116 +159,16 @@
                         <h3>Photo Gallery</h3>
                         <div class="gallery-actions">
                             <button type="button" class="btn btn-small" onclick="addGalleryPhoto()">
-                                <i class="fas fa-plus"></i> Add Photo
+                                <i class="fas fa-plus"></i> Add Album
                             </button>
                         </div>
                     </div>
                     <div class="gallery-section">
                         <div class="gallery-upload-info">
-                            <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 5 photos each. Each gallery entry should include a title and description.</p>
+                            <p><i class="fas fa-info-circle"></i> You can create up to 5 gallery albums with up to 5 photos each. Each album should include a title and description.</p>
                         </div>
                         <div class="gallery-grid" id="galleryGrid">
-                            <div class="gallery-item editable" data-gallery-id="1">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Gallery Photo 1-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 1-2">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 1-3">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(1)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Hackathon Victory</h4>
-                                    <p class="gallery-description">Celebrating 2nd place win at Berkeley Hackathon 2024</p>
-                                </div>
-                            </div>
-
-                            <div class="gallery-item editable" data-gallery-id="2">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 2-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop" alt="Gallery Photo 2-2">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(2)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Research Presentation</h4>
-                                    <p class="gallery-description">Presenting climate prediction research at symposium</p>
-                                </div>
-                            </div>
-
-                            <div class="gallery-item editable" data-gallery-id="3">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 3-1">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(3)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Team Collaboration</h4>
-                                    <p class="gallery-description">Working with fellow students on group projects</p>
-                                </div>
-                            </div>
+                            <!-- Gallery items will be rendered dynamically by JavaScript -->
                         </div>
                     </div>
                 </div>

@@ -350,4 +350,241 @@ class UserProfile extends Controller
 
         return $errors;
     }
+
+    /**
+     * Get user's gallery data
+     */
+    public function getGallery()
+    {
+        header('Content-Type: application/json');
+        error_log('=== getGallery() CALLED ===');
+
+        if (!AuthService::isLoggedIn()) {
+            error_log('getGallery: User not authenticated');
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        $u = AuthService::getCurrentUser();
+        $userId = $u['id'];
+        $userType = $u['type'] ?? 'university';
+
+        error_log("getGallery: User ID=$userId, Type=$userType");
+
+        // Determine which table to query based on user type
+        $tableName = ($userType === 'public') ? 'public_users' : 'university_users';
+        error_log("getGallery: Querying table: $tableName");
+
+        try {
+            $db = new Database();
+
+            // Ensure gallery column exists to avoid SQL errors
+            $this->ensureGalleryColumn($db, $tableName);
+
+            $query = "SELECT id, gallery FROM {$tableName} WHERE id = :user_id";
+            error_log("getGallery: Executing query: $query");
+
+            $result = $db->query($query, ['user_id' => $userId]);
+            error_log("getGallery: Query result: " . json_encode($result));
+
+            $gallery = [];
+            if ($result && isset($result[0])) {
+                $galleryData = $result[0]->gallery ?? null;
+                error_log("getGallery: Raw gallery data from DB (first 100 chars): " . substr((string)$galleryData, 0, 100));
+
+                if (!empty($galleryData)) {
+                    $gallery = json_decode($galleryData, true) ?? [];
+                    error_log("getGallery: Decoded gallery - " . count($gallery) . " albums");
+                } else {
+                    error_log("getGallery: Gallery column is empty/null");
+                }
+            } else {
+                error_log("getGallery: No result found or empty result");
+            }
+
+            echo json_encode(['success' => true, 'gallery' => $gallery]);
+            error_log('=== getGallery() COMPLETE ===');
+        } catch (Exception $e) {
+            error_log('getGallery: Exception - ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => true, 'gallery' => []]);
+        }
+    }
+
+    /**
+     * Update user's gallery data
+     */
+    public function updateGallery()
+    {
+        // Start output buffering to catch any stray output
+        ob_start();
+
+        header('Content-Type: application/json');
+
+        // Debug: Log the request received
+        error_log('=== updateGallery() CALLED ===');
+        error_log('REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
+        error_log('CONTENT_TYPE: ' . ($_SERVER['CONTENT_TYPE'] ?? 'not set'));
+
+        if (!AuthService::isLoggedIn()) {
+            error_log('updateGallery: User not authenticated');
+            ob_clean();
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            exit;
+        }
+
+        error_log('updateGallery: User authenticated, reading input');
+        $rawInput = file_get_contents('php://input');
+        error_log('Raw input length: ' . strlen($rawInput));
+        error_log('Raw input preview: ' . substr($rawInput, 0, 100));
+
+        $input = json_decode($rawInput, true);
+        error_log('updateGallery: Input decoded, keys: ' . json_encode(array_keys($input ?? [])));
+
+        if (!isset($input['gallery'])) {
+            error_log('updateGallery: No gallery data provided');
+            ob_clean();
+            echo json_encode(['success' => false, 'error' => 'No gallery data provided']);
+            exit;
+        }
+
+        $u = AuthService::getCurrentUser();
+        $userId = $u['id'];
+        $userType = $u['type'] ?? 'university';
+        $gallery = $input['gallery'];
+
+        error_log("updateGallery: User ID=$userId, Type=$userType, Gallery items=" . count($gallery));
+        error_log("updateGallery: Full user data: " . json_encode($u));
+
+        // Validate gallery data
+        if (!is_array($gallery)) {
+            error_log('updateGallery: Invalid gallery data - not an array');
+            ob_clean();
+            echo json_encode(['success' => false, 'error' => 'Invalid gallery data']);
+            exit;
+        }
+
+        // Determine which table to update based on user type
+        $tableName = ($userType === 'public') ? 'public_users' : 'university_users';
+        error_log("updateGallery: Using table: $tableName");
+
+        // Store gallery as JSON
+        $galleryJson = json_encode($gallery);
+        error_log("updateGallery: Gallery JSON length: " . strlen($galleryJson) . " bytes");
+        error_log("updateGallery: First 200 chars of JSON: " . substr($galleryJson, 0, 200));
+
+        try {
+            // Use a new database instance with fresh connection
+            $db = new Database();
+
+            // Create fresh connection for update
+            $conn = $db->connect();
+            error_log("updateGallery: PDO connection established");
+
+            // FIRST: Check if user exists in the table
+            $checkUserQuery = "SELECT id, email FROM {$tableName} WHERE id = :id";
+            $checkUserStmt = $conn->prepare($checkUserQuery);
+            $checkUserStmt->bindParam(':id', $userId, PDO::PARAM_INT);
+            $checkUserStmt->execute();
+            $existingUser = $checkUserStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$existingUser) {
+                error_log("updateGallery: CRITICAL - User ID $userId does NOT exist in $tableName!");
+                ob_clean();
+                echo json_encode(['success' => false, 'error' => "User not found in $tableName. Check your user type."]);
+                exit;
+            }
+
+            error_log("updateGallery: User exists - ID: {$existingUser['id']}, Email: {$existingUser['email']}");
+
+            // Prepare the UPDATE statement
+            $query = "UPDATE {$tableName} SET gallery = :gallery WHERE id = :id";
+            error_log("updateGallery: Query: $query");
+
+            $stmt = $conn->prepare($query);
+            error_log("updateGallery: Statement prepared");
+
+            // Bind parameters
+            $stmt->bindParam(':gallery', $galleryJson, PDO::PARAM_STR);
+            $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+            error_log("updateGallery: Parameters bound - gallery=" . strlen($galleryJson) . " bytes, id=$userId");
+
+            // Execute
+            $result = $stmt->execute();
+            error_log("updateGallery: Execute returned: " . ($result ? 'true' : 'false'));
+
+            // Get row count
+            $rowCount = $stmt->rowCount();
+            error_log("updateGallery: Rows affected: $rowCount");
+
+            // VERIFICATION: Immediately read back what was saved
+            $verifyQuery = "SELECT gallery FROM {$tableName} WHERE id = :id";
+            $verifyStmt = $conn->prepare($verifyQuery);
+            $verifyStmt->bindParam(':id', $userId, PDO::PARAM_INT);
+            $verifyStmt->execute();
+            $verifyRow = $verifyStmt->fetch(PDO::FETCH_ASSOC);
+            $savedGallery = $verifyRow['gallery'] ?? null;
+
+            if ($savedGallery) {
+                error_log("updateGallery: VERIFICATION - Data IS in database, length: " . strlen($savedGallery) . " bytes");
+                error_log("updateGallery: VERIFICATION - Preview: " . substr($savedGallery, 0, 100));
+            } else {
+                error_log("updateGallery: VERIFICATION - Data is NULL/empty in database!");
+            }
+
+            if ($rowCount > 0) {
+                error_log("updateGallery: SUCCESS - Data updated in database");
+                ob_clean();
+                echo json_encode(['success' => true, 'message' => 'Gallery updated successfully', 'rows' => $rowCount]);
+            } elseif ($result === true) {
+                // Execute succeeded but no rows affected - check if user exists
+                error_log("updateGallery: Execute succeeded but 0 rows affected - checking if user exists");
+                $checkQuery = "SELECT id FROM {$tableName} WHERE id = :id";
+                $checkStmt = $conn->prepare($checkQuery);
+                $checkStmt->bindParam(':id', $userId, PDO::PARAM_INT);
+                $checkStmt->execute();
+                $userExists = $checkStmt->fetch();
+
+                if ($userExists) {
+                    error_log("updateGallery: User exists, update succeeded (0 rows affected might indicate no change)");
+                    ob_clean();
+                    echo json_encode(['success' => true, 'message' => 'Gallery updated successfully', 'rows' => 0]);
+                } else {
+                    error_log("updateGallery: ERROR - User $userId not found in $tableName");
+                    ob_clean();
+                    echo json_encode(['success' => false, 'error' => "User not found in $tableName"]);
+                }
+            } else {
+                error_log('updateGallery: Execute returned false');
+                ob_clean();
+                echo json_encode(['success' => false, 'error' => 'Database update failed']);
+            }
+        } catch (Exception $e) {
+            error_log('updateGallery: Exception caught: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            ob_clean();
+            echo json_encode(['success' => false, 'error' => 'Failed to update gallery: ' . $e->getMessage()]);
+        }
+
+        error_log('=== updateGallery() COMPLETE ===');
+        exit;
+    }
+
+    /**
+     * Ensure gallery column exists in the given table (adds it if missing)
+     */
+    private function ensureGalleryColumn($db, $tableName)
+    {
+        try {
+            $checkQuery = "SHOW COLUMNS FROM {$tableName} LIKE 'gallery'";
+            $exists = $db->query($checkQuery);
+            if (!$exists) {
+                // Use LONGTEXT to safely store multiple base64 images
+                $alterQuery = "ALTER TABLE {$tableName} ADD COLUMN gallery LONGTEXT NULL COMMENT 'User photo gallery albums stored as JSON'";
+                $db->query($alterQuery);
+            }
+        } catch (Exception $e) {
+            error_log('ensureGalleryColumn error on ' . $tableName . ': ' . $e->getMessage());
+        }
+    }
 }
