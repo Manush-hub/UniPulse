@@ -240,8 +240,11 @@ class Publisher {
      * Get publisher by ID
      */
     public function findById($id) {
+        error_log("Publisher Model: findById called with ID = " . $id);
         $query = "SELECT * FROM publishers WHERE id = :id LIMIT 1";
-        return $this->getRow($query, ['id' => $id]);
+        $result = $this->getRow($query, ['id' => $id]);
+        error_log("Publisher Model: findById result = " . ($result ? $result->society_name : 'NULL'));
+        return $result;
     }
     
     /**
@@ -421,9 +424,14 @@ class Publisher {
         $updateData = ['publisher_id' => $publisherId];
         
         foreach ($allowedFields as $field) {
-            if (isset($data[$field])) {
+            if (array_key_exists($field, $data)) {
                 $updateFields[] = "$field = :$field";
-                $updateData[$field] = $data[$field];
+                // Convert empty strings to NULL for integer fields
+                if (in_array($field, ['established_year', 'member_count']) && $data[$field] === '') {
+                    $updateData[$field] = null;
+                } else {
+                    $updateData[$field] = $data[$field];
+                }
             }
         }
         
@@ -794,7 +802,10 @@ class Publisher {
      * Get a publisher by ID
      */
     public function getPublisherById($id) {
+        error_log("Publisher Model: getPublisherById called with ID = " . $id);
         $query = "SELECT * FROM publishers WHERE id = :id LIMIT 1";
-        return $this->getRow($query, ['id' => $id]);
+        $result = $this->getRow($query, ['id' => $id]);
+        error_log("Publisher Model: Query result = " . ($result ? json_encode($result) : 'NULL'));
+        return $result;
     }
 }

@@ -1,14 +1,10 @@
 <?php
 
-class PublisherPublic extends Controller{
+class Publisherprofile extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
         // Get publisher ID from query parameter
         $publisherId = $_GET['id'] ?? null;
-        
-        // Debug logging
-        error_log("PublisherPublic: Requested ID = " . ($publisherId ?? 'NULL'));
-        error_log("PublisherPublic: Full GET params = " . print_r($_GET, true));
         
         if (!$publisherId) {
             // Redirect to home or show error
@@ -21,8 +17,6 @@ class PublisherPublic extends Controller{
         
         // Get publisher basic info
         $publisher = $publisherModel->getPublisherById($publisherId);
-        
-        error_log("PublisherPublic: Found publisher = " . ($publisher ? $publisher->society_name : 'NULL'));
         
         if (!$publisher) {
             // Publisher not found
@@ -51,11 +45,10 @@ class PublisherPublic extends Controller{
         // Prepare data for view
         $data = [
             'publisher' => $publisher,
-            'publisherProfile' => $profile,
+            'profile' => $profile,
             'galleries' => $galleries,
             'upcomingEvents' => $upcomingEvents,
-            'pastEvents' => $pastEvents,
-            'events' => array_merge($upcomingEvents, $pastEvents) // Add merged events for convenience
+            'pastEvents' => $pastEvents
         ];
         
         $this->view('Publisher/public', $data);

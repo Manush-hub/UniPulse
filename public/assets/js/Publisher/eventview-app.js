@@ -682,10 +682,22 @@ function contactOrganizer() {
 }
 
 function visitPublisherProfile() {
+    console.log('=== visitPublisherProfile DEBUG ===');
+    console.log('currentEvent:', currentEvent);
+    console.log('currentEvent.created_by:', currentEvent?.created_by);
+    console.log('currentEvent.organizerId:', currentEvent?.organizerId);
+    console.log('currentEvent.created_by_type:', currentEvent?.created_by_type);
+    
     const publisherId = currentEvent?.organizerId || currentEvent?.created_by;
+    console.log('Final publisherId to use:', publisherId);
+    
     if (publisherId) {
-        window.location.href = `/unipulse/public/publisher/profile?id=${publisherId}`;
+        const url = `/unipulse/public/publisher/public?id=${publisherId}`;
+        console.log('Redirecting to:', url);
+        window.location.href = url;
     } else {
+        console.error('No publisher ID found in event data');
+        console.error('Event object:', JSON.stringify(currentEvent, null, 2));
         alert('Publisher profile not available.');
     }
 }

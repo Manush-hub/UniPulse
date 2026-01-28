@@ -803,7 +803,7 @@
             const event = window.serverData?.event;
             console.log('Event data:', event); // Debug
             if (event && event.created_by && event.created_by_type === 'publisher') {
-                const url = '/UniPulse/public/publisher/public/' + event.created_by;
+                const url = '/unipulse/public/publisher/public?id=' + event.created_by;
                 console.log('Redirecting to:', url); // Debug
                 window.location.href = url;
             } else {

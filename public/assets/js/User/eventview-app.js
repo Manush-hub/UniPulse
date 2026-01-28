@@ -1578,10 +1578,16 @@ function escapeHtml(text) {
 }
 
 function visitPublisherProfile() {
+    console.log('visitPublisherProfile called');
+    console.log('currentEvent:', currentEvent);
     const publisherId = currentEvent?.organizerId || currentEvent?.created_by;
+    console.log('publisherId:', publisherId);
     if (publisherId) {
-        window.location.href = `/unipulse/public/publisher/public?id=${publisherId}`;
+        const url = `/unipulse/public/publisher/public?id=${publisherId}`;
+        console.log('Redirecting to:', url);
+        window.location.href = url;
     } else {
+        console.error('No publisher ID found in event data');
         alert('Publisher profile not available.');
     }
 }

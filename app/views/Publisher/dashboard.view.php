@@ -144,6 +144,138 @@
             </div>
         </section>
 
+        <!-- Event Boosting Section -->
+        <section class="event-boosting-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>🚀 Boost Your Events</h2>
+                    <p>Increase visibility and reach more participants by boosting your events</p>
+                </div>
+                <div class="boost-content">
+                    <div class="boost-info-panel">
+                        <div class="boost-benefits">
+                            <h3>Benefits of Boosting</h3>
+                            <ul class="benefits-list">
+                                <li>
+                                    <i class="fas fa-rocket"></i>
+                                    <span>Priority placement in search results</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-users"></i>
+                                    <span>Reach up to 10x more students</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Enhanced visibility on homepage</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-star"></i>
+                                    <span>Featured badge on your event</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-bell"></i>
+                                    <span>Priority in push notifications</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="active-boosts">
+                            <h3>Your Active Boosts</h3>
+                            <div id="activeBoostsList" class="active-boosts-list">
+                                <div class="loading-boosts">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading active boosts...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="boost-action-panel">
+                        <div class="boost-form-container">
+                            <h3>Select Event to Boost</h3>
+                            <form id="boostEventForm" class="boost-form">
+                                <div class="form-group">
+                                    <label class="boost-label">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        Choose Event
+                                    </label>
+                                    <select id="eventSelect" name="event_id" class="form-control" required>
+                                        <option value="">Loading events...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="boost-label">
+                                        <i class="fas fa-clock"></i>
+                                        Boost Duration
+                                    </label>
+                                    <div class="duration-options" id="durationOptions">
+                                        <div class="duration-card" data-days="1" data-price="500">
+                                            <div class="duration-header">
+                                                <span class="duration-days">1 Day</span>
+                                            </div>
+                                            <div class="duration-price">LKR 500</div>
+                                            <div class="duration-badge">Quick Boost</div>
+                                        </div>
+                                        <div class="duration-card popular" data-days="3" data-price="1350">
+                                            <div class="duration-header">
+                                                <span class="duration-days">3 Days</span>
+                                                <span class="discount-badge">10% OFF</span>
+                                            </div>
+                                            <div class="duration-price">LKR 1,350</div>
+                                            <div class="duration-badge">Popular</div>
+                                        </div>
+                                        <div class="duration-card" data-days="7" data-price="2800">
+                                            <div class="duration-header">
+                                                <span class="duration-days">7 Days</span>
+                                                <span class="discount-badge">20% OFF</span>
+                                            </div>
+                                            <div class="duration-price">LKR 2,800</div>
+                                            <div class="duration-badge">Best Value</div>
+                                        </div>
+                                        <div class="duration-card" data-days="14" data-price="4900">
+                                            <div class="duration-header">
+                                                <span class="duration-days">14 Days</span>
+                                                <span class="discount-badge">30% OFF</span>
+                                            </div>
+                                            <div class="duration-price">LKR 4,900</div>
+                                            <div class="duration-badge">Extended</div>
+                                        </div>
+                                        <div class="duration-card premium" data-days="30" data-price="9000">
+                                            <div class="duration-header">
+                                                <span class="duration-days">30 Days</span>
+                                                <span class="discount-badge">40% OFF</span>
+                                            </div>
+                                            <div class="duration-price">LKR 9,000</div>
+                                            <div class="duration-badge">Premium</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="boost-summary">
+                                    <div class="summary-item">
+                                        <span>Selected Duration:</span>
+                                        <strong id="selectedDuration">Not selected</strong>
+                                    </div>
+                                    <div class="summary-item total">
+                                        <span>Total Amount:</span>
+                                        <strong id="totalAmount">LKR 0</strong>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" id="boostDuration" name="duration_days" required>
+                                <input type="hidden" id="boostPrice" name="amount" required>
+                                
+                                <button type="submit" class="btn btn-boost" id="boostSubmitBtn" disabled>
+                                    <i class="fas fa-rocket"></i>
+                                    Proceed to Payment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Sales & Analytics -->
         <section class="sales-analytics">
             <div class="container">
@@ -332,6 +464,116 @@
                 <button class="confirm-delete" onclick="confirmDelete()">Yes, Delete</button>
                 <button class="cancel-delete" onclick="closeDeleteModal()">Cancel</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Boost Payment Modal -->
+    <div id="boostPaymentModal" class="modal">
+        <div class="modal-content boost-modal-content">
+            <span class="close-button" onclick="closeBoostPaymentModal()">&times;</span>
+            <h3><i class="fas fa-credit-card"></i> Complete Payment</h3>
+            <div class="payment-summary">
+                <div class="payment-detail">
+                    <span>Event:</span>
+                    <strong id="paymentEventName">-</strong>
+                </div>
+                <div class="payment-detail">
+                    <span>Boost Duration:</span>
+                    <strong id="paymentDuration">-</strong>
+                </div>
+                <div class="payment-detail total">
+                    <span>Total Amount:</span>
+                    <strong id="paymentAmount">-</strong>
+                </div>
+            </div>
+            
+            <form id="paymentForm" class="payment-form">
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-methods">
+                        <div class="payment-method-option" data-method="card">
+                            <input type="radio" name="payment_method" id="cardPayment" value="card" checked>
+                            <label for="cardPayment">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Credit/Debit Card</span>
+                            </label>
+                        </div>
+                        <div class="payment-method-option" data-method="bank">
+                            <input type="radio" name="payment_method" id="bankPayment" value="bank_transfer">
+                            <label for="bankPayment">
+                                <i class="fas fa-university"></i>
+                                <span>Bank Transfer</span>
+                            </label>
+                        </div>
+                        <!-- <div class="payment-method-option" data-method="mobile">
+                            <input type="radio" name="payment_method" id="mobilePayment" value="mobile_payment">
+                            <label for="mobilePayment">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Mobile Payment</span>
+                            </label>
+                        </div> -->
+                    </div>
+                </div>
+                
+                <div id="cardPaymentFields" class="payment-fields">
+                    <div class="form-group">
+                        <label for="cardName">Cardholder Name</label>
+                        <input type="text" id="cardName" class="form-control" placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardNumber">Card Number</label>
+                        <input type="text" id="cardNumber" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expiryDate">Expiry Date</label>
+                            <input type="text" id="expiryDate" class="form-control" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="cvv">CVV</label>
+                            <input type="text" id="cvv" class="form-control" placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="bankPaymentFields" class="payment-fields" style="display: none;">
+                    <div class="bank-instructions">
+                        <h4>Bank Transfer Details</h4>
+                        <p><strong>Bank:</strong> Commercial Bank</p>
+                        <p><strong>Account Name:</strong> UniPulse Events</p>
+                        <p><strong>Account Number:</strong> 8001234567</p>
+                        <p><strong>Branch:</strong> Colombo</p>
+                        <div class="form-group">
+                            <label for="transactionRef">Transaction Reference</label>
+                            <input type="text" id="transactionRef" class="form-control" placeholder="Enter reference number">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- <div id="mobilePaymentFields" class="payment-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="mobileNumber">Mobile Number</label>
+                        <input type="text" id="mobileNumber" class="form-control" placeholder="+94 77 123 4567">
+                    </div>
+                    <div class="form-group">
+                        <label for="mobileProvider">Provider</label>
+                        <select id="mobileProvider" class="form-control">
+                            <option value="">Select Provider</option>
+                            <option value="dialog">Dialog</option>
+                            <option value="mobitel">Mobitel</option>
+                            <option value="hutch">Hutch</option>
+                            <option value="airtel">Airtel</option>
+                        </select>
+                    </div>
+                </div> -->
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary btn-pay">
+                        <i class="fas fa-lock"></i> Pay Now
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeBoostPaymentModal()">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
