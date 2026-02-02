@@ -147,6 +147,22 @@ function updatePagination(pagination = null) {
 }
 
 // Create event card HTML
+function getEventStatus(eventDate) {
+    if (!eventDate) return 'upcoming';
+    const eventDateObj = new Date(eventDate);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+
+    if (eventDateObj < today) {
+        return 'completed';
+    } else if (eventDateObj.getTime() === today.getTime()) {
+        return 'ongoing';
+    }
+    return 'upcoming';
+}
+
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
@@ -213,6 +229,9 @@ function createEventCard(event) {
         }
     }
 
+    // Determine actual status for display from event date
+    const displayStatus = getEventStatus(eventDate);
+
     card.innerHTML = `
         <div class="event-image">
             ${imagePath ?
@@ -225,7 +244,7 @@ function createEventCard(event) {
                 </svg>`
         }
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
-            <div class="event-status ${event.status}">${event.status}</div>
+            <div class="event-status ${displayStatus}">${displayStatus}</div>
         </div>
         <div class="event-content">
             <h3 class="event-title">${event.title}</h3>
