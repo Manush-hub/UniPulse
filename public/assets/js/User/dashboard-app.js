@@ -33,9 +33,9 @@ function loadUserData() {
 function loadUpcomingEvents() {
     const carousel = document.getElementById('upcomingEventsCarousel');
     if (!carousel) return;
-    
+
     carousel.innerHTML = '<div class="loading">Loading events...</div>';
-    
+
     fetch('/unipulse/public/user/dashboard/getUpcomingEvents')
         .then(response => {
             if (!response.ok) {
@@ -60,10 +60,15 @@ function loadUpcomingEvents() {
 function displayUpcomingEvents(events) {
     const carousel = document.getElementById('upcomingEventsCarousel');
     if (!carousel) return;
-    
+
+    if (!events || events.length === 0) {
+        carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
+        return;
+    }
+
     carousel.innerHTML = '';
 
-    upcomingEvents.forEach(event => {
+    events.forEach(event => {
         const eventCard = createUpcomingEventCard(event);
         carousel.appendChild(eventCard);
     });
@@ -77,12 +82,12 @@ function createUpcomingEventCard(event) {
 
     card.innerHTML = `
         <div class="event-image-mini">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}">` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
+            </svg>`}
             <div class="event-date-badge">${formatDate(event.date)}</div>
         </div>
         <div class="event-content-mini">
@@ -94,19 +99,21 @@ function createUpcomingEventCard(event) {
                 </svg>
                 ${event.time} • ${event.location}
             </div>
+            <div class="event-organizer">${event.organizer || event.university}</div>
         </div>
     `;
 
     return card;
 }
 
+
 // Load featured events from backend
 function loadFeaturedEvents() {
     const grid = document.getElementById('featuredEventsGrid');
     if (!grid) return;
-    
+
     grid.innerHTML = '<div class="loading">Loading featured events...</div>';
-    
+
     fetch('/unipulse/public/user/dashboard/getFeaturedEvents')
         .then(response => {
             if (!response.ok) {
@@ -131,10 +138,15 @@ function loadFeaturedEvents() {
 function displayFeaturedEvents(events) {
     const grid = document.getElementById('featuredEventsGrid');
     if (!grid) return;
-    
+
+    if (!events || events.length === 0) {
+        grid.innerHTML = '<div class="no-data">No featured events available</div>';
+        return;
+    }
+
     grid.innerHTML = '';
 
-    featuredEvents.forEach(event => {
+    events.forEach(event => {
         const eventCard = createFeaturedEventCard(event);
         grid.appendChild(eventCard);
     });
@@ -148,12 +160,12 @@ function createFeaturedEventCard(event) {
 
     card.innerHTML = `
         <div class="event-image">
-            <svg class="placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}">` : `<svg class="placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
+            </svg>`}
             <div class="event-category">${event.category}</div>
         </div>
         <div class="event-content">
@@ -173,9 +185,9 @@ function createFeaturedEventCard(event) {
 function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
-    
+
     activityList.innerHTML = '<div class="loading">Loading activity...</div>';
-    
+
     fetch('/unipulse/public/user/dashboard/getRecentActivity')
         .then(response => {
             if (!response.ok) {
@@ -200,10 +212,15 @@ function loadRecentActivity() {
 function displayRecentActivity(activities) {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
-    
+
+    if (!activities || activities.length === 0) {
+        activityList.innerHTML = '<div class="no-data">No recent activity</div>';
+        return;
+    }
+
     activityList.innerHTML = '';
 
-    recentActivity.forEach(activity => {
+    activities.forEach(activity => {
         const activityItem = createActivityItem(activity);
         activityList.appendChild(activityItem);
     });
@@ -246,7 +263,7 @@ function getActivityIcon(iconType) {
 
 // View event details
 function viewEventDetails(eventId) {
-    window.location.href = `event-details.html?id=${eventId}`;
+    window.location.href = `/unipulse/public/user/eventview/${eventId}`;
 }
 
 // Update date and time
