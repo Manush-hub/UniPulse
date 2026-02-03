@@ -28,9 +28,9 @@
         <!-- Filter Section -->
         <div class="filter-section">
             <div class="container">
-                <div class="filter-controls">
+                <div class="filter-group">
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search events..." class="search-input">
+                        <input type="text" id="eventNameFilter" placeholder="Search events..." class="filter-input" onkeyup="filterEvents()">
                         <button class="search-btn" onclick="searchEvents()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
@@ -38,7 +38,7 @@
                             </svg>
                         </button>
                     </div>
-                    
+
                     <div class="filter-group">
                         <select id="categoryFilter" onchange="filterEvents()">
                             <option value="">All Categories</option>
@@ -49,7 +49,7 @@
                             <option value="social">Social</option>
                             <option value="workshop">Workshop</option>
                         </select>
-                        
+
                         <select id="universityFilter" onchange="filterEvents()">
                             <option value="">All Universities</option>
                             <option value="university-of-colombo">University of Colombo</option>
@@ -58,14 +58,14 @@
                             <option value="university-of-moratuwa">University of Moratuwa</option>
                             <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
                         </select>
-                        
+
                         <select id="statusFilter" onchange="filterEvents()">
                             <option value="">All Status</option>
                             <option value="upcoming">Upcoming</option>
                             <option value="ongoing">Ongoing</option>
                             <option value="completed">Completed</option>
                         </select>
-                        
+
                         <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
                     </div>
                 </div>
@@ -83,17 +83,17 @@
                         <p style="color: #666;">Please try refreshing the page or contact support if the problem persists.</p>
                     </div>
                 <?php endif; ?>
-                
+
                 <div class="events-grid" id="eventsGrid">
                     <!-- Events will be loaded here dynamically -->
                 </div>
-                
+
                 <!-- Loading Spinner -->
                 <div class="loading-spinner" id="loadingSpinner">
                     <div class="spinner"></div>
                     <p>Loading events...</p>
                 </div>
-                
+
                 <!-- No Events Found -->
                 <div class="no-events" id="noEvents" style="display: none;">
                     <div class="no-events-icon">
@@ -107,7 +107,7 @@
                     <h3>No Events Found</h3>
                     <p>Try adjusting your search criteria or filters</p>
                 </div>
-                
+
                 <!-- Load More Button -->
                 <div class="load-more-section" id="loadMoreSection">
                     <button class="btn btn-outline" onclick="loadMoreEvents()">Load More Events</button>
@@ -126,4 +126,5 @@
     </script>
     <script src="/unipulse/public/assets/js/User/events-app.js"></script>
 </body>
+
 </html>

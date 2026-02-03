@@ -114,6 +114,10 @@ class UserEvents extends Controller
                 $filters['status'] = $_GET['status'];
             }
 
+            if (isset($_GET['eventName']) && !empty($_GET['eventName'])) {
+                $filters['eventName'] = $_GET['eventName'];
+            }
+
             if (isset($_GET['search']) && !empty($_GET['search'])) {
                 $filters['search'] = $_GET['search'];
             }

@@ -83,6 +83,12 @@ class Event
             }
         }
 
+        // Handle event name/title filter
+        if (!empty($filters['eventName'])) {
+            $whereClause[] = 'e.title LIKE :eventName';
+            $params['eventName'] = '%' . $filters['eventName'] . '%';
+        }
+
         if (!empty($filters['search'])) {
             $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';

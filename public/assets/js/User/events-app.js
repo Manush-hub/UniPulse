@@ -57,6 +57,7 @@ function loadEvents(useAjax = false) {
         if (activeFilters.category) params.append('category', activeFilters.category);
         if (activeFilters.university) params.append('university', activeFilters.university);
         if (activeFilters.status) params.append('status', activeFilters.status);
+        if (activeFilters.eventName) params.append('eventName', activeFilters.eventName);
         if (activeFilters.search) params.append('search', activeFilters.search);
 
         params.append('page', currentPage);
@@ -100,21 +101,19 @@ function displayEvents(events) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
-    // Always clear the grid on page 1 to ensure clean display
+    // Clear existing events if it's a new search/filter
     if (currentPage === 1) {
         eventsGrid.innerHTML = '';
     }
 
     // Events are already sorted by backend, no need for client-side sorting
     // Just display them in the order received
-    if (events && events.length > 0) {
-        events.forEach(event => {
-            eventsGrid.appendChild(createEventCard(event));
-        });
-    }
+    events.forEach(event => {
+        eventsGrid.appendChild(createEventCard(event));
+    });
 
     // Show/hide load more button
-    if (!events || events.length < eventsPerPage) {
+    if (events.length < eventsPerPage) {
         loadMoreSection.style.display = 'none';
     } else {
         loadMoreSection.style.display = 'block';
@@ -401,10 +400,11 @@ function filterEvents() {
     activeFilters.category = document.getElementById('categoryFilter').value;
     activeFilters.university = document.getElementById('universityFilter').value;
     activeFilters.status = document.getElementById('statusFilter').value;
+    activeFilters.eventName = document.getElementById('eventNameFilter').value;
 
     currentPage = 1;
 
-    // Always use AJAX to properly handle all filters including status
+    // Always use AJAX to fetch filtered events from backend
     loadEvents(true);
 }
 
@@ -414,6 +414,7 @@ function clearFilters() {
     document.getElementById('categoryFilter').value = '';
     document.getElementById('universityFilter').value = '';
     document.getElementById('statusFilter').value = '';
+    document.getElementById('eventNameFilter').value = '';
 
     activeFilters = {};
     currentPage = 1;
