@@ -10,9 +10,9 @@
 
 <body>
     <!-- Header -->
-    <?php 
+    <?php
     $pageConfig = ['activeNav' => 'home'];
-    include __DIR__ .'/components/header.php'; 
+    include __DIR__ . '/components/header.php';
     ?>
 
     <!-- Hero Section with Boosted Event Carousel -->
@@ -20,7 +20,7 @@
         <div class="hero-carousel" id="heroCarousel">
             <!-- Hero slides will be dynamically loaded here -->
         </div>
-        
+
         <!-- Hero Controls -->
         <div class="hero-controls">
             <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
@@ -34,12 +34,12 @@
                 </svg>
             </button>
         </div>
-        
+
         <!-- Hero Indicators -->
         <div class="hero-indicators" id="heroIndicators">
             <!-- Indicators will be dynamically created -->
         </div>
-        
+
         <!-- Hero Progress Bar -->
         <div class="hero-progress">
             <div class="progress-bar" id="progressBar"></div>
@@ -149,9 +149,9 @@
         <div class="container">
             <div class="section-header">
                 <h2>More events</h2>
-                <a href="/unipulse/public/user/events"  class="view-more">View more</a>
+                <a href="/unipulse/public/user/events" class="view-more">View more</a>
             </div>
-            <div class="events-grid" id="moreEventsGrid">
+            <div class="upcoming-grid" id="moreEventsGrid">
                 <!-- More events will be loaded here -->
             </div>
         </div>
@@ -162,4 +162,5 @@
 
     <script src="<?php echo $controller->loadJS('landing-app.js'); ?>"></script>
 </body>
+
 </html>

@@ -13,7 +13,10 @@ a {
 }
 
 /* Remove default form element styles */
-input, select, button, textarea {
+input,
+select,
+button,
+textarea {
     font-family: inherit;
     font-size: inherit;
     background: none;
@@ -286,7 +289,7 @@ body {
 .search-section {
     padding: 3rem 0;
     background: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .search-container {
@@ -298,7 +301,7 @@ body {
     padding: 8px;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .search-box {
@@ -413,13 +416,13 @@ body {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     border: 2px solid transparent;
 }
 
 .category-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
     border-color: #F97316;
 }
 
@@ -482,7 +485,7 @@ body {
     background: white;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: all 0.4s ease;
     cursor: pointer;
     position: relative;
@@ -490,7 +493,7 @@ body {
 
 .event-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
 .event-image {
@@ -524,14 +527,14 @@ body {
     color: white;
     font-size: 3rem;
     font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .event-category {
     position: absolute;
     top: 1rem;
     left: 1rem;
-    background: rgba(255,255,255,0.95);
+    background: rgba(255, 255, 255, 0.95);
     color: #1E3A8A;
     padding: 0.5rem 1rem;
     border-radius: 20px;
@@ -605,42 +608,42 @@ body {
     .container {
         padding: 0 1rem;
     }
-    
+
     .hero-event-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-event-meta {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .hero-controls {
         padding: 0 1rem;
     }
-    
+
     .hero-nav-btn {
         width: 50px;
         height: 50px;
     }
-    
+
     .search-container {
         flex-direction: column;
         gap: 0;
     }
-    
+
     .location-box {
         border-left: none;
         border-top: 1px solid #e5e7eb;
         min-width: auto;
     }
-    
+
     .upcoming-grid,
     .events-grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
-    
+
     .categories-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
@@ -652,29 +655,29 @@ body {
     .hero-event-title {
         font-size: 2rem;
     }
-    
+
     .hero-content {
         padding: 1rem;
     }
-    
+
     .search-container {
         margin: 0 1rem;
     }
-    
+
     .categories-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .category-icon {
         width: 60px;
         height: 60px;
     }
-    
+
     .hero-event-actions {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .hero-btn {
         width: 100%;
         max-width: 300px;
