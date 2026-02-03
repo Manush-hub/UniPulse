@@ -51,9 +51,6 @@
             <button class="nav-item active" data-tab="personal">
                 <i class="fas fa-user"></i> Personal Information
             </button>
-            <button class="nav-item" data-tab="events">
-                <i class="fas fa-calendar"></i> Registered Events
-            </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
             </button>
@@ -154,31 +151,7 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Photo Gallery</h3>
-                        <div class="gallery-actions">
-                            <button type="button" class="btn btn-small" onclick="addGalleryPhoto()">
-                                <i class="fas fa-plus"></i> Add Album
-                            </button>
-                        </div>
-                    </div>
-                    <div class="gallery-section">
-                        <div class="gallery-upload-info">
-                            <p><i class="fas fa-info-circle"></i> You can create up to 5 gallery albums with up to 5 photos each. Each album should include a title and description.</p>
-                        </div>
-                        <div class="gallery-grid" id="galleryGrid">
-                            <!-- Gallery items will be rendered dynamically by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Registered Events Tab -->
-            <div id="events" class="tab-content">
-                <div class="events-grid" id="eventsContainer">
-                    <!-- Events will be populated by JavaScript -->
-                </div>
             </div>
 
             <!-- Settings Tab -->
@@ -326,109 +299,7 @@
         </div>
     </div>
 
-    <!-- Gallery Photo Modal -->
-    <div id="galleryPhotoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="galleryModalTitle">Add Photo to Gallery</h3>
-                <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="galleryPhotoForm" class="form">
-                    <div class="form-group full-width">
-                        <label for="galleryTitle">Photo Title</label>
-                        <input type="text" id="galleryTitle" placeholder="Enter a title for your photo" maxlength="50" required>
-                        <small>Maximum 50 characters</small>
-                    </div>
 
-                    <div class="form-group full-width">
-                        <label for="galleryDescription">Description</label>
-                        <textarea id="galleryDescription" rows="3" placeholder="Write a brief description of your photo" maxlength="150" required></textarea>
-                        <small>Maximum 150 characters</small>
-                    </div>
-
-                    <div class="form-group full-width" id="galleryImageUpload">
-                        <label>Photo Upload (Up to 5 photos)</label>
-                        <div class="multi-photo-upload">
-                            <div class="photo-upload-item">
-                                <label for="galleryFile1" class="photo-upload-label">Photo 1 (Required)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile1').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview1" class="gallery-preview" style="display: none;" alt="Preview 1">
-                                </div>
-                                <input type="file" id="galleryFile1" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 1)" required>
-                            </div>
-
-                            <div class="photo-upload-item">
-                                <label for="galleryFile2" class="photo-upload-label">Photo 2 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile2').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview2" class="gallery-preview" style="display: none;" alt="Preview 2">
-                                </div>
-                                <input type="file" id="galleryFile2" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 2)">
-                            </div>
-
-                            <div class="photo-upload-item">
-                                <label for="galleryFile3" class="photo-upload-label">Photo 3 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile3').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview3" class="gallery-preview" style="display: none;" alt="Preview 3">
-                                </div>
-                                <input type="file" id="galleryFile3" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 3)">
-                            </div>
-
-                            <div class="photo-upload-item">
-                                <label for="galleryFile4" class="photo-upload-label">Photo 4 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile4').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview4" class="gallery-preview" style="display: none;" alt="Preview 4">
-                                </div>
-                                <input type="file" id="galleryFile4" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 4)">
-                            </div>
-
-                            <div class="photo-upload-item">
-                                <label for="galleryFile5" class="photo-upload-label">Photo 5 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile5').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview5" class="gallery-preview" style="display: none;" alt="Preview 5">
-                                </div>
-                                <input type="file" id="galleryFile5" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 5)">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-primary" onclick="saveGalleryPhoto()">
-                            Save Gallery
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeGalleryModal()">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 

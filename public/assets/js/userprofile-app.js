@@ -69,10 +69,8 @@ class UniPulseProfile {
 
     init() {
         this.bindEvents();
-        this.loadEvents();
         this.loadUserData();
         this.setupAnimations();
-        this.categorizeEvents();
         this.setupImageUploads();
     }
 
@@ -126,14 +124,14 @@ class UniPulseProfile {
         }
     }
 
-    categorizeEvents() {
-        const currentDate = new Date('2024-08-25');
-
-        this.events.forEach(event => {
-            const eventDate = new Date(event.date);
-            event.category = eventDate > currentDate ? 'upcoming' : 'past';
-        });
-    }
+    // categorizeEvents() - REMOVED: Event functionality removed
+    // categorizeEvents() {
+    //     const currentDate = new Date('2024-08-25');
+    //     this.events.forEach(event => {
+    //         const eventDate = new Date(event.date);
+    //         event.category = eventDate > currentDate ? 'upcoming' : 'past';
+    //     });
+    // }
 
     bindEvents() {
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -420,69 +418,17 @@ class UniPulseProfile {
         }, 50);
     }
 
-    loadEvents() {
-        const container = document.getElementById('eventsContainer');
-        if (!container) return;
+    // loadEvents() - REMOVED: Event functionality removed
+    // loadEvents() {
+    //     const container = document.getElementById('eventsContainer');
+    //     if (!container) return;
+    //     // ... code removed ...
+    // }
 
-        container.innerHTML = '';
-
-        const sortedEvents = this.events.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            const currentDate = new Date('2024-08-25');
-
-            if ((dateA > currentDate && dateB > currentDate) || (dateA <= currentDate && dateB <= currentDate)) {
-                return dateA - dateB;
-            }
-            return dateA > currentDate ? -1 : 1;
-        });
-
-        sortedEvents.forEach(event => {
-            const eventCard = this.createEventCard(event);
-            container.appendChild(eventCard);
-        });
-    }
-
-    createEventCard(event) {
-        const card = document.createElement('div');
-        card.className = 'event-card';
-        card.dataset.category = event.category;
-        card.dataset.type = event.type;
-        card.dataset.title = event.title.toLowerCase();
-
-        const badgeClass = event.category === 'upcoming' ? 'upcoming' : 'past';
-        const badgeText = event.category === 'upcoming' ? 'Registered' : 'Attended';
-
-        card.innerHTML = `
-            <div class="event-image">
-                <img src="${event.image}" alt="${event.title}" loading="lazy">
-                <span class="event-badge ${badgeClass}">${badgeText}</span>
-            </div>
-            <div class="event-info">
-                <h4>${event.title}</h4>
-                <p class="event-date">
-                    <i class="fas fa-calendar"></i> 
-                    ${this.formatDate(event.date)}
-                </p>
-                <p class="event-location">
-                    <i class="fas fa-map-marker-alt"></i> 
-                    ${event.location}
-                </p>
-                <p class="event-description">${event.description}</p>
-                <div class="event-actions">
-                    <button class="btn btn-small btn-primary" onclick="profileManager.viewEventDetails(${event.id})">
-                        View Details
-                    </button>
-                    ${event.category === 'past' ?
-                '<button class="btn btn-small btn-secondary" onclick="profileManager.rateEvent(' + event.id + ')">Rate Event</button>' :
-                '<button class="btn btn-small btn-secondary" onclick="profileManager.viewTicket(' + event.id + ')">View Ticket</button>'
-            }
-                </div>
-            </div>
-        `;
-
-        return card;
-    }
+    // createEventCard() - REMOVED: Event functionality removed
+    // createEventCard(event) {
+    //     // ... code removed ...
+    // }
 
     formatDate(dateString) {
         const date = new Date(dateString);
@@ -496,7 +442,6 @@ class UniPulseProfile {
 
     applyPrivacySettings() {
         const showContact = document.getElementById('showContact')?.checked;
-        const showEventHistory = document.getElementById('showEventHistory')?.checked;
 
         if (!showContact) {
             document.querySelectorAll('#email, #phone').forEach(input => {
@@ -505,11 +450,6 @@ class UniPulseProfile {
                 input.style.fontStyle = 'italic';
                 input.dataset.originalValue = originalValue;
             });
-        }
-
-        if (!showEventHistory) {
-            document.getElementById('events').style.display = 'none';
-            document.querySelector('[data-tab="events"]').style.display = 'none';
         }
     }
 
