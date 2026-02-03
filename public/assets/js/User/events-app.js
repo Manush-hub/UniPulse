@@ -9,6 +9,7 @@ const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eve
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
+    // Events are already sorted by backend, no need for client-side sorting
     loadEvents();
     setupEventListeners();
 });
@@ -99,18 +100,21 @@ function displayEvents(events) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
-    // Clear existing events if it's a new search/filter
+    // Always clear the grid on page 1 to ensure clean display
     if (currentPage === 1) {
         eventsGrid.innerHTML = '';
     }
 
-    // Add events
-    events.forEach(event => {
-        eventsGrid.appendChild(createEventCard(event));
-    });
+    // Events are already sorted by backend, no need for client-side sorting
+    // Just display them in the order received
+    if (events && events.length > 0) {
+        events.forEach(event => {
+            eventsGrid.appendChild(createEventCard(event));
+        });
+    }
 
     // Show/hide load more button
-    if (events.length < eventsPerPage) {
+    if (!events || events.length < eventsPerPage) {
         loadMoreSection.style.display = 'none';
     } else {
         loadMoreSection.style.display = 'block';
@@ -161,6 +165,17 @@ function getEventStatus(eventDate) {
         return 'ongoing';
     }
     return 'upcoming';
+}
+
+// Sort events by status: ongoing first, then upcoming, then completed
+function sortEventsByStatus(events) {
+    return events.sort((a, b) => {
+        const statusA = getEventStatus(a.event_date || a.date);
+        const statusB = getEventStatus(b.event_date || b.date);
+
+        const statusOrder = { 'ongoing': 0, 'upcoming': 1, 'completed': 2 };
+        return (statusOrder[statusA] || 3) - (statusOrder[statusB] || 3);
+    });
 }
 
 function createEventCard(event) {
@@ -389,22 +404,8 @@ function filterEvents() {
 
     currentPage = 1;
 
-    // If status filter is applied, filter events locally first
-    if (activeFilters.status) {
-        const selectedStatus = activeFilters.status.toLowerCase();
-        const filtered = allEvents.filter(event => {
-            const calculatedStatus = getEventStatus(event.event_date || event.date);
-            return calculatedStatus === selectedStatus;
-        });
-        filteredEvents = filtered;
-
-        // Display filtered events without AJAX call for status filtering
-        displayEvents(filtered);
-        updatePagination();
-    } else {
-        // Use AJAX for other filters
-        loadEvents(true);
-    }
+    // Always use AJAX to properly handle all filters including status
+    loadEvents(true);
 }
 
 // Clear all filters

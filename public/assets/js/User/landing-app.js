@@ -161,7 +161,7 @@ function createHeroSlide(event, isActive) {
                 </div>
             </div>
             <div class="hero-event-actions">
-                <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-primary">
+                <a href="/unipulse/public/user/eventview?id=${event.id}" class="hero-btn hero-btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
@@ -169,7 +169,7 @@ function createHeroSlide(event, isActive) {
                     </svg>
                     Join Event - ${event.price}
                 </a>
-                <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-secondary">
+                <a href="/unipulse/public/user/eventview?id=${event.id}" class="hero-btn hero-btn-secondary">
                     Learn More
                 </a>
             </div>
@@ -527,39 +527,28 @@ function createEventCard(event) {
     dateDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> <span>${formatDate(event.date)} at ${event.time}</span>`;
     metaDiv.appendChild(dateDiv);
 
-    // Location - build based on location type
-    const locationType = event.location_type || 'inside-university';
-    let locationText = '';
+    // University
+    const universityDiv = document.createElement('div');
+    universityDiv.className = 'event-location';
+    const universityName = event.university || 'University TBA';
+    universityDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span><strong>University:</strong> ${universityName}</span>`;
+    metaDiv.appendChild(universityDiv);
 
-    if (locationType === 'outside-university') {
-        // Outside university: show "Venue, City"
-        const venueName = event.venue_name || event.venueName;
-        const city = event.city;
-        if (venueName && city) {
-            locationText = `${venueName}, ${city}`;
-        } else if (venueName) {
-            locationText = venueName;
-        } else if (city) {
-            locationText = city;
-        } else {
-            locationText = event.location || 'Location TBA';
-        }
-    } else {
-        // Inside university: show exact location
-        locationText = event.location || 'Location TBA';
+    // Faculty/Department (if available)
+    const facultyDepartment = event.faculty_department || event.facultyDepartment;
+    if (facultyDepartment) {
+        const facultyDiv = document.createElement('div');
+        facultyDiv.className = 'event-location';
+        facultyDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span><strong>Faculty/Department:</strong> ${facultyDepartment}</span>`;
+        metaDiv.appendChild(facultyDiv);
     }
-
-    const locationDiv = document.createElement('div');
-    locationDiv.className = 'event-location';
-    locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${locationText}</span>`;
-    metaDiv.appendChild(locationDiv);
 
     contentDiv.appendChild(metaDiv);
     card.appendChild(contentDiv);
 
     // Card click: go to event details
     card.onclick = () => {
-        window.location.href = `event-details.html?id=${event.id}`;
+        window.location.href = `/unipulse/public/user/eventview?id=${event.id}`;
     };
 
     return card;
