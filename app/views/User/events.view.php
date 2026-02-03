@@ -28,9 +28,9 @@
         <!-- Filter Section -->
         <div class="filter-section">
             <div class="container">
-                <div class="filter-group">
+                <div class="filter-controls">
                     <div class="search-box">
-                        <input type="text" id="eventNameFilter" placeholder="Search events..." class="filter-input" onkeyup="filterEvents()">
+                        <input type="text" id="eventNameFilter" placeholder="Search events..." class="filter-input search-input" onkeyup="filterEvents()">
                         <button class="search-btn" onclick="searchEvents()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
