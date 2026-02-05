@@ -298,6 +298,17 @@ class UserEventview extends Controller {
     private function formatEventForResponse($event) {
         $eventData = (array) $event;
         
+        // Add publisher profile headline for organizer role display
+        if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
+            $publisherModel = new Publisher();
+            $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
+            if ($publisherProfile && !empty($publisherProfile->headline)) {
+                $eventData['organizer_role'] = $publisherProfile->headline;
+            } else {
+                $eventData['organizer_role'] = 'Event Organizer';
+            }
+        }
+        
         // Format date and time for frontend display
         if (isset($eventData['event_date'])) {
             $eventData['date'] = $eventData['event_date'];

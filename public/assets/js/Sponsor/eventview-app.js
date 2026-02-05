@@ -210,6 +210,12 @@ function displayEventDetails(event) {
     // Organizer info
     document.getElementById('organizerName').textContent = event.organizer;
     
+    // Set organizer role if available, otherwise use default
+    const organizerRoleElement = document.getElementById('organizerRole');
+    if (organizerRoleElement) {
+        organizerRoleElement.textContent = event.organizer_role || 'Event Organizer';
+    }
+    
     // Store organizer email for contact function
     currentEvent.organizerEmail = organizerEmail;
     

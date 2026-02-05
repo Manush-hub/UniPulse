@@ -326,19 +326,30 @@ class PublisherEventview extends Controller {
         if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
             $publisherModel = new Publisher();
             
-            // Get publisher basic info (includes phone)
+            // Get publisher basic info (includes phone and current organization name)
             $publisherInfo = $publisherModel->where(['id' => $eventData['created_by']]);
             if ($publisherInfo && count($publisherInfo) > 0) {
                 $publisher = $publisherInfo[0];
                 if (!empty($publisher->phone)) {
                     $eventData['organizer_phone'] = $publisher->phone;
                 }
+                // Update organizer name to current organization name from database
+                if (!empty($publisher->society_name)) {
+                    $eventData['organizer'] = $publisher->society_name;
+                }
             }
             
             // Get publisher profile (includes logo)
             $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
-            if ($publisherProfile && !empty($publisherProfile->logo_url)) {
-                $eventData['organizer_photo'] = $publisherProfile->logo_url;
+            if ($publisherProfile) {
+                if (!empty($publisherProfile->logo_url)) {
+                    $eventData['organizer_photo'] = $publisherProfile->logo_url;
+                }
+                if (!empty($publisherProfile->headline)) {
+                    $eventData['organizer_role'] = $publisherProfile->headline;
+                } else {
+                    $eventData['organizer_role'] = 'Event Organizer';
+                }
             }
         }
         

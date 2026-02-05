@@ -174,7 +174,7 @@
                                     </div>
                                     <div class="organizer-details">
                                         <h4 id="organizerName">Loading...</h4>
-                                        <p id="organizerRole" class="organizer-role">Event Organizer</p>
+                                        <!-- <p id="organizerRole" class="organizer-role"></p> -->
                                         <div class="organizer-actions">
                                             <button class="btn btn-outline btn-icon" id="visitProfileBtn" onclick="visitPublisherProfile()" title="Visit Profile">
                                                 <i class="fas fa-user"></i>
