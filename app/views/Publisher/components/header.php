@@ -35,18 +35,11 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <button onclick="markAllAsRead()">Mark all as read</button>
                     </div>
                 </div>
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar" id="headerAvatar">
-                    <div class="user-info">
-                        <span class="username" id="username">Organization</span>
-                        <span class="user-role" id="userRole">Loading...</span>
-                    </div>
-                </div>
             </div>
             <div class="user-menu">
-                <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar">
+                <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar" id="headerAvatar">
                 <div class="user-info">
-                    <span class="username" id="username"><?= isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'User' ?></span>
+                    <span class="username" id="username">Organization</span>
                     <span class="user-role" id="userRole">Event Organizer</span>
                 </div>
                 <button class="user-dropdown-btn" onclick="toggleUserMenu()">
