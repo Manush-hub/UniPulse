@@ -513,12 +513,24 @@ function safeOutput($value, $default = '') {
                                                     <span><?= htmlspecialchars($event->category) ?></span>
                                                 </div>
                                                 <?php endif; ?>
+                                                <?php if(!empty($event->university)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-university"></i>
+                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->university))) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                                <?php if(!empty($event->faculty_department)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-building"></i>
+                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->faculty_department))) ?></span>
+                                                </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/publisher/eventview?id=<?= $event->id ?>'">
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>
@@ -592,12 +604,25 @@ function safeOutput($value, $default = '') {
                                                     <span><?= htmlspecialchars($event->category) ?></span>
                                                 </div>
                                                 <?php endif; ?>
+                                                <?php if(!empty($event->university)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-university"></i>
+                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->university))) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                                <?php if(!empty($event->faculty_department)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-building"></i>
+                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->faculty_department))) ?></span>
+                                                </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/publisher/eventview?id=<?= $event->id ?>'">
+
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>

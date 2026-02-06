@@ -601,7 +601,7 @@ class PublisherProfile extends Controller{
             }
 
             $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getUpcomingEvents($publisherId);
+            $events = $this->publisherModel->getUpcomingEvents($publisherId, $currentUser);
             
             // Format events with calculated status
             $formattedEvents = [];
@@ -638,7 +638,7 @@ class PublisherProfile extends Controller{
             }
 
             $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getPastEvents($publisherId);
+            $events = $this->publisherModel->getPastEvents($publisherId, $currentUser);
             
             // Format events with calculated status
             $formattedEvents = [];

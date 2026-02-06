@@ -54,9 +54,16 @@ class Event {
     /**
      * Get all events with optional filters
      */
-    public function getAllEvents($filters = []) {
+    public function getAllEvents($filters = [], $currentUser = null) {
         $whereClause = ['e.is_deleted = 0']; // Exclude soft-deleted events
         $params = [];
+        
+        // Apply visibility filtering based on current user
+        $visibilityClause = $this->buildVisibilityFilter($currentUser);
+        if (!empty($visibilityClause['clause'])) {
+            $whereClause[] = $visibilityClause['clause'];
+            $params = array_merge($params, $visibilityClause['params']);
+        }
         
         // Apply filters
         if (!empty($filters['category'])) {
@@ -103,12 +110,79 @@ class Event {
     }
     
     /**
+     * Build visibility filter based on current user
+     */
+    private function buildVisibilityFilter($currentUser = null) {
+        $visibilityConditions = [];
+        $params = [];
+        
+        // If no user logged in, only show public events
+        if (!$currentUser) {
+            return [
+                'clause' => "e.visibility = 'public'",
+                'params' => []
+            ];
+        }
+        
+        $userType = $currentUser['type'] ?? null;
+        $userUniversity = $currentUser['university'] ?? null;
+        $userFaculty = $currentUser['faculty'] ?? null;
+        
+        // Publishers, admins, and moderators can see all events
+        if (in_array($userType, ['publisher', 'admin', 'moderator'])) {
+            return ['clause' => '', 'params' => []];
+        }
+        
+        // Public events - everyone can see
+        $visibilityConditions[] = "e.visibility = 'public'";
+        
+        // All universities events - all university users can see
+        if ($userType === 'university_user') {
+            $visibilityConditions[] = "e.visibility = 'all-universities'";
+            
+            // University-only events - only users from that university
+            if (!empty($userUniversity)) {
+                $visibilityConditions[] = "(e.visibility = 'university-only' AND e.university = :user_university)";
+                $params['user_university'] = $userUniversity;
+                
+                // Faculty-only events - only users from that faculty and university
+                if (!empty($userFaculty)) {
+                    $visibilityConditions[] = "(e.visibility = 'faculty-only' AND e.university = :user_university2 AND e.faculty_department = :user_faculty)";
+                    $params['user_university2'] = $userUniversity;
+                    $params['user_faculty'] = $userFaculty;
+                }
+            }
+        }
+        
+        // Combine all conditions with OR
+        if (!empty($visibilityConditions)) {
+            return [
+                'clause' => '(' . implode(' OR ', $visibilityConditions) . ')',
+                'params' => $params
+            ];
+        }
+        
+        // Default: only public events
+        return [
+            'clause' => "e.visibility = 'public'",
+            'params' => []
+        ];
+    }
+    
+    /**
      * Get events that are seeking sponsors
      * These are typically upcoming events that accept donations or need funding
      */
-    public function getEventsSeekingSponsors($filters = []) {
+    public function getEventsSeekingSponsors($filters = [], $currentUser = null) {
         $whereClause = ['e.status = :status', 'e.is_deleted = 0']; // Exclude soft-deleted events
         $params = ['status' => 'upcoming'];
+        
+        // Apply visibility filtering based on current user
+        $visibilityClause = $this->buildVisibilityFilter($currentUser);
+        if (!empty($visibilityClause['clause'])) {
+            $whereClause[] = $visibilityClause['clause'];
+            $params = array_merge($params, $visibilityClause['params']);
+        }
         
         // Apply filters
         if (!empty($filters['category'])) {
@@ -195,14 +269,21 @@ class Event {
      * Non-user roles (publisher, admin, moderator, sponsor) can see completed events
      * Regular users cannot see completed events unless specifically requested
      */
-    public function getEventsByRole($userRole = 'user', $filters = []) {
+    public function getEventsByRole($userRole = 'user', $filters = [], $currentUser = null) {
         $allowCompletedEvents = in_array($userRole, ['publisher', 'admin', 'moderator', 'sponsor']);
         
         // If user role can't see completed events and no specific status filter is set
         if (!$allowCompletedEvents && !isset($filters['status'])) {
             // Add filter to exclude completed events
-            $whereClause = [];
+            $whereClause = ['e.is_deleted = 0'];
             $params = [];
+            
+            // Apply visibility filtering based on current user
+            $visibilityClause = $this->buildVisibilityFilter($currentUser);
+            if (!empty($visibilityClause['clause'])) {
+                $whereClause[] = $visibilityClause['clause'];
+                $params = array_merge($params, $visibilityClause['params']);
+            }
             
             // Apply existing filters
             foreach ($filters as $key => $value) {
@@ -227,9 +308,6 @@ class Event {
             // Exclude completed events for regular users
             $whereClause[] = "e.status != 'completed'";
             
-            // Exclude soft-deleted events
-            $whereClause[] = "e.is_deleted = 0";
-            
             $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
                     LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
             
@@ -253,7 +331,7 @@ class Event {
             return $this->query($sql, $params);
         } else {
             // Use existing getAllEvents method for non-users roles or when status is specifically requested
-            return $this->getAllEvents($filters);
+            return $this->getAllEvents($filters, $currentUser);
         }
     }
 
@@ -282,19 +360,30 @@ class Event {
     /**
      * Get similar events (same category or university)
      */
-    public function getSimilarEvents($eventId, $category, $university, $limit = 3) {
-        $sql = "SELECT * FROM {$this->table} 
-                WHERE id != :eventId 
-                AND (category = :category OR university = :university)
-                ORDER BY event_date ASC 
-                LIMIT :limit";
-        
+    public function getSimilarEvents($eventId, $category, $university, $limit = 3, $currentUser = null) {
+        $whereClause = [
+            'e.id != :eventId',
+            '(e.category = :category OR e.university = :university)',
+            'e.is_deleted = 0'
+        ];
         $params = [
             'eventId' => $eventId,
             'category' => $category,
             'university' => $university,
             'limit' => $limit
         ];
+        
+        // Apply visibility filtering based on current user
+        $visibilityClause = $this->buildVisibilityFilter($currentUser);
+        if (!empty($visibilityClause['clause'])) {
+            $whereClause[] = $visibilityClause['clause'];
+            $params = array_merge($params, $visibilityClause['params']);
+        }
+        
+        $sql = "SELECT e.* FROM {$this->table} e 
+                WHERE " . implode(' AND ', $whereClause) . "
+                ORDER BY e.event_date ASC 
+                LIMIT :limit";
         
         return $this->query($sql, $params);
     }

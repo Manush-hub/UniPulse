@@ -181,6 +181,70 @@
                     </div>
                 </section>
 
+                <section class="section" id="event-visibility">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Event Visibility</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label class="form-label required">Who can see this event?</label>
+                            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Choose the audience level for your event</p>
+
+                            <div class="visibility-options" style="display: grid; gap: 15px;">
+                                <!-- Faculty Only -->
+                                <div class="visibility-option" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s;">
+                                    <input type="radio" id="visibility-faculty" name="event_visibility" value="faculty-only" style="margin-right: 10px;">
+                                    <label for="visibility-faculty" style="cursor: pointer; display: inline-flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px);">
+                                        <i class="fas fa-building" style="color: #8b5cf6; font-size: 20px; margin-top: 2px;"></i>
+                                        <div>
+                                            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Faculty Only</div>
+                                            <div style="font-size: 12px; color: #666;">Only members from your specific faculty can view and join this event</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- University Only -->
+                                <div class="visibility-option" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s;">
+                                    <input type="radio" id="visibility-university" name="event_visibility" value="university-only" checked style="margin-right: 10px;">
+                                    <label for="visibility-university" style="cursor: pointer; display: inline-flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px);">
+                                        <i class="fas fa-university" style="color: #3b82f6; font-size: 20px; margin-top: 2px;"></i>
+                                        <div>
+                                            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">University Only</div>
+                                            <div style="font-size: 12px; color: #666;">All students and staff from your university can view and join this event</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- All Universities -->
+                                <div class="visibility-option" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s;">
+                                    <input type="radio" id="visibility-all-universities" name="event_visibility" value="all-universities" style="margin-right: 10px;">
+                                    <label for="visibility-all-universities" style="cursor: pointer; display: inline-flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px);">
+                                        <i class="fas fa-graduation-cap" style="color: #10b981; font-size: 20px; margin-top: 2px;"></i>
+                                        <div>
+                                            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">All Universities</div>
+                                            <div style="font-size: 12px; color: #666;">Students and staff from all universities can view and join this event</div>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Public -->
+                                <div class="visibility-option" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 15px; cursor: pointer; transition: all 0.3s;">
+                                    <input type="radio" id="visibility-public" name="event_visibility" value="public" style="margin-right: 10px;">
+                                    <label for="visibility-public" style="cursor: pointer; display: inline-flex; align-items: flex-start; gap: 12px; width: calc(100% - 30px);">
+                                        <i class="fas fa-globe" style="color: #f59e0b; font-size: 20px; margin-top: 2px;"></i>
+                                        <div>
+                                            <div style="font-weight: 600; color: #333; margin-bottom: 4px;">Public</div>
+                                            <div style="font-size: 12px; color: #666;">Everyone including non-university members can view and join this event</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="section" id="location-time">
                     <div class="section-header">
                         <div class="section-icon"></div>
@@ -957,6 +1021,46 @@
                 this.size = 1;
                 this.blur();
             });
+        }
+
+        // Handle visibility option selection styling
+        const visibilityOptions = document.querySelectorAll('.visibility-option');
+        const visibilityRadios = document.querySelectorAll('input[name="event_visibility"]');
+        
+        visibilityRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Reset all options
+                visibilityOptions.forEach(option => {
+                    option.style.borderColor = '#e5e7eb';
+                    option.style.background = 'transparent';
+                });
+                
+                // Highlight selected option
+                if (this.checked) {
+                    const parent = this.closest('.visibility-option');
+                    parent.style.borderColor = '#3b82f6';
+                    parent.style.background = '#eff6ff';
+                }
+            });
+        });
+        
+        // Click on option div to select radio
+        visibilityOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                if (e.target.type !== 'radio' && e.target.tagName !== 'LABEL') {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    radio.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+        
+        // Set initial selected state
+        const checkedRadio = document.querySelector('input[name="event_visibility"]:checked');
+        if (checkedRadio) {
+            const parent = checkedRadio.closest('.visibility-option');
+            parent.style.borderColor = '#3b82f6';
+            parent.style.background = '#eff6ff';
         }
     });
 

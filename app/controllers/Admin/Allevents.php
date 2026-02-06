@@ -42,11 +42,14 @@ class AdminAllevents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
+            
             // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
             // Get total count for pagination (without limit)
-            $totalEvents = $this->eventModel->getAllEvents();
+            $totalEvents = $this->eventModel->getAllEvents([], $currentUser);
             $totalPages = ceil(count($totalEvents) / $limit);
             
             // Prepare data for view with server data for JavaScript
@@ -113,8 +116,11 @@ class AdminAllevents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
+            
             // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
             // Format events for JSON response
             $formattedEvents = [];

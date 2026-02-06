@@ -44,9 +44,12 @@ class PublisherPublic extends Controller{
         // Get publisher galleries
         $galleries = $publisherModel->getPublisherGalleries($publisherId);
         
+        // Get current user for visibility filtering
+        $currentUser = AuthService::getCurrentUser();
+        
         // Get upcoming and past events
-        $upcomingEvents = $publisherModel->getUpcomingEvents($publisherId);
-        $pastEvents = $publisherModel->getPastEvents($publisherId);
+        $upcomingEvents = $publisherModel->getUpcomingEvents($publisherId, $currentUser);
+        $pastEvents = $publisherModel->getPastEvents($publisherId, $currentUser);
         
         // Prepare data for view
         $data = [

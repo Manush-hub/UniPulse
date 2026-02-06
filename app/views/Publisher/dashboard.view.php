@@ -26,7 +26,7 @@
                     <div class="welcome-text">
                         <h1>Welcome back, <span id="welcomeUsername"><?php echo htmlspecialchars($data['user']['name'] ?? 'Organization'); ?></span>! 👋</h1>
                         <p>Manage your events and track performance from your organizer dashboard.</p>
-                        <div class="quick-stats">
+                        <!-- <div class="quick-stats">
                             <div class="stat-item">
                                 <span class="stat-number" id="upcomingEvents">7</span>
                                 <span class="stat-label">Upcoming Events</span>
@@ -39,7 +39,7 @@
                                 <span class="stat-number" id="totalVolunteers">45</span>
                                 <span class="stat-label">Volunteers</span>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                     <div class="welcome-actions">
                         <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">

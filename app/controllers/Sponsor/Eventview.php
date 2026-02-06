@@ -31,12 +31,16 @@ class SponsorEventview extends Controller {
                     $event = $this->eventModel->getEventById($eventId);
                     
                     if ($event) {
+                        // Get current user for visibility filtering
+                        $currentUser = AuthService::getCurrentUser();
+                        
                         // Get similar events from database
                         $similarEvents = $this->eventModel->getSimilarEvents(
                             $event->id, 
                             $event->category, 
                             $event->university, 
-                            3
+                            3,
+                            $currentUser
                         );
                         
                         // Check if sponsor is already registered
@@ -116,12 +120,16 @@ class SponsorEventview extends Controller {
                 exit;
             }
             
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
+            
             // Get similar events from database
             $similarEvents = $this->eventModel->getSimilarEvents(
                 $event->id, 
                 $event->category, 
                 $event->university, 
-                3
+                3,
+                $currentUser
             );
             
             // Format event data for JSON response

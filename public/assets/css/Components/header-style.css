@@ -191,6 +191,7 @@ textarea {
     border-radius: 12px;
     background: #f8fafc;
     cursor: pointer;
+    width: 200px;
 }
 
 .avatar {
@@ -198,22 +199,31 @@ textarea {
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .user-info {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    flex: 1;
 }
 
 .username {
     font-weight: 600;
     color: #333;
     font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-role {
     font-size: 0.8rem;
     color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-dropdown-btn {
@@ -221,6 +231,7 @@ textarea {
     padding: 0.25rem;
     border-radius: 4px;
     transition: background-color 0.3s ease;
+    flex-shrink: 0;
 }
 
 .user-dropdown-btn:hover {

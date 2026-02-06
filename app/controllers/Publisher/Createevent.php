@@ -133,7 +133,7 @@ class PublisherCreateevent extends Controller{
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
                 'created_by' => $user['id'] ?? null,
                 'created_by_type' => 'publisher', // Always set to publisher for events created in publisher section
-                'visibility' => 'public'
+                'visibility' => $_POST['event_visibility'] ?? 'university-only'
             ];
             
             // Handle registration/sale dates based on ticket type
@@ -361,6 +361,16 @@ class PublisherCreateevent extends Controller{
         // Validate Category
         if (empty($postData['event_category'])) {
             $errors['event_category'] = 'Event category is required';
+        }
+        
+        // Validate Event Visibility
+        if (empty($postData['event_visibility'])) {
+            $errors['event_visibility'] = 'Event visibility is required';
+        } else {
+            $allowedVisibility = ['faculty-only', 'university-only', 'all-universities', 'public'];
+            if (!in_array($postData['event_visibility'], $allowedVisibility)) {
+                $errors['event_visibility'] = 'Invalid visibility option selected';
+            }
         }
         
         // Validate Event Date
