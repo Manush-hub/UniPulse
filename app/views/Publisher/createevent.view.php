@@ -850,14 +850,7 @@
                                     style="max-width: 200px;">
                             </div>
 
-                            <!-- <div class="form-group">
-                                <label class="form-label">Volunteer Requirements</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Include positions when requesting a volunteer:</p>
-                                <label for="newOption">Enter positions:</label>
-                                <input type="text" class="form-input" id="newOption" placeholder="Type something...">
-                                <button type="button" id="addPositionBtn" class="add-field-btn" style="margin-top: 10px;">+ Add Position</button>
-                                <p><a href="volunteerreg.view.php">Go to volunteerreg Form</a></p>
-                            </div> -->
+
                         </div>
                     </div>
                 </section>

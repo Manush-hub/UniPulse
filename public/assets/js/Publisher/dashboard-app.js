@@ -1302,42 +1302,7 @@ function setupBoostEventListeners() {
     if (boostForm) {
         boostForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            openBoostPaymentModal();
-        });
-    }
-    
-    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-    paymentMethods.forEach(method => {
-        method.addEventListener('change', function() {
-            showPaymentFields(this.value);
-        });
-    });
-    
-    const paymentForm = document.getElementById('paymentForm');
-    if (paymentForm) {
-        paymentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            processBoostPayment();
-        });
-    }
-    
-    const cardNumberInput = document.getElementById('cardNumber');
-    if (cardNumberInput) {
-        cardNumberInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\s/g, '');
-            let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-            e.target.value = formattedValue;
-        });
-    }
-    
-    const expiryDateInput = document.getElementById('expiryDate');
-    if (expiryDateInput) {
-        expiryDateInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 2) {
-                value = value.slice(0, 2) + '/' + value.slice(2, 4);
-            }
-            e.target.value = value;
+            redirectToBoostPayment();
         });
     }
 }
@@ -1368,96 +1333,24 @@ function updateBoostButton() {
     submitBtn.disabled = !isValid;
 }
 
-function openBoostPaymentModal() {
-    const modal = document.getElementById('boostPaymentModal');
-    if (!modal) return;
+function redirectToBoostPayment() {
+    // Store boost details in sessionStorage for after payment
+    sessionStorage.setItem('boost_pending', JSON.stringify({
+        event_id: boostState.selectedEventId,
+        duration_days: boostState.selectedDuration,
+        amount: boostState.selectedPrice,
+        event_name: boostState.selectedEventName
+    }));
     
-    document.getElementById('paymentEventName').textContent = boostState.selectedEventName || '-';
+    // Redirect to payment page with boost parameters
+    const paymentUrl = `/unipulse/public/publisher/payment?` +
+        `type=boost` +
+        `&event_id=${boostState.selectedEventId}` +
+        `&amount=${boostState.selectedPrice}` +
+        `&duration=${boostState.selectedDuration}` +
+        `&description=Event Boost - ${encodeURIComponent(boostState.selectedEventName)}`;
     
-    const durationText = boostState.selectedDuration === 1 ? '1 Day' : `${boostState.selectedDuration} Days`;
-    document.getElementById('paymentDuration').textContent = durationText;
-    document.getElementById('paymentAmount').textContent = `LKR ${formatBoostNumber(boostState.selectedPrice)}`;
-    
-    modal.style.display = 'block';
-    document.getElementById('paymentForm').reset();
-    showPaymentFields('card');
-}
-
-function closeBoostPaymentModal() {
-    const modal = document.getElementById('boostPaymentModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function showPaymentFields(method) {
-    const cardFields = document.getElementById('cardPaymentFields');
-    const bankFields = document.getElementById('bankPaymentFields');
-    const mobileFields = document.getElementById('mobilePaymentFields');
-    
-    if (cardFields) cardFields.style.display = 'none';
-    if (bankFields) bankFields.style.display = 'none';
-    if (mobileFields) mobileFields.style.display = 'none';
-    
-    if (method === 'card' && cardFields) {
-        cardFields.style.display = 'block';
-    } else if (method === 'bank_transfer' && bankFields) {
-        bankFields.style.display = 'block';
-    } else if (method === 'mobile_payment' && mobileFields) {
-        mobileFields.style.display = 'block';
-    }
-}
-
-async function processBoostPayment() {
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
-    
-    if (!paymentMethod) {
-        alert('Please select a payment method');
-        return;
-    }
-    
-    const submitBtn = document.querySelector('#paymentForm button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-    
-    try {
-        const response = await fetch('/UniPulse/public/publisher/dashboard/createBoost', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                event_id: boostState.selectedEventId,
-                duration_days: boostState.selectedDuration,
-                amount: boostState.selectedPrice,
-                payment_method: paymentMethod
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            closeBoostPaymentModal();
-            showBoostNotification('Success', '🎉 Event boosted successfully! Your event will now appear in featured listings.', 'success');
-            
-            boostState = { selectedEventId: null, selectedDuration: null, selectedPrice: null, selectedEventName: null };
-            
-            document.getElementById('boostEventForm').reset();
-            document.querySelectorAll('.duration-card').forEach(card => card.classList.remove('selected'));
-            updateBoostSummary();
-            updateBoostButton();
-            
-            loadActiveBoosts();
-            loadEventsForBoosting();
-        } else {
-            showBoostNotification('Error', data.error || 'Failed to process payment', 'error');
-        }
-    } catch (error) {
-        console.error('Error processing boost payment:', error);
-        showBoostNotification('Error', 'An error occurred while processing your payment', 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    }
+    window.location.href = paymentUrl;
 }
 
 function showBoostNotification(title, message, type = 'info') {
@@ -1522,5 +1415,3 @@ function formatBoostDateTime(dateTimeString) {
 function formatBoostNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
-
-window.closeBoostPaymentModal = closeBoostPaymentModal;

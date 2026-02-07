@@ -54,16 +54,13 @@ class PublisherEventview extends Controller {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
                         }
                         
-                        // Format event data to include organizer photo
-                        $formattedEvent = $this->formatEventForResponse($event);
-                        
-                        // Pass server data to view for JavaScript
+                        // Pass server data to view for JavaScript (use raw event object, not formatted)
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
                             'isOwner' => $isOwner,
                             'serverData' => [
-                                'event' => $formattedEvent,
+                                'event' => $event,
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,

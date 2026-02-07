@@ -217,7 +217,7 @@ function createHeroSlide(event, isActive) {
                 </div>
             </div>
             <div class="hero-event-actions">
-                <a href="/unipulse/public/user/events/details/${event.id}" class="hero-btn hero-btn-primary">
+                <a href="/unipulse/public/publisher/eventview?id=${event.id}" class="hero-btn hero-btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>

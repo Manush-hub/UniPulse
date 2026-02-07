@@ -419,7 +419,7 @@
                                             <span class="price-label">Ticket Price:</span>
                                             <span class="price-value" id="ticketPrice">LKR 0</span>
                                         </div>
-                                        <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                        <button class="btn btn-success btn-large" onclick="buyTickets()">
                                             <i class="fas fa-shopping-cart"></i>
                                             Buy Tickets
                                         </button>
@@ -495,7 +495,7 @@
                                                 <span class="price-label">Ticket Price:</span>
                                                 <span class="price-value" id="mixedTicketPrice">LKR 0.00</span>
                                             </div>
-                                            <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                            <button class="btn btn-success btn-large" onclick="buyTickets()">
                                                 <i class="fas fa-shopping-cart"></i>
                                                 Buy Tickets
                                             </button>
@@ -797,6 +797,41 @@
     <!-- Pass server data to JavaScript -->
     <script>
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
+        
+        // Purchase ticket function - redirects to payment gateway
+        function purchaseTicket() {
+            const eventData = window.serverData?.event;
+            if (!eventData) {
+                alert('Event data not available');
+                return;
+            }
+            
+            // Get ticket price from the displayed ticketPrice element
+            const ticketPriceElement = document.getElementById('ticketPrice');
+            if (!ticketPriceElement) {
+                alert('Ticket price not available');
+                return;
+            }
+            
+            // Extract numeric value from "LKR 1000" format
+            const priceText = ticketPriceElement.textContent.replace('LKR', '').trim();
+            const ticketPrice = parseFloat(priceText);
+            
+            if (isNaN(ticketPrice) || ticketPrice <= 0) {
+                alert('Invalid ticket price');
+                return;
+            }
+            
+            // Redirect to payment gateway with ticket information
+            const paymentUrl = `/unipulse/public/payment?` +
+                `amount=${ticketPrice}` +
+                `&type=ticket` +
+                `&event_id=${eventData.id}` +
+                `&publisher_id=${eventData.publisher_id}` +
+                `&description=${encodeURIComponent('Ticket for ' + eventData.title)}`;
+            
+            window.location.href = paymentUrl;
+        }
     </script>
 
     <script src="/unipulse/public/assets/js/User/eventview-app.js"></script>

@@ -13,6 +13,7 @@ class EventRegistration {
         'status',
         'notes',
         'payment_id',
+        'ticket_id',
         'amount_paid',
         'cancelled_at'
     ];

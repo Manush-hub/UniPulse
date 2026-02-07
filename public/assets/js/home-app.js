@@ -1,3 +1,304 @@
+// Boosted events data - will be loaded from PHP
+let boostedEvents = [];
+
+// Check if we have data from PHP, otherwise use default data
+if (typeof boostedEventsFromDB !== 'undefined' && boostedEventsFromDB.length > 0) {
+    // Transform PHP data to match expected format
+    boostedEvents = boostedEventsFromDB.map(event => {
+        // Parse ticket types to get price
+        let priceText = 'Free Entry';
+        if (event.ticket_types) {
+            try {
+                const ticketTypes = JSON.parse(event.ticket_types);
+                if (ticketTypes && ticketTypes.length > 0) {
+                    const minPrice = Math.min(...ticketTypes.map(t => parseFloat(t.price)));
+                    priceText = `From LKR ${minPrice.toLocaleString()}`;
+                }
+            } catch (e) {
+                // If parsing fails, keep default
+            }
+        }
+
+        // Get image URL - handle both absolute and relative paths
+        let imageUrl = event.cover_image || event.image_url;
+        
+        if (imageUrl) {
+            // If it's a relative path (uploaded image), add the full path
+            if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('uploads/')) {
+                imageUrl = '/unipulse/public' + (imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl);
+            }
+            // If it's already an absolute URL (http/https), use as is
+        } else {
+            // Fallback to placeholder image
+            imageUrl = `https://images.unsplash.com/photo-${Math.floor(Math.random() * 10000000)}-${Math.floor(Math.random() * 10000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`;
+        }
+
+        return {
+            id: event.id,
+            title: event.title,
+            description: event.description || 'Join us for an amazing event experience!',
+            category: event.category || 'Event',
+            date: event.event_date,
+            time: event.event_time,
+            location: event.location || event.university_name,
+            university: event.university_name,
+            price: priceText,
+            participants: event.current_participants || 0,
+            maxParticipants: event.max_participants || 100,
+            organizer: event.organizer_name || event.organizer || 'Event Organizer',
+            publisherId: event.publisher_id,
+            createdByType: event.created_by_type,
+            image: imageUrl,
+            isBoosted: true
+        };
+    });
+}
+
+// Global variables for carousel control
+let currentSlide = 0;
+let slideInterval;
+let progressInterval;
+const slideDuration = 6000; // 6 seconds per slide
+
+// DOM Content Loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize carousel if we have boosted events
+    if (boostedEvents.length > 0) {
+        createHeroCarousel();
+        startAutoSlide();
+    }
+    
+    // Initialize all functionality
+    initMobileMenu();
+    initScrollAnimations();
+    initSmoothScrolling();
+    initStatCounter();
+    initEventSlider();
+    initCategoryFilters();
+    initFormValidation();
+    initScrollToTop();
+});
+
+// Create hero carousel
+function createHeroCarousel() {
+    const carousel = document.getElementById('heroCarousel');
+    const indicators = document.getElementById('heroIndicators');
+    
+    if (!carousel) return;
+    
+    carousel.innerHTML = '';
+    if (indicators) indicators.innerHTML = '';
+    
+    boostedEvents.forEach((event, index) => {
+        // Create slide
+        const slide = createHeroSlide(event, index === 0);
+        carousel.appendChild(slide);
+        
+        // Create indicator
+        if (indicators) {
+            const indicator = createIndicator(index, index === 0);
+            indicators.appendChild(indicator);
+        }
+    });
+}
+
+// Create hero slide
+function createHeroSlide(event, isActive) {
+    const slide = document.createElement('div');
+    slide.className = `hero-slide ${isActive ? 'active' : ''}`;
+    
+    // Set background image with proper handling
+    if (event.image) {
+        slide.style.backgroundImage = `url('${event.image}')`;
+        slide.style.backgroundSize = 'cover';
+        slide.style.backgroundPosition = 'center';
+        slide.style.backgroundRepeat = 'no-repeat';
+    } else {
+        slide.style.background = 'linear-gradient(135deg, #1E3A8A, #F97316)';
+    }
+    
+    slide.innerHTML = `
+        <div class="hero-content">
+            <h1 class="hero-event-title">${event.title}</h1>
+            <p class="hero-event-description">${event.description}</p>
+            <div class="hero-event-meta">
+                <div class="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>${formatDate(event.date)}</span>
+                </div>
+                <div class="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>${event.time}</span>
+                </div>
+                <div class="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>${event.location}</span>
+                </div>
+                <div class="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>${event.university}</span>
+                </div>
+            </div>
+            <div class="hero-event-actions">
+                <a href="/unipulse/public/signin" class="hero-btn hero-btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View Event
+                </a>
+                <a href="${getOrganizerProfileUrl(event) !== '#' ? getOrganizerProfileUrl(event) : '/unipulse/public/signin'}" class="hero-btn hero-btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    View Organizer
+                </a>
+            </div>
+        </div>
+    `;
+    
+    return slide;
+}
+
+// Create indicator
+function createIndicator(index, isActive) {
+    const indicator = document.createElement('div');
+    indicator.className = `hero-indicator ${isActive ? 'active' : ''}`;
+    indicator.onclick = () => goToSlide(index);
+    return indicator;
+}
+
+// Format date
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Get organizer profile URL based on type
+function getOrganizerProfileUrl(event) {
+    if (event.publisherId && event.createdByType === 'publisher') {
+        return `/unipulse/public/publisherpublic/profile/${event.publisherId}`;
+    }
+    return '#'; // Fallback if no publisher
+}
+
+// Start auto slide
+function startAutoSlide() {
+    if (boostedEvents.length <= 1) return;
+    
+    startProgressBar();
+    
+    slideInterval = setInterval(() => {
+        nextSlide();
+    }, slideDuration);
+}
+
+// Stop auto slide
+function stopAutoSlide() {
+    if (slideInterval) {
+        clearInterval(slideInterval);
+    }
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+}
+
+// Start progress bar
+function startProgressBar() {
+    const progressBar = document.getElementById('progressBar');
+    if (!progressBar) return;
+    
+    let progress = 0;
+    
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+    
+    progressInterval = setInterval(() => {
+        progress += (100 / (slideDuration / 100));
+        progressBar.style.width = `${progress}%`;
+        
+        if (progress >= 100) {
+            progress = 0;
+            progressBar.style.width = '0%';
+        }
+    }, 100);
+}
+
+// Next slide
+function nextSlide() {
+    const slides = document.querySelectorAll('.hero-slide');
+    const indicators = document.querySelectorAll('.hero-indicator');
+    
+    if (slides.length === 0) return;
+    
+    slides[currentSlide].classList.remove('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.remove('active');
+    
+    currentSlide = (currentSlide + 1) % slides.length;
+    
+    slides[currentSlide].classList.add('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
+    
+    startProgressBar();
+}
+
+// Previous slide
+function previousSlide() {
+    stopAutoSlide();
+    
+    const slides = document.querySelectorAll('.hero-slide');
+    const indicators = document.querySelectorAll('.hero-indicator');
+    
+    if (slides.length === 0) return;
+    
+    slides[currentSlide].classList.remove('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.remove('active');
+    
+    currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+    
+    slides[currentSlide].classList.add('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
+    
+    startAutoSlide();
+}
+
+// Go to specific slide
+function goToSlide(index) {
+    stopAutoSlide();
+    
+    const slides = document.querySelectorAll('.hero-slide');
+    const indicators = document.querySelectorAll('.hero-indicator');
+    
+    if (slides.length === 0) return;
+    
+    slides[currentSlide].classList.remove('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.remove('active');
+    
+    currentSlide = index;
+    
+    slides[currentSlide].classList.add('active');
+    if (indicators[currentSlide]) indicators[currentSlide].classList.add('active');
+    
+    startAutoSlide();
+}
+
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all functionality

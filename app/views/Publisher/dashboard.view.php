@@ -468,7 +468,8 @@
     </div>
 
     <!-- Boost Payment Modal -->
-    <div id="boostPaymentModal" class="modal">
+    <!-- Payment Modal - Hidden (using payment page instead) -->
+    <div id="boostPaymentModal" class="modal" style="display: none !important;">
         <div class="modal-content boost-modal-content">
             <span class="close-button" onclick="closeBoostPaymentModal()">&times;</span>
             <h3><i class="fas fa-credit-card"></i> Complete Payment</h3>

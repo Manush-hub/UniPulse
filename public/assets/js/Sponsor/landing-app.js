@@ -1,86 +1,78 @@
-// Boosted events data with detailed information
-const boostedEvents = [
-    {
-        id: 1,
-        title: 'Tech Innovation Summit 2025',
-        description: 'Join the biggest technology conference in Sri Lanka featuring AI, blockchain, and emerging technologies. Network with industry leaders and showcase your innovations.',
-        category: 'Technology',
-        date: '2025-09-15',
-        time: '09:00 AM',
-        location: 'University of Moratuwa',
-        university: 'University of Moratuwa',
-        price: 'From LKR 2,500',
-        participants: 450,
-        maxParticipants: 500,
-        organizer: 'IEEE Student Branch',
-        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-        isBoosted: true
-    },
-    {
-        id: 2,
-        title: 'Cultural Heritage Festival',
-        description: 'Celebrate the rich cultural diversity of Sri Lanka with traditional dances, music, art exhibitions, and culinary experiences from all provinces.',
-        category: 'Cultural',
-        date: '2025-09-20',
-        time: '06:00 PM',
-        location: 'University of Colombo Arts Theatre',
-        university: 'University of Colombo',
-        price: 'Free Entry',
-        participants: 320,
-        maxParticipants: 400,
-        organizer: 'Cultural Society',
-        image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-        isBoosted: true
-    },
-    {
-        id: 3,
-        title: 'Inter-University Sports Championship',
-        description: 'The ultimate sports showdown between top universities. Compete in cricket, football, basketball, and more. Show your university spirit!',
-        category: 'Sports',
-        date: '2025-08-25',
-        time: '08:00 AM',
-        location: 'University of Peradeniya Sports Complex',
-        university: 'University of Peradeniya',
-        price: 'From LKR 1,000',
-        participants: 280,
-        maxParticipants: 600,
-        organizer: 'Sports Council',
-        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-        isBoosted: true
-    },
-    {
-        id: 4,
-        title: 'AI & Machine Learning Workshop Series',
-        description: 'Comprehensive hands-on workshops covering the latest in artificial intelligence and machine learning. From beginners to advanced practitioners.',
-        category: 'Workshop',
-        date: '2025-08-22',
-        time: '02:00 PM',
-        location: 'University of Moratuwa IT Faculty',
-        university: 'University of Moratuwa',
-        price: 'From LKR 3,000',
-        participants: 85,
-        maxParticipants: 100,
-        organizer: 'Computer Science Department',
-        image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-        isBoosted: true
-    },
-    {
-        id: 5,
-        title: 'Entrepreneurship & Innovation Expo',
-        description: 'Showcase your startup ideas, connect with investors, and learn from successful entrepreneurs. The future of business starts here.',
-        category: 'Business',
-        date: '2025-08-28',
-        time: '09:00 AM',
-        location: 'University of Sri Jayewardenepura',
-        university: 'University of Sri Jayewardenepura',
-        price: 'From LKR 1,500',
-        participants: 180,
-        maxParticipants: 250,
-        organizer: 'Entrepreneurship Club',
-        image: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-        isBoosted: true
-    }
-];
+// Boosted events data - will be loaded from PHP
+let boostedEvents = [];
+
+// Check if we have data from PHP, otherwise use default data
+if (typeof boostedEventsFromDB !== 'undefined' && boostedEventsFromDB.length > 0) {
+    // Transform PHP data to match expected format
+    boostedEvents = boostedEventsFromDB.map(event => {
+        // Parse ticket types to get price
+        let priceText = 'Free Entry';
+        if (event.ticket_types) {
+            try {
+                const ticketTypes = JSON.parse(event.ticket_types);
+                if (ticketTypes && ticketTypes.length > 0) {
+                    const minPrice = Math.min(...ticketTypes.map(t => parseFloat(t.price)));
+                    priceText = `From LKR ${minPrice.toLocaleString()}`;
+                }
+            } catch (e) {
+                // If parsing fails, keep default
+            }
+        }
+
+        // Get image URL - handle both absolute and relative paths
+        let imageUrl = event.cover_image || event.image_url;
+        
+        if (imageUrl) {
+            // If it's a relative path (uploaded image), add the full path
+            if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('uploads/')) {
+                imageUrl = '/unipulse/public' + (imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl);
+            }
+            // If it's already an absolute URL (http/https), use as is
+        } else {
+            // Fallback to placeholder image
+            imageUrl = `https://images.unsplash.com/photo-${Math.floor(Math.random() * 10000000)}-${Math.floor(Math.random() * 10000000)}?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80`;
+        }
+
+        return {
+            id: event.id,
+            title: event.title,
+            description: event.description || 'Join us for an amazing event experience!',
+            category: event.category || 'Event',
+            date: event.event_date,
+            time: event.event_time,
+            location: event.location || event.university_name,
+            university: event.university_name,
+            price: priceText,
+            participants: event.current_participants || 0,
+            maxParticipants: event.max_participants || 100,
+            organizer: event.organizer_name || event.organizer || 'Event Organizer',
+            publisherId: event.publisher_id,
+            createdByType: event.created_by_type,
+            image: imageUrl,
+            isBoosted: true
+        };
+    });
+} else {
+    // Fallback to hard-coded example events (for testing)
+    boostedEvents = [
+        {
+            id: 1,
+            title: 'Tech Innovation Summit 2025',
+            description: 'Join the biggest technology conference in Sri Lanka featuring AI, blockchain, and emerging technologies. Network with industry leaders and showcase your innovations.',
+            category: 'Technology',
+            date: '2025-09-15',
+            time: '09:00 AM',
+            location: 'University of Moratuwa',
+            university: 'University of Moratuwa',
+            price: 'From LKR 2,500',
+            participants: 450,
+            maxParticipants: 500,
+            organizer: 'IEEE Student Branch',
+            image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
+            isBoosted: true
+        }
+    ];
+}
 
 // Other events data
 const upcomingEvents = [
@@ -177,11 +169,19 @@ function createHeroCarousel() {
 function createHeroSlide(event, isActive) {
     const slide = document.createElement('div');
     slide.className = `hero-slide ${isActive ? 'active' : ''}`;
-    slide.style.backgroundImage = event.image ? `url(${event.image})` : 'linear-gradient(135deg, #1E3A8A, #F97316)';
+    
+    // Set background image with proper handling
+    if (event.image) {
+        slide.style.backgroundImage = `url('${event.image}')`;
+        slide.style.backgroundSize = 'cover';
+        slide.style.backgroundPosition = 'center';
+        slide.style.backgroundRepeat = 'no-repeat';
+    } else {
+        slide.style.background = 'linear-gradient(135deg, #1E3A8A, #F97316)';
+    }
     
     slide.innerHTML = `
         <div class="hero-content">
-            <div class="hero-event-category">${event.category}</div>
             <h1 class="hero-event-title">${event.title}</h1>
             <p class="hero-event-description">${event.description}</p>
             <div class="hero-event-meta">
@@ -192,7 +192,14 @@ function createHeroSlide(event, isActive) {
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <span>${formatDate(event.date)} at ${event.time}</span>
+                    <span>${formatDate(event.date)}</span>
+                </div>
+                <div class="hero-meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>${event.time}</span>
                 </div>
                 <div class="hero-meta-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -203,25 +210,26 @@ function createHeroSlide(event, isActive) {
                 </div>
                 <div class="hero-meta-item">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
                     </svg>
-                    <span>${event.participants}/${event.maxParticipants} participants</span>
+                    <span>${event.university}</span>
                 </div>
             </div>
             <div class="hero-event-actions">
-                <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-primary">
+                <a href="/unipulse/public/sponsor/events" class="hero-btn hero-btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="16"></line>
-                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                    Join Event - ${event.price}
+                    View Event
                 </a>
-                <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-secondary">
-                    Learn More
+                <a href="${getOrganizerProfileUrl(event)}" class="hero-btn hero-btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    View Organizer
                 </a>
             </div>
         </div>
@@ -547,7 +555,13 @@ function loadMoreEvents() {
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
         return date.toLocaleDateString(undefined, options);
     }
-
+    // Get organizer profile URL based on type
+    function getOrganizerProfileUrl(event) {
+        if (event.publisherId && event.createdByType === 'publisher') {
+            return `/unipulse/public/publisherpublic/profile/${event.publisherId}`;
+        }
+        return '#'; // Fallback if no publisher
+    }
     // Search events
     function searchEvents() {
         const query = document.querySelector('.search-input').value.toLowerCase();

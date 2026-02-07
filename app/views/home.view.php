@@ -30,22 +30,56 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Unforgettable Events Start Here</h1>
-            <p>Discover, connect and participate in university events across Sri Lanka through our centralized platform.</p>
-            <div class="hero-buttons">
-                <button onclick="location.href='/unipulse/public/signin'" class="btn btn-primary">
-                    <i class="fas fa-search"></i>
-                    Find Events
-                </button>
-                <button onclick="location.href='/unipulse/public/signin'" class="btn btn-secondary">
-                    <i class="fas fa-calendar-plus"></i>
-                    Publish Event
-                </button>
-            </div>
+    <!-- Hero Section with Boosted Events Carousel -->
+    <section class="hero-section">
+        <div class="hero-carousel" id="heroCarousel">
+            <!-- Hero slides will be dynamically loaded here -->
+            <?php if (empty($boosted_events)): ?>
+                <!-- Default Hero Content if no boosted events -->
+                <div class="hero-slide active" style="background-image: linear-gradient(135deg, rgba(30, 58, 138, 0.8), rgba(249, 115, 22, 0.7)), url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');">
+                    <div class="hero-content">
+                        <h1 class="hero-event-title">Unforgettable Events Start Here</h1>
+                        <p class="hero-event-description">Discover, connect and participate in university events across Sri Lanka through our centralized platform.</p>
+                        <div class="hero-event-actions">
+                            <button onclick="location.href='/unipulse/public/signin'" class="hero-btn hero-btn-primary">
+                                <i class="fas fa-search"></i>
+                                Find Events
+                            </button>
+                            <button onclick="location.href='/unipulse/public/signin'" class="hero-btn hero-btn-secondary">
+                                <i class="fas fa-calendar-plus"></i>
+                                Publish Event
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
+        
+        <?php if (!empty($boosted_events)): ?>
+        <!-- Hero Controls -->
+        <div class="hero-controls">
+            <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+            </button>
+            <button class="hero-nav-btn next-btn" onclick="nextSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Hero Indicators -->
+        <div class="hero-indicators" id="heroIndicators">
+            <!-- Indicators will be dynamically created -->
+        </div>
+        
+        <!-- Hero Progress Bar -->
+        <div class="hero-progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <?php endif; ?>
     </section>
 
     <!-- Upcoming Events Section -->
@@ -295,6 +329,11 @@
     <!-- Footer -->
     <?php include __DIR__ . '/components/footer.php'; ?>
 
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+    </script>
     <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
 

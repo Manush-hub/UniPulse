@@ -419,7 +419,7 @@
                                             <span class="price-label">Ticket Price:</span>
                                             <span class="price-value" id="ticketPrice">LKR 0</span>
                                         </div>
-                                        <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                        <button class="btn btn-success btn-large" onclick="buyTickets()">
                                             <i class="fas fa-shopping-cart"></i>
                                             Buy Tickets
                                         </button>
@@ -495,7 +495,7 @@
                                                 <span class="price-label">Ticket Price:</span>
                                                 <span class="price-value" id="mixedTicketPrice">LKR 0.00</span>
                                             </div>
-                                            <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                            <button class="btn btn-success btn-large" onclick="buyTickets()">
                                                 <i class="fas fa-shopping-cart"></i>
                                                 Buy Tickets
                                             </button>

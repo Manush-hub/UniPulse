@@ -146,7 +146,262 @@ body {
     transform: rotate(-45deg) translate(7px, -6px);
 }
 
-/* Hero Section */
+/* Hero Section with Carousel */
+.hero-section {
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-carousel {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.hero-slide.active {
+    opacity: 1;
+}
+
+.hero-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(249, 115, 22, 0.6) 100%);
+    z-index: 1;
+}
+
+.hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 2;
+    max-width: 800px;
+    width: 90%;
+    padding: 2rem;
+}
+
+.hero-event-category {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-event-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero-event-description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    line-height: 1.5;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    /* Truncate long descriptions */
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.hero-event-meta {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-meta-item svg {
+    width: 20px;
+    height: 20px;
+    color: #F97316;
+}
+
+.hero-meta-item span {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.hero-event-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-btn {
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 200px;
+}
+
+.hero-btn-primary {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.hero-btn-primary:hover {
+    background: linear-gradient(135deg, #ff8c42 0%, #ffa15f 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6);
+}
+
+.hero-btn-secondary {
+    background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.hero-btn-secondary:hover {
+    background: linear-gradient(135deg, #ff8c42 0%, #ffa15f 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6);
+}
+
+/* Hero Controls */
+.hero-controls {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2rem;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.hero-nav-btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: auto;
+}
+
+.hero-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.hero-nav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Hero Indicators */
+.hero-indicators {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    z-index: 3;
+}
+
+.hero-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.hero-indicator.active {
+    background: #F97316;
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.2);
+}
+
+.hero-indicator:hover {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+/* Hero Progress Bar */
+.hero-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    z-index: 3;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #F97316, #EA580C);
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+/* Old Hero Styles - Keeping for backwards compatibility */
 .hero {
     background: #1E3A8A;
     background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(249, 115, 22, 1) 100%);
@@ -157,21 +412,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.hero-content h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
-    font-weight: bold;
-}
-
-.hero-content p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    opacity: 0.9;
 }
 
 .hero-buttons {

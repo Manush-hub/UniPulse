@@ -1127,6 +1127,59 @@ class Event {
     }
     
     /**
+     * Get active boosted events for landing page carousel
+     */
+    public function getActiveBoostedEvents($limit = 10) {
+        try {
+            $query = "
+                SELECT 
+                    e.id,
+                    e.title,
+                    e.description,
+                    e.category,
+                    e.event_date,
+                    e.event_time,
+                    e.location,
+                    e.university_name,
+                    e.cover_image,
+                    e.image_url,
+                    e.current_participants,
+                    e.max_participants,
+                    e.ticket_types,
+                    e.organizer,
+                    e.created_by as publisher_id,
+                    e.created_by_type,
+                    p.society_name as organizer_name,
+                    eb.boost_end_date,
+                    eb.priority_level,
+                    eb.impressions
+                FROM events e
+                INNER JOIN event_boosts eb ON e.id = eb.event_id
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                WHERE e.is_boosted = 1
+                    AND e.is_deleted = 0
+                    AND eb.boost_status = 'active'
+                    AND eb.payment_status = 'completed'
+                    AND eb.boost_start_date <= NOW()
+                    AND eb.boost_end_date >= NOW()
+                    AND e.event_date >= CURDATE()
+                ORDER BY eb.priority_level DESC, eb.boost_start_date DESC
+                LIMIT :limit
+            ";
+            
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            error_log("getActiveBoostedEvents error: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
      * Get recent moderation activities
      */
     public function getRecentModerationActivities($moderatorId = null, $limit = 10) {
