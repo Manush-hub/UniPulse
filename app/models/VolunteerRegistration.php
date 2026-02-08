@@ -114,4 +114,31 @@ class VolunteerRegistration
             'status' => $status
         ]);
     }
+
+    /**
+     * Get user's monthly volunteer activities
+     * @param int $userId User ID
+     * @param string $userType User type (public/university)
+     * @param string $month Month in format 'YYYY-MM'
+     * @return array Array of volunteer records
+     */
+    public function getUserMonthlyVolunteering($userId, $userType, $month)
+    {
+        $sql = "SELECT vr.*, e.title, e.event_date, e.event_time, e.location,
+                       e.image_url, e.university_name, e.category,
+                       vr.volunteer_position, vr.status as volunteer_status
+                FROM {$this->table} vr
+                LEFT JOIN events e ON vr.event_id = e.id
+                WHERE vr.user_id = :user_id 
+                AND vr.user_type = :user_type
+                AND vr.status IN ('pending', 'accepted', 'completed')
+                AND DATE_FORMAT(e.event_date, '%Y-%m') = :month
+                ORDER BY e.event_date DESC";
+
+        return $this->query($sql, [
+            'user_id' => $userId,
+            'user_type' => $userType,
+            'month' => $month
+        ]);
+    }
 }

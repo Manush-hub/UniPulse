@@ -299,4 +299,53 @@ class EventRegistration
             'user_type' => $userType
         ]);
     }
+
+    /**
+     * Get user's monthly event participation
+     * @param int $userId User ID
+     * @param string $userType User type (public/university)
+     * @param string $month Month in format 'YYYY-MM'
+     * @return array Array of event participation records
+     */
+    public function getUserMonthlyParticipation($userId, $userType, $month)
+    {
+        $sql = "SELECT er.*, e.title, e.event_date, e.event_time, e.location,
+                       e.ticket_type, e.image_url, e.university_name, e.category,
+                       er.amount_paid
+                FROM {$this->table} er
+                LEFT JOIN events e ON er.event_id = e.id
+                WHERE er.user_id = :user_id 
+                AND er.user_type = :user_type
+                AND er.status IN ('registered', 'attended')
+                AND DATE_FORMAT(e.event_date, '%Y-%m') = :month
+                ORDER BY e.event_date DESC";
+
+        return $this->query($sql, [
+            'user_id' => $userId,
+            'user_type' => $userType,
+            'month' => $month
+        ]);
+    }
+
+    /**
+     * Get total amount spent on events for a specific month
+     */
+    public function getUserMonthlyEventSpending($userId, $userType, $month)
+    {
+        $sql = "SELECT COALESCE(SUM(er.amount_paid), 0) as total
+                FROM {$this->table} er
+                LEFT JOIN events e ON er.event_id = e.id
+                WHERE er.user_id = :user_id 
+                AND er.user_type = :user_type
+                AND er.status IN ('registered', 'attended')
+                AND DATE_FORMAT(e.event_date, '%Y-%m') = :month";
+
+        $result = $this->query($sql, [
+            'user_id' => $userId,
+            'user_type' => $userType,
+            'month' => $month
+        ]);
+
+        return $result[0]->total ?? 0;
+    }
 }

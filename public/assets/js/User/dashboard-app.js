@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
     loadUpcomingEvents();
     loadRecentActivity();
-
 });
 
 // Initialize dashboard
