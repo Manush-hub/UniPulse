@@ -33,9 +33,9 @@ body {
 .cover-photo-section {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 250px;
     overflow: visible;
-    border-radius: 18px 18px 0 0;
+    border-radius: 25px 25px 25px;
 }
 
 .cover-photo {
@@ -43,7 +43,7 @@ body {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
-    border-radius: 18px 18px 0 0;
+    border-radius: 25px 25px 25px 25px;
     overflow: hidden;
 }
 
@@ -224,25 +224,28 @@ body {
 #organization-form .form-group.full-width:nth-child(12) { grid-column: 1 / -1; grid-row: 8; }
 #organization-form .form-actions { grid-column: 1 / -1; grid-row: 9; }
 
+.cover-photo-section {
+    position: relative;
+}
+
 .profile-avatar-overlap {
     position: absolute;
     bottom: 100px;
-    left: 30px;
-    z-index: 10;
-    width: 200px;
-    height: 200px;
+    left: 100px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
-    border: 6px solid white;
     overflow: hidden;
-    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    background: white;
 }
 
 .profile-avatar-overlap img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%;
 }
 
 .avatar-overlay {
@@ -273,33 +276,47 @@ body {
 
 /* Profile Banner */
 .profile-banner {
-    background: linear-gradient(135deg, #6c63ff 0%, #5a52ff 100%);
-    padding: 40px; /* Reset to normal padding */
-    width: 100%;
-    height: 200px;
-    color: white;
+    background: white;
+    padding: 90px 0 30px 60px;
+    color: #333;
     display: flex;
-    align-items: center;
-    gap: 40px;
+    align-items: flex-start;
+    gap: 20px;
     position: relative;
     border-radius: 0 0 18px 18px;
+    min-height: auto;
 }
 
-.profile-banner {
-    background: linear-gradient(135deg, #4A5BCC 0%, #23387f 100%);
-    padding: 30px 40px 25px 0px;
-    color: white;
+.profile-info-section {
+    background: white;
+    padding: 30px 0 90px 400px;
+    border-radius: 0 0 20px 20px;
+}
+
+.profile-name-email {
     display: flex;
-    align-items: flex-end;
-    gap: 40px;
-    position: relative;
-    border-radius: 0 0 18px 18px;
-    min-height: 140px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-name {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1a202c;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.profile-email {
+    margin: 0;
+    font-size: 1rem;
+    color: #718096;
+    font-weight: 400;
 }
 
 .profile-info-shifted {
-    margin-left: 240px;
-    padding-bottom: 10px;
+    display: none;
 }
 .profile-avatar-center {
     display: flex;
@@ -366,13 +383,7 @@ body {
 
 /* Override for public profile h1 - make it bigger */
 .profile-info-shifted h1 {
-    font-size: 3em;
-    margin-bottom: 12px;
-    font-weight: 700;
-    color: white;
-    background: none;
-    -webkit-text-fill-color: white;
-    line-height: 1.1;
+    display: none;
 }
 
 .profile-title {
@@ -1705,11 +1716,11 @@ input:checked + .slider:before {
     }
     
     .profile-avatar-overlap {
-        width: 140px;
-        height: 140px;
-        bottom: 55px;
-        left: 20px;
-        border: 4px solid white;
+        width: 250px;
+        height: 250px;
+        bottom: -150px;
+        left: 100px;
+        border: 1px solid white;
     }
     
     .avatar-overlay {
@@ -1718,11 +1729,23 @@ input:checked + .slider:before {
     }
     
     .profile-info-shifted {
-        margin-left: 0;
+        display: none;
     }
     
     .profile-banner {
-        padding: 20px;
+        padding: 75px 0 20px 30px;
+    }
+    
+    .profile-info-section {
+        padding: 75px 0 20px 30px;
+    }
+    
+    .profile-name {
+        font-size: 1.625rem;
+    }
+    
+    .profile-email {
+        font-size: 0.9375rem;
     }
 }
 @media (max-width: 1024px) {
@@ -2972,5 +2995,50 @@ input:checked + .slider:before {
     .events-grid,
     .gallery-grid-custom {
         grid-template-columns: 1fr;
+    }
+}
+/* Additional responsive styles for new profile layout */
+@media (max-width: 900px) {
+    .profile-avatar-overlap {
+        width: 150px !important;
+        height: 150px !important;
+        bottom: -75px !important;
+        left: 40px !important;
+    }
+    
+    .profile-banner,
+    .profile-info-section {
+        padding: 85px 0 25px 40px !important;
+    }
+    
+    .profile-name {
+        font-size: 1.875rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .cover-photo-section {
+        height: 180px !important;
+    }
+    
+    .profile-avatar-overlap {
+        width: 110px !important;
+        height: 110px !important;
+        bottom: -55px !important;
+        left: 20px !important;
+        border: 4px solid white !important;
+    }
+    
+    .profile-banner,
+    .profile-info-section {
+        padding: 65px 0 18px 20px !important;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem !important;
+    }
+    
+    .profile-email {
+        font-size: 0.875rem !important;
     }
 }

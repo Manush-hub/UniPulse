@@ -202,7 +202,7 @@ function loadEventsManagement(filter = 'all') {
         </div>
     `;
 
-    const url = `/UniPulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
+    const url = `/unipulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
     
     console.log('Loading events from:', url); // Debug log
     
@@ -282,7 +282,7 @@ function displayEvents(events) {
                 </div>
                 <h3>No ${filterText}Events</h3>
                 <p>${currentEventFilter === 'all' ? 'Start creating events to manage them from your dashboard.' : `You don't have any ${filterText}events.`}</p>
-                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
+                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
             </div>
         `;
         return;
@@ -392,7 +392,7 @@ function createEventCard(event) {
         } else if (coverImage.startsWith('/')) {
             imagePath = coverImage;
         } else {
-            imagePath = `/UniPulse/public/${coverImage}`;
+            imagePath = `/unipulse/public/${coverImage}`;
         }
     }
     
@@ -484,7 +484,7 @@ function createEventCard(event) {
     // Make card clickable
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => {
-        window.location.href = `/UniPulse/public/publisher/eventview/${event.id}`;
+        window.location.href = `/unipulse/public/publisher/eventview?id=${event.id}`;
     });
     
     return card;
@@ -999,7 +999,7 @@ function loadRecentComments() {
         </div>
     `;
 
-    fetch('/UniPulse/public/publisher/dashboard/getRecentComments')
+    fetch('/unipulse/public/publisher/dashboard/getRecentComments')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1170,14 +1170,36 @@ function initializeBoostSection() {
         loadEventsForBoosting();
         loadActiveBoosts();
         setupBoostEventListeners();
+        startBoostAutoRefresh();
     }, 500);
 }
+
+// Auto-refresh active boosts every 60 seconds to remove expired ones
+let boostRefreshInterval;
+function startBoostAutoRefresh() {
+    // Clear any existing interval
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+    
+    // Refresh every 60 seconds (1 minute)
+    boostRefreshInterval = setInterval(() => {
+        loadActiveBoosts();
+    }, 60000);
+}
+
+// Clean up interval when page is unloaded
+window.addEventListener('beforeunload', () => {
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+});
 
 // Load events available for boosting
 async function loadEventsForBoosting() {
     try {
         console.log('Loading events for boosting...');
-        const response = await fetch('/UniPulse/public/publisher/dashboard/getEventsForBoosting');
+        const response = await fetch('/unipulse/public/publisher/dashboard/getEventsForBoosting');
         console.log('Response status:', response.status);
         
         const data = await response.json();
@@ -1190,17 +1212,39 @@ async function loadEventsForBoosting() {
         }
         
         if (data.success && data.events && data.events.length > 0) {
-            console.log('Found', data.events.length, 'events');
+            console.log('Found', data.events.length, 'events available for boosting');
             
             eventSelect.innerHTML = '<option value="">Select an event to boost</option>' +
                 data.events.map(event => {
                     const eventDate = formatBoostDate(event.event_date);
-                    const boostStatus = event.is_boosted ? ' (Currently Boosted)' : '';
-                    return `<option value="${event.id}" data-title="${event.title}">${event.title} - ${eventDate}${boostStatus}</option>`;
+                    return `<option value="${event.id}" data-title="${event.title}">${event.title} - ${eventDate}</option>`;
                 }).join('');
         } else {
             console.log('No events available or failed to load');
-            eventSelect.innerHTML = '<option value="">No upcoming events available</option>';
+            eventSelect.innerHTML = '<option value="">No events available for boosting</option>';
+            
+            // Show helpful message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'boost-info-message';
+            messageDiv.style.cssText = `
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #eff6ff;
+                border-left: 4px solid #3b82f6;
+                border-radius: 8px;
+                color: #1e40af;
+                font-size: 0.9rem;
+            `;
+            messageDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <strong>No events available for boosting</strong><br>
+                <small>Events with active boosts cannot be boosted again until the current boost expires. You can re-boost events after their boost period ends.</small>
+            `;
+            
+            const formGroup = eventSelect.closest('.form-group');
+            if (formGroup && !formGroup.querySelector('.boost-info-message')) {
+                formGroup.appendChild(messageDiv);
+            }
         }
     } catch (error) {
         console.error('Error loading events for boosting:', error);
@@ -1214,39 +1258,50 @@ async function loadEventsForBoosting() {
 // Load active boosts
 async function loadActiveBoosts() {
     try {
-        const response = await fetch('/UniPulse/public/publisher/dashboard/getActiveBoosts');
+        const response = await fetch('/unipulse/public/publisher/dashboard/getActiveBoosts');
         const data = await response.json();
         
         const container = document.getElementById('activeBoostsList');
         if (!container) return;
         
         if (data.success && data.boosts && data.boosts.length > 0) {
-            container.innerHTML = data.boosts.map(boost => `
-                <div class="boost-card">
-                    <div class="boost-card-header">
-                        <div class="boost-card-title">${boost.event_title}</div>
-                        <span class="boost-status-badge">Active</span>
+            // Filter out any boosts that have already expired (client-side check)
+            const activeBoosts = data.boosts.filter(boost => {
+                const endDate = new Date(boost.boost_end_date);
+                return endDate > new Date();
+            });
+            
+            if (activeBoosts.length > 0) {
+                container.innerHTML = activeBoosts.map(boost => `
+                    <div class="boost-card" data-boost-id="${boost.id}" data-end-date="${boost.boost_end_date}">
+                        <div class="boost-card-header">
+                            <div class="boost-card-title">${boost.event_title}</div>
+                            <span class="boost-status-badge">Active</span>
+                        </div>
+                        <div class="boost-card-details">
+                            <div>
+                                <span><i class="fas fa-calendar"></i> Expires:</span>
+                                <strong>${formatBoostDateTime(boost.boost_end_date)}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-clock"></i> Time Left:</span>
+                                <strong>${boost.time_remaining}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-money-bill"></i> Amount Paid:</span>
+                                <strong>LKR ${formatBoostNumber(boost.amount_paid)}</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div class="boost-card-details">
-                        <div>
-                            <span><i class="fas fa-calendar"></i> Expires:</span>
-                            <strong>${formatBoostDateTime(boost.boost_end_date)}</strong>
-                        </div>
-                        <div>
-                            <span><i class="fas fa-clock"></i> Time Left:</span>
-                            <strong>${boost.time_remaining}</strong>
-                        </div>
-                        <div>
-                            <span><i class="fas fa-money-bill"></i> Amount Paid:</span>
-                            <strong>LKR ${formatBoostNumber(boost.amount_paid)}</strong>
-                        </div>
-                        <div>
-                            <span><i class="fas fa-eye"></i> Impressions:</span>
-                            <strong>${formatBoostNumber(boost.impressions)}</strong>
-                        </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="loading-boosts">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No active boosts at the moment</p>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }
         } else {
             container.innerHTML = `
                 <div class="loading-boosts">
@@ -1334,6 +1389,11 @@ function updateBoostButton() {
 }
 
 function redirectToBoostPayment() {
+    if (!boostState.selectedEventId || !boostState.selectedDuration || !boostState.selectedPrice) {
+        showBoostNotification('Validation Error', 'Please select an event and boost duration', 'error');
+        return;
+    }
+    
     // Store boost details in sessionStorage for after payment
     sessionStorage.setItem('boost_pending', JSON.stringify({
         event_id: boostState.selectedEventId,

@@ -32,30 +32,24 @@
 
     <!-- Hero Section with Boosted Events Carousel -->
     <section class="hero-section">
-        <div class="hero-carousel" id="heroCarousel">
-            <!-- Hero slides will be dynamically loaded here -->
-            <?php if (empty($boosted_events)): ?>
-                <!-- Default Hero Content if no boosted events -->
-                <div class="hero-slide active" style="background-image: linear-gradient(135deg, rgba(30, 58, 138, 0.8), rgba(249, 115, 22, 0.7)), url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');">
-                    <div class="hero-content">
-                        <h1 class="hero-event-title">Unforgettable Events Start Here</h1>
-                        <p class="hero-event-description">Discover, connect and participate in university events across Sri Lanka through our centralized platform.</p>
-                        <div class="hero-event-actions">
-                            <button onclick="location.href='/unipulse/public/signin'" class="hero-btn hero-btn-primary">
-                                <i class="fas fa-search"></i>
-                                Find Events
-                            </button>
-                            <button onclick="location.href='/unipulse/public/signin'" class="hero-btn hero-btn-secondary">
-                                <i class="fas fa-calendar-plus"></i>
-                                Publish Event
-                            </button>
-                        </div>
-                    </div>
+        <!-- Promotional Banner (Always Visible) -->
+        <div class="boost-promo-banner" id="boostPromoBanner">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
                 </div>
-            <?php endif; ?>
+                <h2>Boost Your Events for Maximum Visibility!</h2>
+                <p>Stand out and reach more participants by boosting your events on UniPulse</p>
+                <button onclick="location.href='/unipulse/public/signin'" class="banner-cta-btn">Get Started</button>
+            </div>
         </div>
         
-        <?php if (!empty($boosted_events)): ?>
+        <div class="hero-carousel" id="heroCarousel">
+            <!-- Hero slides will be dynamically loaded here -->
+        </div>
+        
         <!-- Hero Controls -->
         <div class="hero-controls">
             <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
@@ -79,7 +73,6 @@
         <div class="hero-progress">
             <div class="progress-bar" id="progressBar"></div>
         </div>
-        <?php endif; ?>
     </section>
 
     <!-- Upcoming Events Section -->

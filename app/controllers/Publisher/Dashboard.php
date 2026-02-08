@@ -293,6 +293,7 @@ class PublisherDashboard extends Controller{
 
         try {
             // Get publisher's upcoming events only (not ongoing, completed, or cancelled)
+            // Exclude events that currently have active boosts
             $query = "
                 SELECT 
                     e.id,
@@ -301,13 +302,20 @@ class PublisherDashboard extends Controller{
                     e.event_time,
                     e.status,
                     e.is_boosted,
-                    e.boost_expires_at
+                    e.boost_expires_at,
+                    eb.id as active_boost_id,
+                    eb.boost_end_date as active_boost_end_date
                 FROM events e
+                LEFT JOIN event_boosts eb ON e.id = eb.event_id 
+                    AND eb.boost_status = 'active' 
+                    AND eb.boost_end_date > NOW()
+                    AND eb.payment_status = 'completed'
                 WHERE e.created_by = :publisher_id 
                 AND e.created_by_type = 'publisher'
                 AND e.status = 'upcoming'
                 AND e.is_deleted = 0
                 AND e.event_date >= CURDATE()
+                AND eb.id IS NULL
                 ORDER BY e.event_date ASC
             ";
             
@@ -315,7 +323,7 @@ class PublisherDashboard extends Controller{
             
             // Debug logging
             error_log("Publisher ID: " . $currentUser['id']);
-            error_log("Events found: " . count($events));
+            error_log("Events available for boosting: " . count($events));
             
             echo json_encode([
                 'success' => true,
@@ -364,16 +372,16 @@ class PublisherDashboard extends Controller{
             
             // Calculate remaining time for each boost
             foreach ($boosts as &$boost) {
-                $endDate = new DateTime($boost['boost_end_date']);
+                $endDate = new DateTime($boost->boost_end_date);
                 $now = new DateTime();
                 $diff = $now->diff($endDate);
                 
                 if ($diff->days > 0) {
-                    $boost['time_remaining'] = $diff->days . ' days';
+                    $boost->time_remaining = $diff->days . ' days';
                 } elseif ($diff->h > 0) {
-                    $boost['time_remaining'] = $diff->h . ' hours';
+                    $boost->time_remaining = $diff->h . ' hours';
                 } else {
-                    $boost['time_remaining'] = $diff->i . ' minutes';
+                    $boost->time_remaining = $diff->i . ' minutes';
                 }
             }
             
@@ -424,6 +432,41 @@ class PublisherDashboard extends Controller{
             
             if (empty($event)) {
                 echo json_encode(['success' => false, 'error' => 'Event not found or unauthorized']);
+                return;
+            }
+
+            // Check if event already has an active boost
+            $activeBoostQuery = "
+                SELECT id, boost_end_date 
+                FROM event_boosts 
+                WHERE event_id = :event_id 
+                AND boost_status = 'active' 
+                AND boost_end_date > NOW()
+                AND payment_status = 'completed'
+            ";
+            
+            $activeBoost = $this->query($activeBoostQuery, ['event_id' => $eventId]);
+            
+            if (!empty($activeBoost)) {
+                $boostEndDate = new DateTime($activeBoost[0]->boost_end_date);
+                $formattedDate = $boostEndDate->format('F j, Y g:i A');
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'This event is already boosted',
+                    'message' => "This event already has an active boost until {$formattedDate}. You can boost it again after the current boost expires."
+                ]);
+                return;
+            }
+
+            // Check if event has already passed
+            $eventDate = new DateTime($event[0]->event_date);
+            $now = new DateTime();
+            if ($eventDate < $now) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Cannot boost past events',
+                    'message' => 'This event has already passed and cannot be boosted.'
+                ]);
                 return;
             }
 

@@ -207,34 +207,19 @@ function safeOutput($value, $default = '') {
                     <img src="<?= $coverPhotoUrl ?>" alt="Cover Photo">
                 </div>
                 
-                <!-- Profile Avatar positioned to overlap - Centered -->
+                <!-- Profile Avatar positioned to overlap - Left side -->
                 <div class="profile-avatar profile-avatar-overlap">
                     <img src="<?= $logoUrl ?>" alt="<?= htmlspecialchars($orgName) ?> Logo">
-                    <?php if($isVerified): ?>
-                    <?php endif; ?>
                 </div>
             </div>
             
-            <div class="profile-banner">
-                <div class="profile-info-shifted">
-                    <h1><?= htmlspecialchars($orgName) ?></h1>
-                    
-                    <!-- <?php if(!empty($university) || !empty($faculty)): ?>
-                    <div class="club-meta">
-                        <?php if(!empty($university)): ?>
-                        <span>
-                            <i class="fas fa-university"></i> 
-                            <?= htmlspecialchars($university) ?>
-                        </span>
-                        <?php endif; ?>
-                        <?php if(!empty($faculty)): ?>
-                        <span>
-                            <i class="fas fa-building"></i> 
-                            <?= htmlspecialchars($faculty) ?>
-                        </span>
-                        <?php endif; ?>
-                    </div>
-                    <?php endif; ?> -->
+            <!-- Profile Info Below Cover -->
+            <div class="profile-info-section">
+                <div class="profile-name-email">
+                    <h1 class="profile-name"><?= htmlspecialchars($orgName) ?></h1>
+                    <?php if(!empty($email)): ?>
+                        <p class="profile-email"><?= htmlspecialchars($email) ?></p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -513,24 +498,12 @@ function safeOutput($value, $default = '') {
                                                     <span><?= htmlspecialchars($event->category) ?></span>
                                                 </div>
                                                 <?php endif; ?>
-                                                <?php if(!empty($event->university)): ?>
-                                                <div class="feed-meta-item">
-                                                    <i class="fas fa-university"></i>
-                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->university))) ?></span>
-                                                </div>
-                                                <?php endif; ?>
-                                                <?php if(!empty($event->faculty_department)): ?>
-                                                <div class="feed-meta-item">
-                                                    <i class="fas fa-building"></i>
-                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->faculty_department))) ?></span>
-                                                </div>
-                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/publisher/eventview?id=<?= $event->id ?>'">
+                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>
@@ -604,25 +577,12 @@ function safeOutput($value, $default = '') {
                                                     <span><?= htmlspecialchars($event->category) ?></span>
                                                 </div>
                                                 <?php endif; ?>
-                                                <?php if(!empty($event->university)): ?>
-                                                <div class="feed-meta-item">
-                                                    <i class="fas fa-university"></i>
-                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->university))) ?></span>
-                                                </div>
-                                                <?php endif; ?>
-                                                <?php if(!empty($event->faculty_department)): ?>
-                                                <div class="feed-meta-item">
-                                                    <i class="fas fa-building"></i>
-                                                    <span><?= htmlspecialchars(ucwords(str_replace('-', ' ', $event->faculty_department))) ?></span>
-                                                </div>
-                                                <?php endif; ?>
                                             </div>
                                         </div>
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/publisher/eventview?id=<?= $event->id ?>'">
-
+                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>

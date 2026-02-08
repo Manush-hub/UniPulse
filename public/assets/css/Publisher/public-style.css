@@ -36,9 +36,9 @@ body {
 .cover-photo-section {
     position: relative;
     width: 100%;
-    height: 200px;
+    height: 250px;
     overflow: visible;
-    border-radius: 18px 18px 0 0;
+    border-radius: 25px 25px 25px 25px;
 }
 
 .cover-photo {
@@ -46,7 +46,7 @@ body {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
-    border-radius: 18px 18px 0 0;
+    border-radius: 25px 25px 25px 25px;
     overflow: hidden;
 }
 
@@ -64,16 +64,16 @@ body {
 
 .profile-avatar-overlap {
     position: absolute;
-    bottom: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    height: 200px;
+    bottom: -150px;
+    left: 100px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
     overflow: hidden;
-    border: 5px solid white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     z-index: 10;
+    background: white;
 }
 
 .profile-avatar-overlap img {
@@ -82,70 +82,33 @@ body {
     object-fit: cover;
 }
 
-.profile-banner {
-    background: linear-gradient(180deg, 
-        rgba(249, 250, 251, 0.98) 0%, 
-        rgba(255, 255, 255, 0.95) 50%,
-        rgba(243, 244, 246, 0.98) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(229, 231, 235, 0.6);
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.04), 
-                0 4px 16px rgba(0, 0, 0, 0.06);
-    padding-top: 120px;
-    padding-bottom: 3rem;
-    text-align: center;
-    position: relative;
-    border-radius: 0 0 24px 24px;
+/* Profile Info Section Below Cover */
+.profile-info-section {
+    background: white;
+    padding: 30px 0 90px 400px;
+    border-radius: 0 0 20px 20px;
 }
 
-.profile-info-shifted {
+.profile-name-email {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0 2rem;
+    gap: 4px;
 }
 
-.profile-info-shifted h1 {
+.profile-name {
     margin: 0;
-    font-size: 3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1a202c;
     line-height: 1.2;
-    letter-spacing: -0.02em;
-    text-shadow: none;
+    letter-spacing: -0.01em;
 }
 
-.profile-subtitle {
+.profile-email {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 500;
-    color: #6b7280;
-    text-align: center;
-}
-
-.club-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.club-meta span {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #374151;
     font-size: 1rem;
-    font-weight: 500;
-}
-
-.club-meta span i {
-    color: #4A5BCC;
+    color: #718096;
+    font-weight: 400;
 }
 
 /* Back button for public view */
@@ -946,5 +909,90 @@ body {
     
     .feed-gallery-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .profile-avatar-overlap {
+        width: 150px;
+        height: 150px;
+        bottom: -75px;
+        left: 40px;
+    }
+    
+    .profile-info-section {
+        padding: 85px 0 25px 40px;
+    }
+    
+    .profile-name {
+        font-size: 1.875rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-avatar-overlap {
+        width: 130px;
+        height: 130px;
+        bottom: -65px;
+        left: 30px;
+        border: 5px solid white;
+    }
+    
+    .verified-badge {
+        width: 32px;
+        height: 32px;
+        bottom: 6px;
+        right: 6px;
+    }
+    
+    .verified-badge i {
+        font-size: 18px;
+    }
+    
+    .profile-info-section {
+        padding: 75px 0 20px 30px;
+    }
+    
+    .profile-name {
+        font-size: 1.625rem;
+    }
+    
+    .profile-email {
+        font-size: 0.9375rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cover-photo-section {
+        height: 180px;
+    }
+    
+    .profile-avatar-overlap {
+        width: 110px;
+        height: 110px;
+        bottom: -55px;
+        left: 20px;
+        border: 4px solid white;
+    }
+    
+    .verified-badge {
+        width: 28px;
+        height: 28px;
+        bottom: 4px;
+        right: 4px;
+    }
+    
+    .verified-badge i {
+        font-size: 16px;
+    }
+    
+    .profile-info-section {
+        padding: 65px 0 18px 20px;
+    }
+    
+    .profile-name {
+        font-size: 1.5rem;
+    }
+    
+    .profile-email {
+        font-size: 0.875rem;
     }
 }

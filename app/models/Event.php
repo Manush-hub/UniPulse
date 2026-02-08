@@ -79,6 +79,15 @@ class Event {
         if (!empty($filters['status'])) {
             $whereClause[] = 'e.status = :status';
             $params['status'] = $filters['status'];
+            
+            // Filter by actual date/time to ensure accuracy
+            if ($filters['status'] === 'upcoming') {
+                // Upcoming: event hasn't started yet
+                $whereClause[] = "(e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()))";
+            } elseif ($filters['status'] === 'ongoing') {
+                // Ongoing: event has started but not ended yet (or has no end time)
+                $whereClause[] = "(e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()))";
+            }
         }
         
         if (!empty($filters['search'])) {
@@ -270,7 +279,13 @@ class Event {
      * Regular users cannot see completed events unless specifically requested
      */
     public function getEventsByRole($userRole = 'user', $filters = [], $currentUser = null) {
-        $allowCompletedEvents = in_array($userRole, ['publisher', 'admin', 'moderator', 'sponsor']);
+        $allowCompletedEvents = in_array($userRole, ['admin', 'moderator']);
+        
+        // For publishers and sponsors, exclude completed events by default unless specifically filtered
+        if ($userRole === 'publisher' && !isset($filters['status'])) {
+            // Add filter to exclude completed events for publishers
+            $filters['status_exclude'] = 'completed';
+        }
         
         // If user role can't see completed events and no specific status filter is set
         if (!$allowCompletedEvents && !isset($filters['status'])) {
@@ -287,7 +302,7 @@ class Event {
             
             // Apply existing filters
             foreach ($filters as $key => $value) {
-                if (!empty($value)) {
+                if (!empty($value) && $key !== 'status_exclude') {
                     switch ($key) {
                         case 'category':
                             $whereClause[] = 'e.category = :category';
@@ -305,8 +320,17 @@ class Event {
                 }
             }
             
-            // Exclude completed events for regular users
-            $whereClause[] = "e.status != 'completed'";
+            // Exclude completed events
+            if (isset($filters['status_exclude'])) {
+                $whereClause[] = "e.status != :status_exclude";
+                $params['status_exclude'] = $filters['status_exclude'];
+            } else {
+                $whereClause[] = "e.status != 'completed'";
+            }
+            
+            // Also exclude events that have already ended (based on actual date/time)
+            // Show events that haven't ended yet: future dates OR (today but end_time hasn't passed or is NULL)
+            $whereClause[] = "(e.event_date > CURDATE() OR (e.event_date = CURDATE() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME())))";
             
             $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
                     LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
@@ -330,7 +354,7 @@ class Event {
             
             return $this->query($sql, $params);
         } else {
-            // Use existing getAllEvents method for non-users roles or when status is specifically requested
+            // Use existing getAllEvents method for admins/moderators or when status is specifically requested
             return $this->getAllEvents($filters, $currentUser);
         }
     }

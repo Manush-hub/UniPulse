@@ -148,18 +148,6 @@ function displayEventDetails(event) {
     if (ticketType && ticketType !== 'free-all') {
         document.getElementById('ticketInfo').style.display = 'block';
         document.getElementById('eventTicketType').textContent = formatTicketType(ticketType);
-        
-        // Show buy ticket button for paid events
-        const buyTicketBtn = document.getElementById('buyTicketBtn');
-        if (buyTicketBtn) {
-            buyTicketBtn.style.display = 'inline-flex';
-        }
-    } else {
-        // Hide buy ticket button for free events
-        const buyTicketBtn = document.getElementById('buyTicketBtn');
-        if (buyTicketBtn) {
-            buyTicketBtn.style.display = 'none';
-        }
     }
     
     // Full description
@@ -719,30 +707,245 @@ function displayTicketDetails(event) {
         return; // No special ticket details to show
     }
     
-    let ticketHTML = '<div class="ticket-detail-item">';
-    ticketHTML += `<div><strong>Ticket Type:</strong> ${formatTicketType(ticketType)}</div>`;
+    // Show appropriate ticket section based on ticket type
+    if (ticketType === 'paid-all') {
+        renderPaidTickets(event);
+    } else if (ticketType === 'mixed') {
+        renderMixedTickets(event);
+    }
+}
+
+function renderPaidTickets(event) {
+    const paidSection = document.getElementById('paidTicketingSection');
+    if (!paidSection) return;
     
-    if (event.registration_start_date && event.registration_end_date) {
-        ticketHTML += `<div><strong>Registration Period:</strong> ${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</div>`;
+    // Parse ticket_types if it's a string
+    let ticketTypes = event.ticket_types;
+    if (typeof ticketTypes === 'string') {
+        try {
+            ticketTypes = JSON.parse(ticketTypes);
+        } catch (e) {
+            console.error('Failed to parse ticket_types:', e);
+            return;
+        }
     }
     
-    if (event.registration_limit) {
-        ticketHTML += `<div><strong>Registration Limit:</strong> ${event.registration_limit} participants</div>`;
+    if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
+        return;
     }
     
-    if (event.ticket_types && Array.isArray(event.ticket_types)) {
-        ticketHTML += '<div><strong>Available Tickets:</strong></div>';
-        ticketHTML += '<ul class="ticket-types-list">';
-        event.ticket_types.forEach(ticket => {
-            ticketHTML += `<li>${ticket.name} - LKR ${ticket.price} (${ticket.quantity} available)</li>`;
-        });
-        ticketHTML += '</ul>';
-    }
+    // Render ticket options
+    let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
     
-    ticketHTML += '</div>';
+    ticketTypes.forEach((ticket, index) => {
+        ticketsHTML += `
+            <div class="ticket-option" 
+                 data-ticket-index="${index}" 
+                 data-ticket-name="${ticket.name}" 
+                 data-ticket-price="${ticket.price}"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
+                <div class="ticket-info" style="flex: 1;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
+                    ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
+                    <p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${parseFloat(ticket.price).toFixed(2)}</p>
+                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
+                </div>
+                <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <label for="ticket-quantity-${index}" style="color: #475569; font-size: 0.9rem; font-weight: 500;">Quantity:</label>
+                    <input type="number" 
+                           id="ticket-quantity-${index}" 
+                           min="0" 
+                           max="${ticket.quantity}" 
+                           value="0" 
+                           class="quantity-input"
+                           style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
+                </div>
+            </div>
+        `;
+    });
     
+    ticketsHTML += '</div>';
+    
+    document.getElementById('ticketDetails').innerHTML = ticketsHTML;
     document.getElementById('ticketDetailsCard').style.display = 'block';
-    document.getElementById('ticketDetails').innerHTML = ticketHTML;
+    paidSection.style.display = 'block';
+    
+    setupTicketQuantityListeners();
+}
+
+function renderMixedTickets(event) {
+    const mixedSection = document.getElementById('mixedTicketingSection');
+    if (!mixedSection) return;
+    
+    let ticketTypes = event.ticket_types;
+    if (typeof ticketTypes === 'string') {
+        try {
+            ticketTypes = JSON.parse(ticketTypes);
+        } catch (e) {
+            console.error('Failed to parse ticket_types:', e);
+            return;
+        }
+    }
+    
+    if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
+        return;
+    }
+    
+    let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
+    
+    ticketTypes.forEach((ticket, index) => {
+        ticketsHTML += `
+            <div class="ticket-option" 
+                 data-ticket-index="${index}" 
+                 data-ticket-name="${ticket.name}" 
+                 data-ticket-price="${ticket.price}"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
+                <div class="ticket-info" style="flex: 1;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
+                    ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
+                    <p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${parseFloat(ticket.price).toFixed(2)}</p>
+                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
+                </div>
+                <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <label for="mixed-ticket-quantity-${index}" style="color: #475569; font-size: 0.9rem; font-weight: 500;">Quantity:</label>
+                    <input type="number" 
+                           id="mixed-ticket-quantity-${index}" 
+                           min="0" 
+                           max="${ticket.quantity}" 
+                           value="0" 
+                           class="quantity-input"
+                           style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
+                </div>
+            </div>
+        `;
+    });
+    
+    ticketsHTML += '</div>';
+    
+    document.getElementById('mixedTicketDetails').innerHTML = ticketsHTML;
+    document.getElementById('mixedTicketDetailsCard').style.display = 'block';
+    mixedSection.style.display = 'block';
+    
+    const requiresReg = event.requires_registration == 1 || event.requires_registration === '1';
+    if (document.getElementById('studentRegRequired')) {
+        document.getElementById('studentRegRequired').style.display = requiresReg ? 'block' : 'none';
+    }
+    if (document.getElementById('studentNoRegRequired')) {
+        document.getElementById('studentNoRegRequired').style.display = requiresReg ? 'none' : 'block';
+    }
+    
+    setupTicketQuantityListeners();
+}
+
+function setupTicketQuantityListeners() {
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    quantityInputs.forEach(input => {
+        input.addEventListener('input', updateTotalPrice);
+        input.addEventListener('change', updateTotalPrice);
+    });
+    updateTotalPrice();
+}
+
+function updateTotalPrice() {
+    const allTickets = document.querySelectorAll('.ticket-option');
+    let totalPrice = 0;
+    
+    allTickets.forEach(ticket => {
+        const index = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
+                            document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        const price = parseFloat(ticket.dataset.ticketPrice) || 0;
+        
+        totalPrice += quantity * price;
+    });
+    
+    const ticketPriceEl = document.getElementById('ticketPrice');
+    const mixedTicketPriceEl = document.getElementById('mixedTicketPrice');
+    
+    if (ticketPriceEl) {
+        ticketPriceEl.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+    if (mixedTicketPriceEl) {
+        mixedTicketPriceEl.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+}
+
+function buyTickets() {
+    console.log('buyTickets called');
+    
+    if (!currentEvent) {
+        console.error('currentEvent is not defined');
+        alert('Event data not available. Please refresh the page and try again.');
+        return;
+    }
+    
+    console.log('Current event:', currentEvent);
+    
+    const allTickets = document.querySelectorAll('.ticket-option');
+    console.log('Found tickets:', allTickets.length);
+    
+    if (allTickets.length === 0) {
+        console.error('No ticket options found in the page');
+        alert('No tickets available. Please refresh the page.');
+        return;
+    }
+    
+    const ticketSelections = [];
+    let totalPrice = 0;
+    
+    allTickets.forEach(ticket => {
+        const index = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
+                            document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        
+        if (quantity > 0) {
+            const ticketName = ticket.dataset.ticketName;
+            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
+            const subtotal = ticketPrice * quantity;
+            
+            ticketSelections.push({
+                index: index,
+                name: ticketName,
+                price: ticketPrice,
+                quantity: quantity,
+                subtotal: subtotal
+            });
+            
+            totalPrice += subtotal;
+        }
+    });
+    
+    console.log('Ticket selections:', ticketSelections);
+    console.log('Total price:', totalPrice);
+    
+    if (ticketSelections.length === 0) {
+        alert('Please select at least one ticket by setting quantity greater than 0');
+        return;
+    }
+    
+    const paymentData = {
+        eventId: currentEvent.id,
+        eventTitle: currentEvent.title,
+        tickets: ticketSelections,
+        totalAmount: totalPrice,
+        timestamp: Date.now()
+    };
+    
+    sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
+    console.log('Payment data saved to sessionStorage');
+    
+    const publisherId = currentEvent.created_by || currentEvent.organizerId;
+    const paymentUrl = `/unipulse/public/payment?` +
+        `amount=${totalPrice.toFixed(2)}` +
+        `&type=ticket` +
+        `&event_id=${currentEvent.id}` +
+        (publisherId ? `&publisher_id=${publisherId}` : '') +
+        `&description=${encodeURIComponent('Ticket for ' + currentEvent.title)}`;
+    
+    console.log('Redirecting to:', paymentUrl);
+    window.location.href = paymentUrl;
 }
 
 function displayCustomFields(customFields) {
@@ -881,16 +1084,11 @@ if (joinBtn) {
     }
 }
 
-// Buy Ticket button handler
-const buyTicketBtn = document.getElementById('buyTicketBtn');
-if (buyTicketBtn) {
-    buyTicketBtn.addEventListener('click', function() {
-        const eventId = getEventIdFromURL();
-        if (eventId) {
-            window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
-        }
-    });
-}
+window.buyTickets = buyTickets;
+window.openDonationModal = openDonationModal;
+window.closeDonationModal = closeDonationModal;
+window.processDonation = processDonation;
+window.applyAsVolunteer = applyAsVolunteer;
 
 const shareBtn = document.getElementById('shareBtn');
 if (shareBtn) {

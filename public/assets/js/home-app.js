@@ -62,9 +62,9 @@ const slideDuration = 6000; // 6 seconds per slide
 
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize carousel if we have boosted events
+    // Initialize carousel - works for both boosted events and placeholder
+    createHeroCarousel();
     if (boostedEvents.length > 0) {
-        createHeroCarousel();
         startAutoSlide();
     }
     
@@ -83,11 +83,36 @@ document.addEventListener('DOMContentLoaded', function() {
 function createHeroCarousel() {
     const carousel = document.getElementById('heroCarousel');
     const indicators = document.getElementById('heroIndicators');
+    const controls = document.querySelector('.hero-controls');
+    const progressBar = document.querySelector('.hero-progress');
     
     if (!carousel) return;
     
+    // Clear existing content
     carousel.innerHTML = '';
     if (indicators) indicators.innerHTML = '';
+    
+    const promoBanner = document.getElementById('boostPromoBanner');
+    
+    // Check if there are no boosted events
+    if (boostedEvents.length === 0) {
+        // Show promotional banner and hide carousel elements
+        if (promoBanner) promoBanner.style.display = 'flex';
+        carousel.style.display = 'none';
+        if (controls) controls.style.display = 'none';
+        if (indicators) indicators.style.display = 'none';
+        if (progressBar) progressBar.style.display = 'none';
+        return;
+    }
+    
+    // Hide promotional banner when boosted events exist
+    if (promoBanner) promoBanner.style.display = 'none';
+    carousel.style.display = 'block';
+    
+    // Show controls, indicators, and progress bar when events exist
+    if (controls) controls.style.display = 'flex';
+    if (indicators) indicators.style.display = 'flex';
+    if (progressBar) progressBar.style.display = 'block';
     
     boostedEvents.forEach((event, index) => {
         // Create slide
@@ -193,7 +218,7 @@ function formatDate(dateString) {
 // Get organizer profile URL based on type
 function getOrganizerProfileUrl(event) {
     if (event.publisherId && event.createdByType === 'publisher') {
-        return `/unipulse/public/publisherpublic/profile/${event.publisherId}`;
+        return `/unipulse/public/publisher/public?id=${event.publisherId}`;
     }
     return '#'; // Fallback if no publisher
 }

@@ -15,8 +15,22 @@
     include __DIR__ .'/components/header.php'; 
     ?>
 
-    <!-- Hero Section with Boosted Event Carousel -->
+    <!-- Hero Section with Boosted Events Carousel -->
     <section class="hero-section">
+        <!-- Promotional Banner (Always Visible) -->
+        <div class="boost-promo-banner" id="boostPromoBanner">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+                <h2>Boost Your Events for Maximum Visibility!</h2>
+                <p>Stand out and reach more participants by boosting your events on UniPulse</p>
+                <button onclick="location.href='/unipulse/public/user/events'" class="banner-cta-btn">Explore Events</button>
+            </div>
+        </div>
+        
         <div class="hero-carousel" id="heroCarousel">
             <!-- Hero slides will be dynamically loaded here -->
         </div>

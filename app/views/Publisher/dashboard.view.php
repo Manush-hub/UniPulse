@@ -192,6 +192,17 @@
                     <div class="boost-action-panel">
                         <div class="boost-form-container">
                             <h3>Select Event to Boost</h3>
+                            <div class="boost-rules-info">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Boosting Rules:</strong>
+                                    <ul>
+                                        <li>Each event can only have one active boost at a time</li>
+                                        <li>You can re-boost an event after its current boost expires</li>
+                                        <li>Only upcoming events can be boosted</li>
+                                    </ul>
+                                </div>
+                            </div>
                             <form id="boostEventForm" class="boost-form">
                                 <div class="form-group">
                                     <label class="boost-label">

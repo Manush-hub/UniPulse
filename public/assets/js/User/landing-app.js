@@ -52,27 +52,8 @@ if (typeof boostedEventsFromDB !== 'undefined' && boostedEventsFromDB.length > 0
             isBoosted: true
         };
     });
-} else {
-    // Fallback to hard-coded example events (for testing)
-    boostedEvents = [
-        {
-            id: 1,
-            title: 'Tech Innovation Summit 2025',
-            description: 'Join the biggest technology conference in Sri Lanka featuring AI, blockchain, and emerging technologies. Network with industry leaders and showcase your innovations.',
-            category: 'Technology',
-            date: '2025-09-15',
-            time: '09:00 AM',
-            location: 'University of Moratuwa',
-            university: 'University of Moratuwa',
-            price: 'From LKR 2,500',
-            participants: 450,
-            maxParticipants: 500,
-            organizer: 'IEEE Student Branch',
-            image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-            isBoosted: true
-        }
-    ];
 }
+// If no boosted events from DB, boostedEvents remains empty array and placeholder will show
 
 // Other events data
 const upcomingEvents = [
@@ -143,16 +124,42 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUpcomingEvents();
     loadMoreEvents();
     setupEventListeners();
-    startAutoSlide();
+    if (boostedEvents.length > 0) {
+        startAutoSlide();
+    }
 });
 
 // Create hero carousel
 function createHeroCarousel() {
     const carousel = document.getElementById('heroCarousel');
     const indicators = document.getElementById('heroIndicators');
+    const controls = document.querySelector('.hero-controls');
+    const progressBar = document.querySelector('.hero-progress');
     
     carousel.innerHTML = '';
     indicators.innerHTML = '';
+    
+    const promoBanner = document.getElementById('boostPromoBanner');
+    
+    // Check if there are no boosted events
+    if (boostedEvents.length === 0) {
+        // Show promotional banner and hide carousel elements
+        if (promoBanner) promoBanner.style.display = 'flex';
+        carousel.style.display = 'none';
+        if (controls) controls.style.display = 'none';
+        if (indicators) indicators.style.display = 'none';
+        if (progressBar) progressBar.style.display = 'none';
+        return;
+    }
+    
+    // Hide promotional banner when boosted events exist
+    if (promoBanner) promoBanner.style.display = 'none';
+    carousel.style.display = 'block';
+    
+    // Show controls, indicators, and progress bar when events exist
+    if (controls) controls.style.display = 'flex';
+    if (indicators) indicators.style.display = 'flex';
+    if (progressBar) progressBar.style.display = 'block';
     
     boostedEvents.forEach((event, index) => {
         // Create slide
@@ -558,7 +565,7 @@ function loadMoreEvents() {
     // Get organizer profile URL based on type
     function getOrganizerProfileUrl(event) {
         if (event.publisherId && event.createdByType === 'publisher') {
-            return `/unipulse/public/publisherpublic/profile/${event.publisherId}`;
+            return `/unipulse/public/publisher/public?id=${event.publisherId}`;
         }
         return '#'; // Fallback if no publisher
     }
