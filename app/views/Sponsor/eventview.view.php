@@ -75,7 +75,7 @@
                         </div>
                         <h1 class="event-title" id="eventTitle">Loading Event Title...</h1>
                         <p class="event-summary" id="eventSummary">Loading event summary...</p>
-                        
+
                         <div class="event-details-grid">
                             <div class="detail-item">
                                 <i class="fas fa-calendar-alt"></i>
@@ -333,7 +333,7 @@
     </div>
 
     <!-- Share Event Modal -->
-        <!-- Share Event Modal -->
+    <!-- Share Event Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -411,4 +411,5 @@
 
     <script src="<?php echo $controller->loadJS('eventview-app.js'); ?>"></script>
 </body>
+
 </html>

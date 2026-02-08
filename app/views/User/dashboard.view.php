@@ -86,19 +86,6 @@
             </div>
         </section>
 
-        <!-- Featured Events -->
-        <section class="featured-events">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Featured Events</h2>
-                    <a href="/unipulse/public/user/events" class="view-all">View All</a>
-                </div>
-                <div class="events-grid" id="featuredEventsGrid">
-                    <!-- Featured events will be loaded here -->
-                </div>
-            </div>
-        </section>
-
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">

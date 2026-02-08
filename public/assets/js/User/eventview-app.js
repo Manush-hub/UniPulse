@@ -869,8 +869,22 @@ window.processDonation = processDonation;
 
 function applyAsVolunteer() {
     // Get the event ID from the URL
+    // First try query parameter (?id=)
     const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('id');
+    let eventId = urlParams.get('id');
+
+    // If not found in query params, extract from URL path
+    // URL format: /unipulse/public/user/eventview/{eventId}
+    if (!eventId) {
+        const pathSegments = window.location.pathname.split('/').filter(segment => segment);
+        if (pathSegments.length > 0) {
+            const lastSegment = pathSegments[pathSegments.length - 1];
+            // Only use it if it's a number
+            if (!isNaN(lastSegment) && lastSegment !== '') {
+                eventId = lastSegment;
+            }
+        }
+    }
 
     // Redirect to volunteer registration page with event ID
     if (eventId) {

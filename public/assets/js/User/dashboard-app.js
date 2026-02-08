@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeDashboard();
     loadUserData();
     loadUpcomingEvents();
-    loadFeaturedEvents();
     loadRecentActivity();
 
 });
@@ -106,80 +105,6 @@ function createUpcomingEventCard(event) {
     return card;
 }
 
-
-// Load featured events from backend
-function loadFeaturedEvents() {
-    const grid = document.getElementById('featuredEventsGrid');
-    if (!grid) return;
-
-    grid.innerHTML = '<div class="loading">Loading featured events...</div>';
-
-    fetch('/unipulse/public/user/dashboard/getFeaturedEvents')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch featured events');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success && data.events) {
-                displayFeaturedEvents(data.events);
-            } else {
-                grid.innerHTML = '<div class="no-data">No featured events</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading featured events:', error);
-            grid.innerHTML = '<div class="no-data">Failed to load events</div>';
-        });
-}
-
-// Display featured events
-function displayFeaturedEvents(events) {
-    const grid = document.getElementById('featuredEventsGrid');
-    if (!grid) return;
-
-    if (!events || events.length === 0) {
-        grid.innerHTML = '<div class="no-data">No featured events available</div>';
-        return;
-    }
-
-    grid.innerHTML = '';
-
-    events.forEach(event => {
-        const eventCard = createFeaturedEventCard(event);
-        grid.appendChild(eventCard);
-    });
-}
-
-// Create featured event card
-function createFeaturedEventCard(event) {
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    card.onclick = () => viewEventDetails(event.id);
-
-    card.innerHTML = `
-        <div class="event-image">
-            ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}">` : `<svg class="placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>`}
-            <div class="event-category">${event.category}</div>
-        </div>
-        <div class="event-content">
-            <h3 class="event-title">${event.title}</h3>
-            <p class="event-description">${event.description}</p>
-            <div class="event-meta">
-                <span>${event.university}</span>
-                <span>${formatDate(event.date)}</span>
-            </div>
-        </div>
-    `;
-
-    return card;
-}
 
 // Load recent activity from backend
 function loadRecentActivity() {

@@ -80,7 +80,7 @@
                         </div>
                         <h1 class="event-title" id="eventTitle">Loading Event Title...</h1>
                         <p class="event-summary" id="eventSummary">Loading event summary...</p>
-                        
+
                         <div class="event-details-grid">
                             <div class="detail-item">
                                 <i class="fas fa-calendar-alt"></i>
@@ -340,7 +340,7 @@
                                         <span id="charCount">0</span>/1000
                                     </div>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label for="eventRating">Rate this event (optional)</label>
                                     <div class="rating-input" id="ratingInput">
@@ -352,7 +352,7 @@
                                     </div>
                                     <div class="rating-text" id="ratingText">Click stars to rate</div>
                                 </div>
-                                
+
                                 <div class="form-actions">
                                     <button class="btn btn-secondary" id="cancelCommentBtn">Cancel</button>
                                     <button class="btn btn-primary" id="submitCommentBtn">
@@ -414,7 +414,7 @@
                         <span id="editCharCount">0</span>/1000
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="editEventRating">Update your rating (optional)</label>
                     <div class="rating-input" id="editRatingInput">
@@ -490,7 +490,7 @@
     </div>
 
     <!-- Share Event Modal -->
-        <!-- Share Event Modal -->
+    <!-- Share Event Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -568,4 +568,5 @@
     </script>
     <script src="<?php echo $controller->loadJS('eventview-app.js'); ?>"></script>
 </body>
+
 </html>
