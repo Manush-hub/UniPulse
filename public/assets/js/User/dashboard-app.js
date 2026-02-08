@@ -113,7 +113,12 @@ function loadRecentActivity() {
 
     activityList.innerHTML = '<div class="loading">Loading activity...</div>';
 
-    fetch('/unipulse/public/user/dashboard/getRecentActivity')
+    fetch('/unipulse/public/user/dashboard/getRecentActivity', {
+        cache: 'no-store',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch recent activity');

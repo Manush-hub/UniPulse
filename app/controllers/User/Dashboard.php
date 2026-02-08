@@ -183,30 +183,41 @@ class UserDashboard extends Controller
         }
 
         try {
-            // This is a placeholder - you can implement your own logic
-            $activities = [
-                [
-                    'title' => 'Event Registration',
-                    'description' => 'You registered for an event',
-                    'time' => '2 hours ago',
-                    'icon' => 'calendar'
-                ],
-                [
-                    'title' => 'New Event Posted',
-                    'description' => 'A new event was posted in your university',
-                    'time' => '1 day ago',
-                    'icon' => 'plus'
-                ]
-            ];
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser) {
+                echo json_encode(['success' => false, 'error' => 'User data not found']);
+                return;
+            }
+
+            $userId = $currentUser['id'];
+            $userType = $currentUser['type'];
+
+            // Load Activity model
+            $activity = new Activity();
+
+            // Get recent activities (from last 7 days)
+            $recentActivities = $activity->getRecentActivities($userId, $userType, 20);
+
+            // Format activities for frontend
+            $formatted = [];
+            if ($recentActivities) {
+                foreach ($recentActivities as $act) {
+                    $formatted[] = $activity->formatActivityForDisplay($act);
+                }
+            }
 
             echo json_encode([
                 'success' => true,
-                'activities' => $activities
+                'activities' => $formatted,
+                'count' => count($formatted)
             ]);
         } catch (Exception $e) {
+            error_log("Error in getRecentActivity: " . $e->getMessage());
             echo json_encode([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => DEBUG ? $e->getTraceAsString() : ''
             ]);
         }
     }

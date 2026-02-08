@@ -535,7 +535,13 @@ function confirmJoinEvent() {
 
                 closeJoinModal();
             } else {
-                alert('Failed to join event: ' + (data.error || 'Unknown error'));
+                // Show error with debug info if available
+                let errorMsg = 'Failed to join event: ' + (data.error || 'Unknown error');
+                if (data.debug) {
+                    errorMsg += '\n\nDebug: ' + data.debug;
+                    console.error('Join event error:', data.debug);
+                }
+                alert(errorMsg);
             }
         })
         .catch(error => {
