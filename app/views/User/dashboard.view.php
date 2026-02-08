@@ -96,7 +96,7 @@
                             <!-- Activity items will be loaded here -->
                         </div>
                     </div>
-                    <div class="sidebar">
+                    <!-- <div class="sidebar">
                         <div class="sidebar-widget">
                             <h3>Popular Categories</h3>
                             <div class="category-list">
@@ -139,7 +139,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </section>

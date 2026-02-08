@@ -22,6 +22,13 @@
             <div class="container">
                 <h1>All Events</h1>
                 <p>Discover and participate in university events across Sri Lanka</p>
+                <div class="container_categories" id="categoriesContainer">
+                    <p data-category="technology">Technology <span class="category-count">0</span></p>
+                    <p data-category="sports">Sports <span class="category-count">0</span></p>
+                    <p data-category="cultural">Cultural <span class="category-count">0</span></p>
+                    <p data-category="academic">Academic <span class="category-count">0</span></p>
+                    <p data-category="social">Social <span class="category-count">0</span></p>
+                </div>
             </div>
         </div>
 

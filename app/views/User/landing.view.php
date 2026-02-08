@@ -46,7 +46,8 @@
         </div>
     </section>
 
-    <!-- Search Section -->
+    <!--
+    //Search Section
     <section class="search-section">
         <div class="container">
             <div class="search-container">
@@ -77,7 +78,7 @@
         </div>
     </section>
 
-    <!-- Categories Section -->
+    // Categories Section
     <section class="categories-section">
         <div class="container">
             <h2>Explore by <span class="highlight">categories</span></h2>
@@ -130,6 +131,7 @@
             </div>
         </div>
     </section>
+-->
 
     <!-- Upcoming Events -->
     <section class="upcoming-section">

@@ -17,12 +17,29 @@ document.addEventListener('DOMContentLoaded', function () {
 // Setup event listeners
 function setupEventListeners() {
     // Search input listener
-    document.getElementById('searchInput').addEventListener('input', debounce(searchEvents, 300));
+    const searchInput = document.getElementById('eventNameFilter');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(searchEvents, 300));
+    }
 
     // Filter change listeners
     document.getElementById('categoryFilter').addEventListener('change', filterEvents);
     document.getElementById('universityFilter').addEventListener('change', filterEvents);
     document.getElementById('statusFilter').addEventListener('change', filterEvents);
+
+    // Category container click listeners
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    if (categoriesContainer) {
+        categoriesContainer.querySelectorAll('p[data-category]').forEach(categoryItem => {
+            categoryItem.addEventListener('click', function () {
+                const category = this.getAttribute('data-category');
+                filterByCategory(category);
+            });
+        });
+    }
+
+    // Update category counts initially
+    updateCategoryCounts(allEvents);
 }
 
 // Debounce function for search
@@ -37,6 +54,82 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+// Update category counts for ongoing and upcoming events only
+function updateCategoryCounts(events) {
+    const categoryCounts = {
+        'technology': 0,
+        'sports': 0,
+        'cultural': 0,
+        'academic': 0,
+        'social': 0
+    };
+
+    // Count events by category for upcoming and ongoing events only
+    events.forEach(event => {
+        const status = getEventStatus(event.event_date || event.date);
+
+        // Only count ongoing and upcoming events
+        if (status === 'upcoming' || status === 'ongoing') {
+            const category = (event.category || '').toLowerCase();
+            if (categoryCounts.hasOwnProperty(category)) {
+                categoryCounts[category]++;
+            }
+        }
+    });
+
+    // Update the display
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    if (categoriesContainer) {
+        categoriesContainer.querySelectorAll('p[data-category]').forEach(categoryItem => {
+            const category = categoryItem.getAttribute('data-category');
+            const countSpan = categoryItem.querySelector('.category-count');
+            if (countSpan) {
+                countSpan.textContent = categoryCounts[category] || 0;
+            }
+        });
+    }
+}
+
+// Filter events by category from the category header
+function filterByCategory(category) {
+    // Set the category filter
+    document.getElementById('categoryFilter').value = category;
+
+    // Clear other filters
+    document.getElementById('universityFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('eventNameFilter').value = '';
+
+    activeFilters.category = category;
+    activeFilters.university = '';
+    activeFilters.status = '';
+    activeFilters.eventName = '';
+
+    currentPage = 1;
+
+    // Fetch filtered events
+    loadEvents(true);
+}
+
+// Fetch all events without filters to get accurate category counts
+function fetchAllEventsForCounting() {
+    const params = new URLSearchParams();
+    params.append('limit', 10000); // Get a large number to count all events
+
+    fetch(`${apiEndpoint}?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.events) {
+                updateCategoryCounts(data.events);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching events for counting:', error);
+        });
+}
+
+// Debounce function for search
 
 // Load events
 function loadEvents(useAjax = false) {
@@ -70,6 +163,9 @@ function loadEvents(useAjax = false) {
                     filteredEvents = data.events;
                     displayEvents(data.events);
                     updatePagination(data.pagination);
+                    // Update category counts based on all events (for ongoing/upcoming only)
+                    // Get all events without filters to count categories
+                    fetchAllEventsForCounting();
                 } else {
                     console.error('Failed to fetch events:', data.error);
                     displayNoEvents();
@@ -93,6 +189,7 @@ function loadEvents(useAjax = false) {
 
             displayEvents(filteredEvents);
             updatePagination();
+            updateCategoryCounts(allEvents);
         }, 500);
     }
 }
@@ -388,7 +485,8 @@ function getEventStatus(eventDate) {
 
 // Search events
 function searchEvents() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    const searchInput = document.getElementById('eventNameFilter');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     activeFilters.search = searchTerm;
     currentPage = 1;
     loadEvents(true);
@@ -410,11 +508,10 @@ function filterEvents() {
 
 // Clear all filters
 function clearFilters() {
-    document.getElementById('searchInput').value = '';
+    document.getElementById('eventNameFilter').value = '';
     document.getElementById('categoryFilter').value = '';
     document.getElementById('universityFilter').value = '';
     document.getElementById('statusFilter').value = '';
-    document.getElementById('eventNameFilter').value = '';
 
     activeFilters = {};
     currentPage = 1;

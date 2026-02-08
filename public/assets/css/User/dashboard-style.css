@@ -357,9 +357,8 @@ body {
 }
 
 .activity-layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 3rem;
+    display: block;
+    width: 100%;
 }
 
 .activity-feed h2 {

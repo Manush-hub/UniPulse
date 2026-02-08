@@ -1167,29 +1167,17 @@ async function checkUserCommentStatus() {
             loginPrompt: !!loginPrompt
         });
 
-        // If API says not logged in but page shows logged in, force show comment button
-        if (!data.can_comment && data.debug === 'not_logged_in' && isLoggedInByPage) {
-            console.log('API session issue detected - forcing comment button based on page auth');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-            return;
-        }
-
-        if (data.can_comment) {
-            // User can comment
-            console.log('User can comment - showing add button');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-        } else if (data.has_commented) {
-            // User already commented
-            console.log('User already commented - hiding both');
+        // User is logged in - allow them to comment even on completed events
+        if (data.has_commented) {
+            // User already commented - hide add comment button
+            console.log('User already commented - hiding comment form');
             if (addCommentTrigger) addCommentTrigger.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'none';
         } else {
-            // User not logged in or can't comment
-            console.log('User cannot comment - showing login prompt');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'none';
-            if (loginPrompt) loginPrompt.style.display = 'block';
+            // User can add a comment - show the add button
+            console.log('User can comment - showing add button');
+            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
+            if (loginPrompt) loginPrompt.style.display = 'none';
         }
 
     } catch (error) {
@@ -1198,14 +1186,9 @@ async function checkUserCommentStatus() {
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
 
-        if (isLoggedInByPage) {
-            console.log('API error but user is logged in - showing comment button');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-        } else {
-            if (addCommentTrigger) addCommentTrigger.style.display = 'none';
-            if (loginPrompt) loginPrompt.style.display = 'block';
-        }
+        console.log('API error but user is logged in - showing comment button');
+        if (addCommentTrigger) addCommentTrigger.style.display = 'block';
+        if (loginPrompt) loginPrompt.style.display = 'none';
     }
 }
 
