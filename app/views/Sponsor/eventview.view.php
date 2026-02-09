@@ -33,7 +33,7 @@
                 <i class="fas fa-exclamation-triangle"></i>
                 <h2>Event Not Found</h2>
                 <p><?php echo isset($error) ? htmlspecialchars($error) : 'The event you\'re looking for could not be found.'; ?></p>
-                <a href="/unipulse/public/publisher/events" class="btn btn-primary">
+                <a href="/unipulse/public/sponsor/events" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i>
                     Back to Events
                 </a>
@@ -45,7 +45,7 @@
             <!-- Navigation Bar -->
             <div class="navigation-bar">
                 <div class="container">
-                    <a href="/unipulse/public/publisher/events" class="back-btn">
+                    <a href="/unipulse/public/sponsor/events" class="back-btn">
                         <i class="fas fa-arrow-left"></i>
                         <span>Back to All Events</span>
                     </a>
