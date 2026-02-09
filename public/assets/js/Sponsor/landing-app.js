@@ -208,17 +208,17 @@ function createHeroSlide(event, isActive) {
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
-                    <span>${event.participants}/${event.maxParticipants} participants</span>
+                    <span>${event.university}</span>
                 </div>
             </div>
             <div class="hero-event-actions">
-                <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-primary">
+                <a href="/unipulse/public/sponsor/events" class="hero-btn hero-btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="16"></line>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-                    Join Event - ${event.price}
+                    View Event
                 </a>
                 <a href="event-details.html?id=${event.id}" class="hero-btn hero-btn-secondary">
                     Learn More
