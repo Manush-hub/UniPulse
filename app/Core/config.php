@@ -24,18 +24,10 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
         define('DBPASS', 'root'); // MAMP default password
         define('DBPORT', '8889'); // MAMP default port
     }
-<<<<<<< HEAD
-    
-    define('ROOT','http://localhost/UniPulse/public');
-}
-else{
-    define('ROOT','https://www.unipulse.lk');
-=======
 
     define('ROOT','http://localhost/UniPulse/public');
 } else {
     define('ROOT', 'https://www.unipulse.lk');
->>>>>>> 2.9-merge(User_report_generation__&__publisher)
 }
 
 define('APP_NAME', "My website");
