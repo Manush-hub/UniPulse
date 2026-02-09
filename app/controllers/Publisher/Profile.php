@@ -135,13 +135,13 @@ class PublisherProfile extends Controller{
 
         // Update profile data
         $profileData = [];
-        if (isset($input['orgType'])) $profileData['org_type'] = $input['orgType'];
-        if (isset($input['address'])) $profileData['address'] = $input['address'];
-        if (isset($input['establishedYear'])) $profileData['established_year'] = $input['establishedYear'];
-        if (isset($input['memberCount'])) $profileData['member_count'] = $input['memberCount'];
-        if (isset($input['headline'])) $profileData['headline'] = $input['headline'];
-        if (isset($input['bio'])) $profileData['bio'] = $input['bio'];
-        if (isset($input['mission'])) $profileData['mission'] = $input['mission'];
+        if (isset($input['orgType']) && $input['orgType'] !== '') $profileData['org_type'] = $input['orgType'];
+        if (isset($input['address']) && $input['address'] !== '') $profileData['address'] = $input['address'];
+        if (isset($input['establishedYear']) && $input['establishedYear'] !== '') $profileData['established_year'] = (int)$input['establishedYear'];
+        if (isset($input['memberCount']) && $input['memberCount'] !== '') $profileData['member_count'] = (int)$input['memberCount'];
+        if (isset($input['headline']) && $input['headline'] !== '') $profileData['headline'] = $input['headline'];
+        if (isset($input['bio']) && $input['bio'] !== '') $profileData['bio'] = $input['bio'];
+        if (isset($input['mission']) && $input['mission'] !== '') $profileData['mission'] = $input['mission'];
         
         $profileResult = true;
         if (!empty($profileData)) {
@@ -178,13 +178,14 @@ class PublisherProfile extends Controller{
         }
 
         $socialData = [];
-        if (isset($input['website'])) $socialData['website'] = $input['website'];
-        if (isset($input['facebook'])) $socialData['facebook'] = $input['facebook'];
-        if (isset($input['instagram'])) $socialData['instagram'] = $input['instagram'];
-        if (isset($input['linkedin'])) $socialData['linkedin'] = $input['linkedin'];
-        if (isset($input['twitter'])) $socialData['twitter'] = $input['twitter'];
-        if (isset($input['discord'])) $socialData['discord'] = $input['discord'];
-        if (isset($input['youtube'])) $socialData['youtube'] = $input['youtube'];
+        // Allow empty strings to clear fields, but only include if key is present
+        if (array_key_exists('website', $input)) $socialData['website'] = $input['website'];
+        if (array_key_exists('facebook', $input)) $socialData['facebook'] = $input['facebook'];
+        if (array_key_exists('instagram', $input)) $socialData['instagram'] = $input['instagram'];
+        if (array_key_exists('linkedin', $input)) $socialData['linkedin'] = $input['linkedin'];
+        if (array_key_exists('twitter', $input)) $socialData['twitter'] = $input['twitter'];
+        if (array_key_exists('discord', $input)) $socialData['discord'] = $input['discord'];
+        if (array_key_exists('youtube', $input)) $socialData['youtube'] = $input['youtube'];
 
         $result = $this->publisherModel->updateProfileData($publisherId, $socialData);
 
@@ -589,7 +590,7 @@ class PublisherProfile extends Controller{
             }
 
             $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getUpcomingEvents($publisherId);
+            $events = $this->publisherModel->getUpcomingEvents($publisherId, $currentUser);
             
             // Format events with calculated status
             $formattedEvents = [];
@@ -626,7 +627,7 @@ class PublisherProfile extends Controller{
             }
 
             $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getPastEvents($publisherId);
+            $events = $this->publisherModel->getPastEvents($publisherId, $currentUser);
             
             // Format events with calculated status
             $formattedEvents = [];

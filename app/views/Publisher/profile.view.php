@@ -35,9 +35,16 @@
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCover(event)">
             </div>
             
-            <div class="profile-banner">
+            <!-- Profile Info Below Cover -->
+            <div class="profile-info-section">
+                <div class="profile-name-email">
+                    <h1 class="profile-name"><?= isset($publisher->society_name) ? htmlspecialchars($publisher->society_name) : 'Organization Name' ?></h1>
+                    <?php if(isset($publisher->email)): ?>
+                        <p class="profile-email"><?= htmlspecialchars($publisher->email) ?></p>
+                    <?php endif; ?>
+                </div>
             </div>
-</div>
+        </div>
 
         <!-- Navigation Tabs -->
         <nav class="profile-nav">

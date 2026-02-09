@@ -48,10 +48,10 @@ class SponsorEvents extends Controller{
             $filters['offset'] = $offset;
             
             // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
             // Get total count for pagination (without limit)
-            $totalEvents = $this->eventModel->getAllEvents();
+            $totalEvents = $this->eventModel->getAllEvents([], $currentUser);
             $totalPages = ceil(count($totalEvents) / $limit);
             
             // Prepare data for view with server data for JavaScript
@@ -119,7 +119,7 @@ class SponsorEvents extends Controller{
             $filters['offset'] = $offset;
             
             // Get events from database
-            $events = $this->eventModel->getAllEvents($filters);
+            $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
             // Format events for JSON response
             $formattedEvents = [];
@@ -229,12 +229,12 @@ class SponsorEvents extends Controller{
             $filters['offset'] = $offset;
             
             // Get events seeking sponsors from database
-            $events = $this->eventModel->getEventsSeekingSponsors($filters);
+            $events = $this->eventModel->getEventsSeekingSponsors($filters, $currentUser);
             
             // Get total count for pagination
             $totalFilters = $filters;
             unset($totalFilters['limit'], $totalFilters['offset']);
-            $totalEvents = $this->eventModel->getEventsSeekingSponsors($totalFilters);
+            $totalEvents = $this->eventModel->getEventsSeekingSponsors($totalFilters, $currentUser);
             $totalPages = ceil(count($totalEvents) / $limit);
             
             // Prepare data for view

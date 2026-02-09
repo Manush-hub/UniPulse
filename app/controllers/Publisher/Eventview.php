@@ -36,7 +36,8 @@ class PublisherEventview extends Controller {
                             $event->id, 
                             $event->category, 
                             $event->university, 
-                            3
+                            3,
+                            $currentUser
                         );
                         
                         // Check if current publisher owns this event
@@ -50,16 +51,13 @@ class PublisherEventview extends Controller {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
                         }
                         
-                        // Format event data to include organizer photo
-                        $formattedEvent = $this->formatEventForResponse($event);
-                        
-                        // Pass server data to view for JavaScript
+                        // Pass server data to view for JavaScript (use raw event object, not formatted)
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
                             'isOwner' => $isOwner,
                             'serverData' => [
-                                'event' => $formattedEvent,
+                                'event' => $event,
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,
@@ -129,7 +127,8 @@ class PublisherEventview extends Controller {
                 $event->id, 
                 $event->category, 
                 $event->university, 
-                3
+                3,
+                $currentUser
             );
             
             // Format event data for JSON response
@@ -326,7 +325,7 @@ class PublisherEventview extends Controller {
         if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
             $publisherModel = new Publisher();
             
-            // Get publisher basic info (includes phone)
+            // Get publisher basic info (includes phone and current organization name)
             $publisherInfo = $publisherModel->where(['id' => $eventData['created_by']]);
             if ($publisherInfo && count($publisherInfo) > 0) {
                 $publisher = $publisherInfo[0];
@@ -337,8 +336,15 @@ class PublisherEventview extends Controller {
             
             // Get publisher profile (includes logo)
             $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
-            if ($publisherProfile && !empty($publisherProfile->logo_url)) {
-                $eventData['organizer_photo'] = $publisherProfile->logo_url;
+            if ($publisherProfile) {
+                if (!empty($publisherProfile->logo_url)) {
+                    $eventData['organizer_photo'] = $publisherProfile->logo_url;
+                }
+                if (!empty($publisherProfile->headline)) {
+                    $eventData['organizer_role'] = $publisherProfile->headline;
+                } else {
+                    $eventData['organizer_role'] = 'Event Organizer';
+                }
             }
         }
         

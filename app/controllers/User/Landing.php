@@ -8,6 +8,8 @@ class UserLanding extends Controller
         // Load profile photo into session for header display
         $this->loadUserProfilePhotoToSession();
 
-        $this->view('landing');
+        $eventModel = new Event();
+        $data['boosted_events'] = $eventModel->getActiveBoostedEvents(10);
+        $this->view('landing', $data);
     }
 }

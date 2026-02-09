@@ -174,7 +174,7 @@
                                     </div>
                                     <div class="organizer-details">
                                         <h4 id="organizerName">Loading...</h4>
-                                        <p id="organizerRole" class="organizer-role">Event Organizer</p>
+                                        <!-- <p id="organizerRole" class="organizer-role"></p> -->
                                         <div class="organizer-actions">
                                             <button class="btn btn-outline btn-icon" id="visitProfileBtn" onclick="visitPublisherProfile()" title="Visit Profile">
                                                 <i class="fas fa-user"></i>
@@ -419,7 +419,7 @@
                                             <span class="price-label">Ticket Price:</span>
                                             <span class="price-value" id="ticketPrice">LKR 0</span>
                                         </div>
-                                        <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                        <button class="btn btn-success btn-large" onclick="buyTickets()">
                                             <i class="fas fa-shopping-cart"></i>
                                             Buy Tickets
                                         </button>
@@ -495,7 +495,7 @@
                                                 <span class="price-label">Ticket Price:</span>
                                                 <span class="price-value" id="mixedTicketPrice">LKR 0.00</span>
                                             </div>
-                                            <button class="btn btn-success btn-large" onclick="purchaseTicket()">
+                                            <button class="btn btn-success btn-large" onclick="buyTickets()">
                                                 <i class="fas fa-shopping-cart"></i>
                                                 Buy Tickets
                                             </button>
