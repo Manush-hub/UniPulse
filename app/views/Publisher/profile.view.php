@@ -381,7 +381,7 @@
                             <label for="adminEmail">
                                 <i class="fas fa-user-shield"></i> Primary Admin Email
                             </label>
-                            <input type="email" id="adminEmail" value="<?= htmlspecialchars($publisher->email) ?>" readonly style="background-color: #f5f5f5;">
+                            <input type="email" id="adminEmail" value="<?= htmlspecialchars($publisher->email ?? '') ?>" readonly style="background-color: #f5f5f5;">
                             <small style="color: #666; display: block; margin-top: 5px;">This email has full administrative access</small>
                         </div>
 

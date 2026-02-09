@@ -54,7 +54,11 @@ class PublisherEvents extends Controller{
             
             // Get events from database based on user role
             $events = $this->eventModel->getEventsByRole($userRole, $filters, $currentUser);
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> 2.9-merge(User_report_generation__&__publisher)
             // Get total count for pagination (without limit)
             $totalEvents = $this->eventModel->getEventsByRole($userRole, [], $currentUser);
             $totalPages = ceil(count($totalEvents) / $limit);

@@ -22,7 +22,7 @@ class UserPublicProfile {
             instagram: 'https://instagram.com/johnsmith.codes',
             avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=cover&w=400&q=80'
         };
-        
+
         this.events = [
             {
                 id: 1,
@@ -198,12 +198,12 @@ class UserPublicProfile {
                 description: 'Collaborative learning with classmates'
             }
         ];
-        
+
         this.skills = [
-            'Python', 'JavaScript', 'Machine Learning', 'React.js', 
+            'Python', 'JavaScript', 'Machine Learning', 'React.js',
             'Node.js', 'Data Science', 'Research', 'AI Ethics'
         ];
-        
+
         this.init();
     }
 
@@ -325,22 +325,34 @@ class UserPublicProfile {
     loadUserData() {
         // Update page title
         document.title = `${this.userData.name} - UniPulse`;
-        
+
         // Update user info in DOM
         // const userName = document.getElementById('userName');
         // const userDescription = document.getElementById('userDescription');
-        
+
         // if (userName) userName.textContent = this.userData.name;
         // if (userDescription) userDescription.textContent = this.userData.description;
     }
 
     categorizeEvents() {
-        const currentDate = new Date('2024-08-28');
-        
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
         this.events.forEach(event => {
             const eventDate = new Date(event.date);
+            eventDate.setHours(0, 0, 0, 0);
+
             if (event.category !== 'past') {
                 event.category = eventDate > currentDate ? 'attending' : 'past';
+            }
+
+            // Also set status for API compatibility
+            if (eventDate < currentDate) {
+                event.status = 'completed';
+            } else if (eventDate.getTime() === currentDate.getTime()) {
+                event.status = 'ongoing';
+            } else {
+                event.status = 'upcoming';
             }
         });
     }
@@ -356,7 +368,7 @@ class UserPublicProfile {
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.remove('active');
         });
-        
+
         const targetTab = document.getElementById(tabName);
         if (targetTab) {
             targetTab.classList.add('active');
@@ -378,7 +390,7 @@ class UserPublicProfile {
         if (activeContent) {
             activeContent.style.opacity = '0';
             activeContent.style.transform = 'translateY(20px)';
-            
+
             setTimeout(() => {
                 activeContent.style.transition = 'all 0.3s ease';
                 activeContent.style.opacity = '1';
@@ -390,7 +402,7 @@ class UserPublicProfile {
     loadEvents() {
         const attendingContainer = document.getElementById('attendingEventsContainer');
         const pastContainer = document.getElementById('pastEventsContainer');
-        
+
         if (attendingContainer) {
             attendingContainer.innerHTML = '';
             this.events.filter(event => event.category === 'attending').forEach(event => {
@@ -398,7 +410,7 @@ class UserPublicProfile {
                 attendingContainer.appendChild(eventCard);
             });
         }
-        
+
         if (pastContainer) {
             pastContainer.innerHTML = '';
             this.events.filter(event => event.category === 'past').forEach(event => {
@@ -417,14 +429,14 @@ class UserPublicProfile {
 
         let badgeClass, badgeText;
         let extraBadge = '';
-        
+
         if (event.category === 'attending') {
             badgeClass = 'attending';
             badgeText = 'Attending';
         } else {
             badgeClass = 'past';
             badgeText = 'Participated';
-            
+
             if (event.achievement) {
                 if (event.achievement.includes('Winner') || event.achievement.includes('Place')) {
                     extraBadge = '<span class="event-badge winner" style="top: 15px; left: 15px;">Winner</span>';
@@ -460,11 +472,11 @@ class UserPublicProfile {
                     <button class="btn btn-primary btn-small" onclick="userProfile.viewEventDetails(${event.id})">
                         View Details
                     </button>
-                    ${event.achievement ? 
-                        '<button class="btn btn-outline btn-small">View ' + (event.achievement.includes('Winner') ? 'Project' : 
-                        event.achievement.includes('Presenter') ? 'Presentation' : 'Results') + '</button>' : 
-                        ''
-                    }
+                    ${event.achievement ?
+                '<button class="btn btn-outline btn-small">View ' + (event.achievement.includes('Winner') ? 'Project' :
+                    event.achievement.includes('Presenter') ? 'Presentation' : 'Results') + '</button>' :
+                ''
+            }
                 </div>
             </div>
         `;
@@ -477,7 +489,7 @@ class UserPublicProfile {
         if (!container) return;
 
         container.innerHTML = '';
-        
+
         this.projects.forEach(project => {
             const projectCard = this.createProjectCard(project);
             container.appendChild(projectCard);
@@ -487,9 +499,9 @@ class UserPublicProfile {
     createProjectCard(project) {
         const card = document.createElement('div');
         card.className = 'project-card';
-        
+
         const techTags = project.technologies.join(' • ');
-        
+
         card.innerHTML = `
             <div class="project-image">
                 <img src="${project.image}" alt="${project.title}">
@@ -502,16 +514,16 @@ class UserPublicProfile {
                     <a href="${project.githubLink}" class="project-link">
                         <i class="fab fa-github"></i> GitHub
                     </a>
-                    ${project.liveLink ? 
-                        `<a href="${project.liveLink}" class="project-link">
+                    ${project.liveLink ?
+                `<a href="${project.liveLink}" class="project-link">
                             <i class="fas fa-external-link-alt"></i> Live Demo
                         </a>` : ''
-                    }
-                    ${project.paperLink ? 
-                        `<a href="${project.paperLink}" class="project-link">
+            }
+                    ${project.paperLink ?
+                `<a href="${project.paperLink}" class="project-link">
                             <i class="fas fa-file-pdf"></i> Research Paper
                         </a>` : ''
-                    }
+            }
                 </div>
             </div>
         `;
@@ -521,9 +533,9 @@ class UserPublicProfile {
 
     formatDate(dateString) {
         const date = new Date(dateString);
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
+        const options = {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric',
             weekday: 'long'
         };
@@ -535,17 +547,17 @@ class UserPublicProfile {
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        
+
         // Add active class to clicked button
         document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
 
         // Filter events
         const eventCards = document.querySelectorAll('.event-card');
         eventCards.forEach(card => {
-            const show = filter === 'all' || 
-                        card.dataset.category === filter || 
-                        (filter === 'featured' && card.dataset.featured === 'true');
-            
+            const show = filter === 'all' ||
+                card.dataset.category === filter ||
+                (filter === 'featured' && card.dataset.featured === 'true');
+
             card.style.display = show ? 'block' : 'none';
         });
 
@@ -561,12 +573,12 @@ class UserPublicProfile {
             const description = card.querySelector('.event-description').textContent.toLowerCase();
             const location = card.querySelector('.event-location').textContent.toLowerCase();
             const organizer = card.querySelector('.event-organizer').textContent.toLowerCase();
-            
-            const matches = title.includes(searchTerm) || 
-                          description.includes(searchTerm) || 
-                          location.includes(searchTerm) ||
-                          organizer.includes(searchTerm);
-            
+
+            const matches = title.includes(searchTerm) ||
+                description.includes(searchTerm) ||
+                location.includes(searchTerm) ||
+                organizer.includes(searchTerm);
+
             card.style.display = matches ? 'block' : 'none';
         });
     }
@@ -576,12 +588,12 @@ class UserPublicProfile {
         if (!container) return;
 
         container.innerHTML = '';
-        
+
         this.galleryItems.forEach(item => {
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             galleryItem.onclick = () => this.openGalleryModal(item);
-            
+
             galleryItem.innerHTML = `
                 <img src="${item.image}" alt="${item.title}" loading="lazy">
                 <div class="gallery-overlay">
@@ -589,7 +601,7 @@ class UserPublicProfile {
                     <p>${item.description}</p>
                 </div>
             `;
-            
+
             container.appendChild(galleryItem);
         });
     }
@@ -599,12 +611,12 @@ class UserPublicProfile {
         if (!container) return;
 
         container.innerHTML = '';
-        
+
         this.galleryItems.forEach(item => {
             const galleryItem = document.createElement('div');
             galleryItem.className = 'gallery-item';
             galleryItem.onclick = () => this.openGalleryModal(item);
-            
+
             galleryItem.innerHTML = `
                 <img src="${item.image}" alt="${item.title}" loading="lazy">
                 <div class="gallery-overlay">
@@ -612,7 +624,7 @@ class UserPublicProfile {
                     <p>${item.description}</p>
                 </div>
             `;
-            
+
             container.appendChild(galleryItem);
         });
     }
@@ -641,7 +653,7 @@ class UserPublicProfile {
     submitContactForm() {
         const formData = new FormData(document.getElementById('contactForm'));
         const data = Object.fromEntries(formData);
-        
+
         // Validate form
         if (!data.name || !data.email || !data.subject || !data.message) {
             this.showNotification('Please fill in all required fields.', 'error');
@@ -651,7 +663,7 @@ class UserPublicProfile {
         // Simulate form submission
         this.showNotification('Message sent successfully! John will get back to you soon.', 'success');
         document.getElementById('contactForm').reset();
-        
+
         console.log('Contact form data:', data);
     }
 
@@ -725,7 +737,7 @@ class UserPublicProfile {
                 opacity: 1;
             }
         `;
-        
+
         if (!document.querySelector('style[data-notification]')) {
             style.setAttribute('data-notification', 'true');
             document.head.appendChild(style);
@@ -766,11 +778,11 @@ class UserPublicProfile {
 function scrollEvents(section, direction) {
     const containerId = section === 'attending' ? 'attendingEventsContainer' : 'pastEventsContainer';
     const container = document.getElementById(containerId);
-    
+
     if (container) {
         const scrollAmount = 375; // Width of card + gap
         const currentScroll = container.scrollLeft;
-        
+
         if (direction === 'left') {
             container.scrollTo({
                 left: currentScroll - scrollAmount,
@@ -793,18 +805,18 @@ function closeModal(modalId) {
 let userProfile;
 document.addEventListener('DOMContentLoaded', () => {
     userProfile = new UserPublicProfile();
-    
+
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
-    
+
     // Add loading states to buttons
     document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             if (!this.classList.contains('loading') && !this.onclick) {
                 this.classList.add('loading');
                 const originalText = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-                
+
                 setTimeout(() => {
                     this.classList.remove('loading');
                     this.innerHTML = originalText;
@@ -853,20 +865,20 @@ document.addEventListener('DOMContentLoaded', () => {
 function changeCarouselImage(galleryId, direction) {
     const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
     if (!galleryItem) return;
-    
+
     const images = galleryItem.querySelectorAll('.carousel-image');
     const indicators = galleryItem.querySelectorAll('.indicator');
     let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
-    
+
     // Remove active class from current image and indicator
     images[currentIndex].classList.remove('active');
     indicators[currentIndex].classList.remove('active');
-    
+
     // Calculate new index
     currentIndex += direction;
     if (currentIndex >= images.length) currentIndex = 0;
     if (currentIndex < 0) currentIndex = images.length - 1;
-    
+
     // Add active class to new image and indicator
     images[currentIndex].classList.add('active');
     indicators[currentIndex].classList.add('active');
@@ -875,14 +887,14 @@ function changeCarouselImage(galleryId, direction) {
 function setCarouselImage(galleryId, index) {
     const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
     if (!galleryItem) return;
-    
+
     const images = galleryItem.querySelectorAll('.carousel-image');
     const indicators = galleryItem.querySelectorAll('.indicator');
-    
+
     // Remove active class from all
     images.forEach(img => img.classList.remove('active'));
     indicators.forEach(ind => ind.classList.remove('active'));
-    
+
     // Add active class to selected
     if (images[index]) images[index].classList.add('active');
     if (indicators[index]) indicators[index].classList.add('active');

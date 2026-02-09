@@ -89,7 +89,12 @@
                             <span class="event-status" id="eventStatus">Loading...</span>
                         </div>
                         <h1 class="event-title" id="eventTitle">Loading Event Title...</h1>
+<<<<<<< HEAD
                         
+=======
+                        <p class="event-summary" id="eventSummary">Loading event summary...</p>
+
+>>>>>>> 2.9-merge(User_report_generation__&__publisher)
                         <div class="event-details-grid">
                             <div class="detail-item">
                                 <i class="fas fa-calendar-alt"></i>
@@ -527,10 +532,43 @@
                             </div>
                         </div>
 
+<<<<<<< HEAD
                         <!-- Donation Information -->
                         <div class="content-card donation-card" id="donationCard" style="display: none;">
                             <div class="card-icon donation-icon">
                                 <i class="fas fa-heart"></i>
+=======
+                        <!-- Add Comment Form -->
+                        <div class="add-comment-section" id="addCommentSection" style="display: none;">
+                            <div class="comment-form">
+                                <div class="form-group">
+                                    <label for="commentText">Share your experience</label>
+                                    <textarea id="commentText" placeholder="How was this event? Share your thoughts and feedback..." maxlength="1000"></textarea>
+                                    <div class="char-count">
+                                        <span id="charCount">0</span>/1000
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="eventRating">Rate this event (optional)</label>
+                                    <div class="rating-input" id="ratingInput">
+                                        <span class="star" data-rating="1">☆</span>
+                                        <span class="star" data-rating="2">☆</span>
+                                        <span class="star" data-rating="3">☆</span>
+                                        <span class="star" data-rating="4">☆</span>
+                                        <span class="star" data-rating="5">☆</span>
+                                    </div>
+                                    <div class="rating-text" id="ratingText">Click stars to rate</div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button class="btn btn-secondary" id="cancelCommentBtn">Cancel</button>
+                                    <button class="btn btn-primary" id="submitCommentBtn">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Post Comment
+                                    </button>
+                                </div>
+>>>>>>> 2.9-merge(User_report_generation__&__publisher)
                             </div>
                             <h3>Support This Event</h3>
                             <div id="donationInfo" class="donation-info">
@@ -544,6 +582,54 @@
                     </div>
 
                 </div>
+<<<<<<< HEAD
+=======
+
+                <div class="form-group">
+                    <label for="editEventRating">Update your rating (optional)</label>
+                    <div class="rating-input" id="editRatingInput">
+                        <span class="star" data-rating="1">☆</span>
+                        <span class="star" data-rating="2">☆</span>
+                        <span class="star" data-rating="3">☆</span>
+                        <span class="star" data-rating="4">☆</span>
+                        <span class="star" data-rating="5">☆</span>
+                    </div>
+                    <div class="rating-text" id="editRatingText">Click stars to rate</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditCommentModal()">Cancel</button>
+                <button class="btn btn-primary" id="updateCommentBtn">
+                    <i class="fas fa-save"></i>
+                    Update Comment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Comment Modal -->
+    <div id="deleteCommentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Delete Comment</h3>
+                <button class="close-btn" onclick="closeDeleteCommentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-delete">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Are you sure?</h4>
+                    <p>This action cannot be undone. Your comment and rating will be permanently deleted.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Delete Comment
+                </button>
+>>>>>>> 2.9-merge(User_report_generation__&__publisher)
             </div>
         </div>
     </div>
@@ -575,7 +661,7 @@
     </div>
 
     <!-- Share Event Modal -->
-        <!-- Share Event Modal -->
+    <!-- Share Event Modal -->
     <div id="shareModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -836,4 +922,5 @@
 
     <script src="/unipulse/public/assets/js/User/eventview-app.js"></script>
 </body>
+
 </html>

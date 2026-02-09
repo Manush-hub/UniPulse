@@ -22,7 +22,7 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername">Manush</span>! 👋</h1>
+                        <h1>Welcome back, <span id="welcomeUsername"><?php echo htmlspecialchars($user['name'] ?? 'User'); ?></span>! 👋</h1>
                         <p>Ready to discover amazing events and connect with your university community?</p>
                     </div>
                 </div>
@@ -86,19 +86,6 @@
             </div>
         </section>
 
-        <!-- Featured Events -->
-        <section class="featured-events">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Featured Events</h2>
-                    <a href="/unipulse/public/user/events" class="view-all">View All</a>
-                </div>
-                <div class="events-grid" id="featuredEventsGrid">
-                    <!-- Featured events will be loaded here -->
-                </div>
-            </div>
-        </section>
-
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">
@@ -109,7 +96,7 @@
                             <!-- Activity items will be loaded here -->
                         </div>
                     </div>
-                    <div class="sidebar">
+                    <!-- <div class="sidebar">
                         <div class="sidebar-widget">
                             <h3>Popular Categories</h3>
                             <div class="category-list">
@@ -152,8 +139,31 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
+            </div>
+        </section>
+
+        <!-- Monthly Evolution Button -->
+        <section class="monthly-evolution-btn-section">
+            <div class="container">
+                <a href="/unipulse/public/user/dashboard/monthlyEvolution" class="evolution-btn">
+                    <div class="evolution-btn-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12h18M3 6h18M3 18h18"></path>
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        </svg>
+                    </div>
+                    <div class="evolution-btn-content">
+                        <h3>View Monthly Evolution Report</h3>
+                        <p>Track your volunteering, donations, and events participation for each month</p>
+                    </div>
+                    <div class="evolution-btn-arrow">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </div>
+                </a>
             </div>
         </section>
     </div>
@@ -161,6 +171,15 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <!-- Pass user data to JavaScript -->
+    <script>
+        window.userData = <?php echo json_encode([
+                                'name' => $user['name'] ?? 'User',
+                                'email' => $user['email'] ?? '',
+                                'type' => $user['type'] ?? 'user',
+                                'university' => $user['university'] ?? ''
+                            ]); ?>;
+    </script>
     <script src="<?php echo $controller->loadJS('dashboard-app.js'); ?>"></script>
 </body>
 
