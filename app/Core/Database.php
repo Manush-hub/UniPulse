@@ -1,10 +1,12 @@
 <?php
 
-Trait Database{
+trait Database
+{
 
-    protected function connect(){
+    public function connect()
+    {
         try {
-            $string = "mysql:host=".DBHOST.";port=".DBPORT.";dbname=".DBNAME.";charset=utf8mb4";
+            $string = "mysql:host=" . DBHOST . ";port=" . DBPORT . ";dbname=" . DBNAME . ";charset=utf8mb4";
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
@@ -14,10 +16,10 @@ Trait Database{
             return $conn;
         } catch (PDOException $e) {
             if (DEBUG) {
-                die("Database connection failed: " . $e->getMessage() . 
-                    "<br>Host: " . DBHOST . 
-                    "<br>Port: " . DBPORT . 
-                    "<br>Database: " . DBNAME . 
+                die("Database connection failed: " . $e->getMessage() .
+                    "<br>Host: " . DBHOST .
+                    "<br>Port: " . DBPORT .
+                    "<br>Database: " . DBNAME .
                     "<br>User: " . DBUSER);
             } else {
                 die("Database connection failed. Please contact the administrator.");
@@ -25,15 +27,16 @@ Trait Database{
         }
     }
 
-    public function query($query,$data = []){
+    public function query($query, $data = [])
+    {
 
         $conn = $this->connect();
-        $stm=$conn->prepare($query);
+        $stm = $conn->prepare($query);
 
         $check = $stm->execute($data);
-        if($check){
+        if ($check) {
             $result = $stm->fetchAll(PDO::FETCH_OBJ);
-            if(is_array($result) && count($result)){
+            if (is_array($result) && count($result)) {
                 return $result;
             }
         }
@@ -41,23 +44,22 @@ Trait Database{
         return false;
     }
 
-    public function getRow($query,$data = []){
-        
+    public function getRow($query, $data = [])
+    {
+
         $conn = $this->connect();
-        $stm=$conn->prepare($query);
+        $stm = $conn->prepare($query);
 
         $check = $stm->execute($data);
-        if($check){
+        if ($check) {
             $result = $stm->fetchAll(PDO::FETCH_OBJ);
-            if(is_array($result) && count($result)){
+            if (is_array($result) && count($result)) {
                 return $result[0];
             }
         }
 
         return false;
     }
-
-
 }
 
 

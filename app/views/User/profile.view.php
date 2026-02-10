@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,23 +22,25 @@
         <header class="profile-header">
             <div class="cover-photo-section">
                 <!-- Cover Photo -->
-                <div class="cover-photo">
-                    <div class="cover-overlay" onclick="uploadCover()">
+                <div class="cover-photo" style="background-color: #f0f0f0; min-height: 300px; position: relative; overflow: hidden;">
+                    <img id="coverPhoto" src="" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div class="cover-overlay" onclick="uploadCover()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
                     </div>
                 </div>
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
                 <!-- Profile Photo -->
-                <div class="profile-photo">
-                    <div class="profile-overlay" onclick="uploadProfileImage()">
-                        <i class="fas fa-camera"></i>
-                        Change Photo
+                <div class="profile-photo" style="width: 150px; height: 150px; border-radius: 50%; position: absolute; bottom: -75px; left: 30px; background-color: white; border: 4px solid white; overflow: hidden;">
+                    <img id="profilePhoto" src="" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    <div class="profile-overlay" onclick="uploadProfileImage()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
+                        <i class="fas fa-camera" style="color: white;"></i>
+                        <span style="color: white; font-size: 11px; text-align: center;">Change Photo</span>
                     </div>
                 </div>
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
             </div>
-            
+
             <!-- Profile Banner -->
             <div class="profile-banner">
             </div>
@@ -47,9 +50,6 @@
         <nav class="profile-nav">
             <button class="nav-item active" data-tab="personal">
                 <i class="fas fa-user"></i> Personal Information
-            </button>
-            <button class="nav-item" data-tab="events">
-                <i class="fas fa-calendar"></i> Registered Events
             </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
@@ -73,29 +73,28 @@
                             <label for="lastname">Last Name</label>
                             <input type="text" id="lastname" placeholder="Enter your last name">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="university">University</label>
-                            <input type="text" id="university" placeholder="Enter your university name">
+                            <input type="text" id="university" placeholder="Enter your university name" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
                             <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" placeholder="Enter your faculty">
+                            <input type="text" id="faculty" placeholder="Enter your faculty" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
 
                         <div class="form-group">
-                            <label for="student/staffid">Student/Staff ID</label>
-                            <input type="text" id="student/staffid" placeholder="Enter your student/staff id">
+                            <label for="student_staff_id">Student/Staff ID</label>
+                            <input type="text" id="student_staff_id" placeholder="Enter your student/staff id" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
-                            <label for="academicyear">Academic Year</label>
-                            <input type="text" id="academicyear" placeholder="Enter your academic year">
+                            <label for="academic_year">Academic Year</label>
+                            <input type="text" id="academic_year" placeholder="Enter your academic year">
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="dob">Date of Birth</label>
-                            <input type="date" id="dob" placeholder="Select your date of birth">
-                        </div>
+
                         <div class="form-group">
                             <label for="gender">Gender</label>
                             <div class="gender-buttons">
@@ -104,48 +103,28 @@
                             </div>
                             <input type="hidden" id="gender">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" placeholder="Enter your email address">
+                            <input type="email" id="email" placeholder="Enter your email address" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
                         <div class="form-group">
                             <label for="phone">Phone Number</label>
                             <input type="tel" id="phone" placeholder="Enter your phone number">
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="currentCity">Current Town/City</label>
-                            <input type="text" id="currentCity" placeholder="Enter your current city">
-                        </div>
-                        <div class="form-group">
-                            <label for="homeTown">Home Town</label>
-                            <input type="text" id="homeTown" placeholder="Enter your home town">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="role">Role</label>
-                            <div class="role-buttons">
-                                <button type="button" class="role-btn" data-role="student">Student</button>
-                                <button type="button" class="role-btn" data-role="staff">Staff</button>
-                                <button type="button" class="role-btn" data-role="public">Public</button>
-                            </div>
-                            <input type="hidden" id="role">
-                        </div>
+
                         <div class="form-group">
                             <label for="nic">NIC</label>
-                            <input type="text" id="nic" placeholder="Enter your NIC">
+                            <input type="text" id="nic" placeholder="Enter your NIC" disabled readonly>
+                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
                         </div>
-                        
-                        <div class="form-group full-width">
-                            <label for="headline">Headline</label>
-                            <textarea id="headline" rows="1" placeholder="Enter a brief headline about yourself"></textarea>
-                        </div>
+
                         <div class="form-group full-width">
                             <label for="bio">Bio</label>
                             <textarea id="bio" rows="4" placeholder="Tell us about yourself, your interests, and what you're passionate about"></textarea>
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
                                 Save Changes
@@ -172,196 +151,7 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Photo Gallery</h3>
-                        <div class="gallery-actions">
-                            <button type="button" class="btn btn-small" onclick="addGalleryPhoto()">
-                                <i class="fas fa-plus"></i> Add Photo
-                            </button>
-                        </div>
-                    </div>
-                    <div class="gallery-section">
-                        <div class="gallery-upload-info">
-                            <p><i class="fas fa-info-circle"></i> You can create gallery entries with up to 5 photos each. Each gallery entry should include a title and description.</p>
-                        </div>
-                        <div class="gallery-grid" id="galleryGrid">
-                            <div class="gallery-item editable" data-gallery-id="1">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Gallery Photo 1-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 1-2">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 1-3">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(1)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Hackathon Victory</h4>
-                                    <p class="gallery-description">Celebrating 2nd place win at Berkeley Hackathon 2024</p>
-                                </div>
-                            </div>
 
-                            <div class="gallery-item editable" data-gallery-id="2">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Gallery Photo 2-1">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=400&fit=crop" alt="Gallery Photo 2-2">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(2)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Research Presentation</h4>
-                                    <p class="gallery-description">Presenting climate prediction research at symposium</p>
-                                </div>
-                            </div>
-
-                            <div class="gallery-item editable" data-gallery-id="3">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Gallery Photo 3-1">
-                                        </div>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
-                                    </div>
-                                    <div class="gallery-actions-overlay">
-                                        <button type="button" class="gallery-action-btn delete" onclick="deleteGalleryItem(3)" title="Remove">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4 class="gallery-title">Team Collaboration</h4>
-                                    <p class="gallery-description">Working with fellow students on group projects</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Connect With Me</h3>
-                    </div>
-                    <form id="social-form" class="form">
-                        <div class="form-group">
-                            <label for="personal-website">
-                                <i class="fas fa-globe"></i> Personal Website
-                            </label>
-                            <input type="url" id="personal-website" value="" placeholder="https://yourwebsite.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="facebook">
-                                <i class="fab fa-facebook"></i> Facebook
-                            </label>
-                            <input type="url" id="facebook" placeholder="https://facebook.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="instagram">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </label>
-                            <input type="url" id="instagram" placeholder="https://instagram.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="telegram">
-                                <i class="fab fa-telegram"></i> Telegram
-                            </label>
-                            <input type="url" id="telegram" placeholder="https://t.me/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="linkedin">
-                                <i class="fab fa-linkedin"></i> LinkedIn
-                            </label>
-                            <input type="url" id="linkedin" placeholder="https://linkedin.com/in/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="github">
-                                <i class="fab fa-github"></i> GitHub
-                            </label>
-                            <input type="url" id="github" value="" placeholder="https://github.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="x-twitter">
-                                <i class="fab fa-x-twitter"></i> X (Twitter)
-                            </label>
-                            <input type="url" id="x-twitter" value="" placeholder="https://x.com/username">
-                        </div>
-                        <div class="form-group">
-                            <label for="discord">
-                                <i class="fab fa-discord"></i> Discord
-                            </label>
-                            <input type="text" id="discord" value="" placeholder="username#1234">
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-primary" onclick="saveSocialLinks()">
-                                Save Changes
-                            </button>
-                            <button type="button" class="btn btn-primary" onclick="cancelSocialLinks()">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Registered Events Tab -->
-            <div id="events" class="tab-content">
-                <div class="events-grid" id="eventsContainer">
-                    <!-- Events will be populated by JavaScript -->
-                </div>
             </div>
 
             <!-- Settings Tab -->
@@ -509,112 +299,17 @@
         </div>
     </div>
 
-    <!-- Gallery Photo Modal -->
-    <div id="galleryPhotoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="galleryModalTitle">Add Photo to Gallery</h3>
-                <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="galleryPhotoForm" class="form">
-                    <div class="form-group full-width">
-                        <label for="galleryTitle">Photo Title</label>
-                        <input type="text" id="galleryTitle" placeholder="Enter a title for your photo" maxlength="50" required>
-                        <small>Maximum 50 characters</small>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label for="galleryDescription">Description</label>
-                        <textarea id="galleryDescription" rows="3" placeholder="Write a brief description of your photo" maxlength="150" required></textarea>
-                        <small>Maximum 150 characters</small>
-                    </div>
-                    
-                    <div class="form-group full-width" id="galleryImageUpload">
-                        <label>Photo Upload (Up to 5 photos)</label>
-                        <div class="multi-photo-upload">
-                            <div class="photo-upload-item">
-                                <label for="galleryFile1" class="photo-upload-label">Photo 1 (Required)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile1').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview1" class="gallery-preview" style="display: none;" alt="Preview 1">
-                                </div>
-                                <input type="file" id="galleryFile1" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 1)" required>
-                            </div>
-                            
-                            <div class="photo-upload-item">
-                                <label for="galleryFile2" class="photo-upload-label">Photo 2 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile2').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview2" class="gallery-preview" style="display: none;" alt="Preview 2">
-                                </div>
-                                <input type="file" id="galleryFile2" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 2)">
-                            </div>
-                            
-                            <div class="photo-upload-item">
-                                <label for="galleryFile3" class="photo-upload-label">Photo 3 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile3').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview3" class="gallery-preview" style="display: none;" alt="Preview 3">
-                                </div>
-                                <input type="file" id="galleryFile3" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 3)">
-                            </div>
-                            
-                            <div class="photo-upload-item">
-                                <label for="galleryFile4" class="photo-upload-label">Photo 4 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile4').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview4" class="gallery-preview" style="display: none;" alt="Preview 4">
-                                </div>
-                                <input type="file" id="galleryFile4" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 4)">
-                            </div>
-                            
-                            <div class="photo-upload-item">
-                                <label for="galleryFile5" class="photo-upload-label">Photo 5 (Optional)</label>
-                                <div class="gallery-upload-area" onclick="document.getElementById('galleryFile5').click()">
-                                    <div class="upload-content">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Click to upload</p>
-                                        <small>PNG, JPG up to 5MB</small>
-                                    </div>
-                                    <img id="galleryPreview5" class="gallery-preview" style="display: none;" alt="Preview 5">
-                                </div>
-                                <input type="file" id="galleryFile5" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 5)">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-primary" onclick="saveGalleryPhoto()">
-                            Save Gallery
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeGalleryModal()">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
+    <script>
+        window.profileApi = {
+            get: '/unipulse/public/user/profile/getProfile',
+            update: '/unipulse/public/user/profile/updateProfile'
+        };
+    </script>
     <script src="/UniPulse/public/assets/js/userprofile-app.js"></script>
 </body>
+
 </html>

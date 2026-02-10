@@ -362,6 +362,17 @@ class PublisherCreateevent extends Controller{
         if (empty($postData['event_category'])) {
             $errors['event_category'] = 'Event category is required';
         }
+
+        // Validate Event Visibility
+        if (empty($postData['event_visibility'])) {
+            $errors['event_visibility'] = 'Event visibility is required';
+        } else {
+            $allowedVisibility = ['faculty-only', 'university-only', 'all-universities', 'public'];
+            if (!in_array($postData['event_visibility'], $allowedVisibility)) {
+                $errors['event_visibility'] = 'Invalid visibility option selected';
+            }
+        }
+        
         
         // Validate Event Visibility
         if (empty($postData['event_visibility'])) {

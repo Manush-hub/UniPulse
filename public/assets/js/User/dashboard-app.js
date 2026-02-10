@@ -1,11 +1,9 @@
 // Initialize dashboard on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeDashboard();
-    // loadUserData();
+    loadUserData();
     loadUpcomingEvents();
-    loadFeaturedEvents();
     loadRecentActivity();
-
 });
 
 // Initialize dashboard
@@ -13,24 +11,29 @@ function initializeDashboard() {
     // Set current date and time
     updateDateTime();
     setInterval(updateDateTime, 60000); // Update every minute
-    
+
     // Add scroll animations
     setupScrollAnimations();
 }
 
 // Load user data
-// function loadUserData() {
-//     document.getElementById('username').textContent = userData.username;
-//     document.getElementById('welcomeUsername').textContent = userData.displayName;
-// }
+function loadUserData() {
+    // Use user data passed from PHP
+    if (window.userData && window.userData.name) {
+        const welcomeUsername = document.getElementById('welcomeUsername');
+        if (welcomeUsername) {
+            welcomeUsername.textContent = window.userData.name;
+        }
+    }
+}
 
 // Load upcoming events from backend
 function loadUpcomingEvents() {
     const carousel = document.getElementById('upcomingEventsCarousel');
     if (!carousel) return;
-    
+
     carousel.innerHTML = '<div class="loading">Loading events...</div>';
-    
+
     fetch('/unipulse/public/user/dashboard/getUpcomingEvents')
         .then(response => {
             if (!response.ok) {
@@ -55,14 +58,14 @@ function loadUpcomingEvents() {
 function displayUpcomingEvents(events) {
     const carousel = document.getElementById('upcomingEventsCarousel');
     if (!carousel) return;
-    
-    carousel.innerHTML = '';
-    
-    if (events.length === 0) {
-        carousel.innerHTML = '<div class="no-data">No upcoming events</div>';
+
+    if (!events || events.length === 0) {
+        carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
         return;
     }
-    
+
+    carousel.innerHTML = '';
+
     events.forEach(event => {
         const eventCard = createUpcomingEventCard(event);
         carousel.appendChild(eventCard);
@@ -74,15 +77,15 @@ function createUpcomingEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card-mini';
     card.onclick = () => viewEventDetails(event.id);
-    
+
     card.innerHTML = `
         <div class="event-image-mini">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}">` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
                 <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
+            </svg>`}
             <div class="event-date-badge">${formatDate(event.date)}</div>
         </div>
         <div class="event-content-mini">
@@ -94,94 +97,27 @@ function createUpcomingEventCard(event) {
                 </svg>
                 ${event.time} • ${event.location}
             </div>
+            <div class="event-organizer">${event.organizer || event.university}</div>
         </div>
     `;
-    
+
     return card;
 }
 
-// Load featured events from backend
-function loadFeaturedEvents() {
-    const grid = document.getElementById('featuredEventsGrid');
-    if (!grid) return;
-    
-    grid.innerHTML = '<div class="loading">Loading featured events...</div>';
-    
-    fetch('/unipulse/public/user/dashboard/getFeaturedEvents')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch featured events');
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success && data.events) {
-                displayFeaturedEvents(data.events);
-            } else {
-                grid.innerHTML = '<div class="no-data">No featured events</div>';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading featured events:', error);
-            grid.innerHTML = '<div class="no-data">Failed to load events</div>';
-        });
-}
-
-// Display featured events
-function displayFeaturedEvents(events) {
-    const grid = document.getElementById('featuredEventsGrid');
-    if (!grid) return;
-    
-    grid.innerHTML = '';
-    
-    if (events.length === 0) {
-        grid.innerHTML = '<div class="no-data">No featured events</div>';
-        return;
-    }
-    
-    events.forEach(event => {
-        const eventCard = createFeaturedEventCard(event);
-        grid.appendChild(eventCard);
-    });
-}
-
-// Create featured event card
-function createFeaturedEventCard(event) {
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    card.onclick = () => viewEventDetails(event.id);
-    
-    card.innerHTML = `
-        <div class="event-image">
-            <svg class="placeholder-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <div class="event-category">${event.category}</div>
-        </div>
-        <div class="event-content">
-            <h3 class="event-title">${event.title}</h3>
-            <p class="event-description">${event.description}</p>
-            <div class="event-meta">
-                <span>${event.university}</span>
-                <span>${formatDate(event.date)}</span>
-            </div>
-        </div>
-    `;
-    
-    return card;
-}
 
 // Load recent activity from backend
 function loadRecentActivity() {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
-    
+
     activityList.innerHTML = '<div class="loading">Loading activity...</div>';
-    
-    fetch('/unipulse/public/user/dashboard/getRecentActivity')
+
+    fetch('/unipulse/public/user/dashboard/getRecentActivity', {
+        cache: 'no-store',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch recent activity');
@@ -205,14 +141,14 @@ function loadRecentActivity() {
 function displayRecentActivity(activities) {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
-    
-    activityList.innerHTML = '';
-    
-    if (activities.length === 0) {
+
+    if (!activities || activities.length === 0) {
         activityList.innerHTML = '<div class="no-data">No recent activity</div>';
         return;
     }
-    
+
+    activityList.innerHTML = '';
+
     activities.forEach(activity => {
         const activityItem = createActivityItem(activity);
         activityList.appendChild(activityItem);
@@ -223,9 +159,9 @@ function displayRecentActivity(activities) {
 function createActivityItem(activity) {
     const item = document.createElement('div');
     item.className = 'activity-item';
-    
+
     const iconSvg = getActivityIcon(activity.icon);
-    
+
     item.innerHTML = `
         <div class="activity-icon">
             ${iconSvg}
@@ -236,7 +172,7 @@ function createActivityItem(activity) {
             <div class="activity-time">${activity.time}</div>
         </div>
     `;
-    
+
     return item;
 }
 
@@ -248,7 +184,7 @@ function getActivityIcon(iconType) {
         bell: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
         award: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21,13.89 7,23 12,20 17,23 15.79,13.88"></polyline></svg>'
     };
-    
+
     return icons[iconType] || icons.calendar;
 }
 
@@ -256,30 +192,30 @@ function getActivityIcon(iconType) {
 
 // View event details
 function viewEventDetails(eventId) {
-    window.location.href = `event-details.html?id=${eventId}`;
+    window.location.href = `/unipulse/public/user/eventview/${eventId}`;
 }
 
 // Update date and time
 function updateDateTime() {
     const now = new Date();
-    const options = { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
+    const options = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
     };
-    
+
     // You can add a date/time display element if needed
     console.log('Current time:', now.toLocaleDateString('en-US', options));
 }
 
 // Format date
 function formatDate(dateString) {
-    const options = { 
-        month: 'short', 
-        day: 'numeric' 
+    const options = {
+        month: 'short',
+        day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }
@@ -290,7 +226,7 @@ function setupScrollAnimations() {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -299,7 +235,7 @@ function setupScrollAnimations() {
             }
         });
     }, observerOptions);
-    
+
     // Observe sections for animation
     document.querySelectorAll('.action-card, .event-card, .event-card-mini').forEach(element => {
         element.style.opacity = '0';
@@ -313,7 +249,7 @@ function setupScrollAnimations() {
 function scrollCarousel(direction) {
     const carousel = document.getElementById('upcomingEventsCarousel');
     const scrollAmount = 300;
-    
+
     if (direction === 'left') {
         carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     } else {
