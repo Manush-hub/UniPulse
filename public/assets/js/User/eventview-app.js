@@ -148,6 +148,18 @@ function displayEventDetails(event) {
     if (ticketType && ticketType !== 'free-all') {
         document.getElementById('ticketInfo').style.display = 'block';
         document.getElementById('eventTicketType').textContent = formatTicketType(ticketType);
+         
+        // Show buy ticket button for paid events
+        const buyTicketBtn = document.getElementById('buyTicketBtn');
+        if (buyTicketBtn) {
+            buyTicketBtn.style.display = 'inline-flex';
+        }
+    } else {
+        // Hide buy ticket button for free events
+        const buyTicketBtn = document.getElementById('buyTicketBtn');
+        if (buyTicketBtn) {
+            buyTicketBtn.style.display = 'none';
+        }
     }
     
     // Full description
