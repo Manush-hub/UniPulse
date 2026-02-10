@@ -51,7 +51,6 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 </button>
                 <div class="user-dropdown" id="userDropdown">
                     <a href="/unipulse/public/sponsor/profile">Profile Settings</a>
-                    <a href="preferences.html">Preferences</a>
                     <hr>
                     <a href="/unipulse/public/logout" class="logout">Logout</a>
                 </div>
