@@ -15,8 +15,22 @@
     include __DIR__ .'/components/header.php'; 
     ?>
 
-    <!-- Hero Section with Boosted Event Carousel -->
+    <!-- Hero Section with Boosted Events Carousel -->
     <section class="hero-section">
+        <!-- Promotional Banner (Always Visible) -->
+        <div class="boost-promo-banner" id="boostPromoBanner">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+                <h2>Sponsor Boosted Events!</h2>
+                <p>Connect with top university events and maximize your brand exposure</p>
+                <button onclick="location.href='/unipulse/public/sponsor/events'" class="banner-cta-btn">Find Events</button>
+            </div>
+        </div>
+        
         <div class="hero-carousel" id="heroCarousel">
             <!-- Hero slides will be dynamically loaded here -->
         </div>
@@ -160,6 +174,11 @@
     <!-- Footer -->
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="/UniPulse/public/assets/js/sponsor/landing-app.js"></script>
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+    </script>
+    <script src="/unipulse/public/assets/js/Sponsor/landing-app.js"></script>
 </body>
 </html>

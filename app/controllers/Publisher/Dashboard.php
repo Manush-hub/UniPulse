@@ -256,4 +256,343 @@ class PublisherDashboard extends Controller{
             return $date->format('M j, Y');
         }
     }
+
+    /**
+     * Get boost pricing tiers
+     */
+    public function getBoostPricing() {
+        header('Content-Type: application/json');
+        
+        try {
+            $query = "SELECT * FROM boost_pricing WHERE is_active = 1 ORDER BY duration_days ASC";
+            $result = $this->query($query);
+            
+            echo json_encode([
+                'success' => true,
+                'pricing' => $result
+            ]);
+        } catch (Exception $e) {
+            error_log("Error getting boost pricing: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load pricing']);
+        }
+    }
+
+    /**
+     * Get publisher events for boosting
+     */
+    public function getEventsForBoosting() {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            // Get publisher's upcoming events only (not ongoing, completed, or cancelled)
+            // Exclude events that currently have active boosts
+            $query = "
+                SELECT 
+                    e.id,
+                    e.title,
+                    e.event_date,
+                    e.event_time,
+                    e.status,
+                    e.is_boosted,
+                    e.boost_expires_at,
+                    eb.id as active_boost_id,
+                    eb.boost_end_date as active_boost_end_date
+                FROM events e
+                LEFT JOIN event_boosts eb ON e.id = eb.event_id 
+                    AND eb.boost_status = 'active' 
+                    AND eb.boost_end_date > NOW()
+                    AND eb.payment_status = 'completed'
+                WHERE e.created_by = :publisher_id 
+                AND e.created_by_type = 'publisher'
+                AND e.status = 'upcoming'
+                AND e.is_deleted = 0
+                AND e.event_date >= CURDATE()
+                AND eb.id IS NULL
+                ORDER BY e.event_date ASC
+            ";
+            
+            $events = $this->query($query, ['publisher_id' => $currentUser['id']]);
+            
+            // Debug logging
+            error_log("Publisher ID: " . $currentUser['id']);
+            error_log("Events available for boosting: " . count($events));
+            
+            echo json_encode([
+                'success' => true,
+                'events' => $events,
+                'publisher_id' => $currentUser['id'],
+                'count' => count($events)
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error getting events for boosting: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load events', 'message' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Get active boosts
+     */
+    public function getActiveBoosts() {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $query = "
+                SELECT 
+                    eb.*,
+                    e.title as event_title,
+                    e.event_date,
+                    e.cover_image
+                FROM event_boosts eb
+                JOIN events e ON eb.event_id = e.id
+                WHERE eb.publisher_id = :publisher_id
+                AND eb.boost_status = 'active'
+                AND eb.boost_end_date > NOW()
+                AND eb.payment_status = 'completed'
+                ORDER BY eb.boost_end_date ASC
+            ";
+            
+            $boosts = $this->query($query, ['publisher_id' => $currentUser['id']]);
+            
+            // Calculate remaining time for each boost
+            foreach ($boosts as &$boost) {
+                $endDate = new DateTime($boost->boost_end_date);
+                $now = new DateTime();
+                $diff = $now->diff($endDate);
+                
+                if ($diff->days > 0) {
+                    $boost->time_remaining = $diff->days . ' days';
+                } elseif ($diff->h > 0) {
+                    $boost->time_remaining = $diff->h . ' hours';
+                } else {
+                    $boost->time_remaining = $diff->i . ' minutes';
+                }
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'boosts' => $boosts
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error getting active boosts: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load active boosts']);
+        }
+    }
+
+    /**
+     * Create a new boost request
+     */
+    public function createBoost() {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
+            
+            $eventId = $data['event_id'] ?? null;
+            $durationDays = $data['duration_days'] ?? null;
+            $amount = $data['amount'] ?? null;
+            $paymentMethod = $data['payment_method'] ?? 'card';
+            
+            if (!$eventId || !$durationDays || !$amount) {
+                echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+                return;
+            }
+
+            // Verify event belongs to publisher
+            $eventQuery = "SELECT * FROM events WHERE id = :event_id AND created_by = :publisher_id AND created_by_type = 'publisher' AND is_deleted = 0";
+            $event = $this->query($eventQuery, [
+                'event_id' => $eventId,
+                'publisher_id' => $currentUser['id']
+            ]);
+            
+            if (empty($event)) {
+                echo json_encode(['success' => false, 'error' => 'Event not found or unauthorized']);
+                return;
+            }
+
+            // Check if event already has an active boost
+            $activeBoostQuery = "
+                SELECT id, boost_end_date 
+                FROM event_boosts 
+                WHERE event_id = :event_id 
+                AND boost_status = 'active' 
+                AND boost_end_date > NOW()
+                AND payment_status = 'completed'
+            ";
+            
+            $activeBoost = $this->query($activeBoostQuery, ['event_id' => $eventId]);
+            
+            if (!empty($activeBoost)) {
+                $boostEndDate = new DateTime($activeBoost[0]->boost_end_date);
+                $formattedDate = $boostEndDate->format('F j, Y g:i A');
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'This event is already boosted',
+                    'message' => "This event already has an active boost until {$formattedDate}. You can boost it again after the current boost expires."
+                ]);
+                return;
+            }
+
+            // Check if event has already passed
+            $eventDate = new DateTime($event[0]->event_date);
+            $now = new DateTime();
+            if ($eventDate < $now) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Cannot boost past events',
+                    'message' => 'This event has already passed and cannot be boosted.'
+                ]);
+                return;
+            }
+
+            // Calculate boost dates
+            $startDate = new DateTime();
+            $endDate = clone $startDate;
+            $endDate->modify("+{$durationDays} days");
+            
+            // Generate transaction ID
+            $transactionId = 'BOOST-' . time() . '-' . rand(1000, 9999);
+            
+            // Insert boost record
+            $insertQuery = "
+                INSERT INTO event_boosts 
+                (event_id, publisher_id, boost_start_date, boost_end_date, duration_days, 
+                 amount_paid, payment_method, transaction_id, payment_status, boost_status, priority_level)
+                VALUES 
+                (:event_id, :publisher_id, :start_date, :end_date, :duration_days,
+                 :amount, :payment_method, :transaction_id, 'completed', 'active', 1)
+            ";
+            
+            $this->query($insertQuery, [
+                'event_id' => $eventId,
+                'publisher_id' => $currentUser['id'],
+                'start_date' => $startDate->format('Y-m-d H:i:s'),
+                'end_date' => $endDate->format('Y-m-d H:i:s'),
+                'duration_days' => $durationDays,
+                'amount' => $amount,
+                'payment_method' => $paymentMethod,
+                'transaction_id' => $transactionId
+            ]);
+            
+            // Update event boost status
+            $updateEventQuery = "
+                UPDATE events 
+                SET is_boosted = 1, 
+                    boost_expires_at = :expires_at,
+                    boost_priority = 1
+                WHERE id = :event_id
+            ";
+            
+            $this->query($updateEventQuery, [
+                'event_id' => $eventId,
+                'expires_at' => $endDate->format('Y-m-d H:i:s')
+            ]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Event boosted successfully!',
+                'transaction_id' => $transactionId,
+                'boost_end_date' => $endDate->format('Y-m-d H:i:s')
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error creating boost: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to create boost']);
+        }
+    }
+
+    /**
+     * Cancel an active boost
+     */
+    public function cancelBoost() {
+        header('Content-Type: application/json');
+        
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+        
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $data = json_decode(file_get_contents('php://input'), true);
+            $boostId = $data['boost_id'] ?? null;
+            
+            if (!$boostId) {
+                echo json_encode(['success' => false, 'error' => 'Boost ID required']);
+                return;
+            }
+
+            // Update boost status
+            $query = "
+                UPDATE event_boosts 
+                SET boost_status = 'cancelled'
+                WHERE id = :boost_id 
+                AND publisher_id = :publisher_id
+            ";
+            
+            $this->query($query, [
+                'boost_id' => $boostId,
+                'publisher_id' => $currentUser['id']
+            ]);
+            
+            // Update event boost status if no other active boosts
+            $checkQuery = "
+                SELECT COUNT(*) as count 
+                FROM event_boosts 
+                WHERE event_id = (SELECT event_id FROM event_boosts WHERE id = :boost_id)
+                AND boost_status = 'active'
+                AND id != :boost_id
+            ";
+            
+            $result = $this->query($checkQuery, ['boost_id' => $boostId]);
+            
+            if ($result[0]['count'] == 0) {
+                $updateEventQuery = "
+                    UPDATE events 
+                    SET is_boosted = 0, 
+                        boost_expires_at = NULL,
+                        boost_priority = 0
+                    WHERE id = (SELECT event_id FROM event_boosts WHERE id = :boost_id)
+                ";
+                
+                $this->query($updateEventQuery, ['boost_id' => $boostId]);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'Boost cancelled successfully'
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error cancelling boost: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to cancel boost']);
+        }
+    }
 }

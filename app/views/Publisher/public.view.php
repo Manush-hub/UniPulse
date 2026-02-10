@@ -1,566 +1,676 @@
+<?php 
+// Fetch organization details safely
+$publisherId = $publisher->id ?? 0;
+$orgName = $publisher->society_name ?? 'Organization';
+$email = $publisher->email ?? '';
+$phone = $publisher->phone ?? '';
+$countryCode = $publisher->country_code ?? '';
+$university = $publisher->university ?? '';
+$faculty = $publisher->faculty ?? '';
+$orgType = $publisherProfile->org_type ?? 'student-club';
+$headline = $publisherProfile->headline ?? 'University Organization';
+$bio = $publisherProfile->bio ?? 'No description available.';
+$mission = $publisherProfile->mission ?? '';
+$address = $publisherProfile->address ?? '';
+$establishedYear = $publisherProfile->established_year ?? '';
+$memberCount = $publisherProfile->member_count ?? 0;
+$logoUrl = !empty($publisherProfile->logo_url) ? $publisherProfile->logo_url : 'https://via.placeholder.com/150';
+$coverPhotoUrl = !empty($publisherProfile->cover_photo_url) ? $publisherProfile->cover_photo_url : 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&h=400&fit=crop';
+
+// Social media links
+$website = $publisherProfile->website ?? '';
+$facebook = $publisherProfile->facebook ?? '';
+$linkedin = $publisherProfile->linkedin ?? '';
+$twitter = $publisherProfile->twitter ?? '';
+$instagram = $publisherProfile->instagram ?? '';
+$discord = $publisherProfile->discord ?? '';
+$youtube = $publisherProfile->youtube ?? '';
+
+// Preferences
+$preferences = !empty($publisherProfile->preferences) ? json_decode($publisherProfile->preferences, true) : [];
+
+// Verification status
+$isVerified = ($publisher->approval_status ?? '') === 'approved';
+
+// Contact number
+$contactNumber = !empty($phone) ? ($countryCode ? $countryCode . ' ' . $phone : $phone) : '';
+
+// Prepare social links array
+$socialLinks = [];
+if (!empty($website)) $socialLinks['website'] = $website;
+if (!empty($facebook)) $socialLinks['facebook'] = $facebook;
+if (!empty($instagram)) $socialLinks['instagram'] = $instagram;
+if (!empty($linkedin)) $socialLinks['linkedin'] = $linkedin;
+if (!empty($twitter)) $socialLinks['twitter'] = $twitter;
+if (!empty($youtube)) $socialLinks['youtube'] = $youtube;
+if (!empty($discord)) $socialLinks['discord'] = $discord;
+
+// Merge events
+$events = array_merge($upcomingEvents ?? [], $pastEvents ?? []);
+
+// Safety function
+function safeOutput($value, $default = '') {
+    return !empty($value) ? htmlspecialchars($value) : $default;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Innovation Society - UniPulse</title>
+    <title><?php echo $orgName; ?> - UniPulse</title>
     <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/public-style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="/UniPulse/public/assets/js/publisher/public-profile.js" defer></script>
+    <style>
+        /* Gallery Carousel Styles */
+        .gallery-carousel-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        
+        .gallery-carousel {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        
+        .carousel-item {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-item.active {
+            opacity: 1;
+            z-index: 1;
+        }
+        
+        .carousel-image-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .carousel-nav:hover {
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-prev {
+            left: 15px;
+        }
+        
+        .carousel-next {
+            right: 15px;
+        }
+        
+        .carousel-nav i {
+            color: #ffffff;
+            font-size: 18px;
+        }
+        
+        .carousel-indicators {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        /* Hide navigation for single image galleries */
+        .gallery-carousel-container.single-image .carousel-nav,
+        .gallery-carousel-container.single-image .carousel-indicators {
+            display: none;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .gallery-carousel-container {
+                max-width: 100%;
+            }
+            
+            .carousel-nav {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .carousel-prev {
+                left: 10px;
+            }
+            
+            .carousel-next {
+                right: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <?php include_once(__DIR__ . '/../header.php'); ?>
+    
+    <!-- Back Navigation -->
+    <nav class="navigation-bar">
+        <div class="container-nav">
+            <a href="javascript:history.back()" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Events
+            </a>
+        </div>
+    </nav>
+    
     <div class="container">
-        <!-- Organization Header -->
-        <header class="org-header">
+        <!-- Profile Header -->
+        <div class="profile-header">
             <!-- Cover Photo Section -->
             <div class="cover-photo-section">
                 <div class="cover-photo">
-                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=cover&w=1200&q=80" alt="Cover Photo">
-                    <div class="cover-gradient"></div>
+                    <img src="<?= $coverPhotoUrl ?>" alt="Cover Photo">
                 </div>
                 
-                <!-- Organization Logo positioned to overlap -->
-                <div class="org-logo">
-                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=cover&w=400&q=80" alt="Tech Innovation Society Logo" id="orgLogo">
-                    <!-- Verification Badge -->
-                    <div class="verification-badge" title="Verified Organization">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
+                <!-- Profile Avatar positioned to overlap - Left side -->
+                <div class="profile-avatar profile-avatar-overlap">
+                    <img src="<?= $logoUrl ?>" alt="<?= htmlspecialchars($orgName) ?> Logo">
                 </div>
             </div>
             
-            <div class="org-info-section">
-                <!-- Verified Button in top right -->
-                <button class="btn btn-verified-topright" disabled>
-                    <i class="fas fa-check-circle"></i>
-                    Verified Organization
-                </button>
-                
-                <div class="org-main-info">
-                    <div class="org-title-container">
-                        <h1 id="orgName" class="org-title">Tech Innovation Society</h1>
-                        <div class="org-subtitle">
-                            <span class="org-tagline">Fostering Innovation • Building Tomorrow</span>
+            <!-- Profile Info Below Cover -->
+            <div class="profile-info-section">
+                <div class="profile-name-email">
+                    <h1 class="profile-name"><?= htmlspecialchars($orgName) ?></h1>
+                    <?php if(!empty($email)): ?>
+                        <p class="profile-email"><?= htmlspecialchars($email) ?></p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <div class="content-grid">
+                <!-- Left Sidebar -->
+                <aside>
+                    <!-- Headline Section -->
+                    <?php if(!empty($bio)): ?>
+                        <div class="info-card-highlight">
+                            <h2 class="card-title">
+                                <i class="fas fa-bullseye"></i> About Organization
+                            </h2>
+                            <p><?= nl2br(htmlspecialchars($bio)) ?></p>
                         </div>
+                        <?php endif; ?>
+                    
+                    <!-- Mission Statement -->
+                    <?php if(!empty($mission)): ?>
+                    <div class="info-card-highlight">
+                        <h2 class="card-title">
+                            <i class="fas fa-bullseye"></i> Mission Statement
+                        </h2>
+                        <p><?= nl2br(htmlspecialchars($mission)) ?></p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Organization Info -->
+                    <div class="info-card">
+                        <h2 class="card-title"><i class="fas fa-info-circle"></i> Organization Info</h2>
+                        
+                        <?php if(!empty($headline)): ?>
+                        <div class="headline-section">
+                            <h4>Headline</h4>
+                            <p><?= nl2br(htmlspecialchars($headline)) ?></p>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($orgType)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Type</div>
+                                <div class="info-value"><?= htmlspecialchars(ucwords(str_replace('-', ' ', $orgType))) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($university)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">University</div>
+                                <div class="info-value"><?= htmlspecialchars($university) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($faculty)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Faculty</div>
+                                <div class="info-value"><?= htmlspecialchars($faculty) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($establishedYear)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Established</div>
+                                <div class="info-value"><?= htmlspecialchars($establishedYear) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($memberCount)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Members</div>
+                                <div class="info-value"><?= number_format($memberCount) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($address)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Address</div>
+                                <div class="info-value"><?= htmlspecialchars($address) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($contactNumber)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Contact</div>
+                                <div class="info-value"><?= htmlspecialchars($contactNumber) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if(!empty($email)): ?>
+                        <div class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="info-text">
+                                <div class="info-label">Official Email</div>
+                                <div class="info-value"><?= htmlspecialchars($email) ?></div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                     </div>
                     
-                    <div class="org-meta-professional">
-                        <div class="meta-group">
-                            <div class="meta-item">
-                                <i class="fas fa-graduation-cap"></i>
-                                <div class="meta-content">
-                                    <span class="meta-label">university</span>
-                                    <span class="meta-value">University of Colombo</span>
-                                </div>
-                            </div>
+                    <!-- Preferences -->
+                    <?php if(!empty($preferences) && count($preferences) > 0): ?>
+                    <div class="info-card">
+                        <h2 class="card-title">Interests</h2>
+                        <div class="tags-container">
+                            <?php foreach($preferences as $pref): ?>
+                            <span class="tag"><?= htmlspecialchars(ucwords(str_replace('-', ' ', $pref))) ?></span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Social Links -->
+                    <?php if(!empty($socialLinks) && count($socialLinks) > 0): ?>
+                    <div class="info-card">
+                        <h2 class="card-title">Connect</h2>
+                        <div class="social-links">
+                            <?php 
+                            $socialConfig = [
+                                'website' => ['icon' => 'fas fa-globe', 'color' => '#64748b', 'bg' => '#f1f5f9', 'label' => 'Website'],
+                                'facebook' => ['icon' => 'fab fa-facebook', 'color' => '#1877f2', 'bg' => '#dbeafe', 'label' => 'Facebook'],
+                                'instagram' => ['icon' => 'fab fa-instagram', 'color' => '#e4405f', 'bg' => '#fce7f3', 'label' => 'Instagram'],
+                                'linkedin' => ['icon' => 'fab fa-linkedin', 'color' => '#0077b5', 'bg' => '#dbeafe', 'label' => 'LinkedIn'],
+                                'twitter' => ['icon' => 'fab fa-x-twitter', 'color' => '#000000', 'bg' => '#f1f5f9', 'label' => 'X'],
+                                'youtube' => ['icon' => 'fab fa-youtube', 'color' => '#ff0000', 'bg' => '#fee2e2', 'label' => 'YouTube'],
+                                'discord' => ['icon' => 'fab fa-discord', 'color' => '#5865f2', 'bg' => '#e0e7ff', 'label' => 'Discord']
+                            ];
+                            
+                            foreach($socialLinks as $platform => $url): 
+                                if(!empty($url) && isset($socialConfig[$platform])): 
+                                    $config = $socialConfig[$platform];
+                            ?>
+                            <a href="<?= htmlspecialchars($url) ?>" target="_blank" class="social-link" style="background: <?= $config['bg'] ?>; color: <?= $config['color'] ?>;">
+                                <span class="social-icon" style="color: <?= $config['color'] ?>;">
+                                    <i class="<?= $config['icon'] ?>"></i>
+                                </span>
+                                <?= $config['label'] ?>
+                            </a>
+                            <?php 
+                                endif;
+                            endforeach; 
+                            ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </aside>
+                
+                <!-- Right Content -->
+                <main>
+                    <!-- Events Section with Tabs -->
+                    <div class="events-section">
+                        <!-- <div class="section-header">
+                            <h2 class="section-title-large">
+                                <i class="fas fa-calendar-alt"></i>
+                                Events
+                            </h2>
+                        </div> -->
+                        
+                        <!-- Event Tabs -->
+                        <div class="event-tabs">
+                            <button class="event-tab" data-tab="gallery" onclick="switchEventTab('gallery')">
+                                <i class="fas fa-images"></i>
+                                Photo Gallery
+                                <?php if(!empty($galleries)): ?>
+                                <span class="tab-count"><?= count($galleries) ?></span>
+                                <?php endif; ?>
+                            </button>
+                            <button class="event-tab active" data-tab="upcoming" onclick="switchEventTab('upcoming')">
+                                <i class="fas fa-calendar-check"></i>
+                                Upcoming Events
+                                <?php if(!empty($upcomingEvents)): ?>
+                                <span class="tab-count"><?= count($upcomingEvents) ?></span>
+                                <?php endif; ?>
+                            </button>
+                            <button class="event-tab" data-tab="past" onclick="switchEventTab('past')">
+                                <i class="fas fa-history"></i>
+                                Past Events
+                                <?php if(!empty($pastEvents)): ?>
+                                <span class="tab-count"><?= count($pastEvents) ?></span>
+                                <?php endif; ?>
+                            </button>
                         </div>
                         
-                        <div class="meta-group">
-                            <div class="meta-item">
-                                <i class="fas fa-calendar-plus"></i>
-                                <div class="meta-content">
-                                    <span class="meta-label">Faculty</span>
-                                    <span class="meta-value">University of Colombo School of Computing</span>
+                        <!-- Upcoming Events Content -->
+                        <div class="event-tab-content active" id="upcoming-events">
+                            <?php if(!empty($upcomingEvents) && count($upcomingEvents) > 0): ?>
+                                <div class="events-feed">
+                                    <?php foreach($upcomingEvents as $event): ?>
+                                    <div class="feed-event-card">
+                                        <!-- Event Header -->
+                                        <div class="feed-event-header">
+                                            <div class="event-organizer-info">
+                                                <img src="<?= htmlspecialchars($logoUrl) ?>" alt="<?= htmlspecialchars($orgName) ?>" class="organizer-avatar">
+                                                <div class="organizer-details">
+                                                    <h4 class="organizer-name"><?= htmlspecialchars($orgName) ?></h4>
+                                                    <p class="event-post-time">
+                                                        <i class="far fa-calendar"></i> 
+                                                        <?= date('F d, Y', strtotime($event->event_date)) ?>
+                                                        <?php if(!empty($event->event_time)): ?>
+                                                        at <?= htmlspecialchars($event->event_time) ?>
+                                                        <?php endif; ?>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Event Title -->
+                                        <div class="feed-event-title">
+                                            <h3><?= htmlspecialchars($event->title) ?></h3>
+                                        </div>
+                                        
+                                        <!-- Event Cover Image -->
+                                        <?php if(!empty($event->image_url)): 
+                                            $imagePath = '/UniPulse/public/' . ltrim($event->image_url, '/');
+                                        ?>
+                                        <div class="feed-event-image">
+                                            <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($event->title) ?>">
+                                        </div>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Event Details -->
+                                        <div class="feed-event-body">
+                                            <?php if(!empty($event->description)): ?>
+                                            <p class="feed-event-description">
+                                                <?= htmlspecialchars(strlen($event->description) > 200 ? substr($event->description, 0, 200) . '...' : $event->description) ?>
+                                            </p>
+                                            <?php endif; ?>
+                                            
+                                            <div class="feed-event-meta">
+                                                <?php if(!empty($event->location)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span><?= htmlspecialchars($event->location) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                                <?php if(!empty($event->category)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <span><?= htmlspecialchars($event->category) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Event Actions -->
+                                        <div class="feed-event-actions">
+                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                                <i class="fas fa-eye"></i>
+                                                View Event
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
                                 </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <p>No upcoming events</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Past Events Content -->
+                        <div class="event-tab-content" id="past-events">
+                            <?php if(!empty($pastEvents) && count($pastEvents) > 0): ?>
+                                <div class="events-feed">
+                                    <?php foreach($pastEvents as $event): ?>
+                                    <div class="feed-event-card past-event">
+                                        <!-- Event Header -->
+                                        <div class="feed-event-header">
+                                            <div class="event-organizer-info">
+                                                <img src="<?= htmlspecialchars($logoUrl) ?>" alt="<?= htmlspecialchars($orgName) ?>" class="organizer-avatar">
+                                                <div class="organizer-details">
+                                                    <h4 class="organizer-name"><?= htmlspecialchars($orgName) ?></h4>
+                                                    <p class="event-post-time">
+                                                        <i class="far fa-calendar"></i> 
+                                                        <?= date('F d, Y', strtotime($event->event_date)) ?>
+                                                        <?php if(!empty($event->event_time)): ?>
+                                                        at <?= htmlspecialchars($event->event_time) ?>
+                                                        <?php endif; ?>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Event Title -->
+                                        <div class="feed-event-title">
+                                            <h3><?= htmlspecialchars($event->title) ?></h3>
+                                        </div>
+                                        
+                                        <!-- Event Cover Image -->
+                                        <?php if(!empty($event->cover_image)): 
+                                            $imagePath = '/UniPulse/public/' . ltrim($event->cover_image, '/');
+                                        ?>
+                                        <div class="feed-event-image">
+                                            <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($event->title) ?>">
+                                        </div>
+                                        <?php endif; ?>
+                                        
+                                        <!-- Event Details -->
+                                        <div class="feed-event-body">
+                                            <?php if(!empty($event->description)): ?>
+                                            <p class="feed-event-description">
+                                                <?= htmlspecialchars(strlen($event->description) > 200 ? substr($event->description, 0, 200) . '...' : $event->description) ?>
+                                            </p>
+                                            <?php endif; ?>
+                                            
+                                            <div class="feed-event-meta">
+                                                <?php if(!empty($event->location)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span><?= htmlspecialchars($event->location) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                                <?php if(!empty($event->category)): ?>
+                                                <div class="feed-meta-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <span><?= htmlspecialchars($event->category) ?></span>
+                                                </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Event Actions -->
+                                        <div class="feed-event-actions">
+                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                                <i class="fas fa-eye"></i>
+                                                View Event
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="fas fa-calendar-times"></i>
+                                    <p>No past events</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Photo Gallery Content -->
+                        <div class="event-tab-content" id="gallery-events">
+                        <?php if(!empty($galleries) && count($galleries) > 0): ?>
+                            <div class="gallery-feed">
+                                <?php foreach($galleries as $gallery): 
+                                    $galleryId = $gallery['id'];
+                                    $galleryTitle = htmlspecialchars($gallery['title']);
+                                    $galleryDescription = htmlspecialchars($gallery['description']);
+                                    $images = $gallery['images'];
+                                ?>
+                                <div class="feed-gallery-card">
+                                    <!-- Gallery Header -->
+                                    <div class="feed-gallery-header">
+                                        <div class="gallery-info">
+                                            <img src="<?= htmlspecialchars($logoUrl) ?>" alt="<?= htmlspecialchars($orgName) ?>" class="organizer-avatar">
+                                            <div class="gallery-details">
+                                                <h4 class="organizer-name"><?= htmlspecialchars($orgName) ?></h4>
+                                                <p class="gallery-subtitle">
+                                                    <i class="fas fa-images"></i> 
+                                                    <?= count($images) ?> <?= count($images) == 1 ? 'photo' : 'photos' ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Gallery Title -->
+                                    <div class="feed-gallery-title">
+                                        <h3><?= $galleryTitle ?></h3>
+                                        <?php if(!empty($galleryDescription)): ?>
+                                        <p class="gallery-description"><?= $galleryDescription ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <!-- Gallery Carousel -->
+                                    <div class="gallery-carousel-container <?= count($images) <= 1 ? 'single-image' : '' ?>" data-gallery-id="<?= $galleryId ?>">
+                                        <button class="carousel-nav carousel-prev" onclick="previousImage(<?= $galleryId ?>)" aria-label="Previous image">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        
+                                        <div class="gallery-carousel">
+                                            <?php foreach($images as $index => $image): ?>
+                                            <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>" data-index="<?= $index ?>">
+                                                <div class="carousel-image-wrapper">
+                                                    <img src="<?= htmlspecialchars($image) ?>" alt="<?= $galleryTitle ?>" loading="lazy">
+                                                </div>
+                                            </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                        
+                                        <button class="carousel-nav carousel-next" onclick="nextImage(<?= $galleryId ?>)" aria-label="Next image">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                        
+                                        <div class="carousel-indicators">
+                                            <span class="current-image">1</span> / <span class="total-images"><?= count($images) ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endforeach; ?>
                             </div>
+                        <?php else: ?>
+                            <div class="empty-state">
+                                <i class="fas fa-images"></i>
+                                <p>No photos in gallery yet</p>
+                            </div>
+                        <?php endif; ?>
                         </div>
                     </div>
-                    
-                    <div class="org-description-professional">
-                        <p class="description-text" id="orgDescription">
-                            Leading student organization dedicated to fostering innovation and technological advancement. 
-                            We organize workshops, hackathons, and networking events to bridge the gap between academia and industry.
-                        </p>
-                    </div>
-                </div> 
+                </main>
             </div>
-        </header>
-
-        <!-- Main Content - All Sections Visible -->
-        <main class="public-content">
-            <!-- About Section -->
-            <section id="about-section" class="content-section">
-                <!-- Organization Details -->
-                <div class="info-grid">
-                    <div class="info-card">
-                        <div class="info-header">
-                            <h3><i class="fas fa-building"></i> Organization Information</h3>
-                        </div>
-                        <div class="info-content">
-                            <div class="info-item">
-                                <label>Organization Type:</label>
-                                <span>Student Organization</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Established Year:</label>
-                                <span>2018</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Current Members:</label>
-                                <span>245 Active Members</span>
-                            </div>
-                            <div class="info-item">
-                                <label>Address:</label>
-                                <span>123 Tech Lane, Berkeley, CA 94720</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mission & Vision -->
-                    <div class="info-card">
-                        <div class="info-header">
-                            <h3><i class="fas fa-bullseye"></i> Mission Statement</h3>
-                        </div>
-                        <div class="info-content">
-                            <p>To create a vibrant community of tech enthusiasts, fostering innovation, collaboration, and professional development through hands-on learning experiences and industry partnerships.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Focus Areas -->
-                <div class="info-card">
-                    <div class="info-header">
-                        <h3><i class="fas fa-tags"></i> Focus Areas & Interests</h3>
-                    </div>
-                    <div class="focus-areas">
-                        <span class="focus-tag">Technology</span>
-                        <span class="focus-tag">Innovation</span>
-                        <span class="focus-tag">Entrepreneurship</span>
-                        <span class="focus-tag">AI & Machine Learning</span>
-                        <span class="focus-tag">Web Development</span>
-                        <span class="focus-tag">Networking</span>
-                        <span class="focus-tag">Research</span>
-                        <span class="focus-tag">Startups</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Events Section -->
-            <section id="events-section" class="content-section">
-                <div class="section-title">
-                    <h2>Events</h2>
-                </div>
-                
-                <!-- Upcoming Events -->
-                <div class="events-subsection">
-                    <div class="subsection-header">
-                        <h3>Upcoming Events</h3>
-                        <div class="scroll-controls">
-                            <button class="scroll-btn scroll-left" onclick="scrollEvents('upcoming', 'left')">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="scroll-btn scroll-right" onclick="scrollEvents('upcoming', 'right')">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="events-scroll-container" id="upcomingEventsContainer">
-                        <div class="event-card upcoming">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=250&fit=crop" alt="AI Innovation Summit 2024">
-                                <span class="event-badge upcoming">Upcoming</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>AI Innovation Summit 2024</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Friday, December 15, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Berkeley Campus Center
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    150 attendees
-                                </p>
-                                <p class="event-description">Annual summit featuring AI innovations and industry partnerships.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-primary btn-small">View Details</button>
-                                    <button class="btn btn-secondary btn-small">Register</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="event-card upcoming">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1559223607-b4d0555ae227?w=400&h=250&fit=crop" alt="Startup Pitch Night">
-                                <span class="event-badge upcoming">Upcoming</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>Startup Pitch Night</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Wednesday, November 20, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Student Innovation Lab
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    80 attendees
-                                </p>
-                                <p class="event-description">Monthly pitch competition for student entrepreneurs.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-primary btn-small">View Details</button>
-                                    <button class="btn btn-secondary btn-small">Register</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="event-card upcoming">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=250&fit=crop" alt="Tech Networking Mixer">
-                                <span class="event-badge upcoming">Upcoming</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>Tech Networking Mixer</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Friday, October 25, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Berkeley Engineering Building
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    120 attendees
-                                </p>
-                                <p class="event-description">Connect with industry professionals and fellow students.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-primary btn-small">View Details</button>
-                                    <button class="btn btn-secondary btn-small">Register</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Past Events -->
-                <div class="events-subsection">
-                    <div class="subsection-header">
-                        <h3>Past Events</h3>
-                        <div class="scroll-controls">
-                            <button class="scroll-btn scroll-left" onclick="scrollEvents('past', 'left')">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <button class="scroll-btn scroll-right" onclick="scrollEvents('past', 'right')">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="events-scroll-container" id="pastEventsContainer">
-                        <div class="event-card past">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop" alt="Hackathon 2024">
-                                <span class="event-badge past">Past Event</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>Hackathon 2024</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Thursday, August 15, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Berkeley Computer Science Building
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    200 attendees
-                                </p>
-                                <p class="event-description">48-hour hackathon with $10,000 in prizes.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-outline btn-small">View Results</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="event-card past">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=400&h=250&fit=crop" alt="Web Development Workshop">
-                                <span class="event-badge past">Past Event</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>Web Development Workshop</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Saturday, July 20, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Online & Berkeley Lab
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    60 attendees
-                                </p>
-                                <p class="event-description">Comprehensive workshop covering modern web development.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-outline btn-small">View Resources</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="event-card past">
-                            <div class="event-image">
-                                <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=250&fit=crop" alt="Industry Career Fair">
-                                <span class="event-badge past">Past Event</span>
-                            </div>
-                            <div class="event-info">
-                                <h4>Industry Career Fair</h4>
-                                <p class="event-date">
-                                    <i class="fas fa-calendar"></i> 
-                                    Monday, June 10, 2024
-                                </p>
-                                <p class="event-location">
-                                    <i class="fas fa-map-marker-alt"></i> 
-                                    Berkeley Memorial Stadium
-                                </p>
-                                <p class="event-attendees">
-                                    <i class="fas fa-users"></i> 
-                                    300 attendees
-                                </p>
-                                <p class="event-description">Connect with top tech companies for opportunities.</p>
-                                <div class="event-actions">
-                                    <button class="btn btn-outline btn-small">View Recap</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Gallery Section -->
-            <section id="gallery-section" class="content-section">
-                <div class="section-title">
-                    <h2>Gallery</h2>
-                </div>
-                <div class="gallery-grid">
-                    <!-- Gallery with Carousel Items -->
-                    <div class="info-card">
-                        <div class="info-header">
-                            <h3><i class="fas fa-images"></i> Events Gallery</h3>
-                        </div>
-                        <div class="gallery-carousel-container">
-                            <!-- Gallery Items with Carousel -->
-                            <div class="gallery-item" data-gallery-id="1">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 1" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 2" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&h=400&fit=crop" alt="Hackathon 2024 Winners 3" loading="lazy">
-                                        </div>
-                                    </div>
-                                    <div class="gallery-overlay">
-                                        <h4>Hackathon 2024 Winners</h4>
-                                        <p>Celebrating our winning teams at the annual hackathon</p>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(1, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(1, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(1, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(1, 2)"></span>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4>Hackathon 2024 Winners</h4>
-                                    <p>Celebrating our winning teams at the annual hackathon</p>
-                                </div>
-                            </div>
-                            
-                            <div class="gallery-item" data-gallery-id="2">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=400&fit=crop" alt="Tech Workshop Session 1" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=600&h=400&fit=crop" alt="Tech Workshop Session 2" loading="lazy">
-                                        </div>
-                                    </div>
-                                    <div class="gallery-overlay">
-                                        <h4>Tech Workshop Session</h4>
-                                        <p>Students learning cutting-edge technologies</p>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(2, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(2, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(2, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(2, 1)"></span>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4>Tech Workshop Session</h4>
-                                    <p>Students learning cutting-edge technologies</p>
-                                </div>
-                            </div>
-                            
-                            <div class="gallery-item" data-gallery-id="3">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&h=400&fit=crop" alt="Industry Networking Event" loading="lazy">
-                                        </div>
-                                    </div>
-                                    <div class="gallery-overlay">
-                                        <h4>Industry Networking Event</h4>
-                                        <p>Connecting with tech industry professionals</p>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(3, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(3, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(3, 0)"></span>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4>Industry Networking Event</h4>
-                                    <p>Connecting with tech industry professionals</p>
-                                </div>
-                            </div>
-                            
-                            <div class="gallery-item" data-gallery-id="4">
-                                <div class="gallery-images-container">
-                                    <div class="gallery-image-carousel">
-                                        <div class="carousel-image active">
-                                            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&h=400&fit=crop" alt="Innovation Lab Session 1" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&h=400&fit=crop" alt="Innovation Lab Session 2" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop" alt="Innovation Lab Session 3" loading="lazy">
-                                        </div>
-                                        <div class="carousel-image">
-                                            <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop" alt="Innovation Lab Session 4" loading="lazy">
-                                        </div>
-                                    </div>
-                                    <div class="gallery-overlay">
-                                        <h4>Innovation Lab Session</h4>
-                                        <p>Working on cutting-edge projects</p>
-                                    </div>
-                                    <div class="carousel-controls">
-                                        <button class="carousel-btn prev" onclick="changeCarouselImage(4, -1)">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button class="carousel-btn next" onclick="changeCarouselImage(4, 1)">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
-                                    <div class="carousel-indicators">
-                                        <span class="indicator active" onclick="setCarouselImage(4, 0)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(4, 1)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(4, 2)"></span>
-                                        <span class="indicator" onclick="setCarouselImage(4, 3)"></span>
-                                    </div>
-                                </div>
-                                <div class="gallery-content">
-                                    <h4>Innovation Lab Session</h4>
-                                    <p>Working on cutting-edge projects</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Contact Section -->
-            <section id="contact-section" class="content-section">
-                <div class="section-title">
-                    <h2>Contact</h2>
-                </div>
-                <div class="contact-grid">
-                    <!-- Contact Information -->
-                    <div class="info-card">
-                        <div class="info-header">
-                            <h3><i class="fas fa-address-book"></i> Contact Information</h3>
-                        </div>
-                        <div class="contact-info">
-                            <div class="contact-item">
-                                <!-- <div class="contact-icon">
-                                    <i class="fas fa-envelope"></i>
-                                </div> -->
-                                <div class="contact-details">
-                                    <h4>Email Address</h4>
-                                    <p>contact@techinnovationsociety.org</p>
-                                    <!-- <a href="mailto:contact@techinnovationsociety.org" class="contact-link">Send Email</a> -->
-                                </div>
-                            </div>
-                            <div class="contact-item">
-                                <!-- <div class="contact-icon">
-                                    <i class="fas fa-phone"></i>
-                                </div> -->
-                                <div class="contact-details">
-                                    <h4>Phone Number</h4>
-                                    <p>+1 (510) 555-0123</p>
-                                    <!-- <a href="tel:+15105550123" class="contact-link">Call Now</a> -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Social Media Links -->
-                    <div class="info-card">
-                        <div class="info-header">
-                            <h3><i class="fas fa-share-alt"></i> Connect With Us</h3>
-                        </div>
-                        <div class="social-links">
-                            <a href="https://techinnovationsociety.berkeley.edu" target="_blank" class="social-link website">
-                                <i class="fas fa-globe"></i>
-                                <span>Official Website</span>
-                            </a>
-                            <a href="https://github.com/berkeley-tech-society" target="_blank" class="social-link github">
-                                <i class="fab fa-github"></i>
-                                <span>GitHub</span>
-                            </a>
-                            <a href="https://linkedin.com/company/berkeley-tech-innovation-society" target="_blank" class="social-link linkedin">
-                                <i class="fab fa-linkedin"></i>
-                                <span>LinkedIn</span>
-                            </a>
-                            <a href="https://twitter.com/BerkeleyTechSoc" target="_blank" class="social-link twitter">
-                                <i class="fab fa-twitter"></i>
-                                <span>Twitter</span>
-                            </a>
-                            <a href="https://instagram.com/berkeley_tech_society" target="_blank" class="social-link instagram">
-                                <i class="fab fa-instagram"></i>
-                                <span>Instagram</span>
-                            </a>
-                            <a href="mailto:contact@techinnovationsociety.org" class="social-link email">
-                                <i class="fas fa-envelope"></i>
-                                <span>Email Us</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+        </div>
     </div>
-
-    <script src="/UniPulse/public/assets/js/publisherpublic-app.js"></script>
+    
+    <?php include_once(__DIR__ . '/../footer.php'); ?>
 </body>
 </html>

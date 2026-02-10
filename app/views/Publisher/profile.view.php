@@ -247,24 +247,12 @@
                             </label>
                             <input type="url" id="instagram" placeholder="https://instagram.com/orgname">
                         </div>
-                        <div class="form-group">
-                            <label for="telegram">
-                                <i class="fab fa-telegram"></i> Telegram
-                            </label>
-                            <input type="url" id="telegram" placeholder="https://t.me/channelname">
-                        </div>
                         
                         <div class="form-group">
                             <label for="linkedin">
                                 <i class="fab fa-linkedin"></i> LinkedIn
                             </label>
                             <input type="url" id="linkedin" placeholder="https://linkedin.com/company/orgname">
-                        </div>
-                        <div class="form-group">
-                            <label for="github">
-                                <i class="fab fa-github"></i> GitHub
-                            </label>
-                            <input type="url" id="github" placeholder="https://github.com/orgname">
                         </div>
                         
                         <div class="form-group">
@@ -273,6 +261,14 @@
                             </label>
                             <input type="url" id="twitter" placeholder="https://x.com/orgname">
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </label>
+                            <input type="url" id="youtube" placeholder="https://youtube.com/@channelname">
+                        </div>
+                        
                         <div class="form-group">
                             <label for="discord">
                                 <i class="fab fa-discord"></i> Discord Server

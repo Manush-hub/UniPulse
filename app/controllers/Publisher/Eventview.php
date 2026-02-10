@@ -31,6 +31,9 @@ class PublisherEventview extends Controller {
                     $event = $this->eventModel->getEventById($eventId);
                     
                     if ($event) {
+                        // Get current user for visibility filtering
+                        $currentUser = AuthService::getCurrentUser();
+                        
                         // Get similar events from database
                         $similarEvents = $this->eventModel->getSimilarEvents(
                             $event->id, 
@@ -121,6 +124,9 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
+            
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
             
             // Get similar events from database
             $similarEvents = $this->eventModel->getSimilarEvents(
@@ -331,6 +337,10 @@ class PublisherEventview extends Controller {
                 $publisher = $publisherInfo[0];
                 if (!empty($publisher->phone)) {
                     $eventData['organizer_phone'] = $publisher->phone;
+                }
+                // Update organizer name to current organization name from database
+                if (!empty($publisher->society_name)) {
+                    $eventData['organizer'] = $publisher->society_name;
                 }
             }
             

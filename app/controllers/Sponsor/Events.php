@@ -47,6 +47,9 @@ class SponsorEvents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
+            // Get current user
+            $currentUser = AuthService::getCurrentUser();
+            
             // Get events from database
             $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
@@ -117,6 +120,9 @@ class SponsorEvents extends Controller{
             
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
+            
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
             
             // Get events from database
             $events = $this->eventModel->getAllEvents($filters, $currentUser);
@@ -227,6 +233,9 @@ class SponsorEvents extends Controller{
             
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
+            
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
             
             // Get events seeking sponsors from database
             $events = $this->eventModel->getEventsSeekingSponsors($filters, $currentUser);

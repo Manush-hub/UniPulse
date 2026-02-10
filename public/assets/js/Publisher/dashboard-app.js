@@ -202,7 +202,7 @@ function loadEventsManagement(filter = 'all') {
         </div>
     `;
 
-    const url = `/UniPulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
+    const url = `/unipulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
     
     console.log('Loading events from:', url); // Debug log
     
@@ -282,7 +282,7 @@ function displayEvents(events) {
                 </div>
                 <h3>No ${filterText}Events</h3>
                 <p>${currentEventFilter === 'all' ? 'Start creating events to manage them from your dashboard.' : `You don't have any ${filterText}events.`}</p>
-                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
+                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
             </div>
         `;
         return;
@@ -392,7 +392,7 @@ function createEventCard(event) {
         } else if (coverImage.startsWith('/')) {
             imagePath = coverImage;
         } else {
-            imagePath = `/UniPulse/public/${coverImage}`;
+            imagePath = `/unipulse/public/${coverImage}`;
         }
     }
     
@@ -484,7 +484,7 @@ function createEventCard(event) {
     // Make card clickable
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => {
-        window.location.href = `/UniPulse/public/publisher/eventview/${event.id}`;
+        window.location.href = `/unipulse/public/publisher/eventview?id=${event.id}`;
     });
     
     return card;
@@ -999,7 +999,7 @@ function loadRecentComments() {
         </div>
     `;
 
-    fetch('/UniPulse/public/publisher/dashboard/getRecentComments')
+    fetch('/unipulse/public/publisher/dashboard/getRecentComments')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1148,3 +1148,330 @@ window.EventOrganizerDashboard = {
     formatCurrency,
     formatNumber
 };
+// ===== Event Boosting Functionality =====
+
+// Boost State
+let boostState = {
+    selectedEventId: null,
+    selectedDuration: null,
+    selectedPrice: null,
+    selectedEventName: null
+};
+
+// Initialize boost functionality when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBoostSection);
+} else {
+    initializeBoostSection();
+}
+
+function initializeBoostSection() {
+    setTimeout(() => {
+        loadEventsForBoosting();
+        loadActiveBoosts();
+        setupBoostEventListeners();
+        startBoostAutoRefresh();
+    }, 500);
+}
+
+// Auto-refresh active boosts every 60 seconds to remove expired ones
+let boostRefreshInterval;
+function startBoostAutoRefresh() {
+    // Clear any existing interval
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+    
+    // Refresh every 60 seconds (1 minute)
+    boostRefreshInterval = setInterval(() => {
+        loadActiveBoosts();
+    }, 60000);
+}
+
+// Clean up interval when page is unloaded
+window.addEventListener('beforeunload', () => {
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+});
+
+// Load events available for boosting
+async function loadEventsForBoosting() {
+    try {
+        console.log('Loading events for boosting...');
+        const response = await fetch('/unipulse/public/publisher/dashboard/getEventsForBoosting');
+        console.log('Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('Events data:', data);
+        
+        const eventSelect = document.getElementById('eventSelect');
+        if (!eventSelect) {
+            console.error('Event select element not found!');
+            return;
+        }
+        
+        if (data.success && data.events && data.events.length > 0) {
+            console.log('Found', data.events.length, 'events available for boosting');
+            
+            eventSelect.innerHTML = '<option value="">Select an event to boost</option>' +
+                data.events.map(event => {
+                    const eventDate = formatBoostDate(event.event_date);
+                    return `<option value="${event.id}" data-title="${event.title}">${event.title} - ${eventDate}</option>`;
+                }).join('');
+        } else {
+            console.log('No events available or failed to load');
+            eventSelect.innerHTML = '<option value="">No events available for boosting</option>';
+            
+            // Show helpful message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'boost-info-message';
+            messageDiv.style.cssText = `
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #eff6ff;
+                border-left: 4px solid #3b82f6;
+                border-radius: 8px;
+                color: #1e40af;
+                font-size: 0.9rem;
+            `;
+            messageDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <strong>No events available for boosting</strong><br>
+                <small>Events with active boosts cannot be boosted again until the current boost expires. You can re-boost events after their boost period ends.</small>
+            `;
+            
+            const formGroup = eventSelect.closest('.form-group');
+            if (formGroup && !formGroup.querySelector('.boost-info-message')) {
+                formGroup.appendChild(messageDiv);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading events for boosting:', error);
+        const eventSelect = document.getElementById('eventSelect');
+        if (eventSelect) {
+            eventSelect.innerHTML = '<option value="">Error loading events</option>';
+        }
+    }
+}
+
+// Load active boosts
+async function loadActiveBoosts() {
+    try {
+        const response = await fetch('/unipulse/public/publisher/dashboard/getActiveBoosts');
+        const data = await response.json();
+        
+        const container = document.getElementById('activeBoostsList');
+        if (!container) return;
+        
+        if (data.success && data.boosts && data.boosts.length > 0) {
+            // Filter out any boosts that have already expired (client-side check)
+            const activeBoosts = data.boosts.filter(boost => {
+                const endDate = new Date(boost.boost_end_date);
+                return endDate > new Date();
+            });
+            
+            if (activeBoosts.length > 0) {
+                container.innerHTML = activeBoosts.map(boost => `
+                    <div class="boost-card" data-boost-id="${boost.id}" data-end-date="${boost.boost_end_date}">
+                        <div class="boost-card-header">
+                            <div class="boost-card-title">${boost.event_title}</div>
+                            <span class="boost-status-badge">Active</span>
+                        </div>
+                        <div class="boost-card-details">
+                            <div>
+                                <span><i class="fas fa-calendar"></i> Expires:</span>
+                                <strong>${formatBoostDateTime(boost.boost_end_date)}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-clock"></i> Time Left:</span>
+                                <strong>${boost.time_remaining}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-money-bill"></i> Amount Paid:</span>
+                                <strong>LKR ${formatBoostNumber(boost.amount_paid)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="loading-boosts">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No active boosts at the moment</p>
+                    </div>
+                `;
+            }
+        } else {
+            container.innerHTML = `
+                <div class="loading-boosts">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No active boosts at the moment</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading active boosts:', error);
+        const container = document.getElementById('activeBoostsList');
+        if (container) {
+            container.innerHTML = `
+                <div class="loading-boosts">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load active boosts</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Setup boost event listeners
+function setupBoostEventListeners() {
+    const eventSelect = document.getElementById('eventSelect');
+    if (eventSelect) {
+        eventSelect.addEventListener('change', function() {
+            boostState.selectedEventId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            boostState.selectedEventName = selectedOption.dataset.title || '';
+            updateBoostButton();
+        });
+    }
+    
+    const durationCards = document.querySelectorAll('.duration-card');
+    durationCards.forEach(card => {
+        card.addEventListener('click', function() {
+            durationCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            boostState.selectedDuration = parseInt(this.dataset.days);
+            boostState.selectedPrice = parseFloat(this.dataset.price);
+            
+            document.getElementById('boostDuration').value = boostState.selectedDuration;
+            document.getElementById('boostPrice').value = boostState.selectedPrice;
+            
+            updateBoostSummary();
+            updateBoostButton();
+        });
+    });
+    
+    const boostForm = document.getElementById('boostEventForm');
+    if (boostForm) {
+        boostForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            redirectToBoostPayment();
+        });
+    }
+}
+
+function updateBoostSummary() {
+    const selectedDurationEl = document.getElementById('selectedDuration');
+    const totalAmountEl = document.getElementById('totalAmount');
+    
+    if (boostState.selectedDuration) {
+        const durationText = boostState.selectedDuration === 1 ? '1 Day' : `${boostState.selectedDuration} Days`;
+        selectedDurationEl.textContent = durationText;
+    } else {
+        selectedDurationEl.textContent = 'Not selected';
+    }
+    
+    if (boostState.selectedPrice) {
+        totalAmountEl.textContent = `LKR ${formatBoostNumber(boostState.selectedPrice)}`;
+    } else {
+        totalAmountEl.textContent = 'LKR 0';
+    }
+}
+
+function updateBoostButton() {
+    const submitBtn = document.getElementById('boostSubmitBtn');
+    if (!submitBtn) return;
+    
+    const isValid = boostState.selectedEventId && boostState.selectedDuration && boostState.selectedPrice;
+    submitBtn.disabled = !isValid;
+}
+
+function redirectToBoostPayment() {
+    if (!boostState.selectedEventId || !boostState.selectedDuration || !boostState.selectedPrice) {
+        showBoostNotification('Validation Error', 'Please select an event and boost duration', 'error');
+        return;
+    }
+    
+    // Store boost details in sessionStorage for after payment
+    sessionStorage.setItem('boost_pending', JSON.stringify({
+        event_id: boostState.selectedEventId,
+        duration_days: boostState.selectedDuration,
+        amount: boostState.selectedPrice,
+        event_name: boostState.selectedEventName
+    }));
+    
+    // Redirect to payment page with boost parameters
+    const paymentUrl = `/unipulse/public/publisher/payment?` +
+        `type=boost` +
+        `&event_id=${boostState.selectedEventId}` +
+        `&amount=${boostState.selectedPrice}` +
+        `&duration=${boostState.selectedDuration}` +
+        `&description=Event Boost - ${encodeURIComponent(boostState.selectedEventName)}`;
+    
+    window.location.href = paymentUrl;
+}
+
+function showBoostNotification(title, message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white; padding: 1.5rem; border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); z-index: 10000;
+        max-width: 400px; animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: start; gap: 1rem;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}" 
+               style="font-size: 1.5rem;"></i>
+            <div>
+                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700;">${title}</h4>
+                <p style="margin: 0; font-size: 0.95rem;">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: none; border: none; color: white; font-size: 1.25rem; cursor: pointer; padding: 0; margin-left: auto;">
+                &times;
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+const boostStyle = document.createElement('style');
+boostStyle.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(boostStyle);
+
+function formatBoostDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatBoostDateTime(dateTimeString) {
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
+function formatBoostNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

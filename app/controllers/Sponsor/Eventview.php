@@ -31,12 +31,16 @@ class SponsorEventview extends Controller {
                     $event = $this->eventModel->getEventById($eventId);
                     
                     if ($event) {
+                        // Get current user for visibility filtering
+                        $currentUser = AuthService::getCurrentUser();
+                        
                         // Get similar events from database
                         $similarEvents = $this->eventModel->getSimilarEvents(
                             $event->id, 
                             $event->category, 
                             $event->university, 
-                            3
+                            3,
+                            $currentUser
                         );
                         
                         // Check if sponsor is already registered
@@ -116,12 +120,16 @@ class SponsorEventview extends Controller {
                 exit;
             }
             
+            // Get current user for visibility filtering
+            $currentUser = AuthService::getCurrentUser();
+            
             // Get similar events from database
             $similarEvents = $this->eventModel->getSimilarEvents(
                 $event->id, 
                 $event->category, 
                 $event->university, 
-                3
+                3,
+                $currentUser
             );
             
             // Format event data for JSON response
@@ -295,6 +303,17 @@ class SponsorEventview extends Controller {
      */
     private function formatEventForResponse($event) {
         $eventData = (array) $event;
+        
+        // Add publisher profile headline for organizer role display
+        if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
+            $publisherModel = new Publisher();
+            $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
+            if ($publisherProfile && !empty($publisherProfile->headline)) {
+                $eventData['organizer_role'] = $publisherProfile->headline;
+            } else {
+                $eventData['organizer_role'] = 'Event Organizer';
+            }
+        }
         
         // Format date and time for frontend display
         if (isset($eventData['event_date'])) {

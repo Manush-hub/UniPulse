@@ -117,9 +117,12 @@ class PublisherProfile extends Controller{
         $input = json_decode(file_get_contents('php://input'), true);
         
         if (!$input) {
+            error_log("updateOrganizationInfo: Invalid input data");
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
             return;
         }
+
+        error_log("updateOrganizationInfo: Input received: " . print_r($input, true));
 
         // Update publisher basic info
         $basicData = [];
@@ -130,7 +133,9 @@ class PublisherProfile extends Controller{
         
         $basicResult = true;
         if (!empty($basicData)) {
+            error_log("updateOrganizationInfo: Updating basic info: " . print_r($basicData, true));
             $basicResult = $this->publisherModel->updateBasicInfo($publisherId, $basicData);
+            error_log("updateOrganizationInfo: Basic info result: " . ($basicResult ? 'SUCCESS' : 'FAILED'));
         }
 
         // Update profile data
@@ -145,12 +150,18 @@ class PublisherProfile extends Controller{
         
         $profileResult = true;
         if (!empty($profileData)) {
+            error_log("updateOrganizationInfo: Updating profile data: " . print_r($profileData, true));
             $profileResult = $this->publisherModel->updateProfileData($publisherId, $profileData);
+            error_log("updateOrganizationInfo: Profile data result: " . ($profileResult ? 'SUCCESS' : 'FAILED'));
         }
 
         if ($basicResult && $profileResult) {
             echo json_encode(['success' => true, 'message' => 'Organization information updated successfully']);
         } else {
+            $errorMsg = [];
+            if (!$basicResult) $errorMsg[] = 'basic info failed';
+            if (!$profileResult) $errorMsg[] = 'profile data failed';
+            error_log("updateOrganizationInfo: Update FAILED - " . implode(', ', $errorMsg));
             echo json_encode(['success' => false, 'message' => 'Failed to update organization information']);
         }
     }

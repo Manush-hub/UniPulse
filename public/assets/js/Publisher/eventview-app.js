@@ -249,6 +249,12 @@ function displayEventDetails(event) {
     // Organizer info
     document.getElementById('organizerName').textContent = event.organizer;
     
+    // Set organizer role if available, otherwise use default
+    const organizerRoleElement = document.getElementById('organizerRole');
+    if (organizerRoleElement) {
+        organizerRoleElement.textContent = event.organizer_role || 'Event Organizer';
+    }
+    
     // Display organizer profile photo if available
     const organizerAvatar = document.getElementById('organizerAvatar');
     if (event.organizer_photo) {
@@ -682,10 +688,22 @@ function contactOrganizer() {
 }
 
 function visitPublisherProfile() {
+    console.log('=== visitPublisherProfile DEBUG ===');
+    console.log('currentEvent:', currentEvent);
+    console.log('currentEvent.created_by:', currentEvent?.created_by);
+    console.log('currentEvent.organizerId:', currentEvent?.organizerId);
+    console.log('currentEvent.created_by_type:', currentEvent?.created_by_type);
+    
     const publisherId = currentEvent?.organizerId || currentEvent?.created_by;
+    console.log('Final publisherId to use:', publisherId);
+    
     if (publisherId) {
-        window.location.href = `/unipulse/public/publisher/profile?id=${publisherId}`;
+        const url = `/unipulse/public/publisher/public?id=${publisherId}`;
+        console.log('Redirecting to:', url);
+        window.location.href = url;
     } else {
+        console.error('No publisher ID found in event data');
+        console.error('Event object:', JSON.stringify(currentEvent, null, 2));
         alert('Publisher profile not available.');
     }
 }
@@ -2263,3 +2281,100 @@ function closeDeleteCommentModal() {
     }
     editingCommentId = null;
 }
+
+// Ticket Purchase Function
+function buyTickets() {
+    console.log('buyTickets called');
+    
+    if (!currentEvent) {
+        console.error('currentEvent is not defined');
+        alert('Event data not available. Please refresh the page and try again.');
+        return;
+    }
+    
+    console.log('Current event:', currentEvent);
+    
+    const allTickets = document.querySelectorAll('.ticket-option');
+    console.log('Found tickets:', allTickets.length);
+    
+    if (allTickets.length === 0) {
+        console.error('No ticket options found in the page');
+        alert('No tickets available. Please refresh the page.');
+        return;
+    }
+    
+    const ticketSelections = [];
+    let totalPrice = 0;
+    
+    allTickets.forEach(ticket => {
+        const index = ticket.dataset.ticketIndex;
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
+                            document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantity = parseInt(quantityInput?.value) || 0;
+        
+        if (quantity > 0) {
+            const ticketName = ticket.dataset.ticketName;
+            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
+            const subtotal = ticketPrice * quantity;
+            
+            ticketSelections.push({
+                index: index,
+                name: ticketName,
+                price: ticketPrice,
+                quantity: quantity,
+                subtotal: subtotal
+            });
+            
+            totalPrice += subtotal;
+        }
+    });
+    
+    console.log('Ticket selections:', ticketSelections);
+    console.log('Total price:', totalPrice);
+    
+    if (ticketSelections.length === 0) {
+        alert('Please select at least one ticket by setting quantity greater than 0');
+        return;
+    }
+    
+    const paymentData = {
+        eventId: currentEvent.id,
+        eventTitle: currentEvent.title,
+        tickets: ticketSelections,
+        totalAmount: totalPrice,
+        timestamp: Date.now()
+    };
+    
+    sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
+    console.log('Payment data saved to sessionStorage');
+    
+    const publisherId = currentEvent.created_by || currentEvent.organizerId;
+    const paymentUrl = `/unipulse/public/payment?` +
+        `amount=${totalPrice.toFixed(2)}` +
+        `&type=ticket` +
+        `&event_id=${currentEvent.id}` +
+        (publisherId ? `&publisher_id=${publisherId}` : '') +
+        `&description=${encodeURIComponent('Ticket for ' + currentEvent.title)}`;
+    
+    console.log('Redirecting to:', paymentUrl);
+    window.location.href = paymentUrl;
+}
+
+// Expose functions globally for inline event handlers
+window.buyTickets = buyTickets;
+window.editEvent = editEvent;
+window.deleteEvent = deleteEvent;
+window.visitPublisherProfile = visitPublisherProfile;
+window.contactOrganizer = contactOrganizer;
+window.registerForEvent = registerForEvent;
+window.openDonationModal = openDonationModal;
+window.closeDonationModal = closeDonationModal;
+window.processDonation = processDonation;
+window.closeJoinModal = closeJoinModal;
+window.confirmJoinEvent = confirmJoinEvent;
+window.closeShareModal = closeShareModal;
+window.showCommentForm = showCommentForm;
+window.updateComment = updateComment;
+window.confirmDeleteComment = confirmDeleteComment;
+window.closeEditCommentModal = closeEditCommentModal;
+window.closeDeleteCommentModal = closeDeleteCommentModal;
