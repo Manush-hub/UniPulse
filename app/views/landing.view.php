@@ -1,10 +1,49 @@
+<?php
+// Define role-specific content
+$roleConfig = [
+    'User' => [
+        'pageTitle' => 'UniPulse - Discover University Events',
+        'bannerHeading' => 'Boost Your Events for Maximum Visibility!',
+        'bannerDescription' => 'Stand out and reach more participants by boosting your events on UniPulse',
+        'bannerButtonText' => 'Explore Events',
+        'bannerButtonLink' => '/unipulse/public/user/events',
+        'eventsLink' => '/unipulse/public/user/events',
+        'showSearchSection' => false,
+        'showCategoriesSection' => false
+    ],
+    'Publisher' => [
+        'pageTitle' => 'UniPulse - Publisher Landing',
+        'bannerHeading' => 'Boost Your Events for Maximum Visibility!',
+        'bannerDescription' => 'Stand out and reach more participants by boosting your events on UniPulse',
+        'bannerButtonText' => 'Go to Dashboard',
+        'bannerButtonLink' => '/unipulse/public/publisher/dashboard',
+        'eventsLink' => '/unipulse/public/publisher/events',
+        'showSearchSection' => true,
+        'showCategoriesSection' => true
+    ],
+    'Sponsor' => [
+        'pageTitle' => 'UniPulse - Discover University Events',
+        'bannerHeading' => 'Sponsor Boosted Events!',
+        'bannerDescription' => 'Connect with top university events and maximize your brand exposure',
+        'bannerButtonText' => 'Find Events',
+        'bannerButtonLink' => '/unipulse/public/sponsor/events',
+        'eventsLink' => '/unipulse/public/sponsor/events',
+        'showSearchSection' => true,
+        'showCategoriesSection' => true
+    ]
+];
+
+// Get current role from data or default to 'User'
+$currentRole = $userRole ?? 'User';
+$config = $roleConfig[$currentRole] ?? $roleConfig['User'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniPulse - Publisher Landing</title>
+    <title><?php echo $config['pageTitle']; ?></title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/landing-style.css">
 </head>
 
@@ -12,7 +51,7 @@
     <!-- Header -->
     <?php 
     $pageConfig = ['activeNav' => 'home'];
-    include __DIR__ .'/components/header.php'; 
+    include __DIR__ . '/' . $currentRole . '/components/header.php'; 
     ?>
 
     <!-- Hero Section with Boosted Events Carousel -->
@@ -25,9 +64,11 @@
                         <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                     </svg>
                 </div>
-                <h2>Boost Your Events for Maximum Visibility!</h2>
-                <p>Stand out and reach more participants by boosting your events on UniPulse</p>
-                <button onclick="location.href='/unipulse/public/publisher/dashboard'" class="banner-cta-btn">Go to Dashboard</button>
+                <h2><?php echo $config['bannerHeading']; ?></h2>
+                <p><?php echo $config['bannerDescription']; ?></p>
+                <button onclick="location.href='<?php echo $config['bannerButtonLink']; ?>'" class="banner-cta-btn">
+                    <?php echo $config['bannerButtonText']; ?>
+                </button>
             </div>
         </div>
         
@@ -60,6 +101,7 @@
         </div>
     </section>
 
+    <?php if ($config['showSearchSection']): ?>
     <!-- Search Section -->
     <section class="search-section">
         <div class="container">
@@ -90,7 +132,9 @@
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if ($config['showCategoriesSection']): ?>
     <!-- Categories Section -->
     <section class="categories-section">
         <div class="container">
@@ -144,13 +188,14 @@
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Upcoming Events -->
     <section class="upcoming-section">
         <div class="container">
             <div class="section-header">
                 <h2>Upcoming in <span class="highlight">24h</span></h2>
-                <a href="/unipulse/public/publisher/events" class="view-more">View more</a>
+                <a href="<?php echo $config['eventsLink']; ?>" class="view-more">View more</a>
             </div>
             <div class="upcoming-grid" id="upcomingEventsGrid">
                 <!-- Upcoming events will be loaded here -->
@@ -163,7 +208,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>More events</h2>
-                <a href="/unipulse/public/publisher/events" class="view-more">View more</a>
+                <a href="<?php echo $config['eventsLink']; ?>" class="view-more">View more</a>
             </div>
             <div class="events-grid" id="moreEventsGrid">
                 <!-- More events will be loaded here -->
@@ -172,13 +217,15 @@
     </section>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/../components/footer.php'; ?>
+    <?php include __DIR__ . '/components/footer.php'; ?>
 
     <!-- Pass PHP data to JavaScript -->
     <script>
         // Convert PHP boosted events data to JavaScript
         const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+        // Pass user role to JavaScript
+        const userRole = '<?php echo $currentRole; ?>';
     </script>
-    <script src="/unipulse/public/assets/js/Publisher/landing-app.js"></script>
+    <script src="/unipulse/public/assets/js/landing-app.js"></script>
 </body>
 </html>

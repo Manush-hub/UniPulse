@@ -1,3 +1,23 @@
+// Role-specific configuration
+const roleConfig = {
+    User: {
+        eventDetailsUrl: '/unipulse/public/user/events/details/',
+        eventsBaseUrl: '/unipulse/public/user/'
+    },
+    Publisher: {
+        eventDetailsUrl: '/unipulse/public/publisher/events/details/',
+        eventsBaseUrl: '/unipulse/public/publisher/'
+    },
+    Sponsor: {
+        eventDetailsUrl: '/unipulse/public/sponsor/events/details/',
+        eventsBaseUrl: '/unipulse/public/sponsor/'
+    }
+};
+
+// Get current role configuration
+const currentRole = typeof userRole !== 'undefined' ? userRole : 'User';
+const config = roleConfig[currentRole] || roleConfig.User;
+
 // Boosted events data - will be loaded from PHP
 let boostedEvents = [];
 
@@ -224,7 +244,7 @@ function createHeroSlide(event, isActive) {
                 </div>
             </div>
             <div class="hero-event-actions">
-                <a href="/unipulse/public/user/events/details/${event.id}" class="hero-btn hero-btn-primary">
+                <a href="${config.eventDetailsUrl}${event.id}" class="hero-btn hero-btn-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                         <circle cx="12" cy="12" r="3"></circle>
@@ -346,13 +366,15 @@ function goToSlide(index) {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Search functionality
+    // Search functionality - only if search section exists
     const searchInput = document.querySelector('.search-input');
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchEvents();
-        }
-    });
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchEvents();
+            }
+        });
+    }
 
     // Pause carousel on hover
     const heroSection = document.querySelector('.hero-section');
@@ -361,7 +383,9 @@ function setupEventListeners() {
     });
     
     heroSection.addEventListener('mouseleave', () => {
-        startAutoSlide();
+        if (boostedEvents.length > 0) {
+            startAutoSlide();
+        }
     });
 
     // Touch/swipe support for mobile
@@ -423,208 +447,215 @@ function loadMoreEvents() {
         const eventCard = createEventCard(event);
         grid.appendChild(eventCard);
     });
+}
+
+// Create event card for upcoming/more events
+function createEventCard(event) {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+
+    // Event image or gradient
+    const imageDiv = document.createElement('div');
+    imageDiv.className = 'event-image';
+    if (event.image) {
+        const img = document.createElement('img');
+        img.src = event.image;
+        img.alt = event.title;
+        imageDiv.appendChild(img);
+    } else {
+        const gradientDiv = document.createElement('div');
+        gradientDiv.className = 'event-gradient';
+        gradientDiv.textContent = event.title.charAt(0);
+        imageDiv.appendChild(gradientDiv);
     }
 
-    // Create event card for upcoming/more events
-    function createEventCard(event) {
-        const card = document.createElement('div');
-        card.className = 'event-card';
+    // Category badge
+    const categoryDiv = document.createElement('div');
+    categoryDiv.className = 'event-category';
+    categoryDiv.textContent = event.category;
+    imageDiv.appendChild(categoryDiv);
 
-        // Event image or gradient
-        const imageDiv = document.createElement('div');
-        imageDiv.className = 'event-image';
-        if (event.image) {
-            const img = document.createElement('img');
-            img.src = event.image;
-            img.alt = event.title;
-            imageDiv.appendChild(img);
+    // Price badge - Use ticket information
+    const priceDiv = document.createElement('div');
+    priceDiv.className = 'event-price';
+    priceDiv.innerHTML = getTicketPriceBadge(event);
+    imageDiv.appendChild(priceDiv);
+
+    card.appendChild(imageDiv);
+
+    // Event content
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'event-content';
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'event-title';
+    titleDiv.textContent = event.title;
+    contentDiv.appendChild(titleDiv);
+
+    const metaDiv = document.createElement('div');
+    metaDiv.className = 'event-meta';
+
+    // Date
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'event-date';
+    dateDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> <span>${formatDate(event.date)} at ${event.time}</span>`;
+    metaDiv.appendChild(dateDiv);
+
+    // Location - build based on location type
+    const locationType = event.location_type || 'inside-university';
+    let locationText = '';
+    
+    if (locationType === 'outside-university') {
+        // Outside university: show "Venue, City"
+        const venueName = event.venue_name || event.venueName;
+        const city = event.city;
+        if (venueName && city) {
+            locationText = `${venueName}, ${city}`;
+        } else if (venueName) {
+            locationText = venueName;
+        } else if (city) {
+            locationText = city;
         } else {
-            const gradientDiv = document.createElement('div');
-            gradientDiv.className = 'event-gradient';
-            gradientDiv.textContent = event.title.charAt(0);
-            imageDiv.appendChild(gradientDiv);
-        }
-
-        // Category badge
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'event-category';
-        categoryDiv.textContent = event.category;
-        imageDiv.appendChild(categoryDiv);
-
-        // Price badge - Use ticket information
-        const priceDiv = document.createElement('div');
-        priceDiv.className = 'event-price';
-        priceDiv.innerHTML = getTicketPriceBadge(event);
-        imageDiv.appendChild(priceDiv);
-
-        card.appendChild(imageDiv);
-
-        // Event content
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'event-content';
-
-        const titleDiv = document.createElement('div');
-        titleDiv.className = 'event-title';
-        titleDiv.textContent = event.title;
-        contentDiv.appendChild(titleDiv);
-
-        const metaDiv = document.createElement('div');
-        metaDiv.className = 'event-meta';
-
-        // Date
-        const dateDiv = document.createElement('div');
-        dateDiv.className = 'event-date';
-        dateDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> <span>${formatDate(event.date)} at ${event.time}</span>`;
-        metaDiv.appendChild(dateDiv);
-
-        // Location - build based on location type
-        const locationType = event.location_type || 'inside-university';
-        let locationText = '';
-        
-        if (locationType === 'outside-university') {
-            // Outside university: show "Venue, City"
-            const venueName = event.venue_name || event.venueName;
-            const city = event.city;
-            if (venueName && city) {
-                locationText = `${venueName}, ${city}`;
-            } else if (venueName) {
-                locationText = venueName;
-            } else if (city) {
-                locationText = city;
-            } else {
-                locationText = event.location || 'Location TBA';
-            }
-        } else {
-            // Inside university: show exact location
             locationText = event.location || 'Location TBA';
         }
-        
-        const locationDiv = document.createElement('div');
-        locationDiv.className = 'event-location';
-        locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${locationText}</span>`;
-        metaDiv.appendChild(locationDiv);
-
-        contentDiv.appendChild(metaDiv);
-        card.appendChild(contentDiv);
-
-        // Card click: go to event details
-        card.onclick = () => {
-            window.location.href = `event-details.html?id=${event.id}`;
-        };
-
-        return card;
+    } else {
+        // Inside university: show exact location
+        locationText = event.location || 'Location TBA';
     }
+    
+    const locationDiv = document.createElement('div');
+    locationDiv.className = 'event-location';
+    locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${locationText}</span>`;
+    metaDiv.appendChild(locationDiv);
 
-    // Get ticket price badge for event card
-    function getTicketPriceBadge(event) {
-        const ticketType = event.ticket_type || event.ticketType || 'free-all';
+    contentDiv.appendChild(metaDiv);
+    card.appendChild(contentDiv);
+
+    // Card click: go to event details
+    card.onclick = () => {
+        window.location.href = `${config.eventDetailsUrl}${event.id}`;
+    };
+
+    return card;
+}
+
+// Get ticket price badge for event card
+function getTicketPriceBadge(event) {
+    const ticketType = event.ticket_type || event.ticketType || 'free-all';
+    
+    if (ticketType === 'free-all') {
+        return 'Free';
+    }
+    
+    // For paid or mixed events, show ticket prices
+    const ticketTypes = event.ticket_types || [];
+    
+    if (ticketTypes && ticketTypes.length > 0) {
+        // Parse if it's a JSON string
+        const tickets = typeof ticketTypes === 'string' ? JSON.parse(ticketTypes) : ticketTypes;
         
-        if (ticketType === 'free-all') {
-            return 'Free';
-        }
-        
-        // For paid or mixed events, show ticket prices
-        const ticketTypes = event.ticket_types || [];
-        
-        if (ticketTypes && ticketTypes.length > 0) {
-            // Parse if it's a JSON string
-            const tickets = typeof ticketTypes === 'string' ? JSON.parse(ticketTypes) : ticketTypes;
-            
-            if (Array.isArray(tickets) && tickets.length > 0) {
-                // Get price range
-                const prices = tickets.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
-                if (prices.length > 0) {
-                    const minPrice = Math.min(...prices);
-                    const maxPrice = Math.max(...prices);
-                    
-                    if (minPrice === maxPrice) {
-                        return `LKR ${minPrice}`;
-                    } else {
-                        return `LKR ${minPrice} - ${maxPrice}`;
-                    }
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            // Get price range
+            const prices = tickets.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                
+                if (minPrice === maxPrice) {
+                    return `LKR ${minPrice}`;
+                } else {
+                    return `LKR ${minPrice} - ${maxPrice}`;
                 }
             }
         }
-        
-        // Fallback for paid events
-        if (ticketType === 'paid-all') {
-            return 'Paid';
-        } else if (ticketType === 'mixed') {
-            return 'Mixed';
-        }
-        
-        return event.price || 'Free';
     }
-
-    // Format date utility
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return date.toLocaleDateString(undefined, options);
+    
+    // Fallback for paid events
+    if (ticketType === 'paid-all') {
+        return 'Paid';
+    } else if (ticketType === 'mixed') {
+        return 'Mixed';
     }
-    // Get organizer profile URL based on type
-    function getOrganizerProfileUrl(event) {
-        if (event.publisherId && event.createdByType === 'publisher') {
-            return `/unipulse/public/publisher/public?id=${event.publisherId}`;
-        }
-        return '#'; // Fallback if no publisher
+    
+    return event.price || 'Free';
+}
+
+// Format date utility
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
+}
+
+// Get organizer profile URL based on type
+function getOrganizerProfileUrl(event) {
+    if (event.publisherId && event.createdByType === 'publisher') {
+        return `/unipulse/public/publisher/public?id=${event.publisherId}`;
     }
-    // Search events
-    function searchEvents() {
-        const query = document.querySelector('.search-input').value.toLowerCase();
-        const location = document.querySelector('.location-select').value;
+    return '#'; // Fallback if no publisher
+}
 
-        // Combine all events
-        const allEvents = [...boostedEvents, ...upcomingEvents, ...moreEvents];
-        let filtered = allEvents.filter(event => {
-            const matchesQuery = event.title.toLowerCase().includes(query) || (event.category && event.category.toLowerCase().includes(query));
-            const matchesLocation = location === 'All Universities' || (event.university && event.university === location) || (event.location && event.location.includes(location));
-            return matchesQuery && matchesLocation;
+// Search events
+function searchEvents() {
+    const searchInput = document.querySelector('.search-input');
+    const locationSelect = document.querySelector('.location-select');
+    
+    if (!searchInput || !locationSelect) return;
+    
+    const query = searchInput.value.toLowerCase();
+    const location = locationSelect.value;
+
+    // Combine all events
+    const allEvents = [...boostedEvents, ...upcomingEvents, ...moreEvents];
+    let filtered = allEvents.filter(event => {
+        const matchesQuery = event.title.toLowerCase().includes(query) || (event.category && event.category.toLowerCase().includes(query));
+        const matchesLocation = location === 'All Universities' || (event.university && event.university === location) || (event.location && event.location.includes(location));
+        return matchesQuery && matchesLocation;
+    });
+
+    // Show results in upcomingEventsGrid and moreEventsGrid
+    const upcomingGrid = document.getElementById('upcomingEventsGrid');
+    const moreGrid = document.getElementById('moreEventsGrid');
+    upcomingGrid.innerHTML = '';
+    moreGrid.innerHTML = '';
+
+    filtered.slice(0, 3).forEach(event => {
+        upcomingGrid.appendChild(createEventCard(event));
+    });
+    filtered.slice(3).forEach(event => {
+        moreGrid.appendChild(createEventCard(event));
+    });
+}
+
+// Filter by category
+function filterByCategory(category) {
+    const allEvents = [...boostedEvents, ...upcomingEvents, ...moreEvents];
+    const filtered = allEvents.filter(event => event.category && event.category.toLowerCase() === category.toLowerCase());
+
+    const upcomingGrid = document.getElementById('upcomingEventsGrid');
+    const moreGrid = document.getElementById('moreEventsGrid');
+    upcomingGrid.innerHTML = '';
+    moreGrid.innerHTML = '';
+
+    filtered.slice(0, 3).forEach(event => {
+        upcomingGrid.appendChild(createEventCard(event));
+    });
+    filtered.slice(3).forEach(event => {
+        moreGrid.appendChild(createEventCard(event));
+    });
+}
+
+// Scroll animations (simple fade-in)
+function setupScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
         });
+    }, { threshold: 0.1 });
 
-        // Show results in upcomingEventsGrid and moreEventsGrid
-        const upcomingGrid = document.getElementById('upcomingEventsGrid');
-        const moreGrid = document.getElementById('moreEventsGrid');
-        upcomingGrid.innerHTML = '';
-        moreGrid.innerHTML = '';
-
-        filtered.slice(0, 3).forEach(event => {
-            upcomingGrid.appendChild(createEventCard(event));
-        });
-        filtered.slice(3).forEach(event => {
-            moreGrid.appendChild(createEventCard(event));
-        });
-    }
-
-    // Filter by category
-    function filterByCategory(category) {
-        const allEvents = [...boostedEvents, ...upcomingEvents, ...moreEvents];
-        const filtered = allEvents.filter(event => event.category && event.category.toLowerCase() === category.toLowerCase());
-
-        const upcomingGrid = document.getElementById('upcomingEventsGrid');
-        const moreGrid = document.getElementById('moreEventsGrid');
-        upcomingGrid.innerHTML = '';
-        moreGrid.innerHTML = '';
-
-        filtered.slice(0, 3).forEach(event => {
-            upcomingGrid.appendChild(createEventCard(event));
-        });
-        filtered.slice(3).forEach(event => {
-            moreGrid.appendChild(createEventCard(event));
-        });
-    }
-
-    // Scroll animations (simple fade-in)
-    function setupScrollAnimations() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('fade-in');
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.event-card, .category-card').forEach(el => {
-            observer.observe(el);
-        });
-    }
+    document.querySelectorAll('.event-card, .category-card').forEach(el => {
+        observer.observe(el);
+    });
+}
