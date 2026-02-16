@@ -1,14 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-    loadUserData();
     loadNotifications();
     setupEventListeners();
 });
-
-const userData = {
-    username: 'Event Publisher',
-    role: 'Event Organizer',
-    avatar: '/unipulse/public/assets/images/default-avatar.png'
-};
 
 const notifications = [
     {
@@ -36,13 +29,6 @@ const notifications = [
         type: 'warning'
     }
 ];
-
-function loadUserData() {
-    const usernameElement = document.getElementById('username');
-    if (usernameElement) {
-        usernameElement.textContent = userData.username;
-    }
-}
 
 // Load notifications
 function loadNotifications() {

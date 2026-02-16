@@ -55,6 +55,7 @@ class UserEvents extends Controller{
             // Prepare data for view with server data for JavaScript
             $data = [
                 'events' => $events,
+                'userRole' => 'User',
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
                 'filters' => $filters,

@@ -131,9 +131,17 @@ class PublisherCreateevent extends Controller{
                 'needs_volunteers' => isset($_POST['volunteerToggle']) && $_POST['volunteerToggle'] == '1' ? 1 : 0,
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
+                'accepts_sponsorships' => isset($_POST['sponsorshipToggle']) && $_POST['sponsorshipToggle'] == '1' ? 1 : 0,
+                'sponsorship_bank_name' => $_POST['sponsorship_bank_name'] ?? null,
+                'sponsorship_account_name' => $_POST['sponsorship_account_name'] ?? null,
+                'sponsorship_account_number' => $_POST['sponsorship_account_number'] ?? null,
+                'sponsorship_branch' => $_POST['sponsorship_branch'] ?? null,
+                'sponsorship_swift_code' => $_POST['sponsorship_swift_code'] ?? null,
+                'sponsorship_instructions' => $_POST['sponsorship_instructions'] ?? null,
+                'sponsorship_proposal' => null, // Will be set after file upload
                 'created_by' => $user['id'] ?? null,
                 'created_by_type' => 'publisher', // Always set to publisher for events created in publisher section
-                'visibility' => $_POST['event_visibility'] ?? 'university-only'
+                'visibility' => $this->mapVisibilityValue($_POST['event_visibility'] ?? 'university-only')
             ];
             
             // Handle registration/sale dates based on ticket type
@@ -231,12 +239,62 @@ class PublisherCreateevent extends Controller{
                 }
             }
             
+            // Handle sponsorship proposal file upload (required when accepts_sponsorships is true)
+            if ($formData['accepts_sponsorships']) {
+                error_log("Sponsorship is enabled, checking for proposal file");
+                error_log("FILES array: " . print_r($_FILES, true));
+                
+                if (!isset($_FILES['sponsorship_proposal']) || $_FILES['sponsorship_proposal']['error'] === UPLOAD_ERR_NO_FILE) {
+                    error_log("No proposal file found or file upload error");
+                    throw new Exception('Sponsorship proposal document is required when accepting sponsorships');
+                }
+                
+                error_log("Processing proposal file upload");
+                $uploadResult = $this->handleProposalUpload($_FILES['sponsorship_proposal']);
+                error_log("Upload result: " . print_r($uploadResult, true));
+                
+                if ($uploadResult['success']) {
+                    $formData['sponsorship_proposal'] = $uploadResult['path'];
+                    error_log("Proposal path set to: " . $uploadResult['path']);
+                } else {
+                    throw new Exception($uploadResult['error']);
+                }
+            } elseif (isset($_FILES['sponsorship_proposal']) && $_FILES['sponsorship_proposal']['error'] === UPLOAD_ERR_OK) {
+                // Optional upload if sponsorships not enabled
+                error_log("Optional proposal file upload");
+                $uploadResult = $this->handleProposalUpload($_FILES['sponsorship_proposal']);
+                if ($uploadResult['success']) {
+                    $formData['sponsorship_proposal'] = $uploadResult['path'];
+                    error_log("Optional proposal path set to: " . $uploadResult['path']);
+                } else {
+                    throw new Exception($uploadResult['error']);
+                }
+            }
+            
+            // Log final formData before creating event
+            error_log("Final formData sponsorship_proposal: " . ($formData['sponsorship_proposal'] ?? 'NULL'));
+            
             // Create the event
             $result = $this->eventModel->createEvent($formData);
             
             if ($result['success']) {
+                $eventId = $result['event_id'];
+                
+                // Handle sponsorship packages if sponsorships are enabled
+                if (!empty($_POST['sponsorship_packages']) && !empty($formData['accepts_sponsorships'])) {
+                    $packagesJson = $_POST['sponsorship_packages'];
+                    if ($packagesJson && $packagesJson !== '[]') {
+                        $packages = json_decode($packagesJson, true);
+                        if (is_array($packages) && count($packages) > 0) {
+                            $this->saveSponsorshipPackages($eventId, $packages);
+                        }
+                    }
+                }
+                
                 // Return JSON response for AJAX requests
                 if ($isAjax) {
+                    // Ensure no output before JSON
+                    if (ob_get_level()) ob_clean();
                     echo json_encode([
                         'success' => true,
                         'message' => 'Event created successfully!',
@@ -273,6 +331,8 @@ class PublisherCreateevent extends Controller{
             error_log("Stack trace: " . $e->getTraceAsString());
             
             if ($isAjax) {
+                // Ensure clean JSON output
+                if (ob_get_level()) ob_clean();
                 echo json_encode([
                     'success' => false,
                     'errors' => ['general' => 'Server error: ' . $e->getMessage()],
@@ -322,6 +382,46 @@ class PublisherCreateevent extends Controller{
         }
         
         return ['success' => false, 'error' => 'Failed to upload image.'];
+    }
+    
+    private function handleProposalUpload($file) {
+        // Upload directory for sponsorship proposals
+        $uploadDir = __DIR__ . '/../../../public/uploads/sponsorship_proposals/';
+        $allowedTypes = [
+            'application/pdf',
+            'application/msword', // .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+            'application/vnd.ms-powerpoint', // .ppt
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation' // .pptx
+        ];
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        
+        // Create upload directory if it doesn't exist
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        // Validate file type
+        if (!in_array($file['type'], $allowedTypes)) {
+            return ['success' => false, 'error' => 'Invalid file type. Please upload PDF, DOC, DOCX, PPT, or PPTX files only.'];
+        }
+        
+        // Validate file size
+        if ($file['size'] > $maxSize) {
+            return ['success' => false, 'error' => 'File too large. Maximum size is 10MB.'];
+        }
+        
+        // Generate unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('sponsorship_proposal_') . '.' . $extension;
+        $filepath = $uploadDir . $filename;
+        
+        // Move uploaded file
+        if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            return ['success' => true, 'path' => 'uploads/sponsorship_proposals/' . $filename];
+        }
+        
+        return ['success' => false, 'error' => 'Failed to upload proposal file.'];
     }
     
     private function getUniversityName($universityCode) {
@@ -646,6 +746,85 @@ class PublisherCreateevent extends Controller{
             }
         }
         
+        // Validate Sponsorship
+        if (isset($postData['sponsorshipToggle']) && $postData['sponsorshipToggle'] == '1') {
+            // Bank details are required when sponsorship is enabled
+            if (empty($postData['sponsorship_bank_name']) || trim($postData['sponsorship_bank_name']) === '') {
+                $errors['sponsorship_bank_name'] = 'Bank name is required when requesting sponsorships';
+            }
+            
+            if (empty($postData['sponsorship_account_name']) || trim($postData['sponsorship_account_name']) === '') {
+                $errors['sponsorship_account_name'] = 'Account holder name is required when requesting sponsorships';
+            }
+            
+            if (empty($postData['sponsorship_account_number']) || trim($postData['sponsorship_account_number']) === '') {
+                $errors['sponsorship_account_number'] = 'Account number is required when requesting sponsorships';
+            }
+            
+            // Optional: Validate that at least one package is added
+            if (empty($postData['sponsorship_packages']) || $postData['sponsorship_packages'] === '[]') {
+                $errors['sponsorship_packages'] = 'Please add at least one sponsorship package';
+            }
+        }
+        
         return $errors;
+    }
+
+    /**
+     * Maps form visibility values to database ENUM values
+     * Form sends: faculty-only, all-universities, university-only, public
+     * Database accepts: private, public, university-only
+     * 
+     * @param string $formValue The visibility value from the form
+     * @return string The mapped database ENUM value
+     */
+    private function mapVisibilityValue($formValue) {
+        $mapping = [
+            'faculty-only' => 'private',           // Faculty only is most restrictive
+            'all-universities' => 'public',        // All universities means public
+            'university-only' => 'university-only', // Direct match
+            'public' => 'public'                   // Direct match
+        ];
+        
+        // Return mapped value or default to university-only
+        return $mapping[$formValue] ?? 'university-only';
+    }
+
+    /**
+     * Save sponsorship packages for an event
+     * 
+     * @param int $eventId The event ID
+     * @param array $packages Array of sponsorship packages
+     * @return bool Success status
+     */
+    private function saveSponsorshipPackages($eventId, $packages) {
+        try {
+            // Use the event model to access database
+            foreach ($packages as $index => $package) {
+                $sql = "INSERT INTO event_sponsorship_packages 
+                        (event_id, package_name, package_type, amount, description, 
+                         benefits, terms_conditions, available_slots, display_order, is_active) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
+                
+                $params = [
+                    $eventId,
+                    $package['name'] ?? '',
+                    $package['type'] ?? 'custom',
+                    $package['amount'] ?? 0,
+                    $package['description'] ?? null,
+                    $package['benefits'] ?? null,
+                    $package['terms'] ?? null,
+                    $package['slots'] ?? 1,
+                    $index // Use array index as display order
+                ];
+                
+                $this->eventModel->query($sql, $params);
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error saving sponsorship packages: " . $e->getMessage());
+            return false;
+        }
     }
 }

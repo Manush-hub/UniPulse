@@ -8,6 +8,11 @@ const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/e
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('User Eventview Page Loaded');
+    console.log('window.serverData:', window.serverData);
+    console.log('currentEvent:', currentEvent);
+    console.log('hasError:', hasError);
+    console.log('Event ID from URL:', getEventIdFromURL());
     loadEventDetails();
 });
 
@@ -19,32 +24,45 @@ function getEventIdFromURL() {
 
 // Load event details
 function loadEventDetails() {
+    console.log('loadEventDetails called');
+    console.log('hasError:', hasError);
+    console.log('currentEvent:', currentEvent);
+    
     if (hasError) {
+        console.log('Error detected, showing error page');
         hideLoading();
         showError();
         return;
     }
     
     if (currentEvent) {
+        console.log('Using server data for event:', currentEvent.id);
         // Use server data directly
         displayEventDetails(currentEvent);
         loadSimilarEvents(similarEvents);
         hideLoading();
         showEventContainer();
     } else {
+        console.log('No server data, fetching via AJAX');
         // Fallback to AJAX if no server data
         const eventId = getEventIdFromURL();
+        console.log('Event ID from URL:', eventId);
         
         if (!eventId) {
+            console.log('No event ID found, showing error');
             showError();
             return;
         }
 
         showLoading();
 
-        fetch(`${apiEndpoint}?id=${eventId}`)
+        const fetchUrl = `${apiEndpoint}?id=${eventId}`;
+        console.log('Fetching event from:', fetchUrl);
+
+        fetch(fetchUrl)
             .then(response => response.json())
             .then(data => {
+                console.log('Fetch response:', data);
                 if (data.success) {
                     currentEvent = data.event;
                     similarEvents = data.similarEvents || [];
@@ -53,6 +71,7 @@ function loadEventDetails() {
                     hideLoading();
                     showEventContainer();
                 } else {
+                    console.log('Fetch failed:', data.error);
                     hideLoading();
                     showError();
                 }
@@ -115,73 +134,128 @@ function displayEventDetails(event) {
     }
     
     // Basic event info
-    document.getElementById('eventCategory').textContent = capitalizeFirstLetter(event.category);
-    document.getElementById('eventStatus').textContent = event.status;
-    document.getElementById('eventTitle').textContent = event.title;
+    const eventCategoryElement = document.getElementById('eventCategory');
+    if (eventCategoryElement) {
+        eventCategoryElement.textContent = capitalizeFirstLetter(event.category);
+    }
+    
+    const eventStatusElement = document.getElementById('eventStatus');
+    if (eventStatusElement) {
+        eventStatusElement.textContent = event.status;
+    }
+    
+    const eventTitleElement = document.getElementById('eventTitle');
+    if (eventTitleElement) {
+        eventTitleElement.textContent = event.title;
+    }
     
     // Event details grid
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
-    document.getElementById('eventDateTime').textContent = `${formatDate(eventDate)} at ${eventTime}`;
-    document.getElementById('eventUniversity').textContent = universityName;
     
-    // Show faculty/department if available
-    if (event.faculty_department) {
-        document.getElementById('facultyInfo').style.display = 'flex';
-        document.getElementById('eventFaculty').textContent = event.faculty_department;
+    const eventDateTimeElement = document.getElementById('eventDateTime');
+    if (eventDateTimeElement) {
+        eventDateTimeElement.textContent = `${formatDate(eventDate)} at ${eventTime}`;
     }
     
-    document.getElementById('eventLocation').textContent = event.location;
+    const eventUniversityElement = document.getElementById('eventUniversity');
+    if (eventUniversityElement) {
+        eventUniversityElement.textContent = universityName;
+    }
+    
+    // Show faculty/department if available
+    const facultyInfoElement = document.getElementById('facultyInfo');
+    const eventFacultyElement = document.getElementById('eventFaculty');
+    if (event.faculty_department) {
+        if (facultyInfoElement) {
+            facultyInfoElement.style.display = 'flex';
+        }
+        if (eventFacultyElement) {
+            eventFacultyElement.textContent = event.faculty_department;
+        }
+    }
+    
+    const eventLocationElement = document.getElementById('eventLocation');
+    if (eventLocationElement) {
+        eventLocationElement.textContent = event.location;
+    }
     
     // Show participants info only if max_participants is set
-    if (maxParticipants !== null && maxParticipants !== undefined) {
-        document.getElementById('participantsInfo').style.display = 'flex';
-        document.getElementById('eventParticipants').textContent = `${currentParticipants}/${maxParticipants}`;
-    } else {
-        document.getElementById('participantsInfo').style.display = 'none';
+    const participantsInfoElement = document.getElementById('participantsInfo');
+    if (participantsInfoElement) {
+        if (maxParticipants !== null && maxParticipants !== undefined) {
+            participantsInfoElement.style.display = 'flex';
+            const eventParticipantsElement = document.getElementById('eventParticipants');
+            if (eventParticipantsElement) {
+                eventParticipantsElement.textContent = `${currentParticipants}/${maxParticipants}`;
+            }
+        } else {
+            participantsInfoElement.style.display = 'none';
+        }
     }
     
     // Target audience
-    document.getElementById('eventAudience').textContent = formatAudience(targetAudience);
+    const eventAudienceElement = document.getElementById('eventAudience');
+    if (eventAudienceElement) {
+        eventAudienceElement.textContent = formatAudience(targetAudience);
+    }
     
     // Ticket type (show if not free-all)
+    const ticketInfoElement = document.getElementById('ticketInfo');
+    const eventTicketTypeElement = document.getElementById('eventTicketType');
+    const buyTicketBtn = document.getElementById('buyTicketBtn');
+    
     if (ticketType && ticketType !== 'free-all') {
-        document.getElementById('ticketInfo').style.display = 'block';
-        document.getElementById('eventTicketType').textContent = formatTicketType(ticketType);
-         
+        if (ticketInfoElement) {
+            ticketInfoElement.style.display = 'block';
+        }
+        if (eventTicketTypeElement) {
+            eventTicketTypeElement.textContent = formatTicketType(ticketType);
+        }
         // Show buy ticket button for paid events
-        const buyTicketBtn = document.getElementById('buyTicketBtn');
         if (buyTicketBtn) {
             buyTicketBtn.style.display = 'inline-flex';
         }
     } else {
         // Hide buy ticket button for free events
-        const buyTicketBtn = document.getElementById('buyTicketBtn');
         if (buyTicketBtn) {
             buyTicketBtn.style.display = 'none';
         }
     }
     
     // Full description
-    document.getElementById('eventDescription').textContent = event.description;
+    const eventDescriptionElement = document.getElementById('eventDescription');
+    if (eventDescriptionElement) {
+        eventDescriptionElement.textContent = event.description;
+    }
     
     // Registration Period
     displayRegistrationPeriod(event);
     
     // Schedule - hide card if no schedule data
+    const scheduleCardElement = document.getElementById('scheduleCard');
     if (event.schedule && Array.isArray(event.schedule) && event.schedule.length > 0) {
         displaySchedule(event.schedule);
-        document.getElementById('scheduleCard').style.display = 'block';
+        if (scheduleCardElement) {
+            scheduleCardElement.style.display = 'block';
+        }
     } else {
-        document.getElementById('scheduleCard').style.display = 'none';
+        if (scheduleCardElement) {
+            scheduleCardElement.style.display = 'none';
+        }
     }
     
     // Requirements - hide card if no requirements
+    const requirementsCardElement = document.getElementById('requirementsCard');
     if (event.requirements && Array.isArray(event.requirements) && event.requirements.length > 0) {
         displayRequirements(event.requirements);
-        document.getElementById('requirementsCard').style.display = 'block';
+        if (requirementsCardElement) {
+            requirementsCardElement.style.display = 'block';
+        }
     } else {
-        document.getElementById('requirementsCard').style.display = 'none';
+        if (requirementsCardElement) {
+            requirementsCardElement.style.display = 'none';
+        }
     }
     
     // Location details
@@ -220,7 +294,10 @@ function displayEventDetails(event) {
     }
     
     // Organizer info
-    document.getElementById('organizerName').textContent = event.organizer;
+    const organizerNameElement = document.getElementById('organizerName');
+    if (organizerNameElement) {
+        organizerNameElement.textContent = event.organizer;
+    }
     
     // Set organizer role if available, otherwise use default
     const organizerRoleElement = document.getElementById('organizerRole');
@@ -232,22 +309,43 @@ function displayEventDetails(event) {
     currentEvent.organizerEmail = organizerEmail;
     
     // Statistics - only show if max_participants is set
+    const eventStatsCardElement = document.getElementById('eventStatsCard');
     if (maxParticipants !== null && maxParticipants !== undefined) {
-        document.getElementById('eventStatsCard').style.display = 'block';
-        document.getElementById('totalParticipants').textContent = currentParticipants;
-        document.getElementById('availableSpots').textContent = maxParticipants - currentParticipants;
+        if (eventStatsCardElement) {
+            eventStatsCardElement.style.display = 'block';
+        }
+        
+        const totalParticipantsElement = document.getElementById('totalParticipants');
+        if (totalParticipantsElement) {
+            totalParticipantsElement.textContent = currentParticipants;
+        }
+        
+        const availableSpotsElement = document.getElementById('availableSpots');
+        if (availableSpotsElement) {
+            availableSpotsElement.textContent = maxParticipants - currentParticipants;
+        }
         
         // Participation percentage
         const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
-        document.getElementById('participationPercentage').textContent = `${percentage}%`;
-        document.getElementById('participationFill').style.width = `${percentage}%`;
+        const participationPercentageElement = document.getElementById('participationPercentage');
+        if (participationPercentageElement) {
+            participationPercentageElement.textContent = `${percentage}%`;
+        }
+        
+        const participationFillElement = document.getElementById('participationFill');
+        if (participationFillElement) {
+            participationFillElement.style.width = `${percentage}%`;
+        }
     } else {
-        document.getElementById('eventStatsCard').style.display = 'none';
+        if (eventStatsCardElement) {
+            eventStatsCardElement.style.display = 'none';
+        }
     }
     
     // Set event link for sharing
-    if (document.getElementById('shareLink')) {
-        document.getElementById('shareLink').value = window.location.href;
+    const shareLinkElement = document.getElementById('shareLink');
+    if (shareLinkElement) {
+        shareLinkElement.value = window.location.href;
     }
     
     // Update status styling
@@ -267,6 +365,9 @@ function displayEventDetails(event) {
 function displayRegistrationPeriod(event) {
     const registrationPeriodCard = document.getElementById('registrationPeriodCard');
     const registrationPeriodContainer = document.getElementById('registrationPeriod');
+    
+    // Check if elements exist
+    if (!registrationPeriodCard || !registrationPeriodContainer) return;
     
     // Check if registration dates are available
     if (event.registration_start_date && event.registration_end_date) {
@@ -310,6 +411,8 @@ function displayRegistrationPeriod(event) {
 // Display event schedule
 function displaySchedule(schedule) {
     const scheduleContainer = document.getElementById('eventSchedule');
+    if (!scheduleContainer) return;
+    
     scheduleContainer.innerHTML = '';
     
     schedule.forEach(item => {
@@ -326,6 +429,8 @@ function displaySchedule(schedule) {
 // Display event requirements
 function displayRequirements(requirements) {
     const requirementsContainer = document.getElementById('eventRequirements');
+    if (!requirementsContainer) return;
+    
     const requirementsList = document.createElement('ul');
     requirementsList.className = 'requirements-list';
     
@@ -345,6 +450,7 @@ function displayRequirements(requirements) {
 // Load similar events
 function loadSimilarEvents(events) {
     const similarEventsContainer = document.getElementById('similarEvents');
+    if (!similarEventsContainer) return;
     
     if (!events || events.length === 0) {
         similarEventsContainer.innerHTML = '<p>No similar events found.</p>';
@@ -370,15 +476,19 @@ function loadSimilarEvents(events) {
 // Update status styling
 function updateStatusStyling(status, participants, maxParticipants) {
     const statusElement = document.getElementById('eventStatus');
-    statusElement.className = `event-status ${status}`;
+    if (statusElement) {
+        statusElement.className = `event-status ${status}`;
+    }
     
     const joinBtn = document.getElementById('joinBtn');
-    if (status === 'completed' || status === 'cancelled') {
-        joinBtn.disabled = true;
-        joinBtn.innerHTML = '<i class="fas fa-calendar-times"></i> Event Ended';
-    } else if (participants >= maxParticipants) {
-        joinBtn.disabled = true;
-        joinBtn.innerHTML = '<i class="fas fa-users"></i> Event Full';
+    if (joinBtn) {
+        if (status === 'completed' || status === 'cancelled') {
+            joinBtn.disabled = true;
+            joinBtn.innerHTML = '<i class="fas fa-calendar-times"></i> Event Ended';
+        } else if (participants >= maxParticipants) {
+            joinBtn.disabled = true;
+            joinBtn.innerHTML = '<i class="fas fa-users"></i> Event Full';
+        }
     }
 }
 
@@ -389,19 +499,31 @@ function viewEvent(eventId) {
 
 // Modal functions
 function openJoinModal() {
-    document.getElementById('joinModal').style.display = 'flex';
+    const joinModal = document.getElementById('joinModal');
+    if (joinModal) {
+        joinModal.style.display = 'flex';
+    }
 }
 
 function closeJoinModal() {
-    document.getElementById('joinModal').style.display = 'none';
+    const joinModal = document.getElementById('joinModal');
+    if (joinModal) {
+        joinModal.style.display = 'none';
+    }
 }
 
 function openShareModal() {
-    document.getElementById('shareModal').style.display = 'flex';
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) {
+        shareModal.style.display = 'flex';
+    }
 }
 
 function closeShareModal() {
-    document.getElementById('shareModal').style.display = 'none';
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) {
+        shareModal.style.display = 'none';
+    }
 }
 
 // Make modal functions globally accessible
@@ -515,6 +637,74 @@ function confirmJoinEvent() {
     });
 }
 
+// Register for free event (with or without registration requirement)
+function registerForEvent() {
+    if (!currentEvent) {
+        alert('Event data not available');
+        return;
+    }
+    
+    // Check if user is already registered
+    if (isUserRegistered) {
+        alert('You are already registered for this event.');
+        return;
+    }
+    
+    // Check if event requires registration
+    const requiresReg = currentEvent.requires_registration == 1 || currentEvent.requires_registration === '1';
+    
+    if (!requiresReg) {
+        alert('This is an open event. No registration is required - just show up!');
+        return;
+    }
+    
+    // Show join modal for registration
+    openJoinModal();
+}
+
+// Buy tickets for paid event
+function buyTickets() {
+    if (!currentEvent) {
+        alert('Event data not available');
+        return;
+    }
+    
+    // Collect selected tickets
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const selectedTickets = [];
+    let totalAmount = 0;
+    
+    quantityInputs.forEach(input => {
+        const quantity = parseInt(input.value) || 0;
+        if (quantity > 0) {
+            const ticketOption = input.closest('.ticket-option');
+            const ticketName = ticketOption.dataset.ticketName;
+            const ticketPrice = parseFloat(ticketOption.dataset.ticketPrice);
+            
+            selectedTickets.push({
+                name: ticketName,
+                price: ticketPrice,
+                quantity: quantity,
+                subtotal: ticketPrice * quantity
+            });
+            
+            totalAmount += ticketPrice * quantity;
+        }
+    });
+    
+    if (selectedTickets.length === 0) {
+        alert('Please select at least one ticket.');
+        return;
+    }
+    
+    // TODO: Implement payment gateway integration
+    alert(`Total: LKR ${totalAmount.toFixed(2)}\n\nPayment gateway integration coming soon!`);
+    
+    // For now, log the selected tickets
+    console.log('Selected tickets:', selectedTickets);
+    console.log('Total amount:', totalAmount);
+}
+
 function contactOrganizer() {
     const organizerEmail = currentEvent?.organizerEmail || currentEvent?.organizer_email;
     if (organizerEmail) {
@@ -581,21 +771,45 @@ function copyShareLink() {
 window.copyEventLink = copyEventLink;
 window.copyShareLink = copyShareLink;
 window.confirmJoinEvent = confirmJoinEvent;
+window.registerForEvent = registerForEvent;
+window.buyTickets = buyTickets;
 
 // UI state management
 function showLoading() {
-    document.getElementById('loadingContainer').style.display = 'flex';
-    document.getElementById('errorContainer').style.display = 'none';
-    document.getElementById('eventContainer').style.display = 'none';
+    const loadingContainer = document.getElementById('loadingContainer');
+    const errorContainer = document.getElementById('errorContainer');
+    const eventContainer = document.getElementById('eventContainer');
+    
+    if (loadingContainer) loadingContainer.style.display = 'flex';
+    if (errorContainer) errorContainer.style.display = 'none';
+    if (eventContainer) eventContainer.style.display = 'none';
 }
 
 function hideLoading() {
-    document.getElementById('loadingContainer').style.display = 'none';
+    const loadingContainer = document.getElementById('loadingContainer');
+    if (loadingContainer) {
+        loadingContainer.style.display = 'none';
+    }
 }
 
 function showError() {
-    document.getElementById('errorContainer').style.display = 'flex';
-    document.getElementById('eventContainer').style.display = 'none';
+    const errorContainer = document.getElementById('errorContainer');
+    const eventContainer = document.getElementById('eventContainer');
+    
+    if (errorContainer) errorContainer.style.display = 'flex';
+    if (eventContainer) eventContainer.style.display = 'none';
+}
+
+function showEventContainer() {
+    const eventContainer = document.getElementById('eventContainer');
+    const errorContainer = document.getElementById('errorContainer');
+    
+    if (eventContainer) {
+        eventContainer.style.display = 'block';
+    }
+    if (errorContainer) {
+        errorContainer.style.display = 'none';
+    }
 }
 
 // New helper functions for additional fields
@@ -716,7 +930,8 @@ function displayTicketDetails(event) {
     const ticketType = event.ticket_type || 'free-all';
     
     if (ticketType === 'free-all') {
-        return; // No special ticket details to show
+        renderFreeRegistration(event);
+        return;
     }
     
     // Show appropriate ticket section based on ticket type
@@ -725,6 +940,19 @@ function displayTicketDetails(event) {
     } else if (ticketType === 'mixed') {
         renderMixedTickets(event);
     }
+}
+
+function renderFreeRegistration(event) {
+    const freeSection = document.getElementById('freeRegistrationSection');
+    if (!freeSection) {
+        console.error('freeRegistrationSection element not found');
+        return;
+    }
+    
+    console.log('Rendering free registration for event:', event.title);
+    
+    // Show the free registration section
+    freeSection.style.display = 'block';
 }
 
 function renderPaidTickets(event) {
@@ -1072,10 +1300,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-function showEventContainer() {
-    document.getElementById('eventContainer').style.display = 'block';
-}
 
 // Comments System Variables
 let currentUserRating = 0;

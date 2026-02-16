@@ -26,6 +26,84 @@ class SponsorDashboard extends Controller{
             'page_title' => 'Dashboard'
         ];
         
+        
         $this->view('Sponsor/dashboard', $data);
-    } 
-}
+    }
+    
+    /**
+     * API endpoint to get user profile data
+     */
+    public function getUserProfile() {
+        // Clean output buffer
+        if (ob_get_length()) ob_clean();
+        
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ]);
+                exit;
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'companyName' => $currentUser['company_name'] ?? 'Sponsor',
+                'email' => $currentUser['email'] ?? '',
+                'type' => 'sponsor'
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error in getUserProfile: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load profile data'
+            ]);
+        }
+        
+        exit;
+    }
+    
+    /**
+     * API endpoint to get notifications
+     */
+    public function getNotifications() {
+        // Clean output buffer
+        if (ob_get_length()) ob_clean();
+        
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            
+            if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ]);
+                exit;
+            }
+            
+            // For now, return empty notifications
+            // TODO: Implement notification system for sponsors
+            echo json_encode([
+                'success' => true,
+                'notifications' => []
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Error in getNotifications: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load notifications',
+                'notifications' => []
+            ]);
+        }
+        
+        exit;
+    }
+} 

@@ -57,6 +57,8 @@ class UserEventview extends Controller {
                         $data = [
                             'event' => $event,
                             'similarEvents' => $similarEvents,
+                            'userRole' => 'User',
+                            'error' => null,
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
@@ -66,16 +68,34 @@ class UserEventview extends Controller {
                             ]
                         ];
                     } else {
-                        $data['error'] = 'Event not found in database';
+                        $data = [
+                            'error' => 'Event not found in database',
+                            'userRole' => 'User',
+                            'serverData' => [
+                                'error' => 'Event not found in database'
+                            ]
+                        ];
                     }
                 }
             } catch (Exception $e) {
                 // Log error and show user-friendly message
                 error_log("Database error in UserEventview::index: " . $e->getMessage());
-                $data['error'] = 'Unable to load event details. Please try again later.';
+                $data = [
+                    'error' => 'Unable to load event details. Please try again later.',
+                    'userRole' => 'User',
+                    'serverData' => [
+                        'error' => 'Unable to load event details. Please try again later.'
+                    ]
+                ];
             }
         } else {
-            $data['error'] = 'No event ID provided';
+            $data = [
+                'error' => 'No event ID provided',
+                'userRole' => 'User',
+                'serverData' => [
+                    'error' => 'No event ID provided'
+                ]
+            ];
         }
         
         $this->view('eventview', $data);

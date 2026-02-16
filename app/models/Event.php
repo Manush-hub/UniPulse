@@ -47,6 +47,14 @@ class Event {
         'volunteers_needed',
         'volunteer_positions',
         'accepts_donations',
+        'accepts_sponsorships',
+        'sponsorship_proposal',
+        'sponsorship_bank_name',
+        'sponsorship_account_name',
+        'sponsorship_account_number',
+        'sponsorship_branch',
+        'sponsorship_swift_code',
+        'sponsorship_instructions',
         'image_url',
         'cover_image'
     ];
@@ -95,14 +103,20 @@ class Event {
             $params['search'] = '%' . $filters['search'] . '%';
         }
         
-        $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
+        $sql = "SELECT e.*, p.society_name as organizer_name,
+                CASE 
+                    WHEN e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()) THEN 1
+                    WHEN e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()) THEN 2
+                    ELSE 3
+                END as event_status_order
+                FROM {$this->table} e
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
         
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
         }
         
-        $sql .= ' ORDER BY e.event_date ASC, e.event_time ASC';
+        $sql .= ' ORDER BY event_status_order ASC, e.event_date ASC, e.event_time ASC';
         
         // Add pagination if specified
         if (isset($filters['limit'])) {
@@ -1148,6 +1162,150 @@ class Event {
         
         // Check if event belongs to moderator's university
         return $event->publisher_university === $moderatorUniversity;
+    }
+    
+    /**
+     * Get events starting within the next 24 hours
+     */
+    public function getEventsStartingIn24Hours($limit = 10, $currentUser = null) {
+        try {
+            $query = "
+                SELECT 
+                    e.id,
+                    e.title,
+                    e.description,
+                    e.category,
+                    e.event_date,
+                    e.event_time,
+                    e.location,
+                    e.location_type,
+                    e.university_name,
+                    e.cover_image,
+                    e.image_url,
+                    e.current_participants,
+                    e.max_participants,
+                    e.ticket_type,
+                    e.ticket_types,
+                    e.organizer,
+                    e.created_by as publisher_id,
+                    e.created_by_type,
+                    p.society_name as organizer_name
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                WHERE e.is_deleted = 0
+                    AND e.status = 'upcoming'
+                    AND CONCAT(e.event_date, ' ', e.event_time) >= NOW()
+                    AND CONCAT(e.event_date, ' ', e.event_time) <= DATE_ADD(NOW(), INTERVAL 24 HOUR)
+            ";
+            
+            // Add visibility filter based on current user
+            if ($currentUser) {
+                if ($currentUser['type'] === 'user' && isset($currentUser['university'])) {
+                    $query .= " AND (e.target_audience = 'public-users' 
+                                    OR (e.target_audience = 'university-students' AND e.university_name = :user_university)
+                                    OR e.target_audience = 'both')";
+                } else if ($currentUser['type'] === 'sponsor') {
+                    $query .= " AND e.target_audience IN ('public-users', 'both')";
+                } else if ($currentUser['type'] === 'publisher') {
+                    // Publishers can see all events
+                }
+            } else {
+                // Not logged in - only show public events
+                $query .= " AND e.target_audience IN ('public-users', 'both')";
+            }
+            
+            $query .= " ORDER BY e.event_date ASC, e.event_time ASC LIMIT :limit";
+            
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            
+            if ($currentUser && $currentUser['type'] === 'user' && isset($currentUser['university'])) {
+                $stmt->bindValue(':user_university', $currentUser['university'], PDO::PARAM_STR);
+            }
+            
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            $results = $stmt->fetchAll(PDO::FETCH_OBJ);
+            error_log("getEventsStartingIn24Hours: Found " . count($results) . " events");
+            error_log("Query used: " . $query);
+            if (count($results) > 0) {
+                error_log("First event: ID=" . $results[0]->id . ", Title=" . $results[0]->title . ", Date=" . $results[0]->event_date . " " . $results[0]->event_time);
+            }
+            
+            return $results;
+        } catch (Exception $e) {
+            error_log("getEventsStartingIn24Hours error: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Get next upcoming public events for "More Events" section
+     */
+    public function getNextUpcomingPublicEvents($limit = 3, $currentUser = null) {
+        try {
+            $query = "
+                SELECT 
+                    e.id,
+                    e.title,
+                    e.description,
+                    e.category,
+                    e.event_date,
+                    e.event_time,
+                    e.location,
+                    e.location_type,
+                    e.university_name,
+                    e.cover_image,
+                    e.image_url,
+                    e.current_participants,
+                    e.max_participants,
+                    e.ticket_type,
+                    e.ticket_types,
+                    e.organizer,
+                    e.created_by as publisher_id,
+                    e.created_by_type,
+                    p.society_name as organizer_name
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                WHERE e.is_deleted = 0
+                    AND e.status = 'upcoming'
+                    AND CONCAT(e.event_date, ' ', e.event_time) >= NOW()
+            ";
+            
+            // Add visibility filter based on current user
+            if ($currentUser) {
+                if ($currentUser['type'] === 'user' && isset($currentUser['university'])) {
+                    $query .= " AND (e.target_audience = 'public-users' 
+                                    OR (e.target_audience = 'university-students' AND e.university_name = :user_university)
+                                    OR e.target_audience = 'both')";
+                } else if ($currentUser['type'] === 'sponsor') {
+                    $query .= " AND e.target_audience IN ('public-users', 'both')";
+                } else if ($currentUser['type'] === 'publisher') {
+                    // Publishers can see all events
+                }
+            } else {
+                // Not logged in - only show public events
+                $query .= " AND e.target_audience IN ('public-users', 'both')";
+            }
+            
+            $query .= " ORDER BY e.event_date ASC, e.event_time ASC LIMIT :limit";
+            
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            
+            if ($currentUser && $currentUser['type'] === 'user' && isset($currentUser['university'])) {
+                $stmt->bindValue(':user_university', $currentUser['university'], PDO::PARAM_STR);
+            }
+            
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            error_log("getNextUpcomingPublicEvents error: " . $e->getMessage());
+            return [];
+        }
     }
     
     /**

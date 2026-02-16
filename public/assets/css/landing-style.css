@@ -604,29 +604,29 @@ body {
 
 .upcoming-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
 }
 
 /* Event Cards */
 .event-card {
     background: white;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
 }
 
 .event-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 .event-image {
     width: 100%;
-    height: 220px;
+    height: 160px;
     position: relative;
     overflow: hidden;
 }
@@ -635,7 +635,7 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
+    transition: transform 0.3s ease;
 }
 
 .event-card:hover .event-image img {
@@ -653,47 +653,51 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 700;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .event-category {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 0.75rem;
+    left: 0.75rem;
     background: rgba(255, 255, 255, 0.95);
     color: #1E3A8A;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
     font-weight: 600;
     backdrop-filter: blur(10px);
 }
 
 .event-price {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     background: linear-gradient(135deg, #F97316, #EA580C);
     color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
 .event-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
 .event-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #1f2937;
     margin-bottom: 0.75rem;
     line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .event-meta {
@@ -701,7 +705,7 @@ body {
     flex-direction: column;
     gap: 0.5rem;
     color: #6b7280;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .event-date,
@@ -713,9 +717,10 @@ body {
 
 .event-date svg,
 .event-location svg {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     color: #F97316;
+    flex-shrink: 0;
 }
 
 /* More Events */
@@ -777,6 +782,12 @@ body {
         gap: 1rem;
     }
 
+}
+
+@media (max-width: 1024px) {
+    .upcoming-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 @media (max-width: 480px) {

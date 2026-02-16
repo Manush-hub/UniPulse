@@ -19,18 +19,30 @@ class PublisherEventview extends Controller {
             $eventId = $_GET['id'];
         }
         
+        // Debug logging
+        error_log("PublisherEventview::index - Event ID: " . ($eventId ?? 'NULL'));
+        error_log("PublisherEventview::index - URL param id: " . ($id ?? 'NULL'));
+        error_log("PublisherEventview::index - GET param id: " . ($_GET['id'] ?? 'NULL'));
+        
         $data = [];
         
         if ($eventId) {
             try {
                 // Validate event ID is numeric
                 if (!is_numeric($eventId)) {
+                    error_log("PublisherEventview::index - Invalid event ID (not numeric): " . $eventId);
                     $data['error'] = 'Invalid event ID';
+                    $data['userRole'] = 'Publisher';
+                    $data['serverData'] = [
+                        'error' => 'Invalid event ID'
+                    ];
                 } else {
                     // Get specific event from database
+                    error_log("PublisherEventview::index - Fetching event with ID: " . $eventId);
                     $event = $this->eventModel->getEventById($eventId);
                     
                     if ($event) {
+                        error_log("PublisherEventview::index - Event found: " . $event->title);
                         // Get current user for visibility filtering
                         $currentUser = AuthService::getCurrentUser();
                         
@@ -59,6 +71,8 @@ class PublisherEventview extends Controller {
                             'event' => $event,
                             'similarEvents' => $similarEvents,
                             'isOwner' => $isOwner,
+                            'userRole' => 'Publisher',
+                            'error' => null,
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
@@ -69,16 +83,31 @@ class PublisherEventview extends Controller {
                             ]
                         ];
                     } else {
+                        error_log("PublisherEventview::index - Event NOT found with ID: " . $eventId);
                         $data['error'] = 'Event not found in database';
+                        $data['userRole'] = 'Publisher';
+                        $data['serverData'] = [
+                            'error' => 'Event not found in database'
+                        ];
                     }
                 }
             } catch (Exception $e) {
                 // Log error and show user-friendly message
                 error_log("Database error in PublisherEventview::index: " . $e->getMessage());
+                error_log("Stack trace: " . $e->getTraceAsString());
                 $data['error'] = 'Unable to load event details. Please try again later.';
+                $data['userRole'] = 'Publisher';
+                $data['serverData'] = [
+                    'error' => 'Unable to load event details. Please try again later.'
+                ];
             }
         } else {
+            error_log("PublisherEventview::index - No event ID provided");
             $data['error'] = 'No event ID provided';
+            $data['userRole'] = 'Publisher';
+            $data['serverData'] = [
+                'error' => 'No event ID provided'
+            ];
         }
         
         $this->view('eventview', $data);

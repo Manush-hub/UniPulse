@@ -1,6 +1,43 @@
 <?php
 $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+
+// Get current user data from session
+$currentUser = AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null;
+
+// Get publisher name from session
+$publisherName = 'Publisher';
+$publisherRole = 'Publisher';
+
+if ($currentUser) {
+    // Try to get organization name first, fallback to user name
+    if (isset($currentUser['organization_name']) && !empty($currentUser['organization_name'])) {
+        $publisherName = $currentUser['organization_name'];
+    } elseif (isset($currentUser['name']) && !empty($currentUser['name'])) {
+        $publisherName = $currentUser['name'];
+    }
+    
+    // Set role
+    if (isset($currentUser['role'])) {
+        $publisherRole = ucfirst($currentUser['role']);
+    }
+}
+
+// Check session for organization name (might be stored separately)
+if (isset($_SESSION['organization_name']) && !empty($_SESSION['organization_name'])) {
+    $publisherName = $_SESSION['organization_name'];
+}
+if (isset($_SESSION['user_name']) && !empty($_SESSION['user_name']) && $publisherName === 'Publisher') {
+    $publisherName = $_SESSION['user_name'];
+}
+
+// Get profile photo from session or use default
+$profilePhoto = '/unipulse/public/assets/images/organizer.jpg';
+if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_photo'])) {
+    $profilePhoto = $_SESSION['user_profile_photo'];
+} elseif (isset($_SESSION['profile_photo']) && !empty($_SESSION['profile_photo'])) {
+    $profilePhoto = $_SESSION['profile_photo'];
+}
 ?>
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
@@ -37,10 +74,10 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 </div>
             </div>
             <div class="user-menu">
-                <img src="/unipulse/public/assets/images/organizer.jpg" alt="organizer" class="avatar" id="headerAvatar">
+                <img src="<?php echo htmlspecialchars($profilePhoto); ?>" alt="Publisher Avatar" class="avatar" id="headerAvatar">
                 <div class="user-info">
-                    <span class="username" id="username">Organization</span>
-                    <span class="user-role" id="userRole">Event Organizer</span>
+                    <span class="username" id="username"><?php echo htmlspecialchars($publisherName); ?></span>
+                    <span class="user-role" id="userRole"><?php echo htmlspecialchars($publisherRole); ?></span>
                 </div>
                 <button class="user-dropdown-btn" onclick="toggleUserMenu()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -59,4 +96,4 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
         </div>
     </div>
 </header>
-<script src="/unipulse/public/assets/js/publisher/components/header-app.js"></script>
+<script src="/unipulse/public/assets/js/Publisher/header-app.js"></script>

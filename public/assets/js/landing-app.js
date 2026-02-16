@@ -75,62 +75,105 @@ if (typeof boostedEventsFromDB !== 'undefined' && boostedEventsFromDB.length > 0
 }
 // If no boosted events from DB, boostedEvents remains empty array and placeholder will show
 
-// Other events data
-const upcomingEvents = [
-    {
-        id: 6,
-        title: 'Photography Workshop',
-        category: 'Workshop',
-        date: '2025-08-30',
-        time: '10:00 AM',
-        location: 'University of Kelaniya',
-        price: 'From LKR 500',
-        image: null
-    },
-    {
-        id: 7,
-        title: 'Music Festival 2025',
-        category: 'Cultural',
-        date: '2025-09-05',
-        time: '07:00 PM',
-        location: 'University of Ruhuna',
-        price: 'From LKR 2,000',
-        image: null
-    }
-];
+// Transform upcoming 24h events from database
+let upcomingEvents = [];
+console.log('upcoming24hEventsFromDB:', typeof upcoming24hEventsFromDB !== 'undefined' ? upcoming24hEventsFromDB : 'undefined');
+if (typeof upcoming24hEventsFromDB !== 'undefined' && upcoming24hEventsFromDB.length > 0) {
+    console.log('Found', upcoming24hEventsFromDB.length, '24h upcoming events from DB');
+    upcomingEvents = upcoming24hEventsFromDB.map(event => {
+        // Parse ticket types to get price
+        let priceText = 'Free Entry';
+        if (event.ticket_type === 'paid-all' || event.ticket_type === 'mixed') {
+            if (event.ticket_types) {
+                try {
+                    const ticketTypes = typeof event.ticket_types === 'string' ? JSON.parse(event.ticket_types) : event.ticket_types;
+                    if (ticketTypes && ticketTypes.length > 0) {
+                        const minPrice = Math.min(...ticketTypes.map(t => parseFloat(t.price)));
+                        priceText = `From LKR ${minPrice.toLocaleString()}`;
+                    }
+                } catch (e) {
+                    console.error('Error parsing ticket_types:', e);
+                }
+            }
+        }
 
-const moreEvents = [
-    {
-        id: 8,
-        title: 'Research Symposium',
-        category: 'Academic',
-        date: '2025-09-12',
-        time: '08:30 AM',
-        location: 'University of Peradeniya',
-        price: 'From LKR 1,200',
-        image: null
-    },
-    {
-        id: 9,
-        title: 'Environmental Awareness Campaign',
-        category: 'Social',
-        date: '2025-09-18',
-        time: '10:00 AM',
-        location: 'University of Kelaniya',
-        price: 'Free Entry',
-        image: null
-    },
-    {
-        id: 10,
-        title: 'Gaming Tournament',
-        category: 'Sports',
-        date: '2025-09-25',
-        time: '02:00 PM',
-        location: 'University of Colombo',
-        price: 'From LKR 800',
-        image: null
-    }
-];
+        // Get image URL
+        let imageUrl = event.cover_image || event.image_url;
+        if (imageUrl) {
+            if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('uploads/')) {
+                imageUrl = '/unipulse/public' + (imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl);
+            }
+        } else {
+            imageUrl = null;
+        }
+
+        return {
+            id: event.id,
+            title: event.title,
+            category: event.category || 'Event',
+            date: event.event_date,
+            time: event.event_time,
+            location: event.location || event.university_name,
+            price: priceText,
+            image: imageUrl
+        };
+    });
+} else {
+    console.log('No 24h upcoming events from DB, upcomingEvents array is empty');
+}
+
+// Transform more events from database
+let moreEvents = [];
+if (typeof moreEventsFromDB !== 'undefined' && moreEventsFromDB.length > 0) {
+    console.log('More events from DB:', moreEventsFromDB);
+    moreEvents = moreEventsFromDB.map(event => {
+        // Parse ticket_types JSON if it's a string
+        let ticketTypes = [];
+        if (typeof event.ticket_types === 'string') {
+            try {
+                ticketTypes = JSON.parse(event.ticket_types);
+            } catch (e) {
+                console.error('Failed to parse ticket_types:', e);
+                ticketTypes = [];
+            }
+        } else if (Array.isArray(event.ticket_types)) {
+            ticketTypes = event.ticket_types;
+        }
+        
+        // Determine price display
+        let priceDisplay = 'Free Entry';
+        if (event.ticket_type === 'paid' && ticketTypes.length > 0) {
+            const prices = ticketTypes.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                priceDisplay = `From LKR ${minPrice.toFixed(2)}`;
+            }
+        }
+        
+        // Handle multiple possible image field names and ensure valid path
+        let imageUrl = event.featured_image || event.cover_image || event.image_url || '';
+    
+            // If image URL is relative, ensure it has proper path
+        if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+            imageUrl = '/unipulse/public/' + imageUrl;
+        }
+        
+        return {
+            id: event.id,
+            title: event.title || 'Untitled Event',
+            category: event.category || 'General',
+            date: event.event_date || '',
+            time: event.event_time || '',
+            location: event.university_name || 'Unknown Location',
+            price: priceDisplay,
+            image: imageUrl
+        };
+    });
+    console.log('Transformed more events:', moreEvents);
+} else {
+    console.log('No more events from DB, moreEvents array is empty');
+}
+
 
 // Global variables for carousel control
 let currentSlide = 0;

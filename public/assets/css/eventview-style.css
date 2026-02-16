@@ -910,7 +910,7 @@ body {
 
 /* Section Headers */
 .section-header {
-    margin: 3rem 0 2rem 0;
+    margin: 0rem 0 2rem 0;
     padding-bottom: 1rem;
     border-bottom: 3px solid #1e3a8a;
 }
@@ -1928,4 +1928,210 @@ body {
     color: #1e40af;
     font-size: 0.9rem;
     line-height: 1.5;
+}
+
+/* Sponsorship Packages Section */
+.sponsorship-packages-section {
+    padding-bottom: 3rem;
+    background: #f8fafc;
+}
+
+.sponsorship-packages-section .section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.sponsorship-packages-section .section-header h2 {
+    font-size: 2rem;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.sponsorship-packages-section .section-header h2 i {
+    color: #667eea;
+    margin-right: 0.5rem;
+}
+
+.sponsorship-packages-section .section-header p {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.sponsorship-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.sponsorship-package-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sponsorship-package-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.package-header {
+    padding: 2rem;
+    color: white;
+    text-align: center;
+}
+
+.package-header.platinum {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.package-header.gold {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.package-header.silver {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+}
+
+.package-header.bronze {
+    background: linear-gradient(135deg, #92400e 0%, #c2410c 100%);
+}
+
+.package-header.custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.package-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.package-price {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.package-body {
+    padding: 2rem;
+}
+
+.package-description {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+.benefits-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.benefits-list li:last-child {
+    border-bottom: none;
+}
+
+.benefits-list i {
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.package-slots {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+}
+
+.package-slots i {
+    color: #667eea;
+}
+
+.package-slots strong {
+    color: #667eea;
+}
+
+.package-footer {
+    padding: 0 2rem 2rem 2rem;
+}
+
+.btn-sponsor {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-sponsor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-sponsor i {
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .sponsorship-packages-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .sponsorship-packages-section .section-header h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Event Details Link Button */
+.event-details-link {
+    margin-top: 1.5rem;
+}
+
+.btn-view-event-details {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    background: white;
+    color: #667eea;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-view-event-details:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-view-event-details i {
+    font-size: 1rem;
 }

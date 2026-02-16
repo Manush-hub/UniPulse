@@ -1228,3 +1228,55 @@ input:focus+.slider {
         justify-content: center;
     }
 }
+/* Sponsorship Proposal File Upload */
+.file-upload-container {
+    margin-top: 8px;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.file-upload-label:hover {
+    border-color: #667eea;
+    background: #f3f4f6;
+    color: #667eea;
+}
+
+.file-upload-label i {
+    font-size: 1.2rem;
+}
+
+.helper-text {
+    display: block;
+    margin-top: 8px;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.optional-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    margin-left: 0.5rem;
+    background: #e0e7ff;
+    color: #4f46e5;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+}

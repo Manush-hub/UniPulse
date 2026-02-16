@@ -106,6 +106,8 @@ class ModeratorEvents extends Controller{
             ];
         }
         
+        $data['userRole'] = 'Moderator';
+        
         $this->view('Moderator/events', $data);
     }
     

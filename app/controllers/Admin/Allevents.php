@@ -55,6 +55,7 @@ class AdminAllevents extends Controller{
             // Prepare data for view with server data for JavaScript
             $data = [
                 'events' => $events,
+                'userRole' => 'Admin',
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
                 'filters' => $filters,
@@ -63,7 +64,7 @@ class AdminAllevents extends Controller{
                     'currentPage' => $page,
                     'totalPages' => $totalPages,
                     'filters' => $filters,
-                    'apiEndpoint' => '/unipulse/public/sponsor/events/getEvents'
+                    'apiEndpoint' => '/unipulse/public/admin/allevents/getEvents'
                 ]
             ];
             

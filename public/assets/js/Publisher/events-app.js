@@ -9,19 +9,48 @@ const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/publishe
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('Publisher Events Page Loaded');
+    console.log('window.serverData:', window.serverData);
+    console.log('allEvents count:', allEvents.length);
+    console.log('apiEndpoint:', apiEndpoint);
     loadEvents();
     setupEventListeners();
+    
+    // Add event listener for Load More button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            loadMoreEvents();
+            return false;
+        });
+    }
 });
 
 // Setup event listeners
 function setupEventListeners() {
     // Search input listener
-    document.getElementById('searchInput').addEventListener('input', debounce(searchEvents, 300));
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(searchEvents, 300));
+    }
 
     // Filter change listeners
-    document.getElementById('categoryFilter').addEventListener('change', filterEvents);
-    document.getElementById('universityFilter').addEventListener('change', filterEvents);
-    document.getElementById('statusFilter').addEventListener('change', filterEvents);
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterEvents);
+    }
+    
+    const universityFilter = document.getElementById('universityFilter');
+    if (universityFilter) {
+        universityFilter.addEventListener('change', filterEvents);
+    }
+    
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterEvents);
+    }
 }
 
 // Debounce function for search
@@ -38,14 +67,19 @@ function debounce(func, wait) {
 }
 
 // Load events
-function loadEvents(useAjax = false) {
+function loadEvents(useAjax = false, append = false) {
+    console.log('loadEvents called, useAjax:', useAjax, 'append:', append);
+    console.log('filteredEvents.length:', filteredEvents.length);
+    
     const eventsGrid = document.getElementById('eventsGrid');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
-    // Show loading spinner
-    loadingSpinner.style.display = 'flex';
+    // Show loading spinner only if not appending (not Load More)
+    if (!append) {
+        loadingSpinner.style.display = 'flex';
+    }
     noEvents.style.display = 'none';
 
     if (useAjax) {
@@ -61,12 +95,19 @@ function loadEvents(useAjax = false) {
         params.append('page', currentPage);
         params.append('limit', eventsPerPage);
 
+        console.log('Fetching events from:', `${apiEndpoint}?${params.toString()}`);
+        
         fetch(`${apiEndpoint}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
+                console.log('Fetch response:', data);
                 if (data.success) {
-                    filteredEvents = data.events;
-                    displayEvents(data.events);
+                    if (append) {
+                        filteredEvents = [...filteredEvents, ...data.events];
+                    } else {
+                        filteredEvents = data.events;
+                    }
+                    displayEvents(data.events, append);
                     updatePagination(data.pagination);
                 } else {
                     console.error('Failed to fetch events:', data.error);
@@ -81,39 +122,54 @@ function loadEvents(useAjax = false) {
             });
     } else {
         // Use initial server data
+        console.log('Using server data, events count:', filteredEvents.length);
         setTimeout(() => {
             loadingSpinner.style.display = 'none';
 
             if (filteredEvents.length === 0) {
+                console.log('No events to display');
                 displayNoEvents();
                 return;
             }
 
+            console.log('Displaying', filteredEvents.length, 'events');
             displayEvents(filteredEvents);
             updatePagination();
         }, 500);
     }
 }
 
-function displayEvents(events) {
+function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
+    
+    if (!eventsGrid) {
+        console.error('eventsGrid element not found!');
+        return;
+    }
+    
+    console.log('displayEvents called with', events.length, 'events, append:', append);
 
-    // Clear existing events if it's a new search/filter
-    if (currentPage === 1) {
+    // Clear existing events only if not appending
+    if (!append) {
         eventsGrid.innerHTML = '';
     }
 
-    // Add events
+    // Add events to the grid
     events.forEach(event => {
-        eventsGrid.appendChild(createEventCard(event));
+        const card = createEventCard(event);
+        eventsGrid.appendChild(card);
     });
+    
+    console.log('Successfully added', events.length, 'cards to grid. Total cards now:', eventsGrid.children.length);
 
     // Show/hide load more button
-    if (events.length < eventsPerPage) {
-        loadMoreSection.style.display = 'none';
-    } else {
-        loadMoreSection.style.display = 'block';
+    if (loadMoreSection) {
+        if (events.length < eventsPerPage) {
+            loadMoreSection.style.display = 'none';
+        } else {
+            loadMoreSection.style.display = 'block';
+        }
     }
 }
 
@@ -127,9 +183,15 @@ function displayNoEvents() {
 
 function updatePagination(pagination = null) {
     const loadMoreSection = document.getElementById('loadMoreSection');
+    
+    if (!loadMoreSection) {
+        console.warn('loadMoreSection element not found');
+        return;
+    }
 
     if (pagination) {
         // Use server pagination data
+        console.log('Updating pagination from server:', pagination);
         if (!pagination.hasMore) {
             loadMoreSection.style.display = 'none';
         } else {
@@ -137,10 +199,20 @@ function updatePagination(pagination = null) {
         }
     } else {
         // Use local pagination logic
-        const endIndex = currentPage * eventsPerPage;
-        if (endIndex >= totalPages * eventsPerPage) {
+        console.log('Updating pagination locally - currentPage:', currentPage, 'totalPages:', totalPages);
+        console.log('filteredEvents.length:', filteredEvents.length, 'allEvents.length:', allEvents.length);
+        
+        // Check if there are more events to load
+        const totalEventsShown = currentPage * eventsPerPage;
+        const totalEventsAvailable = allEvents.length;
+        
+        console.log('Events shown:', totalEventsShown, 'Total available:', totalEventsAvailable);
+        
+        if (totalEventsShown >= totalEventsAvailable) {
+            console.log('Hiding load more - all events displayed');
             loadMoreSection.style.display = 'none';
         } else {
+            console.log('Showing load more button');
             loadMoreSection.style.display = 'block';
         }
     }
@@ -363,12 +435,33 @@ function clearFilters() {
 
 // Load more events
 function loadMoreEvents() {
+    console.log('loadMoreEvents called, currentPage:', currentPage);
+    
+    // Disable button and show loading state
+    const loadMoreBtn = document.querySelector('#loadMoreSection button');
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    }
+    
     currentPage++;
-    loadEvents(true);
+    console.log('Fetching page:', currentPage);
+    loadEvents(true, true); // useAjax=true, append=true
+    
+    // Re-enable button after loading
+    setTimeout(() => {
+        if (loadMoreBtn && !loadMoreBtn.disabled) return; // Already re-enabled
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.innerHTML = 'Load More Events';
+        }
+    }, 2000);
 }
 
 // View event details - redirect to event view page
 function viewEventDetails(eventId) {
+    console.log('viewEventDetails called with ID:', eventId);
+    console.log('Redirecting to:', `/unipulse/public/publisher/eventview?id=${eventId}`);
     // Redirect to event view page using MVC routing
     window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
 }

@@ -12,6 +12,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Events are already sorted by backend, no need for client-side sorting
     loadEvents();
     setupEventListeners();
+    
+    // Add event listener for Load More button
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            loadMoreEvents();
+            return false;
+        });
+    }
 });
 
 // Setup event listeners
@@ -132,14 +143,16 @@ function fetchAllEventsForCounting() {
 // Debounce function for search
 
 // Load events
-function loadEvents(useAjax = false) {
+function loadEvents(useAjax = false, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
-    // Show loading spinner
-    loadingSpinner.style.display = 'flex';
+    // Show loading spinner only if not appending (not Load More)
+    if (!append) {
+        loadingSpinner.style.display = 'flex';
+    }
     noEvents.style.display = 'none';
 
     if (useAjax) {
@@ -160,12 +173,18 @@ function loadEvents(useAjax = false) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    filteredEvents = data.events;
-                    displayEvents(data.events);
+                    if (append) {
+                        filteredEvents = [...filteredEvents, ...data.events];
+                    } else {
+                        filteredEvents = data.events;
+                    }
+                    displayEvents(data.events, append);
                     updatePagination(data.pagination);
                     // Update category counts based on all events (for ongoing/upcoming only)
                     // Get all events without filters to count categories
-                    fetchAllEventsForCounting();
+                    if (!append) {
+                        fetchAllEventsForCounting();
+                    }
                 } else {
                     console.error('Failed to fetch events:', data.error);
                     displayNoEvents();
@@ -194,12 +213,12 @@ function loadEvents(useAjax = false) {
     }
 }
 
-function displayEvents(events) {
+function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
-    // Clear existing events if it's a new search/filter
-    if (currentPage === 1) {
+    // Clear existing events if it's a new search/filter (not appending)
+    if (!append) {
         eventsGrid.innerHTML = '';
     }
 
@@ -523,8 +542,27 @@ function clearFilters() {
 
 // Load more events
 function loadMoreEvents() {
+    console.log('loadMoreEvents called, currentPage:', currentPage);
+    
+    // Disable button and show loading state
+    const loadMoreBtn = document.querySelector('#loadMoreSection button');
+    if (loadMoreBtn) {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    }
+    
     currentPage++;
-    loadEvents(true);
+    console.log('Fetching page:', currentPage);
+    loadEvents(true, true); // useAjax=true, append=true
+    
+    // Re-enable button after loading
+    setTimeout(() => {
+        if (loadMoreBtn && !loadMoreBtn.disabled) return; // Already re-enabled
+        if (loadMoreBtn) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.innerHTML = 'Load More Events';
+        }
+    }, 2000);
 }
 
 // View event details - redirect to event view page

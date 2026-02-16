@@ -98,6 +98,7 @@
             <input type="hidden" name="schedule" id="schedule_input" value="">
             <input type="hidden" name="custom_fields" id="custom_fields_input" value="">
             <input type="hidden" name="volunteer_positions" id="volunteer_positions_input" value="">
+            <input type="hidden" name="sponsorship_packages" id="sponsorship_packages_input" value="">
             
             <main class="form-container">
                 <h2 style="margin-bottom: 30px;">Create an event</h2>
@@ -875,6 +876,177 @@
                     </div>
                 </section>
 
+                <!-- Request Sponsorship -->
+                <section class="section" id="sponsorship">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Request Sponsorship</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <p style="color: #666; margin-bottom: 15px;">
+                            Looking for sponsors? Create sponsorship packages and receive funding through bank transfers.
+                        </p>
+
+                        <div class="form-group">
+                            <label for="sponsorshipToggle" style="display: block; margin-bottom: 8px; color: #333;">
+                                Do you want to request sponsorships?
+                            </label>
+
+                            <label class="switch">
+                                <input type="checkbox" id="sponsorshipToggle" name="sponsorshipToggle" value="1">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div id="sponsorshipDetails" class="sponsorship-details hidden" style="margin-top: 20px;">
+                            <!-- Bank Details Section -->
+                            <div class="info-note" style="background: #FEF3C7; border-left: 4px solid #F59E0B;">
+                                <i class="fas fa-university"></i>
+                                Provide your bank account details for sponsors to send payments
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Bank Name</label>
+                                <input type="text" name="sponsorship_bank_name" class="form-input" 
+                                    placeholder="e.g., Bank of Ceylon">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Account Holder Name</label>
+                                <input type="text" name="sponsorship_account_name" class="form-input" 
+                                    placeholder="e.g., University Events Committee">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required">Account Number</label>
+                                <input type="text" name="sponsorship_account_number" class="form-input" 
+                                    placeholder="e.g., 123456789">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Branch Name</label>
+                                <input type="text" name="sponsorship_branch" class="form-input" 
+                                    placeholder="e.g., Colombo Fort Branch">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">SWIFT Code (for international transfers)</label>
+                                <input type="text" name="sponsorship_swift_code" class="form-input" 
+                                    placeholder="e.g., BCEYLKLX">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Payment Instructions</label>
+                                <textarea name="sponsorship_instructions" class="form-textarea" rows="3"
+                                    placeholder="Additional instructions for sponsors (e.g., 'Please include event name in payment reference')"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    Sponsorship Proposal Document
+                                    <span style="color: #ef4444;">*</span>
+                                </label>
+                                <div class="file-upload-container">
+                                    <input type="file" 
+                                        name="sponsorship_proposal" 
+                                        id="sponsorship_proposal" 
+                                        class="file-input"
+                                        accept=".pdf,.doc,.docx,.ppt,.pptx"
+                                        required
+                                        onchange="handleProposalFileSelect(event)">
+                                    <label for="sponsorship_proposal" class="file-upload-label">
+                                        <i class="fas fa-upload"></i>
+                                        <span id="proposalFileName">Upload proposal document (PDF, DOC, PPT)</span>
+                                    </label>
+                                    <small class="helper-text">
+                                        <strong>Required:</strong> Upload a detailed proposal document that sponsors can view before making a decision. Max size: 10MB
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Sponsorship Packages Section -->
+                            <div class="info-note" style="margin-top: 30px;">
+                                <i class="fas fa-gift"></i>
+                                Create sponsorship packages with different levels and benefits
+                            </div>
+
+                            <div class="sponsorship-package-builder">
+                                <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                    <i class="fas fa-plus-circle" style="color: #4A5BCC; margin-right: 8px;"></i>
+                                    Add Sponsorship Package
+                                </h4>
+
+                                <div class="package-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div>
+                                        <label class="form-label">Package Type</label>
+                                        <select id="packageType" class="form-select">
+                                            <option value="bronze">Bronze</option>
+                                            <option value="silver">Silver</option>
+                                            <option value="gold">Gold</option>
+                                            <option value="platinum">Platinum</option>
+                                            <option value="custom">Custom Package</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Package Name</label>
+                                        <input type="text" id="packageName" class="form-input"
+                                            placeholder="e.g., Bronze Sponsor">
+                                    </div>
+                                </div>
+
+                                <div class="package-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                                    <div>
+                                        <label class="form-label">Amount (LKR)</label>
+                                        <input type="number" id="packageAmount" class="form-input"
+                                            placeholder="e.g., 50000" min="0" step="100">
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Available Slots</label>
+                                        <input type="number" id="packageSlots" class="form-input"
+                                            placeholder="e.g., 5" min="1" value="1">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top: 15px;">
+                                    <label class="form-label">Package Description</label>
+                                    <textarea id="packageDescription" class="form-textarea" rows="2"
+                                        placeholder="Brief description of this sponsorship package"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Benefits & Perks</label>
+                                    <textarea id="packageBenefits" class="form-textarea" rows="3"
+                                        placeholder="List the benefits (e.g., Logo on event materials, Social media mentions, VIP seating)"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Terms & Conditions</label>
+                                    <textarea id="packageTerms" class="form-textarea" rows="2"
+                                        placeholder="Any terms or conditions for this package (optional)"></textarea>
+                                </div>
+
+                                <button type="button" class="add-field-btn" onclick="addSponsorshipPackage()">
+                                    <i class="fas fa-plus"></i> Add Package
+                                </button>
+                            </div>
+
+                            <!-- Packages Preview -->
+                            <div class="sponsorship-packages-preview" style="margin-top: 30px;">
+                                <h4 style="margin-bottom: 15px; font-size: 16px; color: #333;">
+                                    <i class="fas fa-gifts" style="color: #FF6B35; margin-right: 8px;"></i>
+                                    Sponsorship Packages
+                                </h4>
+                                <div id="sponsorshipPackagesDisplay">
+                                    <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">
+                                        No sponsorship packages added yet. Add packages above to see them here.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section class="section" id="custom-fields">
                     <div class="section-header">
                         <div class="section-icon"></div>
@@ -938,7 +1110,9 @@
                 <div class="bottom-actions">
                     <button type="button" class="cancel-btn" onclick="window.location.href='/unipulse/public/publisher/events'">Cancel</button>
                     <div class="action-buttons">
-                        <!-- <button type="button" class="save-draft-btn">Save draft</button> -->
+                        <button type="button" class="save-draft-btn" id="clearDraftBtn" style="background: #6B7280; display: none;">
+                            <i class="fas fa-trash"></i> Clear Draft
+                        </button>
                         <button type="submit" class="publish-btn">Publish Event</button>
                     </div>
                 </div>
@@ -1871,6 +2045,10 @@
         })
         .then(data => {
             if (data.success) {
+                // Clear draft on successful submission
+                localStorage.removeItem('event_draft');
+                console.log('Draft cleared after successful submission');
+                
                 // Show success message
                 showSuccessMessage('Event created successfully! Redirecting to events page...');
                 
@@ -1898,6 +2076,229 @@
             submitBtn.disabled = false;
         });
     });
+
+    // AUTO-SAVE DRAFT FUNCTIONALITY
+    const DRAFT_KEY = 'event_draft';
+    const form = document.getElementById('create-event');
+    let saveTimeout;
+
+    // Save draft to localStorage
+    function saveDraft() {
+        const formData = new FormData(form);
+        const draft = {};
+        
+        // Save all form fields
+        for (let [key, value] of formData.entries()) {
+            if (key !== 'cover_image') { // Skip file inputs
+                draft[key] = value;
+            }
+        }
+        
+        // Save checkboxes separately (FormData doesn't include unchecked boxes)
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            draft[cb.name || cb.id] = cb.checked;
+        });
+        
+        // Save hidden inputs (ticket_types, schedule, custom_fields, etc.)
+        draft.ticket_types = document.getElementById('ticket_types_input')?.value || '';
+        draft.schedule = document.getElementById('schedule_input')?.value || '';
+        draft.custom_fields = document.getElementById('custom_fields_input')?.value || '';
+        draft.volunteer_positions = document.getElementById('volunteer_positions_input')?.value || '';
+        draft.sponsorship_packages = document.getElementById('sponsorship_packages_input')?.value || '';
+        
+        // Save timestamp
+        draft.saved_at = new Date().toISOString();
+        
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        console.log('Draft saved at', new Date().toLocaleTimeString());
+    }
+
+    // Load draft from localStorage
+    function loadDraft() {
+        const draftJson = localStorage.getItem(DRAFT_KEY);
+        if (!draftJson) return;
+        
+        try {
+            const draft = JSON.parse(draftJson);
+            
+            // Restore text inputs, textareas, and selects
+            Object.keys(draft).forEach(key => {
+                if (key === 'saved_at') return;
+                
+                const field = form.querySelector(`[name="${key}"]`);
+                if (field) {
+                    if (field.type === 'checkbox') {
+                        field.checked = draft[key] === true || draft[key] === '1';
+                    } else if (field.type === 'radio') {
+                        if (field.value === draft[key]) {
+                            field.checked = true;
+                        }
+                    } else {
+                        field.value = draft[key];
+                    }
+                }
+            });
+            
+            // Restore checkboxes by ID
+            if (draft.volunteerToggle) {
+                const volToggle = document.getElementById('volunteerToggle');
+                if (volToggle) volToggle.checked = true;
+            }
+            if (draft.donationToggle) {
+                const donToggle = document.getElementById('donationToggle');
+                if (donToggle) donToggle.checked = true;
+            }
+            if (draft.sponsorshipToggle) {
+                const sponsorToggle = document.getElementById('sponsorshipToggle');
+                if (sponsorToggle) sponsorToggle.checked = true;
+            }
+            
+            // Restore ticket types if exists
+            if (draft.ticket_types && draft.ticket_types !== '[]' && draft.ticket_types !== '') {
+                document.getElementById('ticket_types_input').value = draft.ticket_types;
+                // Trigger display of saved tickets
+                try {
+                    const tickets = JSON.parse(draft.ticket_types);
+                    // You may need to call a function to display these tickets
+                } catch (e) {
+                    console.error('Error parsing saved tickets:', e);
+                }
+            }
+            
+            // Restore sponsorship packages
+            if (draft.sponsorship_packages && draft.sponsorship_packages !== '[]' && draft.sponsorship_packages !== '') {
+                document.getElementById('sponsorship_packages_input').value = draft.sponsorship_packages;
+                if (typeof sponsorshipPackages !== 'undefined' && typeof displaySponsorshipPackages === 'function') {
+                    try {
+                        sponsorshipPackages = JSON.parse(draft.sponsorship_packages);
+                        displaySponsorshipPackages();
+                    } catch (e) {
+                        console.error('Error restoring sponsorship packages:', e);
+                    }
+                }
+            }
+            
+            // Trigger toggle functions to show/hide sections
+            if (typeof toggleVolunteerDetails === 'function') toggleVolunteerDetails();
+            if (typeof toggleSponsorshipDetails === 'function') toggleSponsorshipDetails();
+            
+            // Show notification
+            const savedDate = new Date(draft.saved_at);
+            console.log('Draft restored from', savedDate.toLocaleString());
+            
+            // Show a subtle notification to user
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #10B981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;';
+            notification.innerHTML = `<i class="fas fa-check-circle"></i> Draft restored from ${savedDate.toLocaleTimeString()}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            
+        } catch (e) {
+            console.error('Error loading draft:', e);
+        }
+    }
+
+    // Auto-save on input change (debounced)
+    form.addEventListener('input', function(e) {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveDraft, 2000); // Save 2 seconds after last input
+    });
+
+    // Save on form field change
+    form.addEventListener('change', function(e) {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(saveDraft, 500); // Save 0.5 seconds after change
+    });
+
+    // Clear draft on successful submission
+    form.addEventListener('submit', function(e) {
+        // Don't clear immediately - wait for success response
+        // This is handled in the fetch success callback
+    });
+
+    // Load draft when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(loadDraft, 500); // Small delay to ensure all elements are loaded
+        
+        // Show/hide clear draft button based on draft existence
+        const clearDraftBtn = document.getElementById('clearDraftBtn');
+        if (clearDraftBtn) {
+            if (localStorage.getItem(DRAFT_KEY)) {
+                clearDraftBtn.style.display = 'inline-block';
+            }
+            
+            clearDraftBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear the saved draft? This cannot be undone.')) {
+                    localStorage.removeItem(DRAFT_KEY);
+                    clearDraftBtn.style.display = 'none';
+                    
+                    // Show notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #EF4444; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;';
+                    notification.innerHTML = `<i class="fas fa-trash"></i> Draft cleared successfully`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease-out';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 2000);
+                    
+                    // Optionally reload the page to clear all fields
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            });
+        }
+    });
+
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Clear draft after successful event creation
+    // Add this to the fetch success handler
+    const originalFetch = form.querySelector('.publish-btn').onclick;
+
+    // Handle sponsorship proposal file selection
+    function handleProposalFileSelect(event) {
+        const file = event.target.files[0];
+        const fileNameSpan = document.getElementById('proposalFileName');
+        
+        if (file) {
+            // Check file size (10MB limit)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                alert('File size exceeds 10MB limit. Please choose a smaller file.');
+                event.target.value = '';
+                fileNameSpan.textContent = 'Upload proposal document (PDF, DOC, PPT)';
+                return;
+            }
+            
+            // Update file name display
+            fileNameSpan.innerHTML = `<i class="fas fa-file-alt"></i> ${file.name}`;
+        } else {
+            fileNameSpan.textContent = 'Upload proposal document (PDF, DOC, PPT)';
+        }
+    }
+
+    // Make function globally accessible
+    window.handleProposalFileSelect = handleProposalFileSelect;
     </script>
 </body>
 
