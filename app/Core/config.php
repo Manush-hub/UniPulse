@@ -10,7 +10,7 @@ if (!isset($_SERVER['SERVER_NAME'])) {
 
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
     // MAMP Configuration (macOS/Windows)
-    define('DBNAME', 'unipulse_db');
+    define('DBNAME', 'unipulse_db-7');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
 
@@ -25,7 +25,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
         define('DBPORT', '8889'); // MAMP default port
     }
 
-    define('ROOT','http://localhost/UniPulse/public');
+    define('ROOT', 'http://localhost/UniPulse/public');
 } else {
     define('ROOT', 'https://www.unipulse.lk');
 }
