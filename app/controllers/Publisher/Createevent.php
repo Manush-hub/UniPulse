@@ -109,6 +109,26 @@ class PublisherCreateevent extends Controller
                 $universityName = $this->getUniversityName($university);
             }
 
+            // Get the event visibility to determine which university/faculty to store
+            $eventVisibility = $_POST['event_visibility'] ?? 'university-only';
+
+            // For visibility filtering, always use the PUBLISHER's university and faculty
+            // This is separate from the event location university/faculty
+            $publisherUniversity = $user['university'] ?? 'unknown';
+            $publisherFaculty = $user['faculty'] ?? null;
+
+            // Determine which university and faculty to store based on visibility
+            // For faculty-only and university-only: use publisher's university/faculty
+            // For all-universities and public: still store publisher's info for reference
+            if ($eventVisibility === 'faculty-only' || $eventVisibility === 'university-only') {
+                $visibilityUniversity = $publisherUniversity;
+                $visibilityFaculty = $publisherFaculty;
+            } else {
+                // For broader visibility, still store publisher info but it won't restrict access
+                $visibilityUniversity = $publisherUniversity;
+                $visibilityFaculty = $publisherFaculty;
+            }
+
             $formData = [
                 'title' => $_POST['event_name'] ?? '',
                 'description' => $_POST['event_description'] ?? '',
@@ -121,9 +141,9 @@ class PublisherCreateevent extends Controller
                 'street_address' => $_POST['street_address'] ?? '',
                 'city' => $_POST['city'] ?? '',
                 'district_province' => $_POST['district_province'] ?? '',
-                'faculty_department' => $_POST['faculty_department'] ?? '',
-                'university' => $university,
-                'university_name' => $universityName,
+                'faculty_department' => $visibilityFaculty,  // Publisher's faculty for visibility filtering
+                'university' => $visibilityUniversity,  // Publisher's university for visibility filtering
+                'university_name' => $this->getUniversityName($visibilityUniversity),
                 'organizer' => $user['name'] ?? $user['full_name'] ?? '',
                 'organizer_email' => $user['email'] ?? '',
                 'max_participants' => null,
