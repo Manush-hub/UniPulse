@@ -1,12 +1,13 @@
 <?php
 
-class DatabaseInitializer {
-    
+class DatabaseInitializer
+{
+
     use Database;
-    
+
     private $requiredTables = [
         'university_users',
-        'public_users', 
+        'public_users',
         'publishers',
         'sponsors',
         'users',
@@ -14,41 +15,44 @@ class DatabaseInitializer {
         'event_comments',
         'notifications'
     ];
-    
-    public function initializeDatabase() {
+
+    public function initializeDatabase()
+    {
         try {
             // First ensure database exists
             $this->createDatabaseIfNotExists();
-            
+
             // Check and create tables if needed
             $this->createTablesIfNotExist();
-            
+
             return true;
         } catch (Exception $e) {
             error_log("Database initialization failed: " . $e->getMessage());
             return false;
         }
     }
-    
-    private function createDatabaseIfNotExists() {
+
+    private function createDatabaseIfNotExists()
+    {
         // Connect without selecting database first
-        $string = "mysql:host=".DBHOST.";port=".DBPORT;
+        $string = "mysql:host=" . DBHOST . ";port=" . DBPORT;
         $conn = new PDO($string, DBUSER, DBPASS);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
+
         // Create database if it doesn't exist
-        $conn->exec("CREATE DATABASE IF NOT EXISTS ".DBNAME." CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        
+        $conn->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
         // Select the database
-        $conn->exec("USE ".DBNAME);
+        $conn->exec("USE " . DBNAME);
     }
-    
-    private function createTablesIfNotExist() {
+
+    private function createTablesIfNotExist()
+    {
         $conn = $this->connect();
-        
+
         // Check which tables exist
         $existingTables = $this->getExistingTables($conn);
-        
+
         // Create missing tables
         foreach ($this->requiredTables as $table) {
             if (!in_array($table, $existingTables)) {
@@ -56,17 +60,19 @@ class DatabaseInitializer {
             }
         }
     }
-    
-    private function getExistingTables($conn) {
+
+    private function getExistingTables($conn)
+    {
         $stmt = $conn->prepare("SHOW TABLES");
         $stmt->execute();
         $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
         return $tables;
     }
-    
-    private function createTable($conn, $tableName) {
+
+    private function createTable($conn, $tableName)
+    {
         $sql = '';
-        
+
         switch ($tableName) {
             case 'university_users':
                 $sql = $this->getUniversityUsersTableSQL();
@@ -93,14 +99,15 @@ class DatabaseInitializer {
                 $sql = $this->getNotificationsTableSQL();
                 break;
         }
-        
+
         if ($sql) {
             $conn->exec($sql);
             error_log("Created table: $tableName");
         }
     }
-    
-    private function getUniversityUsersTableSQL() {
+
+    private function getUniversityUsersTableSQL()
+    {
         return "
             CREATE TABLE university_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,8 +136,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getPublicUsersTableSQL() {
+
+    private function getPublicUsersTableSQL()
+    {
         return "
             CREATE TABLE public_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,8 +159,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getPublishersTableSQL() {
+
+    private function getPublishersTableSQL()
+    {
         return "
             CREATE TABLE publishers (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -176,8 +185,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getSponsorsTableSQL() {
+
+    private function getSponsorsTableSQL()
+    {
         return "
             CREATE TABLE sponsors (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -198,8 +208,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getUsersTableSQL() {
+
+    private function getUsersTableSQL()
+    {
         return "
             CREATE TABLE users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -217,8 +228,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getEventsTableSQL() {
+
+    private function getEventsTableSQL()
+    {
         return "
             CREATE TABLE events (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -227,7 +239,7 @@ class DatabaseInitializer {
                 category ENUM('academic', 'sports', 'cultural', 'technology', 'social', 'workshop') NOT NULL,
                 university VARCHAR(100) NOT NULL,
                 university_name VARCHAR(255) NOT NULL,
-                visibility ENUM('public', 'university', 'faculty') DEFAULT 'public',
+                visibility ENUM('faculty-only', 'university-only', 'all-universities', 'public') DEFAULT 'public',
                 status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
                 event_date DATE NOT NULL,
                 event_time TIME NOT NULL,
@@ -273,8 +285,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getEventCommentsTableSQL() {
+
+    private function getEventCommentsTableSQL()
+    {
         return "
             CREATE TABLE event_comments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -298,8 +311,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getNotificationsTableSQL() {
+
+    private function getNotificationsTableSQL()
+    {
         return "
             CREATE TABLE notifications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -320,19 +334,20 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    public function isDatabaseInitialized() {
+
+    public function isDatabaseInitialized()
+    {
         try {
             $conn = $this->connect();
             $existingTables = $this->getExistingTables($conn);
-            
+
             // Check if all required tables exist
             foreach ($this->requiredTables as $table) {
                 if (!in_array($table, $existingTables)) {
                     return false;
                 }
             }
-            
+
             return true;
         } catch (Exception $e) {
             return false;
