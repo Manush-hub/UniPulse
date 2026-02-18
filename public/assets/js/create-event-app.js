@@ -111,9 +111,27 @@ function toggleLocationFields() {
     if (selectedType === 'inside-university') {
         insideUniversityLocation.classList.remove('hidden');
         outsideUniversityLocation.classList.add('hidden');
+        
+        // Add required to inside university fields
+        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.setAttribute('required', 'required'));
+        
+        // Remove required from outside university fields
+        outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.removeAttribute('required'));
+        outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.removeAttribute('required'));
     } else {
         insideUniversityLocation.classList.add('hidden');
         outsideUniversityLocation.classList.remove('hidden');
+        
+        // Remove required from inside university fields
+        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.removeAttribute('required'));
+        
+        // Add required to outside university fields
+        outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.setAttribute('required', 'required'));
+        outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.setAttribute('required', 'required'));
     }
 }
 
@@ -296,14 +314,27 @@ function updateTicketOptions() {
     freeAllDetails.classList.add("hidden");
     paidAllDetails.classList.add("hidden");
     mixedDetails.classList.add("hidden");
+    
+    // Remove required from all ticket fields
+    document.querySelectorAll('input[name="sale_start_date"], input[name="sale_start_time"], input[name="sale_end_date"], input[name="sale_end_time"]').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('input[name="mixed_sale_start_date"], input[name="mixed_sale_start_time"], input[name="mixed_sale_end_date"], input[name="mixed_sale_end_time"]').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('#ticketTypesList .ticket-type-name, #ticketTypesList .ticket-quantity, #ticketTypesList .ticket-price').forEach(el => el.removeAttribute('required'));
+    document.querySelectorAll('#mixedTicketTypesList .ticket-type-name, #mixedTicketTypesList .ticket-quantity, #mixedTicketTypesList .ticket-price').forEach(el => el.removeAttribute('required'));
 
     // Show details based on selection
     if (freeAllRadio.checked) {
         freeAllDetails.classList.remove("hidden");
+        // No required fields for free-all
     } else if (paidAllRadio.checked) {
         paidAllDetails.classList.remove("hidden");
+        // Add required to paid-all fields
+        document.querySelectorAll('input[name="sale_start_date"], input[name="sale_start_time"], input[name="sale_end_date"], input[name="sale_end_time"]').forEach(el => el.setAttribute('required', 'required'));
+        document.querySelectorAll('#ticketTypesList .ticket-type-name, #ticketTypesList .ticket-quantity, #ticketTypesList .ticket-price').forEach(el => el.setAttribute('required', 'required'));
     } else if (mixedRadio.checked) {
         mixedDetails.classList.remove("hidden");
+        // Add required to mixed sale fields (for outside users)
+        document.querySelectorAll('input[name="mixed_sale_start_date"], input[name="mixed_sale_start_time"], input[name="mixed_sale_end_date"], input[name="mixed_sale_end_time"]').forEach(el => el.setAttribute('required', 'required'));
+        document.querySelectorAll('#mixedTicketTypesList .ticket-type-name, #mixedTicketTypesList .ticket-quantity, #mixedTicketTypesList .ticket-price').forEach(el => el.setAttribute('required', 'required'));
     }
 }
 
@@ -353,18 +384,18 @@ function addTicketType(containerId, counterVar) {
 
     newTicketType.innerHTML = `
         <div class="ticket-type-header">
-            <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name (e.g., VIP, 1st Class)" style="max-width: 250px; margin-bottom: 0;">
+            <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name (e.g., VIP, 1st Class)" style="max-width: 250px; margin-bottom: 0;" required>
             <button type="button" class="remove-ticket-type-btn">×</button>
         </div>
         <div class="ticket-type-details">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div>
-                    <label class="form-label">Quantity Available</label>
-                    <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1" value="100">
+                    <label class="form-label required">Quantity Available</label>
+                    <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1" value="100" required>
                 </div>
                 <div>
-                    <label class="form-label">Price (USD)</label>
-                    <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01" value="10">
+                    <label class="form-label required">Price (LKR)</label>
+                    <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01" value="10" required>
                 </div>
             </div>
             
@@ -452,32 +483,233 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // get donation
 document.addEventListener('DOMContentLoaded', function () {
-    // Add sidebar navigation for donation section
+    // Add sidebar navigation for donation section (only if sidebar exists)
     const sidebar = document.querySelector('.sidebar');
-    const donationSidebarItem = document.createElement('div');
-    donationSidebarItem.classList.add('sidebar-item');
-    donationSidebarItem.setAttribute('data-target', 'donation');
-    donationSidebarItem.textContent = 'Donations';
+    if (sidebar) {
+        const donationSidebarItem = document.createElement('div');
+        donationSidebarItem.classList.add('sidebar-item');
+        donationSidebarItem.setAttribute('data-target', 'donation');
+        donationSidebarItem.textContent = 'Donations';
 
-    // Insert after the ticket item
-    const ticketItem = document.querySelector('.sidebar-item[data-target="ticket"]');
-    ticketItem.parentNode.insertBefore(donationSidebarItem, ticketItem.nextSibling);
+        // Insert after the ticket item
+        const ticketItem = document.querySelector('.sidebar-item[data-target="ticket"]');
+        if (ticketItem) {
+            ticketItem.parentNode.insertBefore(donationSidebarItem, ticketItem.nextSibling);
 
-    // Add click event to scroll to donation section
-    donationSidebarItem.addEventListener('click', () => {
-        // remove previous active
-        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-        donationSidebarItem.classList.add('active');
+            // Add click event to scroll to donation section
+            donationSidebarItem.addEventListener('click', () => {
+                // remove previous active
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                donationSidebarItem.classList.add('active');
 
-        // scroll to section
-        const donationSection = document.getElementById('donation');
+                // scroll to section
+                const donationSection = document.getElementById('donation');
 
-        if (donationSection) {
-            // Expand section if collapsed
-            donationSection.classList.remove('collapsed');
+                if (donationSection) {
+                    // Expand section if collapsed
+                    donationSection.classList.remove('collapsed');
 
-            // Smooth scroll
-            donationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    // Smooth scroll
+                    donationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
         }
-    });
+    }
+});
+
+// SPONSORSHIP TOGGLE FUNCTIONALITY
+const sponsorshipToggle = document.getElementById('sponsorshipToggle');
+const sponsorshipDetails = document.getElementById('sponsorshipDetails');
+
+function toggleSponsorshipDetails() {
+    if (sponsorshipToggle && sponsorshipDetails) {
+        const requiredFields = sponsorshipDetails.querySelectorAll('input[name="sponsorship_bank_name"], input[name="sponsorship_account_name"], input[name="sponsorship_account_number"]');
+        
+        if (sponsorshipToggle.checked) {
+            sponsorshipDetails.classList.remove('hidden');
+            // Add required attribute to bank details fields
+            requiredFields.forEach(field => {
+                field.setAttribute('required', 'required');
+            });
+        } else {
+            sponsorshipDetails.classList.add('hidden');
+            // Remove required attribute when disabled
+            requiredFields.forEach(field => {
+                field.removeAttribute('required');
+            });
+        }
+    }
+}
+
+// Add event listener to sponsorship toggle
+if (sponsorshipToggle) {
+    sponsorshipToggle.addEventListener('change', toggleSponsorshipDetails);
+    // Initialize sponsorship details visibility
+    toggleSponsorshipDetails();
+}
+// SPONSORSHIP PACKAGES FUNCTIONALITY
+let sponsorshipPackages = [];
+let packageCounter = 0;
+
+function addSponsorshipPackage() {
+    const packageType = document.getElementById('packageType').value;
+    const packageName = document.getElementById('packageName').value.trim();
+    const packageAmount = document.getElementById('packageAmount').value;
+    const packageSlots = document.getElementById('packageSlots').value;
+    const packageDescription = document.getElementById('packageDescription').value.trim();
+    const packageBenefits = document.getElementById('packageBenefits').value.trim();
+    const packageTerms = document.getElementById('packageTerms').value.trim();
+
+    // Validation
+    if (!packageName) {
+        alert('Please enter a package name!');
+        return;
+    }
+
+    if (!packageAmount || parseFloat(packageAmount) <= 0) {
+        alert('Please enter a valid amount!');
+        return;
+    }
+
+    if (!packageSlots || parseInt(packageSlots) < 1) {
+        alert('Please enter valid number of slots (minimum 1)!');
+        return;
+    }
+
+    // Create package object
+    const packageData = {
+        id: ++packageCounter,
+        type: packageType,
+        name: packageName,
+        amount: parseFloat(packageAmount),
+        slots: parseInt(packageSlots),
+        description: packageDescription,
+        benefits: packageBenefits,
+        terms: packageTerms
+    };
+
+    sponsorshipPackages.push(packageData);
+    displaySponsorshipPackages();
+
+    // Clear form fields
+    document.getElementById('packageType').value = 'bronze';
+    document.getElementById('packageName').value = '';
+    document.getElementById('packageAmount').value = '';
+    document.getElementById('packageSlots').value = '1';
+    document.getElementById('packageDescription').value = '';
+    document.getElementById('packageBenefits').value = '';
+    document.getElementById('packageTerms').value = '';
+}
+
+function displaySponsorshipPackages() {
+    const display = document.getElementById('sponsorshipPackagesDisplay');
+    
+    if (sponsorshipPackages.length === 0) {
+        display.innerHTML = `
+            <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">
+                No sponsorship packages added yet. Add packages above to see them here.
+            </p>
+        `;
+        return;
+    }
+
+    // Package type colors and icons
+    const packageStyles = {
+        bronze: { color: '#CD7F32', icon: 'medal', label: 'Bronze' },
+        silver: { color: '#C0C0C0', icon: 'medal', label: 'Silver' },
+        gold: { color: '#FFD700', icon: 'crown', label: 'Gold' },
+        platinum: { color: '#E5E4E2', icon: 'gem', label: 'Platinum' },
+        custom: { color: '#6366F1', icon: 'star', label: 'Custom' }
+    };
+
+    display.innerHTML = sponsorshipPackages.map(pkg => {
+        const style = packageStyles[pkg.type] || packageStyles.custom;
+        return `
+            <div class="sponsorship-package-card" style="border: 2px solid ${style.color}; border-radius: 8px; padding: 15px; margin-bottom: 15px; position: relative;">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px;">
+                            <i class="fas fa-${style.icon}" style="color: ${style.color}; font-size: 18px;"></i>
+                            <strong style="font-size: 18px; color: #333;">${pkg.name}</strong>
+                        </div>
+                        <span style="display: inline-block; background: ${style.color}; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                            ${style.label}
+                        </span>
+                    </div>
+                    <button type="button" class="remove-package-btn" onclick="removeSponsorshipPackage(${pkg.id})" 
+                        style="background: #EF4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 24px; color: ${style.color}; font-weight: bold; margin-bottom: 5px;">
+                        LKR ${parseFloat(pkg.amount).toLocaleString()}
+                    </div>
+                    <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
+                        <i class="fas fa-users"></i> ${pkg.slots} slot${pkg.slots > 1 ? 's' : ''} available
+                    </div>
+                </div>
+
+                ${pkg.description ? `
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #E5E7EB;">
+                        <div style="font-weight: 600; color: #333; margin-bottom: 5px;">Description:</div>
+                        <div style="color: #666; font-size: 14px;">${pkg.description}</div>
+                    </div>
+                ` : ''}
+
+                ${pkg.benefits ? `
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #E5E7EB;">
+                        <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                            <i class="fas fa-gift" style="color: ${style.color};"></i> Benefits:
+                        </div>
+                        <div style="color: #666; font-size: 14px; white-space: pre-line;">${pkg.benefits}</div>
+                    </div>
+                ` : ''}
+
+                ${pkg.terms ? `
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #E5E7EB;">
+                        <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                            <i class="fas fa-file-contract"></i> Terms:
+                        </div>
+                        <div style="color: #666; font-size: 13px; white-space: pre-line;">${pkg.terms}</div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+
+    // Update hidden input with JSON
+    document.getElementById('sponsorship_packages_input').value = JSON.stringify(sponsorshipPackages);
+}
+
+function removeSponsorshipPackage(id) {
+    sponsorshipPackages = sponsorshipPackages.filter(pkg => pkg.id !== id);
+    displaySponsorshipPackages();
+}
+
+// Auto-fill package name based on type selection
+document.addEventListener('DOMContentLoaded', function() {
+    const packageTypeSelect = document.getElementById('packageType');
+    const packageNameInput = document.getElementById('packageName');
+    
+    if (packageTypeSelect && packageNameInput) {
+        packageTypeSelect.addEventListener('change', function() {
+            const typeLabels = {
+                bronze: 'Bronze Sponsor',
+                silver: 'Silver Sponsor',
+                gold: 'Gold Sponsor',
+                platinum: 'Platinum Sponsor',
+                custom: ''
+            };
+            
+            // Only auto-fill if the current value is empty or matches a default pattern
+            const currentValue = packageNameInput.value.trim();
+            const isDefaultValue = Object.values(typeLabels).includes(currentValue) || currentValue === '';
+            
+            if (isDefaultValue) {
+                packageNameInput.value = typeLabels[this.value] || '';
+            }
+        });
+    }
 });

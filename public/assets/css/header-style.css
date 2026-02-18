@@ -1,3 +1,19 @@
+/* Remove default form element styles */
+input,
+select,
+button,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: black;
+}
+
 .header {
     position: fixed;
     top: 0;

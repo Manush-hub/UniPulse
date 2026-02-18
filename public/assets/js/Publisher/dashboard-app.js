@@ -1,28 +1,31 @@
+// Global state
+let currentEventFilter = 'all';
+
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
-    initializeDashboard();
-    loadOrganizerData();
-    loadEventsManagement();
-    loadVolunteerData();
-    loadRecentActivity();
-    loadNotifications();
-    setupEventListeners();
-    animateProgressBars();
+    try {
+        initializeDashboard();
+        loadEventsManagement();
+        loadVolunteerData();
+        loadRecentActivity();
+        setupEventListeners();
+        setupEventFilters();
+        animateProgressBars();
+        
+        // Load comments last and independently
+        setTimeout(() => {
+            try {
+                loadRecentComments();
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
 });
 
-// Sample data for event organizer
-const organizerData = {
-    username: 'Jennifer King',
-    displayName: 'Jennifer',
-    role: 'Event Organizer',
-    university: 'University of Moratuwa',
-    upcomingEvents: 7,
-    ticketsSold: 1280,
-    totalVolunteers: 45,
-    confirmedSponsors: 12,
-    totalRevenue: 25600,
-    avatar: '/unipulse/public/assets/images/default-avatar.png'
-};
 
 const eventsData = [
     {
@@ -172,69 +175,324 @@ const recentActivity = [
     }
 ];
 
-const notifications = [
-    {
-        id: 1,
-        title: 'Volunteer Application',
-        message: 'New volunteer application for Tech Summit',
-        time: '10 min ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'Ticket Purchase',
-        message: 'Early bird tickets sold out for Arts Festival',
-        time: '45 min ago',
-        read: false
-    },
-    {
-        id: 3,
-        title: 'Sponsorship Update',
-        message: 'Microsoft confirmed platinum sponsorship',
-        time: '1 hour ago',
-        read: true
-    },
-    {
-        id: 4,
-        title: 'Event Reminder',
-        message: 'Spring Arts Festival starts in 2 days',
-        time: '3 hours ago',
-        read: true
-    }
-];
+
 
 // Dashboard initialization
 function initializeDashboard() {
     console.log('Dashboard initialized');
-    updateUserProfile();
-    setupDropdowns();
     setupModals();
 }
 
 // Load organizer data
-function loadOrganizerData() {
-    const welcomeSection = document.querySelector('.welcome-section');
-    if (welcomeSection) {
-        const welcomeText = welcomeSection.querySelector('.welcome-text h1');
-        if (welcomeText) {
-            welcomeText.textContent = `Welcome back, ${organizerData.displayName}!`;
-        }
 
-        const stats = welcomeSection.querySelectorAll('.stat-number');
-        if (stats.length >= 4) {
-            stats[0].textContent = organizerData.upcomingEvents;
-            stats[1].textContent = organizerData.ticketsSold.toLocaleString();
-            stats[2].textContent = organizerData.totalVolunteers;
-            stats[3].textContent = organizerData.confirmedSponsors;
-        }
-    }
-}
 
 // Load events management
-function loadEventsManagement() {
-    const eventsList = document.querySelector('.events-list');
-    if (!eventsList) return;
+function loadEventsManagement(filter = 'all') {
+    const eventsList = document.querySelector('#eventsManagementList');
+    if (!eventsList) {
+        console.log('Events list container not found');
+        return;
+    }
 
+    // Show loading state
+    eventsList.innerHTML = `
+        <div class="loading-events">
+            <div class="spinner"></div>
+            <p>Loading your events...</p>
+        </div>
+    `;
+
+    const url = `/unipulse/public/publisher/dashboard/getMyEvents${filter !== 'all' ? '?filter=' + filter : ''}`;
+    
+    console.log('Loading events from:', url); // Debug log
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status); // Debug log
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Events data received:', data); // Debug log
+            if (data.success) {
+                console.log('Number of events:', data.events.length); // Debug log
+                displayEvents(data.events);
+            } else {
+                console.error('Events API error:', data.error);
+                eventsList.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load events: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading events:', error);
+            eventsList.innerHTML = `
+                <div class="error-message">
+                    <p>Failed to load events. Please try again.</p>
+                    <small style="color: #999;">${error.message}</small>
+                </div>
+            `;
+        });
+}
+
+// Setup event filter buttons
+function setupEventFilters() {
+    const filterButtons = document.querySelectorAll('.event-filters .filter-btn');
+    
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active state
+            filterButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Get filter value
+            const filter = this.getAttribute('data-filter');
+            currentEventFilter = filter;
+            
+            // Reload events
+            loadEventsManagement(filter);
+        });
+    });
+}
+
+// Display events from API
+// --- Event Slider Pagination ---
+let eventsSliderPage = 0;
+const EVENTS_PER_PAGE = 3;
+let eventsSliderData = [];
+
+function displayEvents(events) {
+    const eventsList = document.querySelector('#eventsManagementList');
+    eventsSliderData = events;
+    if (events.length === 0) {
+        const filterText = currentEventFilter === 'upcoming' ? 'upcoming ' : currentEventFilter === 'past' ? 'past ' : '';
+        eventsList.innerHTML = `
+            <div class="no-events">
+                <div class="no-events-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </div>
+                <h3>No ${filterText}Events</h3>
+                <p>${currentEventFilter === 'all' ? 'Start creating events to manage them from your dashboard.' : `You don't have any ${filterText}events.`}</p>
+                ${currentEventFilter === 'all' ? `<button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/createevent'">Create Your First Event</button>` : ''}
+            </div>
+        `;
+        return;
+    }
+    // Show only a page of events
+    renderEventsSliderPage();
+    setupSliderButtons();
+}
+
+function renderEventsSliderPage() {
+    const eventsList = document.querySelector('#eventsManagementList');
+    eventsList.innerHTML = '';
+    const start = eventsSliderPage * EVENTS_PER_PAGE;
+    const end = start + EVENTS_PER_PAGE;
+    const pageEvents = eventsSliderData.slice(start, end);
+    pageEvents.forEach(event => {
+        const eventCard = createEventCard(event);
+        eventsList.appendChild(eventCard);
+    });
+}
+
+function setupSliderButtons() {
+    const prevBtn = document.getElementById('prevEventsBtn');
+    const nextBtn = document.getElementById('nextEventsBtn');
+    if (!prevBtn || !nextBtn) return;
+    prevBtn.disabled = eventsSliderPage === 0;
+    nextBtn.disabled = (eventsSliderPage + 1) * EVENTS_PER_PAGE >= eventsSliderData.length;
+    prevBtn.onclick = function() {
+        if (eventsSliderPage > 0) {
+            eventsSliderPage--;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
+    nextBtn.onclick = function() {
+        if ((eventsSliderPage + 1) * EVENTS_PER_PAGE < eventsSliderData.length) {
+            eventsSliderPage++;
+            renderEventsSliderPage();
+            setupSliderButtons();
+        }
+    };
+}
+
+// Create event card with same UI as events page
+function createEventCard(event) {
+    const card = document.createElement('div');
+    card.className = 'event-card';
+    
+    // Format date
+    const eventDate = new Date(event.event_date);
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+    };
+    
+    const eventTime = event.event_time ? event.event_time.substring(0, 5) : '';
+    
+    // Capitalize helper
+    const capitalizeFirstLetter = (str) => {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    };
+    
+    // Location display
+    let locationDisplay = '';
+    let secondaryInfo = '';
+    const locationType = event.location_type || 'inside-university';
+    
+    if (locationType === 'outside-university') {
+        if (event.venue_name && event.city) {
+            locationDisplay = `${event.venue_name}, ${event.city}`;
+        } else if (event.venue_name) {
+            locationDisplay = event.venue_name;
+        } else if (event.city) {
+            locationDisplay = event.city;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+    } else {
+        if (event.exact_location && event.university_name) {
+            locationDisplay = `${event.exact_location}, ${event.university_name}`;
+        } else if (event.exact_location) {
+            locationDisplay = event.exact_location;
+        } else if (event.university_name) {
+            locationDisplay = event.university_name;
+        } else {
+            locationDisplay = 'Location TBA';
+        }
+        if (event.faculty_department && event.university_name) {
+            secondaryInfo = `${event.faculty_department}, ${event.university_name}`;
+        } else if (event.faculty_department) {
+            secondaryInfo = event.faculty_department;
+        } else if (event.university_name) {
+            secondaryInfo = event.university_name;
+        }
+    }
+    
+    // Image path
+    let imagePath = '';
+    const coverImage = event.cover_image;
+    if (coverImage) {
+        if (coverImage.startsWith('http')) {
+            imagePath = coverImage;
+        } else if (coverImage.startsWith('/')) {
+            imagePath = coverImage;
+        } else {
+            imagePath = `/unipulse/public/${coverImage}`;
+        }
+    }
+    
+    // Ticket price display
+    const getTicketPriceDisplay = (event) => {
+        const ticketType = event.ticket_type;
+        if (ticketType === 'free-all') {
+            return '<div class="event-price free">Free</div>';
+        } else if (ticketType === 'paid-all') {
+            const price = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
+        } else if (ticketType === 'both') {
+            const freePrice = parseFloat(event.ticket_price_free) || 0;
+            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
+            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
+        }
+        return '<div class="event-price">TBA</div>';
+    };
+    
+    const currentParticipants = event.current_participants || 0;
+    const maxParticipants = event.max_participants;
+    
+    card.innerHTML = `
+        <div class="event-image">
+            ${imagePath ? 
+                `<img src="${imagePath}" alt="${event.title}">` : 
+                `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>`
+            }
+            <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
+            <div class="event-status ${event.status}">${event.status}</div>
+        </div>
+        <div class="event-content">
+            <h3 class="event-title">${event.title}</h3>
+            <p class="event-description">${event.description}</p>
+            <div class="event-meta">
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>${formatDate(eventDate)} at ${eventTime}</span>
+                </div>
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>${locationDisplay}</span>
+                </div>
+                ${secondaryInfo ? `
+                <div class="meta-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                    </svg>
+                    <span>${secondaryInfo}</span>
+                </div>
+                ` : ''}
+            </div>
+            <div class="event-footer">
+                <div class="event-organizer">
+                    Organized by ${event.organizer_name || 'You'}
+                </div>
+                <div class="event-footer-right">
+                    ${getTicketPriceDisplay(event)}
+                    ${maxParticipants !== null && maxParticipants !== undefined ? `
+                    <div class="event-participants">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <span>${currentParticipants}/${maxParticipants}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Make card clickable
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+        window.location.href = `/unipulse/public/publisher/eventview?id=${event.id}`;
+    });
+    
+    return card;
+}
+
+// Fallback to display static events
+function displayStaticEvents() {
+    const eventsList = document.querySelector('.events-list');
     eventsList.innerHTML = '';
 
     eventsData.forEach(event => {
@@ -257,6 +515,19 @@ function loadEventsManagement() {
         `;
         eventsList.appendChild(eventItem);
     });
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    const statusClasses = {
+        'active': 'status-active',
+        'upcoming': 'status-upcoming',
+        'ongoing': 'status-ongoing',
+        'completed': 'status-completed',
+        'cancelled': 'status-cancelled',
+        'draft': 'status-draft'
+    };
+    return statusClasses[status] || 'status-unknown';
 }
 
 // Load volunteer data
@@ -327,69 +598,10 @@ function loadRecentActivity() {
     });
 }
 
-// Load notifications
-function loadNotifications() {
-    const notificationList = document.querySelector('.notification-list');
-    if (!notificationList) return;
 
-    notificationList.innerHTML = '';
-
-    const unreadCount = notifications.filter(n => !n.read).length;
-    const notificationBadge = document.querySelector('.notification-badge');
-    if (notificationBadge) {
-        notificationBadge.textContent = unreadCount;
-        notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    }
-
-    notifications.forEach(notification => {
-        const notificationItem = document.createElement('div');
-        notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
-        notificationItem.innerHTML = `
-            <div class="notification-content">
-                <h4>${notification.title}</h4>
-                <p>${notification.message}</p>
-                <span class="notification-time">${notification.time}</span>
-            </div>
-        `;
-        notificationList.appendChild(notificationItem);
-    });
-}
 
 // Setup event listeners
 function setupEventListeners() {
-    // Notification dropdown toggle
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.querySelector('.notification-dropdown');
-
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-
-    // User dropdown toggle
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.querySelector('.user-dropdown');
-
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function (e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-        });
-    }
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function (e) {
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
-
-        if (userDropdown && !userDropdown.contains(e.target) && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-    });
-
     // Quick action cards
     const actionCards = document.querySelectorAll('.action-card');
     actionCards.forEach(card => {
@@ -411,39 +623,8 @@ function setupEventListeners() {
     });
 }
 
-// Setup dropdowns
-function setupDropdowns() {
-    // User dropdown
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.querySelector('.user-dropdown');
 
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function () {
-            userDropdown.classList.toggle('show');
-        });
-    }
 
-    // Notification dropdown
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.querySelector('.notification-dropdown');
-
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function () {
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function (e) {
-        if (userDropdown && !userDropdown.contains(e.target) && userMenu && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && notificationBtn && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
-    });
-}
 
 // Setup modals
 function setupModals() {
@@ -509,13 +690,14 @@ function showDeleteModal(eventId) {
     }
 }
 
-// Delete event function
 function deleteEvent(eventId) {
     console.log('Deleting event with ID:', eventId);
     // In a real application, this would make an API call to delete the event
 
     // Show success message
-    showToast('Event deleted successfully', 'success');
+    if (typeof showToast === 'function') {
+        showToast('Event deleted successfully', 'success');
+    }
 
     // Remove from UI
     const eventItem = document.querySelector(`.event-item[data-id="${eventId}"]`);
@@ -527,33 +709,25 @@ function deleteEvent(eventId) {
     loadEventsManagement();
 }
 
-// Edit event function
+function viewEvent(eventId) {
+    console.log('Viewing event with ID:', eventId);
+    if (typeof showToast === 'function') {
+        showToast('Loading event details...', 'info');
+    }
+    // Redirect to event view page
+    window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
+}
+
 function editEvent(eventId) {
     console.log('Editing event with ID:', eventId);
-    // In a real application, this would redirect to the edit page
-    showToast('Redirecting to edit event page', 'info');
-    // window.location.href = `/unipulse/organizer/edit-event.html?id=${eventId}`;
+    if (typeof showToast === 'function') {
+        showToast('Loading event editor...', 'info');
+    }
+    // Redirect to edit event page
+    window.location.href = `/unipulse/public/publisher/editevent/${eventId}`;
 }
 
-// Update user profile in the header
-function updateUserProfile() {
-    const usernameElement = document.querySelector('.username');
-    const userRoleElement = document.querySelector('.user-role');
-    const avatarElement = document.querySelector('.avatar');
 
-    if (usernameElement) {
-        usernameElement.textContent = organizerData.username;
-    }
-
-    if (userRoleElement) {
-        userRoleElement.textContent = organizerData.role;
-    }
-
-    if (avatarElement && organizerData.avatar) {
-        avatarElement.src = organizerData.avatar;
-        avatarElement.alt = organizerData.username;
-    }
-}
 
 // Animate progress bars
 function animateProgressBars() {
@@ -565,40 +739,7 @@ function animateProgressBars() {
     });
 }
 
-// Show toast notification
-function showToast(message, type = 'info') {
-    // Create toast element if it doesn't exist
-    let toastContainer = document.querySelector('.toast-container');
-    if (!toastContainer) {
-        toastContainer = document.createElement('div');
-        toastContainer.className = 'toast-container';
-        toastContainer.style.position = 'fixed';
-        toastContainer.style.bottom = '20px';
-        toastContainer.style.right = '20px';
-        toastContainer.style.zIndex = '10000';
-        document.body.appendChild(toastContainer);
-    }
 
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-
-    toastContainer.appendChild(toast);
-
-    // Trigger reflow
-    void toast.offsetWidth;
-
-    // Show toast
-    toast.classList.add('show');
-
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            toastContainer.removeChild(toast);
-        }, 300);
-    }, 3000);
-}
 
 // Format date
 function formatDate(dateString) {
@@ -611,58 +752,38 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// Logout function
-function logout() {
-    console.log('Logging out...');
-    // In a real application, this would clear authentication tokens and redirect
-    showToast('Logging out...', 'info');
 
-    // Simulate logout process
-    setTimeout(() => {
-        window.location.href = '/unipulse/index.html';
-    }, 1000);
-}
-
-// Export data for reports
 function exportReport(type) {
     console.log(`Exporting ${type} report...`);
-    showToast(`Preparing ${type} report for download`, 'info');
+    if (typeof showToast === 'function') {
+        showToast(`Preparing ${type} report for download`, 'info');
+    }
 
     // In a real application, this would generate and download a report
     setTimeout(() => {
-        showToast(`${type} report downloaded successfully`, 'success');
+        if (typeof showToast === 'function') {
+            showToast(`${type} report downloaded successfully`, 'success');
+        }
     }, 2000);
 }
 
-// Handle volunteer status change
 function changeVolunteerStatus(volunteerId, newStatus) {
     console.log(`Changing volunteer ${volunteerId} status to ${newStatus}`);
-    showToast(`Volunteer status updated to ${newStatus}`, 'success');
-}
-
-// Handle sponsorship status change
-function updateSponsorship(sponsorId, action) {
-    console.log(`${action} sponsorship for sponsor ${sponsorId}`);
-    showToast(`Sponsorship ${action} successfully`, 'success');
-}
-
-// Mark all notifications as read
-function markAllAsRead() {
-    notifications.forEach(notification => {
-        notification.read = true;
-    });
-
-    loadNotifications();
-    showToast('All notifications marked as read', 'success');
-}
-
-// Toggle mobile menu
-function toggleMobileMenu() {
-    const nav = document.querySelector('.nav');
-    if (nav) {
-        nav.classList.toggle('show');
+    if (typeof showToast === 'function') {
+        showToast(`Volunteer status updated to ${newStatus}`, 'success');
     }
 }
+
+function updateSponsorship(sponsorId, action) {
+    console.log(`${action} sponsorship for sponsor ${sponsorId}`);
+    if (typeof showToast === 'function') {
+        showToast(`Sponsorship ${action} successfully`, 'success');
+    }
+}
+
+
+
+
 
 // Initialize charts (placeholder for future implementation)
 function initializeCharts() {
@@ -785,13 +906,16 @@ function throttle(func, limit) {
     };
 }
 
-// Copy to clipboard
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Copied to clipboard', 'success');
+        if (typeof showToast === 'function') {
+            showToast('Copied to clipboard', 'success');
+        }
     }).catch(err => {
         console.error('Failed to copy: ', err);
-        showToast('Failed to copy to clipboard', 'error');
+        if (typeof showToast === 'function') {
+            showToast('Failed to copy to clipboard', 'error');
+        }
     });
 }
 
@@ -822,32 +946,7 @@ function removeUrlParam(key) {
     window.history.pushState({}, '', url);
 }
 
-// Check if user is logged in (placeholder)
-function isLoggedIn() {
-    // This would check authentication status
-    return true;
-}
 
-// Redirect if not logged in
-function requireAuth() {
-    if (!isLoggedIn()) {
-        window.location.href = '/unipulse/login.html';
-        return false;
-    }
-    return true;
-}
-
-// Get user permissions
-function getUserPermissions() {
-    // This would return the current user's permissions
-    return ['read_events', 'write_events', 'manage_volunteers', 'view_reports'];
-}
-
-// Check if user has permission
-function hasPermission(permission) {
-    const permissions = getUserPermissions();
-    return permissions.includes(permission);
-}
 
 // Show loading state
 function showLoading(element) {
@@ -861,10 +960,11 @@ function hideLoading(element) {
     element.disabled = false;
 }
 
-// Handle API errors
 function handleApiError(error) {
     console.error('API Error:', error);
-    showToast('An error occurred. Please try again.', 'error');
+    if (typeof showToast === 'function') {
+        showToast('An error occurred. Please try again.', 'error');
+    }
 }
 
 // Generate random ID
@@ -883,40 +983,495 @@ function formatFileSize(bytes) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Toggle dark mode
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode);
-
-    showToast(isDarkMode ? 'Dark mode enabled' : 'Dark mode disabled', 'info');
-}
-
-// Initialize dark mode from localStorage
-function initDarkMode() {
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    if (darkMode) {
-        document.body.classList.add('dark-mode');
+// Load recent comments on publisher's events
+function loadRecentComments() {
+    const container = document.getElementById('recentCommentsContainer');
+    if (!container) {
+        console.log('Recent comments container not found, skipping comments load');
+        return;
     }
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-comments">
+            <div class="spinner"></div>
+            <p>Loading recent comments...</p>
+        </div>
+    `;
+
+    fetch('/unipulse/public/publisher/dashboard/getRecentComments')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayRecentComments(data.comments, data.stats);
+            } else {
+                console.error('Comments API error:', data.error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load comments: ${data.error}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading comments:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <p>Unable to load comments at this time.</p>
+                </div>
+            `;
+        });
 }
 
-// Add these to the initialization
-document.addEventListener('DOMContentLoaded', function () {
-    initDarkMode();
-});
+// Display recent comments
+function displayRecentComments(comments, stats) {
+    const container = document.getElementById('recentCommentsContainer');
+    const totalCommentsEl = document.getElementById('totalComments');
+    const averageRatingEl = document.getElementById('averageRating');
+
+    // Update stats
+    if (totalCommentsEl) totalCommentsEl.textContent = stats.total_comments;
+    if (averageRatingEl) averageRatingEl.textContent = stats.average_rating.toFixed(1);
+
+    if (comments.length === 0) {
+        container.innerHTML = `
+            <div class="no-comments">
+                <div class="no-comments-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <h3>No Comments Yet</h3>
+                <p>Comments from users, publishers, admins, and moderators on your events will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const commentsHtml = comments.map(comment => {
+        const userTypeIcon = getUserTypeIcon(comment.user_type);
+        const ratingStars = comment.rating > 0 ? generateStarRating(comment.rating) : '';
+        
+        return `
+            <div class="comment-item" data-user-type="${comment.user_type}">
+                <div class="comment-header">
+                    <div class="comment-user">
+                        <div class="user-avatar">
+                            ${userTypeIcon}
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">${comment.user_name}</span>
+                            <span class="user-type">${formatUserType(comment.user_type)}</span>
+                        </div>
+                    </div>
+                    <div class="comment-meta">
+                        <span class="comment-date">${comment.formatted_date}</span>
+                        ${ratingStars}
+                    </div>
+                </div>
+                <div class="comment-content">
+                    <div class="comment-event">
+                        <span class="event-label">Event:</span>
+                        <span class="event-title">${comment.event_title}</span>
+                    </div>
+                    <p class="comment-text">${comment.comment_text}</p>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `<div class="comments-list">${commentsHtml}</div>`;
+}
+
+// Get user type icon
+function getUserTypeIcon(userType) {
+    const icons = {
+        'university': '<i class="fas fa-graduation-cap"></i>',
+        'public': '<i class="fas fa-user"></i>',
+        'publisher': '<i class="fas fa-users"></i>',
+        'sponsor': '<i class="fas fa-handshake"></i>',
+        'admin': '<i class="fas fa-user-shield"></i>',
+        'moderator': '<i class="fas fa-user-check"></i>'
+    };
+    return icons[userType] || '<i class="fas fa-user"></i>';
+}
+
+// Format user type for display
+function formatUserType(userType) {
+    const types = {
+        'university': 'University Student',
+        'public': 'Public User',
+        'publisher': 'Event Publisher',
+        'sponsor': 'Sponsor',
+        'admin': 'Administrator',
+        'moderator': 'Moderator'
+    };
+    return types[userType] || 'User';
+}
+
+// Generate star rating display
+function generateStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating - fullStars >= 0.5;
+    let starsHtml = '';
+    
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<i class="fas fa-star"></i>';
+    }
+    
+    if (hasHalfStar) {
+        starsHtml += '<i class="fas fa-star-half-alt"></i>';
+    }
+    
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<i class="far fa-star"></i>';
+    }
+    
+    return `<div class="rating-stars">${starsHtml}</div>`;
+}
 
 // Export functions for use in other modules
 window.EventOrganizerDashboard = {
-    logout,
     exportReport,
     showDeleteModal,
+    viewEvent,
     editEvent,
     changeVolunteerStatus,
     updateSponsorship,
-    markAllAsRead,
-    toggleMobileMenu,
     copyToClipboard,
-    toggleDarkMode,
     formatCurrency,
     formatNumber
 };
+// ===== Event Boosting Functionality =====
+
+// Boost State
+let boostState = {
+    selectedEventId: null,
+    selectedDuration: null,
+    selectedPrice: null,
+    selectedEventName: null
+};
+
+// Initialize boost functionality when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBoostSection);
+} else {
+    initializeBoostSection();
+}
+
+function initializeBoostSection() {
+    setTimeout(() => {
+        loadEventsForBoosting();
+        loadActiveBoosts();
+        setupBoostEventListeners();
+        startBoostAutoRefresh();
+    }, 500);
+}
+
+// Auto-refresh active boosts every 60 seconds to remove expired ones
+let boostRefreshInterval;
+function startBoostAutoRefresh() {
+    // Clear any existing interval
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+    
+    // Refresh every 60 seconds (1 minute)
+    boostRefreshInterval = setInterval(() => {
+        loadActiveBoosts();
+    }, 60000);
+}
+
+// Clean up interval when page is unloaded
+window.addEventListener('beforeunload', () => {
+    if (boostRefreshInterval) {
+        clearInterval(boostRefreshInterval);
+    }
+});
+
+// Load events available for boosting
+async function loadEventsForBoosting() {
+    try {
+        console.log('Loading events for boosting...');
+        const response = await fetch('/unipulse/public/publisher/dashboard/getEventsForBoosting');
+        console.log('Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('Events data:', data);
+        
+        const eventSelect = document.getElementById('eventSelect');
+        if (!eventSelect) {
+            console.error('Event select element not found!');
+            return;
+        }
+        
+        if (data.success && data.events && data.events.length > 0) {
+            console.log('Found', data.events.length, 'events available for boosting');
+            
+            eventSelect.innerHTML = '<option value="">Select an event to boost</option>' +
+                data.events.map(event => {
+                    const eventDate = formatBoostDate(event.event_date);
+                    return `<option value="${event.id}" data-title="${event.title}">${event.title} - ${eventDate}</option>`;
+                }).join('');
+        } else {
+            console.log('No events available or failed to load');
+            eventSelect.innerHTML = '<option value="">No events available for boosting</option>';
+            
+            // Show helpful message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'boost-info-message';
+            messageDiv.style.cssText = `
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #eff6ff;
+                border-left: 4px solid #3b82f6;
+                border-radius: 8px;
+                color: #1e40af;
+                font-size: 0.9rem;
+            `;
+            messageDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <strong>No events available for boosting</strong><br>
+                <small>Events with active boosts cannot be boosted again until the current boost expires. You can re-boost events after their boost period ends.</small>
+            `;
+            
+            const formGroup = eventSelect.closest('.form-group');
+            if (formGroup && !formGroup.querySelector('.boost-info-message')) {
+                formGroup.appendChild(messageDiv);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading events for boosting:', error);
+        const eventSelect = document.getElementById('eventSelect');
+        if (eventSelect) {
+            eventSelect.innerHTML = '<option value="">Error loading events</option>';
+        }
+    }
+}
+
+// Load active boosts
+async function loadActiveBoosts() {
+    try {
+        const response = await fetch('/unipulse/public/publisher/dashboard/getActiveBoosts');
+        const data = await response.json();
+        
+        const container = document.getElementById('activeBoostsList');
+        if (!container) return;
+        
+        if (data.success && data.boosts && data.boosts.length > 0) {
+            // Filter out any boosts that have already expired (client-side check)
+            const activeBoosts = data.boosts.filter(boost => {
+                const endDate = new Date(boost.boost_end_date);
+                return endDate > new Date();
+            });
+            
+            if (activeBoosts.length > 0) {
+                container.innerHTML = activeBoosts.map(boost => `
+                    <div class="boost-card" data-boost-id="${boost.id}" data-end-date="${boost.boost_end_date}">
+                        <div class="boost-card-header">
+                            <div class="boost-card-title">${boost.event_title}</div>
+                            <span class="boost-status-badge">Active</span>
+                        </div>
+                        <div class="boost-card-details">
+                            <div>
+                                <span><i class="fas fa-calendar"></i> Expires:</span>
+                                <strong>${formatBoostDateTime(boost.boost_end_date)}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-clock"></i> Time Left:</span>
+                                <strong>${boost.time_remaining}</strong>
+                            </div>
+                            <div>
+                                <span><i class="fas fa-money-bill"></i> Amount Paid:</span>
+                                <strong>LKR ${formatBoostNumber(boost.amount_paid)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = `
+                    <div class="loading-boosts">
+                        <i class="fas fa-info-circle"></i>
+                        <p>No active boosts at the moment</p>
+                    </div>
+                `;
+            }
+        } else {
+            container.innerHTML = `
+                <div class="loading-boosts">
+                    <i class="fas fa-info-circle"></i>
+                    <p>No active boosts at the moment</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading active boosts:', error);
+        const container = document.getElementById('activeBoostsList');
+        if (container) {
+            container.innerHTML = `
+                <div class="loading-boosts">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load active boosts</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Setup boost event listeners
+function setupBoostEventListeners() {
+    const eventSelect = document.getElementById('eventSelect');
+    if (eventSelect) {
+        eventSelect.addEventListener('change', function() {
+            boostState.selectedEventId = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            boostState.selectedEventName = selectedOption.dataset.title || '';
+            updateBoostButton();
+        });
+    }
+    
+    const durationCards = document.querySelectorAll('.duration-card');
+    durationCards.forEach(card => {
+        card.addEventListener('click', function() {
+            durationCards.forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            boostState.selectedDuration = parseInt(this.dataset.days);
+            boostState.selectedPrice = parseFloat(this.dataset.price);
+            
+            document.getElementById('boostDuration').value = boostState.selectedDuration;
+            document.getElementById('boostPrice').value = boostState.selectedPrice;
+            
+            updateBoostSummary();
+            updateBoostButton();
+        });
+    });
+    
+    const boostForm = document.getElementById('boostEventForm');
+    if (boostForm) {
+        boostForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            redirectToBoostPayment();
+        });
+    }
+}
+
+function updateBoostSummary() {
+    const selectedDurationEl = document.getElementById('selectedDuration');
+    const totalAmountEl = document.getElementById('totalAmount');
+    
+    if (boostState.selectedDuration) {
+        const durationText = boostState.selectedDuration === 1 ? '1 Day' : `${boostState.selectedDuration} Days`;
+        selectedDurationEl.textContent = durationText;
+    } else {
+        selectedDurationEl.textContent = 'Not selected';
+    }
+    
+    if (boostState.selectedPrice) {
+        totalAmountEl.textContent = `LKR ${formatBoostNumber(boostState.selectedPrice)}`;
+    } else {
+        totalAmountEl.textContent = 'LKR 0';
+    }
+}
+
+function updateBoostButton() {
+    const submitBtn = document.getElementById('boostSubmitBtn');
+    if (!submitBtn) return;
+    
+    const isValid = boostState.selectedEventId && boostState.selectedDuration && boostState.selectedPrice;
+    submitBtn.disabled = !isValid;
+}
+
+function redirectToBoostPayment() {
+    if (!boostState.selectedEventId || !boostState.selectedDuration || !boostState.selectedPrice) {
+        showBoostNotification('Validation Error', 'Please select an event and boost duration', 'error');
+        return;
+    }
+    
+    // Store boost details in sessionStorage for after payment
+    sessionStorage.setItem('boost_pending', JSON.stringify({
+        event_id: boostState.selectedEventId,
+        duration_days: boostState.selectedDuration,
+        amount: boostState.selectedPrice,
+        event_name: boostState.selectedEventName
+    }));
+    
+    // Redirect to payment page with boost parameters
+    const paymentUrl = `/unipulse/public/publisher/payment?` +
+        `type=boost` +
+        `&event_id=${boostState.selectedEventId}` +
+        `&amount=${boostState.selectedPrice}` +
+        `&duration=${boostState.selectedDuration}` +
+        `&description=Event Boost - ${encodeURIComponent(boostState.selectedEventName)}`;
+    
+    window.location.href = paymentUrl;
+}
+
+function showBoostNotification(title, message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white; padding: 1.5rem; border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); z-index: 10000;
+        max-width: 400px; animation: slideIn 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: start; gap: 1rem;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}" 
+               style="font-size: 1.5rem;"></i>
+            <div>
+                <h4 style="margin: 0 0 0.5rem 0; font-weight: 700;">${title}</h4>
+                <p style="margin: 0; font-size: 0.95rem;">${message}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: none; border: none; color: white; font-size: 1.25rem; cursor: pointer; padding: 0; margin-left: auto;">
+                &times;
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+const boostStyle = document.createElement('style');
+boostStyle.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(boostStyle);
+
+function formatBoostDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatBoostDateTime(dateTimeString) {
+    const date = new Date(dateTimeString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+}
+
+function formatBoostNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

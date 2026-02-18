@@ -30,21 +30,48 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Unforgettable Events Start Here</h1>
-            <p>Discover, connect and participate in university events across Sri Lanka through our centralized platform.</p>
-            <div class="hero-buttons">
-                <button class="btn btn-primary">
-                    <i class="fas fa-search"></i>
-                    Find Events
-                </button>
-                <button class="btn btn-secondary">
-                    <i class="fas fa-calendar-plus"></i>
-                    Publish Event
-                </button>
+    <!-- Hero Section with Boosted Events Carousel -->
+    <section class="hero-section">
+        <!-- Promotional Banner (Always Visible) -->
+        <div class="boost-promo-banner" id="boostPromoBanner">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+                <h2>Boost Your Events for Maximum Visibility!</h2>
+                <p>Stand out and reach more participants by boosting your events on UniPulse</p>
+                <button onclick="location.href='/unipulse/public/signin'" class="banner-cta-btn">Get Started</button>
             </div>
+        </div>
+        
+        <div class="hero-carousel" id="heroCarousel">
+            <!-- Hero slides will be dynamically loaded here -->
+        </div>
+        
+        <!-- Hero Controls -->
+        <div class="hero-controls">
+            <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+            </button>
+            <button class="hero-nav-btn next-btn" onclick="nextSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Hero Indicators -->
+        <div class="hero-indicators" id="heroIndicators">
+            <!-- Indicators will be dynamically created -->
+        </div>
+        
+        <!-- Hero Progress Bar -->
+        <div class="hero-progress">
+            <div class="progress-bar" id="progressBar"></div>
         </div>
     </section>
 
@@ -293,46 +320,13 @@
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="logo">
-                        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                    </div>
-                    <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#events">Find Events</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#help">Help Center</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact Info</h4>
-                    <p><i class="fas fa-envelope"></i> info@unipulse.lk</p>
-                    <p><i class="fas fa-phone"></i> +94 11 234 5678</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Colombo, Sri Lanka</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 UniPulse. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/components/footer.php'; ?>
 
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+    </script>
     <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
 
