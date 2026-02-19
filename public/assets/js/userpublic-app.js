@@ -465,7 +465,7 @@ class UserPublicProfile {
                 </p>
                 <p class="event-organizer">
                     <i class="fas fa-users"></i> 
-                    ${event.organizer}
+                    ${event.organizer_name || event.organizer}
                 </p>
                 <p class="event-description">${event.description}</p>
                 <div class="event-actions">

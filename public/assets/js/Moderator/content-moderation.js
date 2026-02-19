@@ -79,7 +79,7 @@ function createEventElement(event) {
             <div class="review-meta">
                 <span class="review-organizer">
                     <i class="fas fa-user"></i>
-                    ${event.organizer}
+                    ${event.organizer_name || event.organizer}
                 </span>
                 <span class="review-category">
                     <i class="fas fa-tag"></i>
@@ -256,7 +256,7 @@ function showEventModal(event) {
         modalBody.innerHTML = `
             <div class="event-details">
                 <h4>Event Information</h4>
-                <p><strong>Organizer:</strong> ${event.organizer}</p>
+                <p><strong>Organizer:</strong> ${event.organizer_name || event.organizer}</p>
                 <p><strong>Category:</strong> ${event.category}</p>
                 <p><strong>Submitted:</strong> ${event.submitted}</p>
                 <p><strong>Description:</strong></p>

@@ -258,16 +258,26 @@ function displayEventDetails(event) {
         }
     }
     
-    // Organizer info
+    // Organizer info - use organizer_name from publisher profile for live updates
     const organizerNameElement = document.getElementById('organizerName');
     if (organizerNameElement) {
-        organizerNameElement.textContent = event.organizer;
+        organizerNameElement.textContent = event.organizer_name || event.organizer;
     }
     
     // Set organizer role if available, otherwise use default
     const organizerRoleElement = document.getElementById('organizerRole');
     if (organizerRoleElement) {
         organizerRoleElement.textContent = event.organizer_role || 'Event Organizer';
+    }
+    
+    // Display organizer profile photo if available
+    const organizerAvatar = document.getElementById('organizerAvatar');
+    if (organizerAvatar) {
+        if (event.organizer_photo) {
+            organizerAvatar.innerHTML = `<img src="${event.organizer_photo}" alt="${event.organizer_name || event.organizer}" />`;
+        } else {
+            organizerAvatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+        }
     }
     
     // Store organizer email for contact function

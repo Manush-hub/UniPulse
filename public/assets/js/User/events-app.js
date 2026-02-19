@@ -408,7 +408,7 @@ function createEventCard(event) {
             </div>
             <div class="event-footer">
                 <div class="event-organizer">
-                    Organized by ${event.organizer}
+                    Organized by ${event.organizer_name || event.organizer}
                 </div>
                 <div class="event-footer-right">
                     ${getTicketPriceDisplay(event)}

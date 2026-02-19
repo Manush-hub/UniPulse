@@ -478,10 +478,15 @@ function createEventCard(event) {
                     ` : ''}
                 </div>
             </div>
+            <div class="event-actions">
+                <button class="action-btn edit-btn" onclick="event.stopPropagation(); editEvent(${event.id})">
+                    <i class="fas fa-edit"></i> Edit Event
+                </button>
+            </div>
         </div>
     `;
     
-    // Make card clickable
+    // Make card clickable to view event details
     card.style.cursor = 'pointer';
     card.addEventListener('click', () => {
         window.location.href = `/unipulse/public/publisher/eventview?id=${event.id}`;
@@ -720,9 +725,6 @@ function viewEvent(eventId) {
 
 function editEvent(eventId) {
     console.log('Editing event with ID:', eventId);
-    if (typeof showToast === 'function') {
-        showToast('Loading event editor...', 'info');
-    }
     // Redirect to edit event page
     window.location.href = `/unipulse/public/publisher/editevent/${eventId}`;
 }

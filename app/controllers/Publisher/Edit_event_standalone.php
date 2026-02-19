@@ -127,7 +127,6 @@ class Edit_event_standalone extends Controller
                 'title' => $_POST['event_name'] ?? '',
                 'description' => $_POST['event_description'] ?? '',
                 'category' => $_POST['event_category'] ?? '',
-                'target_audience' => $_POST['audience'] ?? '',
                 'event_date' => $_POST['event_date'] ?? '',
                 'event_time' => $_POST['event_time'] ?? '',
                 'location' => $_POST['event_location'] ?? '',

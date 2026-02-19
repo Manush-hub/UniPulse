@@ -10,7 +10,6 @@
     <style>
         /* Dropdown with scroll - show 5 items */
         select[name="event_category"],
-        select[name="audience"],
         select[name="location-type"],
         select[name="ticketType"],
         #customFieldType {
@@ -20,7 +19,6 @@
         }
         
         select[name="event_category"] option,
-        select[name="audience"] option,
         select[name="location-type"] option,
         select[name="ticketType"] option,
         #customFieldType option {
@@ -29,7 +27,6 @@
         
         /* Set size attribute to show 5 visible items when opened */
         select[name="event_category"][size],
-        select[name="audience"][size],
         select[name="location-type"][size],
         select[name="ticketType"][size],
         #customFieldType[size] {
@@ -45,25 +42,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        /* Back button - simple style */
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            color: #1E3A8A;
-            text-decoration: none;
-            padding: 10px 0;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-            font-weight: 500;
-            border: none;
-        }
-        .back-button:hover {
-            color: #1e40af;
-            text-decoration: none;
         }
         
         /* Container */
@@ -369,17 +347,30 @@
         <form action="/unipulse/public/publisher/editevent/<?= $data['event_id'] ?>" method="POST" enctype="multipart/form-data" id="edit-event">
             <!-- Hidden field to help with AJAX detection -->
             <input type="hidden" name="ajax" value="1" id="ajax-flag">
-            <input type="hidden" name="ticket_types" id="ticket_types_input" value="">
-            <input type="hidden" name="schedule" id="schedule_input" value="">
-            <input type="hidden" name="custom_fields" id="custom_fields_input" value="">
-            <input type="hidden" name="volunteer_positions" id="volunteer_positions_input" value="">
+            
+            <!-- Hidden fields for read-only data that needs to be submitted -->
+            <input type="hidden" name="event_category" value="<?= htmlspecialchars($data['event']->category) ?>">
+            <input type="hidden" name="event_date" value="<?= htmlspecialchars($data['event']->event_date) ?>">
+            <input type="hidden" name="event_time" value="<?= htmlspecialchars($data['event']->event_time) ?>">
+            <input type="hidden" name="event_location" value="<?= htmlspecialchars($data['event']->location) ?>">
+            <input type="hidden" name="location-type" value="<?= htmlspecialchars($data['event']->location_type ?? 'inside-university') ?>">
+            <input type="hidden" name="venue_name" value="<?= htmlspecialchars($data['event']->venue_name ?? '') ?>">
+            <input type="hidden" name="max_participants" value="<?= htmlspecialchars($data['event']->max_participants) ?>">
+            <input type="hidden" name="ticketType" value="<?= htmlspecialchars($data['event']->ticket_type) ?>">
+            <input type="hidden" name="volunteerToggle" value="<?= htmlspecialchars($data['event']->needs_volunteers ?? 0) ?>">
+            <input type="hidden" name="volunteers_needed" value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>">
+            <input type="hidden" name="donationToggle" value="<?= htmlspecialchars($data['event']->accepts_donations ?? 0) ?>">
+            <?php 
+            $volunteerSources = $data['event']->volunteer_sources ?? [];
+            if (!is_array($volunteerSources)) {
+                $volunteerSources = json_decode($volunteerSources, true) ?? [];
+            }
+            foreach ($volunteerSources as $source): 
+            ?>
+            <input type="hidden" name="volunteer-source[]" value="<?= htmlspecialchars($source) ?>">
+            <?php endforeach; ?>
             
                         <main class="content">
-                <!-- Back button -->
-                <a href="/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
-                </a>
         
                 <h2 style="margin-bottom: 30px;">Edit Event</h2>
         
@@ -430,373 +421,26 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="event_category" class="form-label">Category *</label>
+                            <label for="event_category" class="form-label">Category</label>
                             <div class="input-group">
-                                <select name="event_category" class="form-select" size="1" required>
-                                    <option value="">Select a category</option>
-                                    <?php 
-                                    $categories = [
-                                        'academic' => 'Academic',
-                                        'sports' => 'Sports',
-                                        'cultural' => 'Cultural',
-                                        'technology' => 'Technology',
-                                        'social' => 'Social',
-                                        'workshop' => 'Workshop',
-                                        'business' => 'Business',
-                                        'music' => 'Music'
-                                    ];
-                                    $selectedCategory = $data['old_data']['category'] ?? $data['event']->category;
-                                    foreach ($categories as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedCategory == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <input type="text" class="form-input" disabled
+                                       value="<?php 
+                                       $categories = [
+                                           'academic' => 'Academic',
+                                           'sports' => 'Sports',
+                                           'cultural' => 'Cultural',
+                                           'technology' => 'Technology',
+                                           'social' => 'Social',
+                                           'workshop' => 'Workshop',
+                                           'business' => 'Business',
+                                           'music' => 'Music'
+                                       ];
+                                       echo htmlspecialchars($categories[$data['event']->category] ?? $data['event']->category);
+                                       ?>"
+                                       style="background-color: #f5f5f5; cursor: not-allowed;">
                             </div>
+                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                         </div>
-
-                        <div class="form-group">
-                            <label for="audience" class="form-label">Target Audience *</label>
-                            <div class="input-group">
-                                <select name="audience" class="form-select" size="1" required>
-                                    <?php 
-                                    $audiences = [
-                                        'university-students' => 'University Students',
-                                        'public-users' => 'Public Users',
-                                        'both' => 'Both'
-                                    ];
-                                    $selectedAudience = $data['old_data']['target_audience'] ?? $data['event']->target_audience;
-                                    foreach ($audiences as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedAudience == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Date & Time -->
-                <section class="section" id="location-time">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Date & Time</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="event_date" class="form-label">Event Date *</label>
-                            <div class="input-group">
-                                <input type="date" name="event_date" class="form-input" required
-                                       value="<?= htmlspecialchars($data['old_data']['event_date'] ?? $data['event']->event_date) ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="event_time" class="form-label">Start Time *</label>
-                            <div class="input-group">
-                                <input type="time" name="event_time" class="form-input" required
-                                       value="<?= htmlspecialchars($data['old_data']['event_time'] ?? $data['event']->event_time) ?>">
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Location -->
-                <section class="section" id="location">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Location</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-
-                    <div class="form-group">
-                        <label for="event_location" class="form-label">Location *</label>
-                        <div class="input-group">
-                            <input type="text" name="event_location" class="form-input" required
-                                   value="<?= htmlspecialchars($data['old_data']['location'] ?? $data['event']->location) ?>"
-                                   placeholder="Enter event location">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="location-type" class="form-label">Location Type</label>
-                            <div class="input-group">
-                                <select name="location-type" class="form-select" size="1">
-                                    <?php 
-                                    $locationTypes = [
-                                        'inside-university' => 'Inside University',
-                                        'outside-university' => 'Outside University'
-                                    ];
-                                    $selectedLocationType = $data['old_data']['location_type'] ?? $data['event']->location_type ?? 'inside-university';
-                                    foreach ($locationTypes as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedLocationType == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="venue_name" class="form-label">Venue Name</label>
-                            <div class="input-group">
-                                <input type="text" name="venue_name" class="form-input"
-                                       value="<?= htmlspecialchars($data['old_data']['venue_name'] ?? $data['event']->venue_name ?? '') ?>"
-                                       placeholder="Venue name (optional)">
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Registration Details -->
-                <section class="section" id="ticket">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Registration Details</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="max_participants" class="form-label">Maximum Participants *</label>
-                            <div class="input-group">
-                                <input type="number" name="max_participants" class="form-input" min="1" required
-                                       value="<?= htmlspecialchars($data['old_data']['max_participants'] ?? $data['event']->max_participants) ?>"
-                                       placeholder="Maximum number of participants">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="ticketType" class="form-label">Ticket Type *</label>
-                            <div class="input-group">
-                                <select name="ticketType" class="form-select" size="1" required>
-                                    <?php 
-                                    $ticketTypes = [
-                                        'free-all' => 'Free for All',
-                                        'paid-all' => 'Paid for All',
-                                        'mixed' => 'Mixed (Free & Paid)'
-                                    ];
-                                    $selectedTicketType = $data['old_data']['ticket_type'] ?? $data['event']->ticket_type;
-                                    foreach ($ticketTypes as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedTicketType == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Volunteers Section -->
-                <section class="section" id="Request-Volunteer">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Volunteer Requirements</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-
-                    <div class="volunteer-toggle">
-                        <div class="toggle-container">
-                            <label for="volunteerToggle" style="display: block; margin-bottom: 8px; color: #333;">
-                                Do you want volunteers?
-                            </label>
-
-                            <label class="switch">
-                                <input type="checkbox" id="volunteerToggle" name="volunteerToggle" value="1"
-                                       <?= (($data['old_data']['needs_volunteers'] ?? $data['event']->needs_volunteers) == 1) ? 'checked' : '' ?>>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-
-                        <div id="volunteerDetails" class="volunteer-details <?= (($data['old_data']['needs_volunteers'] ?? $data['event']->needs_volunteers) == 1) ? '' : 'hidden' ?>" style="margin-top: 20px;">
-                            <div class="info-note">
-                                <i class="fas fa-hands-helping"></i>
-                                Select where you'd like to recruit volunteers from
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label required">Volunteer Source</label>
-                                <div class="volunteer-source-options">
-                                    <?php 
-                                    $volunteerSources = $data['old_data']['volunteer_sources'] ?? $data['event']->volunteer_sources ?? [];
-                                    if (!is_array($volunteerSources)) {
-                                        $volunteerSources = json_decode($volunteerSources, true) ?? [];
-                                    }
-                                    ?>
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="faculty-volunteers" name="volunteer-source[]" value="faculty"
-                                            <?= in_array('faculty', $volunteerSources) ? 'checked' : '' ?>>
-                                        <label for="faculty-volunteers">
-                                            <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
-                                            From My Faculty
-                                        </label>
-                                    </div>
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="university-volunteers" name="volunteer-source[]" value="university"
-                                            <?= in_array('university', $volunteerSources) ? 'checked' : '' ?>>
-                                        <label for="university-volunteers">
-                                            <i class="fas fa-university" style="color: #FF6B35; font-size: 18px;"></i>
-                                            From My University
-                                        </label>
-                                    </div>
-                                    <div class="volunteer-source-option">
-                                        <input type="checkbox" id="public-volunteers" name="volunteer-source[]" value="public"
-                                            <?= in_array('public', $volunteerSources) ? 'checked' : '' ?>>
-                                        <label for="public-volunteers">
-                                            <i class="fas fa-users" style="color: #10B981; font-size: 18px;"></i>
-                                            Public Users
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="volunteers_needed" class="form-label required">Number of Volunteers Needed</label>
-                                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">How many volunteers do you need?</p>
-                                <div class="input-group">
-                                    <input type="number" name="volunteers_needed" class="form-input" min="1" max="1000"
-                                           value="<?= htmlspecialchars($data['old_data']['volunteers_needed'] ?? $data['event']->volunteers_needed ?? '') ?>"
-                                           placeholder="e.g., 5" style="max-width: 200px;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Donations Section -->
-                <section class="section" id="donation">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Donation Options</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-
-                    <div class="donation-toggle">
-                        <div class="toggle-container">
-                            <label for="donationToggle" style="display: block; margin-bottom: 8px; color: #333;">
-                                Accept donations for this event?
-                            </label>
-
-                            <label class="switch">
-                                <input type="checkbox" id="donationToggle" name="donationToggle" value="1"
-                                       <?= (($data['old_data']['accepts_donations'] ?? $data['event']->accepts_donations) == 1) ? 'checked' : '' ?>>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Custom Fields Section -->
-                <section class="section" id="custom-fields">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Custom Fields</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <div class="info-note">
-                            <i class="fas fa-info-circle"></i>
-                            Add custom fields to collect additional information from participants during registration
-                        </div>
-
-                        <div class="custom-field-builder">
-                            <div class="form-row" style="margin-bottom: 20px;">
-                                <div class="form-group">
-                                    <label class="form-label">Field Label</label>
-                                    <input type="text" id="customFieldLabel" class="form-input" 
-                                           placeholder="e.g., Dietary Restrictions, T-Shirt Size">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Field Type</label>
-                                    <select id="customFieldType" class="form-select" size="1">
-                                        <option value="text">Text Input</option>
-                                        <option value="textarea">Text Area</option>
-                                        <option value="select">Dropdown</option>
-                                        <option value="checkbox">Checkbox</option>
-                                        <option value="radio">Radio Buttons</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group" id="customFieldOptionsContainer" style="display: none;">
-                                <label class="form-label">Options (comma-separated)</label>
-                                <input type="text" id="customFieldOptions" class="form-input" 
-                                       placeholder="e.g., Small, Medium, Large, XL">
-                                <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                                    Separate each option with a comma
-                                </p>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="customFieldRequired">
-                                    <span>Make this field required</span>
-                                </label>
-                            </div>
-
-                            <button type="button" class="add-field-btn" onclick="addCustomField()">
-                                <i class="fas fa-plus"></i> Add Custom Field
-                            </button>
-                        </div>
-
-                        <!-- Existing Custom Fields Display -->
-                        <?php 
-                        $existingCustomFields = $data['event']->custom_fields ?? [];
-                        if (!is_array($existingCustomFields)) {
-                            $existingCustomFields = json_decode($existingCustomFields, true) ?? [];
-                        }
-                        if (!empty($existingCustomFields)): 
-                        ?>
-                        <div class="custom-fields-preview" style="margin-top: 30px;">
-                            <h4 style="color: #333; margin-bottom: 15px; font-size: 16px;">
-                                <i class="fas fa-list"></i> Current Custom Fields
-                            </h4>
-                            <div id="customFieldsList" class="custom-fields-list">
-                                <?php foreach ($existingCustomFields as $index => $field): ?>
-                                <div class="custom-field-item" data-index="<?= $index ?>">
-                                    <div class="field-info">
-                                        <strong><?= htmlspecialchars($field['label']) ?></strong>
-                                        <span class="field-type-badge"><?= htmlspecialchars($field['type']) ?></span>
-                                        <?php if ($field['required']): ?>
-                                        <span class="required-badge">Required</span>
-                                        <?php endif; ?>
-                                        <?php if (!empty($field['options'])): ?>
-                                        <div class="field-options-display">
-                                            Options: <?= htmlspecialchars(implode(', ', $field['options'])) ?>
-                                        </div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <button type="button" class="remove-field-btn" onclick="removeCustomField(<?= $index ?>)">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php else: ?>
-                        <div class="custom-fields-preview" style="margin-top: 30px; display: none;">
-                            <h4 style="color: #333; margin-bottom: 15px; font-size: 16px;">
-                                <i class="fas fa-list"></i> Custom Fields Preview
-                            </h4>
-                            <div id="customFieldsList" class="custom-fields-list">
-                                <!-- Custom fields will be added here -->
-                            </div>
-                        </div>
-                        <?php endif; ?>
                     </div>
                 </section>
 
@@ -918,35 +562,231 @@
                     </div>
                 </section>
 
-                <!-- Additional Requirements -->
-                <section class="section" id="requirements">
+                <!-- Date & Time (Read-only) -->
+                <section class="section" id="location-time">
                     <div class="section-header">
                         <div class="section-icon"></div>
-                        <h3>Additional Information</h3>
+                        <h3>Date & Time</h3>
                         <div class="toggle-icon" style="margin-left: auto;">▼</div>
                     </div>
                     <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="event_date" class="form-label">Event Date</label>
+                                <div class="input-group">
+                                    <input type="date" class="form-input" disabled
+                                           value="<?= htmlspecialchars($data['event']->event_date) ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
 
-                    <div class="form-group">
-                        <label for="requirements" class="form-label">Requirements (Optional)</label>
-                        <div class="input-group">
-                            <textarea name="requirements" class="form-textarea" 
-                                      placeholder="Any special requirements or instructions for participants..."><?php 
-                                      $requirements = $data['old_data']['requirements'] ?? $data['event']->requirements ?? '';
-                                      if (is_array($requirements)) {
-                                          echo htmlspecialchars(implode("\n", $requirements));
-                                      } else if (is_string($requirements) && !empty($requirements)) {
-                                          $decoded = json_decode($requirements, true);
-                                          if (is_array($decoded)) {
-                                              echo htmlspecialchars(implode("\n", $decoded));
-                                          } else {
-                                              echo htmlspecialchars($requirements);
-                                          }
-                                      }
-                                      ?></textarea>
+                            <div class="form-group">
+                                <label for="event_time" class="form-label">Start Time</label>
+                                <div class="input-group">
+                                    <input type="time" class="form-input" disabled
+                                           value="<?= htmlspecialchars($data['event']->event_time) ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
                         </div>
                     </div>
                 </section>
+
+                <!-- Location (Read-only) -->
+                <section class="section" id="location">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Location</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label for="event_location" class="form-label">Location</label>
+                            <div class="input-group">
+                                <input type="text" class="form-input" disabled
+                                       value="<?= htmlspecialchars($data['event']->location) ?>"
+                                       style="background-color: #f5f5f5; cursor: not-allowed;">
+                            </div>
+                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="location-type" class="form-label">Location Type</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-input" disabled
+                                           value="<?php 
+                                           $locationTypes = [
+                                               'inside-university' => 'Inside University',
+                                               'outside-university' => 'Outside University'
+                                           ];
+                                           echo htmlspecialchars($locationTypes[$data['event']->location_type ?? 'inside-university'] ?? $data['event']->location_type ?? 'Inside University');
+                                           ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+
+                            <?php if (!empty($data['event']->venue_name)): ?>
+                            <div class="form-group">
+                                <label for="venue_name" class="form-label">Venue Name</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-input" disabled
+                                           value="<?= htmlspecialchars($data['event']->venue_name) ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Registration Details (Read-only) -->
+                <section class="section" id="ticket">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Registration Details</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="max_participants" class="form-label">Maximum Participants</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-input" disabled
+                                           value="<?= htmlspecialchars($data['event']->max_participants) ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ticketType" class="form-label">Ticket Type</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-input" disabled
+                                           value="<?php 
+                                           $ticketTypes = [
+                                               'free-all' => 'Free for All',
+                                               'paid-all' => 'Paid for All',
+                                               'mixed' => 'Mixed (Free & Paid)'
+                                           ];
+                                           echo htmlspecialchars($ticketTypes[$data['event']->ticket_type] ?? $data['event']->ticket_type);
+                                           ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Volunteers (Read-only) -->
+                <?php if ($data['event']->needs_volunteers == 1): ?>
+                <section class="section" id="volunteers">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Volunteer Requirements</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="info-note">
+                            <i class="fas fa-info-circle"></i>
+                            This event accepts volunteers from the following sources (cannot be edited)
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Volunteer Source</label>
+                            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                                <?php 
+                                $volunteerSources = $data['event']->volunteer_sources ?? [];
+                                if (!is_array($volunteerSources)) {
+                                    $volunteerSources = json_decode($volunteerSources, true) ?? [];
+                                }
+                                $sourceLabels = [
+                                    'faculty' => '✓ From My Faculty',
+                                    'university' => '✓ From My University',
+                                    'public' => '✓ Public Users'
+                                ];
+                                foreach ($volunteerSources as $source) {
+                                    if (isset($sourceLabels[$source])) {
+                                        echo '<p style="margin: 5px 0; color: #333;"><strong>' . htmlspecialchars($sourceLabels[$source]) . '</strong></p>';
+                                    }
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Number of Volunteers Needed</label>
+                            <div class="input-group">
+                                <input type="number" class="form-input" disabled
+                                       value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>"
+                                       style="background-color: #f5f5f5; cursor: not-allowed; max-width: 200px;">
+                            </div>
+                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                        </div>
+                    </div>
+                </section>
+                <?php endif; ?>
+
+                <!-- Donations (Read-only) -->
+                <section class="section" id="donation">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Donation Options</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                            <p style="margin: 0; color: #333;">
+                                <strong>
+                                    <?php if ($data['event']->accepts_donations == 1): ?>
+                                        ✓ This event accepts donations
+                                    <?php else: ?>
+                                        ✗ This event does not accept donations
+                                    <?php endif; ?>
+                                </strong>
+                            </p>
+                            <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">Cannot be edited</small>
+                        </div>
+                    </div>
+                </section>
+
+                <?php if (!empty($data['event']->requirements)): ?>
+                <!-- Requirements (Read-only) -->
+                <section class="section" id="requirements">
+                    <div class="section-header">
+                        <div class="section-icon"></div>
+                        <h3>Additional Requirements</h3>
+                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label class="form-label">Requirements</label>
+                            <div class="input-group">
+                                <textarea class="form-textarea" disabled
+                                          style="background-color: #f5f5f5; cursor: not-allowed;"><?php 
+                                          $requirements = $data['event']->requirements ?? '';
+                                          if (is_array($requirements)) {
+                                              echo htmlspecialchars(implode("\n", $requirements));
+                                          } else if (is_string($requirements) && !empty($requirements)) {
+                                              $decoded = json_decode($requirements, true);
+                                              if (is_array($decoded)) {
+                                                  echo htmlspecialchars(implode("\n", $decoded));
+                                              } else {
+                                                  echo htmlspecialchars($requirements);
+                                              }
+                                          }
+                                          ?></textarea>
+                            </div>
+                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                        </div>
+                    </div>
+                </section>
+                <?php endif; ?>
 
                 <!-- Action Buttons -->
                 <div class="bottom-actions">
@@ -968,30 +808,6 @@
     <script>
     // Dropdown scroll functionality - show 5 items when opened
     document.addEventListener('DOMContentLoaded', function() {
-        const categorySelect = document.querySelector('select[name="event_category"]');
-        const audienceSelect = document.querySelector('select[name="audience"]');
-        const locationTypeSelect = document.querySelector('select[name="location-type"]');
-        const ticketTypeSelect = document.querySelector('select[name="ticketType"]');
-        const customFieldTypeSelect = document.getElementById('customFieldType');
-        
-        // Apply to all dropdowns
-        [categorySelect, audienceSelect, locationTypeSelect, ticketTypeSelect, customFieldTypeSelect].forEach(select => {
-            if (select) {
-                select.addEventListener('focus', function() {
-                    this.size = 5;
-                });
-                
-                select.addEventListener('blur', function() {
-                    this.size = 1;
-                });
-                
-                select.addEventListener('change', function() {
-                    this.size = 1;
-                    this.blur();
-                });
-            }
-        });
-        
         // Cover image preview functionality
         const coverFileInput = document.getElementById('coverFileInput');
         if (coverFileInput) {
@@ -1145,125 +961,6 @@
             submitBtn.disabled = false;
         });
     });
-
-    // Custom Fields Functionality
-    let customFieldsArray = [];
-    
-    // Load existing custom fields
-    <?php if (!empty($existingCustomFields)): ?>
-    customFieldsArray = <?= json_encode($existingCustomFields) ?>;
-    <?php endif; ?>
-    
-    // Show/hide options field based on field type
-    const customFieldType = document.getElementById('customFieldType');
-    const customFieldOptionsContainer = document.getElementById('customFieldOptionsContainer');
-    
-    if (customFieldType) {
-        customFieldType.addEventListener('change', function() {
-            if (this.value === 'select' || this.value === 'radio' || this.value === 'checkbox') {
-                customFieldOptionsContainer.style.display = 'block';
-            } else {
-                customFieldOptionsContainer.style.display = 'none';
-            }
-        });
-    }
-    
-    function addCustomField() {
-        const label = document.getElementById('customFieldLabel').value.trim();
-        const type = document.getElementById('customFieldType').value;
-        const optionsInput = document.getElementById('customFieldOptions').value.trim();
-        const required = document.getElementById('customFieldRequired').checked;
-        
-        if (!label) {
-            alert('Please enter a field label!');
-            return;
-        }
-        
-        if ((type === 'select' || type === 'radio' || type === 'checkbox') && !optionsInput) {
-            alert('Please enter options for this field type!');
-            return;
-        }
-        
-        // Parse options
-        const options = (type === 'select' || type === 'radio' || type === 'checkbox') 
-            ? optionsInput.split(',').map(opt => opt.trim()).filter(opt => opt !== '')
-            : [];
-        
-        // Add to array
-        const newField = {
-            label: label,
-            type: type,
-            options: options,
-            required: required
-        };
-        customFieldsArray.push(newField);
-        
-        // Update hidden input
-        document.getElementById('custom_fields').value = JSON.stringify(customFieldsArray);
-        
-        // Update UI
-        renderCustomFields();
-        
-        // Clear form
-        document.getElementById('customFieldLabel').value = '';
-        document.getElementById('customFieldOptions').value = '';
-        document.getElementById('customFieldRequired').checked = false;
-        document.getElementById('customFieldType').value = 'text';
-        customFieldOptionsContainer.style.display = 'none';
-    }
-    
-    function removeCustomField(index) {
-        if (confirm('Are you sure you want to remove this custom field?')) {
-            customFieldsArray.splice(index, 1);
-            document.getElementById('custom_fields').value = JSON.stringify(customFieldsArray);
-            renderCustomFields();
-        }
-    }
-    
-    function renderCustomFields() {
-        const preview = document.querySelector('.custom-fields-preview');
-        const list = document.getElementById('customFieldsList');
-        
-        if (customFieldsArray.length === 0) {
-            preview.style.display = 'none';
-            return;
-        }
-        
-        preview.style.display = 'block';
-        list.innerHTML = '';
-        
-        customFieldsArray.forEach((field, index) => {
-            const fieldItem = document.createElement('div');
-            fieldItem.className = 'custom-field-item';
-            fieldItem.setAttribute('data-index', index);
-            
-            let optionsDisplay = '';
-            if (field.options && field.options.length > 0) {
-                optionsDisplay = `
-                    <div class="field-options-display">
-                        Options: ${field.options.join(', ')}
-                    </div>
-                `;
-            }
-            
-            fieldItem.innerHTML = `
-                <div class="field-info">
-                    <strong>${field.label}</strong>
-                    <span class="field-type-badge">${field.type}</span>
-                    ${field.required ? '<span class="required-badge">Required</span>' : ''}
-                    ${optionsDisplay}
-                </div>
-                <button type="button" class="remove-field-btn" onclick="removeCustomField(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            list.appendChild(fieldItem);
-        });
-    }
-    
-    // Initial render
-    renderCustomFields();
     </script>
 </body>
 

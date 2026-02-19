@@ -97,7 +97,7 @@ function createUpcomingEventCard(event) {
                 </svg>
                 ${event.time} • ${event.location}
             </div>
-            <div class="event-organizer">${event.organizer || event.university}</div>
+            <div class="event-organizer">${event.organizer_name || event.organizer || event.university}</div>
         </div>
     `;
 

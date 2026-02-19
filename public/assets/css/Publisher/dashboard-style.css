@@ -554,6 +554,58 @@ body {
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    justify-content: center;
+}
+
+.event-actions .action-btn {
+    flex: 0 0 auto;
+    min-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+}
+
+.event-actions .action-btn i {
+    font-size: 0.9rem;
+}
+
+.event-actions .edit-btn {
+    background: #f97316;
+    color: white;
+    border-color: #f97316;
+}
+
+.event-actions .edit-btn:hover {
+    background: #ea580c;
+    border-color: #ea580c;
+}
+
+.event-actions .view-btn {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.event-actions .view-btn:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.event-actions .boost-btn {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.event-actions .boost-btn:hover {
+    background: #059669;
+    border-color: #059669;
 }
 
 /* Sales & Analytics */
@@ -1174,7 +1226,14 @@ body {
 
     .event-actions {
         width: 100%;
-        justify-content: flex-end;
+        justify-content: center;
+    }
+    
+    .event-actions .action-btn {
+        flex: 0 0 auto;
+        min-width: 140px;
+        font-size: 0.875rem;
+        padding: 0.7rem 1.25rem;
     }
 
     .footer-container {

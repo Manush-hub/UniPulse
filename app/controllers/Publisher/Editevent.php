@@ -184,7 +184,6 @@ class Editevent extends Controller{
                 'district_province' => $_POST['district_province'] ?? '',
                 'faculty_department' => $_POST['faculty_department'] ?? '',
                 'max_participants' => !empty($_POST['max_participants']) ? (int)$_POST['max_participants'] : 100,
-                'target_audience' => $_POST['audience'] ?? 'university-students',
                 'ticket_type' => $_POST['ticketType'] ?? 'free-all',
                 'registration_limit' => !empty($_POST['registration_limit']) ? (int)$_POST['registration_limit'] : null,
                 'registration_start_date' => $_POST['registration_start_date'] ?? null,

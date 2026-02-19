@@ -84,7 +84,6 @@
             <div class="sidebar-item" data-target="upload-cover">Upload cover</div>
             <div class="sidebar-item" data-target="general-info">General information</div>
             <div class="sidebar-item" data-target="location-time">Location and time</div>
-            <div class="sidebar-item" data-target="audience">Audience</div>
             <div class="sidebar-item" data-target="ticket">Ticket</div>
             <div class="sidebar-item" data-target="Request-Volunteer">Request Volunteer</div>
             <div class="sidebar-item" data-target="donation">Donations</div>
@@ -407,49 +406,6 @@
                                     <input type="time" name="event_time" class="form-input" required>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="section" id="audience">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Audience</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <p style="color: #666; margin-bottom: 15px;">
-                            Select who can view and attend your event
-                        </p>
-
-                        <div class="form-group">
-                            <label class="form-label required">Target Audience</label>
-                            <div class="audience-options">
-                                <div class="audience-option">
-                                    <input type="radio" id="university-students" name="audience" value="university-students"
-                                        checked required>
-                                    <label for="university-students">
-                                        <i class="fas fa-graduation-cap" style="color: #4A5BCC; font-size: 18px;"></i>
-                                        University Students
-                                    </label>
-                                </div>
-                                <div class="audience-option">
-                                    <input type="radio" id="public-users" name="audience" value="public-users" required>
-                                    <label for="public-users">
-                                        <i class="fas fa-users" style="color: #FF6B35; font-size: 18px;"></i>
-                                        Public Users
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Additional Requirements</label>
-                            <p style="font-size: 12px; color: #666; margin-bottom: 8px;">Any specific requirements for
-                                attendees (optional)</p>
-                            <textarea name="requirements" class="form-textarea"
-                                placeholder="e.g., Age restrictions, dress code, required documents, etc."
-                                style="min-height: 80px;"></textarea>
                         </div>
                     </div>
                 </section>
@@ -953,7 +909,6 @@
                                         id="sponsorship_proposal" 
                                         class="file-input"
                                         accept=".pdf,.doc,.docx,.ppt,.pptx"
-                                        required
                                         onchange="handleProposalFileSelect(event)">
                                     <label for="sponsorship_proposal" class="file-upload-label">
                                         <i class="fas fa-upload"></i>
@@ -1123,8 +1078,15 @@
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
     
     <script>
+    console.log('=== Create Event Page Script Loading ===');
+    console.log('Script started at:', new Date().toLocaleTimeString());
+    
     // Dropdown scroll functionality for university and faculty selects
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOMContentLoaded fired!');
+        console.log('Form element:', document.getElementById('create-event'));
+        console.log('Publish button:', document.querySelector('.publish-btn'));
+        
         const universitySelect = document.querySelector('select[name="selected_university"]');
         const facultySelect = document.querySelector('select[name="faculty_department"]');
         const categorySelect = document.querySelector('select[name="event_category"]');
@@ -1214,8 +1176,9 @@
         // Click on option div to select radio
         visibilityOptions.forEach(option => {
             option.addEventListener('click', function(e) {
-                if (e.target.type !== 'radio' && e.target.tagName !== 'LABEL') {
-                    const radio = this.querySelector('input[type="radio"]');
+                // Allow clicking anywhere in the option box except directly on the radio button
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio && e.target !== radio) {
                     radio.checked = true;
                     radio.dispatchEvent(new Event('change'));
                 }
@@ -1337,78 +1300,91 @@
     
     // Form Validation Functions
     function validateForm() {
-        const errors = [];
-        
-        // Validate Event Name
-        const eventName = document.querySelector('input[name="event_name"]').value.trim();
-        if (!eventName) {
-            errors.push('Event name is required');
-        } else if (eventName.length < 3) {
-            errors.push('Event name must be at least 3 characters long');
-        } else if (eventName.length > 200) {
-            errors.push('Event name must be less than 200 characters');
-        }
-        
-        // Validate Event Description
-        const eventDescription = document.querySelector('textarea[name="event_description"]').value.trim();
-        if (!eventDescription) {
-            errors.push('Event description is required');
-        } else if (eventDescription.length < 10) {
-            errors.push('Event description must be at least 10 characters long');
-        } else if (eventDescription.length > 5000) {
-            errors.push('Event description must be less than 5000 characters');
-        }
-        
-        // Validate Category
-        const category = document.querySelector('select[name="event_category"]').value;
-        if (!category) {
-            errors.push('Event category is required');
-        }
-        
-        // Validate Cover Image
-        const coverImage = document.querySelector('input[name="cover_image"]');
-        if (!coverImage.files || coverImage.files.length === 0) {
-            errors.push('Event cover image is required');
-        } else {
-            const file = coverImage.files[0];
-            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            const maxSize = 5 * 1024 * 1024; // 5MB
+        try {
+            console.log('validateForm() called');
+            const errors = [];
             
-            if (!allowedTypes.includes(file.type)) {
-                errors.push('Cover image must be JPEG, PNG, GIF, or WebP');
+            // Validate Event Name
+            const eventNameInput = document.querySelector('input[name="event_name"]');
+            const eventName = eventNameInput ? eventNameInput.value.trim() : '';
+            console.log('Event name:', eventName);
+            if (!eventName) {
+                errors.push('Event name is required');
+            } else if (eventName.length < 3) {
+                errors.push('Event name must be at least 3 characters long');
+            } else if (eventName.length > 200) {
+                errors.push('Event name must be less than 200 characters');
             }
             
-            if (file.size > maxSize) {
-                errors.push('Cover image size must not exceed 5MB');
+            // Validate Event Description
+            const eventDescriptionInput = document.querySelector('textarea[name="event_description"]');
+            const eventDescription = eventDescriptionInput ? eventDescriptionInput.value.trim() : '';
+            console.log('Event description length:', eventDescription.length);
+            if (!eventDescription) {
+                errors.push('Event description is required');
+            } else if (eventDescription.length < 10) {
+                errors.push('Event description must be at least 10 characters long');
+            } else if (eventDescription.length > 5000) {
+                errors.push('Event description must be less than 5000 characters');
             }
-        }
+            
+            // Validate Category
+            const categorySelect = document.querySelector('select[name="event_category"]');
+            const category = categorySelect ? categorySelect.value : '';
+            console.log('Category:', category);
+            if (!category) {
+                errors.push('Event category is required');
+            }
+            
+            // Validate Cover Image
+            const coverImageInput = document.querySelector('input[name="cover_image"]');
+            console.log('Cover image input found:', !!coverImageInput);
+            if (!coverImageInput || !coverImageInput.files || coverImageInput.files.length === 0) {
+                errors.push('Event cover image is required');
+            } else {
+                const file = coverImageInput.files[0];
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                
+                console.log('Cover image type:', file.type, 'size:', file.size);
+                
+                if (!allowedTypes.includes(file.type)) {
+                    errors.push('Cover image must be JPEG, PNG, GIF, or WebP');
+                }
+                
+                if (file.size > maxSize) {
+                    errors.push('Cover image size must not exceed 5MB');
+                }
+            }
         
         // Validate Event Date
-        const eventDate = document.querySelector('input[name="event_date"]').value;
-        if (!eventDate) {
-            errors.push('Event date is required');
-        } else {
-            const selectedDate = new Date(eventDate);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            if (selectedDate < today) {
-                errors.push('Event date cannot be in the past');
+            const eventDateInput = document.querySelector('input[name="event_date"]');
+            const eventDate = eventDateInput ? eventDateInput.value : '';
+            if (!eventDate) {
+                errors.push('Event date is required');
+            } else {
+                const selectedDate = new Date(eventDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    errors.push('Event date cannot be in the past');
+                }
+                
+                // Check if date is too far in the future (e.g., more than 2 years)
+                const twoYearsFromNow = new Date();
+                twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
+                if (selectedDate > twoYearsFromNow) {
+                    errors.push('Event date cannot be more than 2 years in the future');
+                }
             }
             
-            // Check if date is too far in the future (e.g., more than 2 years)
-            const twoYearsFromNow = new Date();
-            twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2);
-            if (selectedDate > twoYearsFromNow) {
-                errors.push('Event date cannot be more than 2 years in the future');
-            }
-        }
-        
-        // Validate Event Time
-        const eventTime = document.querySelector('input[name="event_time"]').value;
-        if (!eventTime) {
-            errors.push('Event time is required');
-        } else if (eventDate) {
+            // Validate Event Time
+            const eventTimeInput = document.querySelector('input[name="event_time"]');
+            const eventTime = eventTimeInput ? eventTimeInput.value : '';
+            if (!eventTime) {
+                errors.push('Event time is required');
+            } else if (eventDate) {
             // If event is today, check if time is in the future
             const selectedDate = new Date(eventDate);
             const today = new Date();
@@ -1427,17 +1403,20 @@
         
         // Validate Location
         const locationType = document.querySelector('input[name="location-type"]:checked')?.value || 'inside-university';
-        const eventLocation = document.querySelector('input[name="event_location"]').value.trim();
+        const eventLocationInput = document.querySelector('input[name="event_location"]');
+        const eventLocation = eventLocationInput ? eventLocationInput.value.trim() : '';
         
         if (locationType === 'inside-university') {
             // Validate University
-            const university = document.querySelector('select[name="selected_university"]').value;
+            const universitySelect = document.querySelector('select[name="selected_university"]');
+            const university = universitySelect ? universitySelect.value : '';
             if (!university) {
                 errors.push('University selection is required for inside university events');
             }
             
             // Validate Faculty/Department
-            const faculty = document.querySelector('select[name="faculty_department"]').value;
+            const facultySelect = document.querySelector('select[name="faculty_department"]');
+            const faculty = facultySelect ? facultySelect.value : '';
             if (!faculty) {
                 errors.push('Faculty/Department is required for inside university events');
             }
@@ -1447,8 +1426,10 @@
                 errors.push('Event location is required (e.g., Main Auditorium, Hall A)');
             }
         } else {
-            const venueName = document.querySelector('input[name="venue_name"]').value.trim();
-            const city = document.querySelector('input[name="city"]').value.trim();
+            const venueNameInput = document.querySelector('input[name="venue_name"]');
+            const cityInput = document.querySelector('input[name="city"]');
+            const venueName = venueNameInput ? venueNameInput.value.trim() : '';
+            const city = cityInput ? cityInput.value.trim() : '';
             
             if (!venueName) {
                 errors.push('Venue name is required for outside university events');
@@ -1456,12 +1437,6 @@
             if (!city) {
                 errors.push('City is required for outside university events');
             }
-        }
-        
-        // Validate Target Audience
-        const audience = document.querySelector('input[name="audience"]:checked');
-        if (!audience) {
-            errors.push('Target audience is required');
         }
         
         // Validate Registration/Sale Dates based on ticket type
@@ -1537,11 +1512,13 @@
         }
         
         // Validate Volunteers
-        const needsVolunteers = document.getElementById('volunteerToggle').checked;
+        const volunteerToggle = document.getElementById('volunteerToggle');
+        const needsVolunteers = volunteerToggle ? volunteerToggle.checked : false;
         console.log('Volunteer validation - needsVolunteers:', needsVolunteers);
         
         if (needsVolunteers) {
-            const volunteersNeeded = document.querySelector('input[name="volunteers_needed"]').value;
+            const volunteersNeededInput = document.querySelector('input[name="volunteers_needed"]');
+            const volunteersNeeded = volunteersNeededInput ? volunteersNeededInput.value : '';
             console.log('volunteersNeeded:', volunteersNeeded);
             
             if (!volunteersNeeded) {
@@ -1575,6 +1552,12 @@
         }
         
         return true;
+        
+        } catch (error) {
+            console.error('Validation error:', error);
+            showErrorMessage('An error occurred during validation', { 'error': error.message });
+            return false;
+        }
     }
     
     function validateRegistrationPeriod(errors, eventDate, containerSelector) {
@@ -1858,153 +1841,181 @@
     
     // Initialize real-time validation when page loads
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('Setting up real-time validation...');
         setupRealtimeValidation();
     });
     
     // Collect and store all dynamic form data
     function collectAndStoreFormData() {
-        // Collect ticket types based on ticket type selected
-        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
-        let ticketTypes = [];
+        try {
+            console.log('collectAndStoreFormData() called');
+            // Collect ticket types based on ticket type selected
+            const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+            let ticketTypes = [];
         
-        if (ticketType === 'paid-all') {
-            // Collect from paid-all ticket types list
-            const ticketCards = document.querySelectorAll('#ticketTypesList .ticket-type-item');
-            ticketCards.forEach(card => {
-                const name = card.querySelector('.ticket-type-name')?.value || '';
-                const price = card.querySelector('.ticket-price')?.value || '0';
-                const quantity = card.querySelector('.ticket-quantity')?.value || '0';
-                const description = card.querySelector('textarea')?.value || '';
-                const discountPercent = card.querySelector('.discount-percent')?.value || '';
-                const discountedPrice = card.querySelector('.discounted-price')?.value || '';
-                
-                if (name && price && quantity) {
-                    const ticketData = {
-                        name: name,
-                        price: parseFloat(price),
-                        quantity: parseInt(quantity),
-                        description: description
-                    };
+            if (ticketType === 'paid-all') {
+                // Collect from paid-all ticket types list
+                const ticketCards = document.querySelectorAll('#ticketTypesList .ticket-type-item');
+                ticketCards.forEach(card => {
+                    const name = card.querySelector('.ticket-type-name')?.value || '';
+                    const price = card.querySelector('.ticket-price')?.value || '0';
+                    const quantity = card.querySelector('.ticket-quantity')?.value || '0';
+                    const description = card.querySelector('textarea')?.value || '';
+                    const discountPercent = card.querySelector('.discount-percent')?.value || '';
+                    const discountedPrice = card.querySelector('.discounted-price')?.value || '';
                     
-                    // Add discount info if provided
-                    if (discountPercent && discountedPrice) {
-                        ticketData.discount_percent = parseFloat(discountPercent);
-                        ticketData.discounted_price = parseFloat(discountedPrice);
+                    if (name && price && quantity) {
+                        const ticketData = {
+                            name: name,
+                            price: parseFloat(price),
+                            quantity: parseInt(quantity),
+                            description: description
+                        };
+                        
+                        // Add discount info if provided
+                        if (discountPercent && discountedPrice) {
+                            ticketData.discount_percent = parseFloat(discountPercent);
+                            ticketData.discounted_price = parseFloat(discountedPrice);
+                        }
+                        
+                        ticketTypes.push(ticketData);
                     }
+                });
+            } else if (ticketType === 'mixed') {
+                // Collect from mixed ticket types list
+                const ticketCards = document.querySelectorAll('#mixedTicketTypesList .ticket-type-item');
+                ticketCards.forEach(card => {
+                    const name = card.querySelector('.ticket-type-name')?.value || '';
+                    const price = card.querySelector('.ticket-price')?.value || '0';
+                    const quantity = card.querySelector('.ticket-quantity')?.value || '0';
+                    const description = card.querySelector('textarea')?.value || '';
+                    const discountPercent = card.querySelector('.discount-percent')?.value || '';
+                    const discountedPrice = card.querySelector('.discounted-price')?.value || '';
                     
-                    ticketTypes.push(ticketData);
+                    if (name && price && quantity) {
+                        const ticketData = {
+                            name: name,
+                            price: parseFloat(price),
+                            quantity: parseInt(quantity),
+                            description: description
+                        };
+                        
+                        // Add discount info if provided
+                        if (discountPercent && discountedPrice) {
+                            ticketData.discount_percent = parseFloat(discountPercent);
+                            ticketData.discounted_price = parseFloat(discountedPrice);
+                        }
+                        
+                        ticketTypes.push(ticketData);
+                    }
+                });
+            }
+            
+            // Store ticket types in hidden input
+            document.getElementById('ticket_types_input').value = JSON.stringify(ticketTypes);
+            
+            // Collect schedule
+            const scheduleItems = [];
+            document.querySelectorAll('#scheduleList .schedule-item-card').forEach(item => {
+                const time = item.querySelector('[data-schedule-time]')?.textContent || '';
+                const activity = item.querySelector('[data-schedule-activity]')?.textContent || '';
+                if (time && activity) {
+                    scheduleItems.push({ time, activity });
                 }
             });
-        } else if (ticketType === 'mixed') {
-            // Collect from mixed ticket types list
-            const ticketCards = document.querySelectorAll('#mixedTicketTypesList .ticket-type-item');
-            ticketCards.forEach(card => {
-                const name = card.querySelector('.ticket-type-name')?.value || '';
-                const price = card.querySelector('.ticket-price')?.value || '0';
-                const quantity = card.querySelector('.ticket-quantity')?.value || '0';
-                const description = card.querySelector('textarea')?.value || '';
-                const discountPercent = card.querySelector('.discount-percent')?.value || '';
-                const discountedPrice = card.querySelector('.discounted-price')?.value || '';
-                
-                if (name && price && quantity) {
-                    const ticketData = {
-                        name: name,
-                        price: parseFloat(price),
-                        quantity: parseInt(quantity),
-                        description: description
-                    };
-                    
-                    // Add discount info if provided
-                    if (discountPercent && discountedPrice) {
-                        ticketData.discount_percent = parseFloat(discountPercent);
-                        ticketData.discounted_price = parseFloat(discountedPrice);
-                    }
-                    
-                    ticketTypes.push(ticketData);
+            document.getElementById('schedule_input').value = JSON.stringify(scheduleItems);
+            
+            // Collect custom fields
+            const customFields = [];
+            document.querySelectorAll('#customFieldsList .custom-field-item').forEach(field => {
+                const label = field.querySelector('[data-field-label]')?.textContent || '';
+                const type = field.querySelector('[data-field-type]')?.textContent || '';
+                if (label && type) {
+                    customFields.push({ label, type });
                 }
             });
+            document.getElementById('custom_fields_input').value = JSON.stringify(customFields);
+            
+            // Collect volunteer positions
+            const volunteerPositions = [];
+            document.querySelectorAll('#volunteerPositionsList .position-item').forEach(position => {
+                const text = position.querySelector('span')?.textContent || position.textContent.replace('×', '').trim();
+                if (text) {
+                    volunteerPositions.push(text);
+                }
+            });
+            document.getElementById('volunteer_positions_input').value = JSON.stringify(volunteerPositions);
+            
+            console.log('Collected data:', {
+                ticketTypes: ticketTypes,
+                schedule: scheduleItems,
+                customFields: customFields,
+                volunteerPositions: volunteerPositions
+            });
+            
+        } catch (error) {
+            console.error('Error collecting form data:', error);
+            // Continue even if there's an error - some data collection might fail but form can still submit
         }
-        
-        // Store ticket types in hidden input
-        document.getElementById('ticket_types_input').value = JSON.stringify(ticketTypes);
-        
-        // Collect schedule
-        const scheduleItems = [];
-        document.querySelectorAll('#scheduleList .schedule-item-card').forEach(item => {
-            const time = item.querySelector('[data-schedule-time]')?.textContent || '';
-            const activity = item.querySelector('[data-schedule-activity]')?.textContent || '';
-            if (time && activity) {
-                scheduleItems.push({ time, activity });
-            }
-        });
-        document.getElementById('schedule_input').value = JSON.stringify(scheduleItems);
-        
-        // Collect custom fields
-        const customFields = [];
-        document.querySelectorAll('#customFieldsList .custom-field-item').forEach(field => {
-            const label = field.querySelector('[data-field-label]')?.textContent || '';
-            const type = field.querySelector('[data-field-type]')?.textContent || '';
-            if (label && type) {
-                customFields.push({ label, type });
-            }
-        });
-        document.getElementById('custom_fields_input').value = JSON.stringify(customFields);
-        
-        // Collect volunteer positions
-        const volunteerPositions = [];
-        document.querySelectorAll('#volunteerPositionsList .position-item').forEach(position => {
-            const text = position.querySelector('span')?.textContent || position.textContent.replace('×', '').trim();
-            if (text) {
-                volunteerPositions.push(text);
-            }
-        });
-        document.getElementById('volunteer_positions_input').value = JSON.stringify(volunteerPositions);
-        
-        console.log('Collected data:', {
-            ticketTypes: ticketTypes,
-            schedule: scheduleItems,
-            customFields: customFields,
-            volunteerPositions: volunteerPositions
-        });
     }
     
-    // Handle form submission
-    document.getElementById('create-event').addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Handle form submission - Setup after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Setting up form submission handler...');
+        const createEventForm = document.getElementById('create-event');
         
-        // Get ticket type
-        const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
-        
-        // Create a hidden input for registration_limit if it doesn't exist
-        let registrationLimitInput = this.querySelector('input[name="registration_limit"]');
-        if (!registrationLimitInput) {
-            registrationLimitInput = document.createElement('input');
-            registrationLimitInput.type = 'hidden';
-            registrationLimitInput.name = 'registration_limit';
-            this.appendChild(registrationLimitInput);
-        }
-        
-        // Set the value based on ticket type
-        if (ticketType === 'free-all') {
-            const freeLimit = document.querySelector('input[name="free_registration_limit"]')?.value;
-            registrationLimitInput.value = freeLimit || '';
-        } else if (ticketType === 'mixed') {
-            const mixedLimit = document.querySelector('input[name="mixed_registration_limit"]')?.value;
-            registrationLimitInput.value = mixedLimit || '';
-        } else {
-            registrationLimitInput.value = '';
-        }
-        
-        // Collect all dynamic data before validation
-        collectAndStoreFormData();
-        
-        // Validate form before submission
-        if (!validateForm()) {
+        if (!createEventForm) {
+            console.error('Form with id "create-event" not found!');
             return;
+        } else {
+            console.log('Form found, attaching submit event listener');
         }
         
-        const submitBtn = document.querySelector('.publish-btn');
-        const originalText = submitBtn.textContent;
+        createEventForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submit event triggered!');
+            
+            try {
+                console.log('Form submission started...');
+            
+            // Get ticket type
+            const ticketType = document.querySelector('input[name="ticketType"]:checked')?.value || 'free-all';
+            console.log('Ticket type:', ticketType);
+            
+            // Create a hidden input for registration_limit if it doesn't exist
+            let registrationLimitInput = this.querySelector('input[name="registration_limit"]');
+            if (!registrationLimitInput) {
+                registrationLimitInput = document.createElement('input');
+                registrationLimitInput.type = 'hidden';
+                registrationLimitInput.name = 'registration_limit';
+                this.appendChild(registrationLimitInput);
+            }
+            
+            // Set the value based on ticket type
+            if (ticketType === 'free-all') {
+                const freeLimit = document.querySelector('input[name="free_registration_limit"]')?.value;
+                registrationLimitInput.value = freeLimit || '';
+            } else if (ticketType === 'mixed') {
+                const mixedLimit = document.querySelector('input[name="mixed_registration_limit"]')?.value;
+                registrationLimitInput.value = mixedLimit || '';
+            } else {
+                registrationLimitInput.value = '';
+            }
+            
+            // Collect all dynamic data before validation
+            console.log('Collecting form data...');
+            collectAndStoreFormData();
+            
+            // Validate form before submission
+            console.log('Starting validation...');
+            if (!validateForm()) {
+                console.log('Validation failed');
+                return;
+            }
+            console.log('Validation passed');
+            
+            const submitBtn = document.querySelector('.publish-btn');
+            const originalText = submitBtn.textContent;
         
         // Show loading state
         submitBtn.textContent = 'Creating Event...';
@@ -2075,12 +2086,28 @@
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
         });
-    });
+        
+        } catch (error) {
+            console.error('Form submission error:', error);
+            showErrorMessage('An error occurred while processing the form', { 'error': error.message });
+            
+            // Reset button if it was modified
+            const submitBtn = document.querySelector('.publish-btn');
+            if (submitBtn) {
+                submitBtn.textContent = 'Publish Event';
+                submitBtn.disabled = false;
+            }
+        }
+    }); // End of createEventForm.addEventListener('submit')
+    
+    }); // End of DOMContentLoaded for form submission
 
     // AUTO-SAVE DRAFT FUNCTIONALITY
-    const DRAFT_KEY = 'event_draft';
-    const form = document.getElementById('create-event');
-    let saveTimeout;
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Setting up auto-save functionality...');
+        const DRAFT_KEY = 'event_draft';
+        const form = document.getElementById('create-event');
+        let saveTimeout;
 
     // Save draft to localStorage
     function saveDraft() {
@@ -2220,42 +2247,45 @@
         // Don't clear immediately - wait for success response
         // This is handled in the fetch success callback
     });
-
+    
     // Load draft when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(loadDraft, 500); // Small delay to ensure all elements are loaded
-        
-        // Show/hide clear draft button based on draft existence
-        const clearDraftBtn = document.getElementById('clearDraftBtn');
-        if (clearDraftBtn) {
-            if (localStorage.getItem(DRAFT_KEY)) {
-                clearDraftBtn.style.display = 'inline-block';
-            }
-            
-            clearDraftBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to clear the saved draft? This cannot be undone.')) {
-                    localStorage.removeItem(DRAFT_KEY);
-                    clearDraftBtn.style.display = 'none';
-                    
-                    // Show notification
-                    const notification = document.createElement('div');
-                    notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #EF4444; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;';
-                    notification.innerHTML = `<i class="fas fa-trash"></i> Draft cleared successfully`;
-                    document.body.appendChild(notification);
-                    
-                    setTimeout(() => {
-                        notification.style.animation = 'slideOut 0.3s ease-out';
-                        setTimeout(() => notification.remove(), 300);
-                    }, 2000);
-                    
-                    // Optionally reload the page to clear all fields
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                }
-            });
+    setTimeout(loadDraft, 500); // Small delay to ensure all elements are loaded
+    
+    // Show/hide clear draft button based on draft existence
+    const clearDraftBtn = document.getElementById('clearDraftBtn');
+    if (clearDraftBtn) {
+        if (localStorage.getItem(DRAFT_KEY)) {
+            clearDraftBtn.style.display = 'inline-block';
         }
-    });
+        
+        clearDraftBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear the saved draft? This cannot be undone.')) {
+                localStorage.removeItem(DRAFT_KEY);
+                clearDraftBtn.style.display = 'none';
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #EF4444; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 9999; animation: slideIn 0.3s ease-out;';
+                notification.innerHTML = `<i class="fas fa-trash"></i> Draft cleared successfully`;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2000);
+                
+                // Optionally reload the page to clear all fields
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+        });
+    }
+    
+    }); // End of DOMContentLoaded for auto-save
+
+    // Load draft when page loads - REMOVED DUPLICATE
+    // This is now handled in the auto-save DOMContentLoaded block above
 
     // Add CSS for animations
     const style = document.createElement('style');
@@ -2270,10 +2300,6 @@
         }
     `;
     document.head.appendChild(style);
-
-    // Clear draft after successful event creation
-    // Add this to the fetch success handler
-    const originalFetch = form.querySelector('.publish-btn').onclick;
 
     // Handle sponsorship proposal file selection
     function handleProposalFileSelect(event) {

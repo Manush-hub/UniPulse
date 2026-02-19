@@ -293,16 +293,26 @@ function displayEventDetails(event) {
         }
     }
     
-    // Organizer info
+    // Organizer info - use organizer_name from publisher profile for live updates
     const organizerNameElement = document.getElementById('organizerName');
     if (organizerNameElement) {
-        organizerNameElement.textContent = event.organizer;
+        organizerNameElement.textContent = event.organizer_name || event.organizer;
     }
     
     // Set organizer role if available, otherwise use default
     const organizerRoleElement = document.getElementById('organizerRole');
     if (organizerRoleElement) {
         organizerRoleElement.textContent = event.organizer_role || 'Event Organizer';
+    }
+    
+    // Display organizer profile photo if available
+    const organizerAvatar = document.getElementById('organizerAvatar');
+    if (organizerAvatar) {
+        if (event.organizer_photo) {
+            organizerAvatar.innerHTML = `<img src="${event.organizer_photo}" alt="${event.organizer_name || event.organizer}" />`;
+        } else {
+            organizerAvatar.innerHTML = '<i class="fas fa-user-circle"></i>';
+        }
     }
     
     // Store organizer email for contact function
@@ -902,21 +912,49 @@ function displayLocationDetails(event) {
         }
     } else {
         // Inside university - show university, faculty/department, and exact location
-        locationHTML = '<div class="location-detail-item">';
+        locationHTML = '';
         
         if (universityName) {
-            locationHTML += `<div><strong>University:</strong> ${universityName}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>UNIVERSITY</strong>
+                        <span>${universityName}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.faculty_department) {
-            locationHTML += `<div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>FACULTY/DEPARTMENT</strong>
+                        <span>${event.faculty_department}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.location) {
-            locationHTML += `<div><strong>Exact Location:</strong> ${event.location}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>EXACT LOCATION</strong>
+                        <span>${event.location}</span>
+                    </div>
+                </div>
+            `;
         }
-        
-        locationHTML += '</div>';
         
         // Only show if there's actual content
         if (universityName || event.faculty_department || event.location) {

@@ -637,6 +637,13 @@ class ClubProfile {
                 const profileBio = document.getElementById('profileBio');
                 if (profileBio) profileBio.textContent = formData.bio;
                 
+                // Update header username
+                const headerUsername = document.getElementById('username');
+                if (headerUsername && formData.orgName) {
+                    headerUsername.textContent = formData.orgName;
+                    console.log('Header username updated to:', formData.orgName);
+                }
+                
                 this.showNotification('Organization information updated successfully!', 'success');
             } else {
                 this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
@@ -1171,6 +1178,13 @@ function changeProfileImage(event) {
                 const profileImg = document.getElementById('profileImage');
                 if (profileImg && data.imageUrl) {
                     profileImg.src = data.imageUrl;
+                }
+                
+                // Update header avatar
+                const headerAvatar = document.getElementById('headerAvatar');
+                if (headerAvatar && data.imageUrl) {
+                    headerAvatar.src = data.imageUrl;
+                    console.log('Header avatar updated with URL:', data.imageUrl);
                 }
             } else {
                 clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
