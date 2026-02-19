@@ -200,7 +200,7 @@ body {
 
 .event-details-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     background: rgba(255, 255, 255, 0.1);
     padding: 2rem;
@@ -209,12 +209,10 @@ body {
 }
 
 .detail-item {
-    height: 60px;
-    width: 300px;
+    min-height: 60px;
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex: 1;
 }
 
 .detail-item i {
@@ -1990,8 +1988,10 @@ body {
 
 /* Sponsorship Packages Section */
 .sponsorship-packages-section {
-    padding-bottom: 3rem;
+    padding: 3rem 0;
     background: #f8fafc;
+    margin-bottom: 2rem;
+    border-radius: 12px;
 }
 
 .sponsorship-packages-section .section-header {
@@ -2192,6 +2192,142 @@ body {
 
 .btn-view-event-details i {
     font-size: 1rem;
+}
+
+/* Bank Details Modal Styles */
+.modal-bank-details {
+    max-width: 700px;
+}
+
+.bank-details-info {
+    padding: 0.5rem 0;
+}
+
+.bank-details-intro {
+    font-size: 1rem;
+    color: #334155;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.bank-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.bank-detail-item:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.bank-detail-item.highlight {
+    background: #eff6ff;
+    border: 2px solid #3b82f6;
+}
+
+.bank-detail-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.bank-detail-label i {
+    color: #667eea;
+    font-size: 1.2rem;
+    width: 24px;
+    text-align: center;
+}
+
+.bank-detail-value {
+    color: #475569;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: right;
+}
+
+.sponsorship-amount-display {
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border-radius: 12px;
+    border: 2px solid #3b82f6;
+    text-align: center;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.sponsorship-amount-display strong {
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.amount-highlight {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1e40af;
+}
+
+.bank-instructions {
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background: #fef3c7;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+
+.bank-instructions h4 {
+    color: #92400e;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bank-instructions h4 i {
+    color: #f59e0b;
+}
+
+.bank-instructions p {
+    color: #78350f;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.bank-details-note {
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background: #fef2f2;
+    border-radius: 8px;
+    border-left: 4px solid #ef4444;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.bank-details-note i {
+    color: #dc2626;
+    font-size: 1.2rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+}
+
+.bank-details-note p {
+    color: #7f1d1d;
+    line-height: 1.6;
+    margin: 0;
 }
 
 /* Modern Registration & Ticketing Styles */

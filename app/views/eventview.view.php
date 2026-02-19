@@ -67,7 +67,27 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             </div>
         </div>
 
-    <!-- Event Content -->
+         <!-- Sponsorship Packages Section (Sponsor Role Only) -->
+        <?php if ($currentRole === 'Sponsor'): ?>
+        <div id="sponsorshipPackagesCard" class="sponsorship-packages-section" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <h2><i class="fas fa-handshake"></i> Sponsorship Opportunities</h2>
+                    <p>Support this event by becoming a sponsor</p>
+                    <div class="event-details-link">
+                        <button id="viewEventDetailsBtn" class="btn-view-event-details" onclick="viewProposalDetails()">
+                            <i class="fas fa-file-alt"></i> View Details
+                        </button>
+                    </div>
+                </div>
+                <div id="sponsorshipPackagesContainer" class="sponsorship-packages-grid">
+                    <!-- Sponsorship packages will be loaded here by JavaScript -->
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Event Content -->
         <div id="eventContainer" class="event-container" style="display: none;">
             <!-- Event Hero Section -->
             <div class="event-hero" id="eventHero">
@@ -350,26 +370,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                 </div>
             </div>
         </div>
-        
-        <!-- Sponsorship Packages Section (Sponsor Role Only) -->
-        <?php if ($currentRole === 'Sponsor'): ?>
-        <div id="sponsorshipPackagesCard" class="sponsorship-packages-section" style="display: none;">
-            <div class="container">
-                <div class="section-header">
-                    <h2><i class="fas fa-handshake"></i> Sponsorship Opportunities</h2>
-                    <p>Support this event by becoming a sponsor</p>
-                    <div class="event-details-link">
-                        <button id="viewEventDetailsBtn" class="btn-view-event-details" onclick="viewProposalDetails()">
-                            <i class="fas fa-file-alt"></i> View Details
-                        </button>
-                    </div>
-                </div>
-                <div id="sponsorshipPackagesContainer" class="sponsorship-packages-grid">
-                    <!-- Sponsorship packages will be loaded here by JavaScript -->
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
     </div>
 
     <!-- Join Event Modal -->
@@ -496,6 +496,82 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 
     <!-- Footer -->
     <?php include __DIR__ . '/components/footer.php'; ?>
+
+    <!-- Bank Details Modal (Sponsor Role Only) -->
+    <?php if ($currentRole === 'Sponsor'): ?>
+    <div id="bankDetailsModal" class="modal">
+        <div class="modal-content modal-bank-details">
+            <div class="modal-header">
+                <h2><i class="fas fa-university"></i> Bank Account Details for Sponsorship</h2>
+                <button class="close-btn" onclick="closeBankDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="bank-details-info">
+                    <p class="bank-details-intro">Please use the following bank account details to transfer your sponsorship payment:</p>
+                    
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">
+                            <i class="fas fa-building"></i>
+                            <strong>Bank Name</strong>
+                        </div>
+                        <div class="bank-detail-value" id="modalBankName">Loading...</div>
+                    </div>
+                    
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">
+                            <i class="fas fa-user"></i>
+                            <strong>Account Name</strong>
+                        </div>
+                        <div class="bank-detail-value" id="modalAccountName">Loading...</div>
+                    </div>
+                    
+                    <div class="bank-detail-item highlight">
+                        <div class="bank-detail-label">
+                            <i class="fas fa-credit-card"></i>
+                            <strong>Account Number</strong>
+                        </div>
+                        <div class="bank-detail-value" id="modalAccountNumber">Loading...</div>
+                    </div>
+                    
+                    <div class="bank-detail-item">
+                        <div class="bank-detail-label">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <strong>Branch</strong>
+                        </div>
+                        <div class="bank-detail-value" id="modalBranch">Loading...</div>
+                    </div>
+                    
+                    <div class="bank-detail-item" id="swiftCodeItem" style="display: none;">
+                        <div class="bank-detail-label">
+                            <i class="fas fa-globe"></i>
+                            <strong>SWIFT Code</strong>
+                        </div>
+                        <div class="bank-detail-value" id="modalSwiftCode">Loading...</div>
+                    </div>
+                    
+                    <div class="sponsorship-amount-display">
+                        <strong>Sponsorship Package:</strong> <span id="modalPackageName"></span><br>
+                        <strong>Amount to Transfer:</strong> <span id="modalPackageAmount" class="amount-highlight"></span>
+                    </div>
+                    
+                    <div class="bank-instructions" id="bankInstructionsContainer" style="display: none;">
+                        <h4><i class="fas fa-info-circle"></i> Additional Instructions</h4>
+                        <p id="modalInstructions"></p>
+                    </div>
+                    
+                    <div class="bank-details-note">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p><strong>Important:</strong> After completing the bank transfer, please contact the event organizer with your payment proof to confirm your sponsorship.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeBankDetailsModal()">Close</button>
+                <button class="btn btn-primary" onclick="confirmBankTransfer()">I've Made the Transfer</button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Pass PHP data to JavaScript -->
     <script>
