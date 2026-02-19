@@ -67,7 +67,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             </div>
         </div>
 
-        <!-- Event Content -->
+    <!-- Event Content -->
         <div id="eventContainer" class="event-container" style="display: none;">
             <!-- Event Hero Section -->
             <div class="event-hero" id="eventHero">
@@ -152,6 +152,35 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     </div>
                     
                     <div class="description-organizer-grid">
+                        <div class="organizer-sidebar">
+                            <div class="content-card organizer-card">
+                                <h3>
+                                    <i class="fas fa-user-tie"></i>
+                                    Organized By
+                                </h3>
+                                <div class="organizer-info">
+                                    <div class="organizer-avatar" id="organizerAvatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="organizer-details">
+                                        <h4 id="organizerName">Loading...</h4>
+                                        <!-- <p id="organizerRole" class="organizer-role"></p> -->
+                                        <div class="organizer-actions">
+                                            <button class="btn btn-outline btn-icon" id="visitProfileBtn" onclick="visitPublisherProfile()" title="Visit Profile">
+                                                <i class="fas fa-user"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-icon" id="callOrganizerBtn" title="Call Organizer">
+                                                <i class="fas fa-phone"></i>
+                                            </button>
+                                            <button class="btn btn-outline btn-icon" onclick="contactOrganizer()" title="Email Organizer">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="description-content">
                             <div class="content-card">
                                 <h3><i class="fas fa-info-circle"></i> Event Description</h3>
@@ -193,10 +222,11 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 
                     <div class="section-header">
                         <h2 class="section-title">Registration & Ticketing</h2>
+                        <p class="section-subtitle">Get your tickets or register for this event</p>
                     </div>
                     
-                    <div class="registration-section">
-                        <div class="content-card registration-card">
+                    <div class="registration-section" id="ticketingSectionWrapper">
+                        <div class="content-card registration-card" id="mainTicketCard">
                             <div id="registrationTicketPeriodCard" style="display: none;">
                                 <div id="freeRegistrationPeriod" class="period-section" style="display: none;">
                                     <div class="period-header">
@@ -228,42 +258,85 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                             </div>
 
                             <div id="freeRegistrationSection" style="display: none;">
-                                <div class="registration-type">
-                                    <div class="registration-header">
-                                        <i class="fas fa-ticket-alt registration-icon"></i>
-                                        <div>
-                                            <h3>Free Entry</h3>
+                                <div class="registration-type-modern">
+                                    <div class="registration-header-modern">
+                                        <div class="reg-icon-wrapper">
+                                            <i class="fas fa-gift"></i>
+                                        </div>
+                                        <div class="reg-text-wrapper">
+                                            <h3>Free Entry Event</h3>
                                             <p class="registration-subtitle" id="freeEntrySubtitle">This event is free to attend</p>
                                         </div>
-                                    </div>
-                                    <div class="registration-content">
-                                        <div class="price-display">
+                                        <div class="reg-price-wrapper">
                                             <span class="price-label">Entry Fee:</span>
-                                            <span class="price-value free">FREE</span>
+                                            <span class="price-value-free">FREE</span>
                                         </div>
+                                    </div>
+                                    <div class="registration-action-modern">
+                                        <button class="btn-register-modern" onclick="registerForEvent()">
+                                            <i class="fas fa-user-plus"></i>
+                                            Register for Free
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div id="paidTicketingSection" style="display: none;">
-                                <div class="ticketing-type">
-                                    <h3>Ticket Purchase Required</h3>
-                                    <div id="ticketDetailsCard" class="ticket-details-card">
+                                <div class="ticketing-type-modern">
+                                    <div class="ticketing-header-modern">
+                                        <div class="ticket-icon-wrapper">
+                                            <i class="fas fa-ticket-alt"></i>
+                                        </div>
+                                        <div>
+                                            <h3>Get Your Tickets</h3>
+                                            <p>Select the ticket types and quantities you want</p>
+                                        </div>
+                                    </div>
+                                    <div id="ticketDetailsCard" class="ticket-details-modern">
                                         <div id="ticketDetails"></div>
+                                    </div>
+                                    <div class="ticket-action-bar">
+                                        <div class="total-price-display">
+                                            <span class="total-label">Total Amount:</span>
+                                            <span class="total-value" id="ticketPrice">LKR 0.00</span>
+                                        </div>
+                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Proceed to Payment
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div id="mixedTicketingSection" style="display: none;">
-                                <div class="mixed-ticketing-type">
-                                    <div id="studentRegRequired" style="display: none;">
-                                        <h3>Free for University Students (Registration Required)</h3>
+                                <div class="mixed-ticketing-modern">
+                                    <div class="mixed-header">
+                                        <div class="ticket-icon-wrapper">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <div id="studentRegRequired" style="display: none;">
+                                                <h3>Free for University Students</h3>
+                                                <p>University students can register for free. Others need to purchase tickets.</p>
+                                            </div>
+                                            <div id="studentNoRegRequired" style="display: none;">
+                                                <h3>Free for University Students (Walk-in)</h3>
+                                                <p>University students get free entry. Others need to purchase tickets.</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div id="studentNoRegRequired" style="display: none;">
-                                        <h3>Free for University Students (Walk-in)</h3>
-                                    </div>
-                                    <div id="mixedTicketDetailsCard" class="mixed-ticket-details-card">
+                                    <div id="mixedTicketDetailsCard" class="ticket-details-modern">
                                         <div id="mixedTicketDetails"></div>
+                                    </div>
+                                    <div class="ticket-action-bar">
+                                        <div class="total-price-display">
+                                            <span class="total-label">Total Amount:</span>
+                                            <span class="total-value" id="mixedTicketPrice">LKR 0.00</span>
+                                        </div>
+                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                            <i class="fas fa-shopping-cart"></i>
+                                            Buy Tickets Now
+                                        </button>
                                     </div>
                                 </div>
                             </div>

@@ -524,6 +524,7 @@ const sponsorshipDetails = document.getElementById('sponsorshipDetails');
 function toggleSponsorshipDetails() {
     if (sponsorshipToggle && sponsorshipDetails) {
         const requiredFields = sponsorshipDetails.querySelectorAll('input[name="sponsorship_bank_name"], input[name="sponsorship_account_name"], input[name="sponsorship_account_number"]');
+        const proposalField = document.getElementById('sponsorship_proposal');
         
         if (sponsorshipToggle.checked) {
             sponsorshipDetails.classList.remove('hidden');
@@ -531,12 +532,20 @@ function toggleSponsorshipDetails() {
             requiredFields.forEach(field => {
                 field.setAttribute('required', 'required');
             });
+            // Add required attribute to proposal file
+            if (proposalField) {
+                proposalField.setAttribute('required', 'required');
+            }
         } else {
             sponsorshipDetails.classList.add('hidden');
             // Remove required attribute when disabled
             requiredFields.forEach(field => {
                 field.removeAttribute('required');
             });
+            // Remove required attribute from proposal file
+            if (proposalField) {
+                proposalField.removeAttribute('required');
+            }
         }
     }
 }

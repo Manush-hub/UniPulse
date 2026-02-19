@@ -156,6 +156,18 @@ class PublisherProfile extends Controller{
         }
 
         if ($basicResult && $profileResult) {
+            // Update session with new organization name if changed
+            if (isset($input['orgName']) && !empty($input['orgName'])) {
+                $_SESSION['organization_name'] = $input['orgName'];
+                $_SESSION['user_name'] = $input['orgName'];
+                
+                // Also update the user session data if it exists
+                if (isset($_SESSION['user'])) {
+                    $_SESSION['user']['name'] = $input['orgName'];
+                    $_SESSION['user']['organization_name'] = $input['orgName'];
+                }
+            }
+            
             echo json_encode(['success' => true, 'message' => 'Organization information updated successfully']);
         } else {
             $errorMsg = [];
@@ -231,6 +243,10 @@ class PublisherProfile extends Controller{
         if ($imageUrl) {
             $result = $this->publisherModel->updateProfileData($publisherId, ['logo_url' => $imageUrl]);
             if ($result) {
+                // Update session with new profile photo
+                $_SESSION['user_profile_photo'] = $imageUrl;
+                $_SESSION['profile_photo'] = $imageUrl;
+                
                 echo json_encode(['success' => true, 'message' => 'Logo uploaded successfully', 'imageUrl' => $imageUrl]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to save logo URL']);

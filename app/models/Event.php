@@ -31,7 +31,6 @@ class Event
         'participants',
         'current_participants',
         'max_participants',
-        'target_audience',
         'requirements',
         'schedule',
         'ticket_type',
@@ -105,14 +104,15 @@ class Event
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
-        $sql = "SELECT e.*, p.society_name as organizer_name,
+        $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo,
                 CASE 
                     WHEN e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()) THEN 1
                     WHEN e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()) THEN 2
                     ELSE 3
                 END as event_status_order
                 FROM {$this->table} e
-                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id";
 
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
@@ -254,7 +254,15 @@ class Event
      */
     public function getEventById($id)
     {
-        $result = $this->where(['id' => $id]);
+        // Join with publisher and publisher_profiles to get organizer info
+        $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo
+                FROM {$this->table} e
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
+                WHERE e.id = :id";
+        
+        $result = $this->query($sql, ['id' => $id]);
+        
         if ($result && count($result) > 0) {
             $event = $result[0];
             // Decode JSON fields
@@ -353,8 +361,9 @@ class Event
             // Show events that haven't ended yet: future dates OR (today but end_time hasn't passed or is NULL)
             $whereClause[] = "(e.event_date > CURDATE() OR (e.event_date = CURDATE() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME())))";
 
-            $sql = "SELECT e.*, p.society_name as organizer_name FROM {$this->table} e
-                    LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
+            $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo FROM {$this->table} e
+                    LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                    LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id";
 
             if (!empty($whereClause)) {
                 $sql .= ' WHERE ' . implode(' AND ', $whereClause);
@@ -428,7 +437,10 @@ class Event
             $params = array_merge($params, $visibilityClause['params']);
         }
 
-        $sql = "SELECT e.* FROM {$this->table} e 
+        $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo
+                FROM {$this->table} e 
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
                 WHERE " . implode(' AND ', $whereClause) . "
                 ORDER BY e.event_date ASC 
                 LIMIT :limit";

@@ -175,16 +175,6 @@
                             <option value="music">Music</option>
                         </select>
                     </div>
-
-                    <div class="form-group">
-                        <label for="target_audience" class="form-label">Target Audience *</label>
-                        <select id="target_audience" name="audience" class="form-select" required>
-                            <option value="">Select audience</option>
-                            <option value="university-students">University Students</option>
-                            <option value="public-users">Public Users</option>
-                            <option value="both">Both</option>
-                        </select>
-                    </div>
                 </div>
             </section>
 
@@ -379,7 +369,6 @@
             document.getElementById('event_name').value = event.title || '';
             document.getElementById('event_description').value = event.description || '';
             document.getElementById('event_category').value = event.category || '';
-            document.getElementById('target_audience').value = event.target_audience || '';
             document.getElementById('event_date').value = event.event_date || '';
             document.getElementById('event_time').value = event.event_time || '';
             document.getElementById('event_location').value = event.location || '';

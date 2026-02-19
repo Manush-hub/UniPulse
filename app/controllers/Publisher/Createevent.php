@@ -154,7 +154,6 @@ class PublisherCreateevent extends Controller
                 'organizer' => $user['name'] ?? $user['full_name'] ?? '',
                 'organizer_email' => $user['email'] ?? '',
                 'max_participants' => null,
-                'target_audience' => $_POST['audience'] ?? 'university-students',
                 'participants' => 0,
                 'status' => 'upcoming',
                 'ticket_type' => $_POST['ticketType'] ?? 'free-all',
@@ -578,11 +577,6 @@ class PublisherCreateevent extends Controller
             if (empty($postData['city']) || trim($postData['city']) === '') {
                 $errors['city'] = 'City is required for outside university events';
             }
-        }
-
-        // Validate Target Audience
-        if (empty($postData['audience'])) {
-            $errors['audience'] = 'Target audience is required';
         }
 
         // Validate Category

@@ -10,7 +10,6 @@
     <style>
         /* Dropdown with scroll - show 5 items */
         select[name="event_category"],
-        select[name="audience"],
         select[name="location-type"],
         select[name="ticketType"],
         #customFieldType {
@@ -20,7 +19,6 @@
         }
         
         select[name="event_category"] option,
-        select[name="audience"] option,
         select[name="location-type"] option,
         select[name="ticketType"] option,
         #customFieldType option {
@@ -29,7 +27,6 @@
         
         /* Set size attribute to show 5 visible items when opened */
         select[name="event_category"][size],
-        select[name="audience"][size],
         select[name="location-type"][size],
         select[name="ticketType"][size],
         #customFieldType[size] {
@@ -45,25 +42,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        /* Back button - simple style */
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            color: #1E3A8A;
-            text-decoration: none;
-            padding: 10px 0;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-            font-weight: 500;
-            border: none;
-        }
-        .back-button:hover {
-            color: #1e40af;
-            text-decoration: none;
         }
         
         /* Container */
@@ -375,11 +353,6 @@
             <input type="hidden" name="volunteer_positions" id="volunteer_positions_input" value="">
             
                         <main class="content">
-                <!-- Back button -->
-                <a href="/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>" class="back-button">
-                    <i class="fas fa-arrow-left"></i>
-                    Back
-                </a>
         
                 <h2 style="margin-bottom: 30px;">Edit Event</h2>
         
@@ -449,27 +422,6 @@
                                     foreach ($categories as $value => $label): 
                                     ?>
                                         <option value="<?= $value ?>" <?= $selectedCategory == $value ? 'selected' : '' ?>>
-                                            <?= $label ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="audience" class="form-label">Target Audience *</label>
-                            <div class="input-group">
-                                <select name="audience" class="form-select" size="1" required>
-                                    <?php 
-                                    $audiences = [
-                                        'university-students' => 'University Students',
-                                        'public-users' => 'Public Users',
-                                        'both' => 'Both'
-                                    ];
-                                    $selectedAudience = $data['old_data']['target_audience'] ?? $data['event']->target_audience;
-                                    foreach ($audiences as $value => $label): 
-                                    ?>
-                                        <option value="<?= $value ?>" <?= $selectedAudience == $value ? 'selected' : '' ?>>
                                             <?= $label ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -969,13 +921,12 @@
     // Dropdown scroll functionality - show 5 items when opened
     document.addEventListener('DOMContentLoaded', function() {
         const categorySelect = document.querySelector('select[name="event_category"]');
-        const audienceSelect = document.querySelector('select[name="audience"]');
         const locationTypeSelect = document.querySelector('select[name="location-type"]');
         const ticketTypeSelect = document.querySelector('select[name="ticketType"]');
         const customFieldTypeSelect = document.getElementById('customFieldType');
         
         // Apply to all dropdowns
-        [categorySelect, audienceSelect, locationTypeSelect, ticketTypeSelect, customFieldTypeSelect].forEach(select => {
+        [categorySelect, locationTypeSelect, ticketTypeSelect, customFieldTypeSelect].forEach(select => {
             if (select) {
                 select.addEventListener('focus', function() {
                     this.size = 5;
