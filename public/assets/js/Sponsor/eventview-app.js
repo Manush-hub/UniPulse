@@ -121,8 +121,13 @@ function displayEventDetails(event) {
     }
     
     const eventStatusElement = document.getElementById('eventStatus');
+    // Calculate event status dynamically based on event date
+    const eventDate = event.event_date || event.date;
     if (eventStatusElement) {
-        eventStatusElement.textContent = event.status;
+        const calculatedStatus = getEventStatus(eventDate);
+        eventStatusElement.textContent = capitalizeFirstLetter(calculatedStatus);
+        // Update the class for proper styling
+        eventStatusElement.className = `event-status ${calculatedStatus}`;
     }
     
     const eventTitleElement = document.getElementById('eventTitle');
@@ -131,30 +136,66 @@ function displayEventDetails(event) {
     }
     
     // Event details grid
-    const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
+    const locationType = event.location_type || 'inside-university';
     
     const eventDateTimeElement = document.getElementById('eventDateTime');
     if (eventDateTimeElement) {
         eventDateTimeElement.textContent = `${formatDate(eventDate)} at ${eventTime}`;
     }
     
-    const eventUniversityElement = document.getElementById('eventUniversity');
-    if (eventUniversityElement) {
-        eventUniversityElement.textContent = universityName;
-    }
-    
-    // Show faculty/department if available
-    const facultyInfoElement = document.getElementById('facultyInfo');
-    const eventFacultyElement = document.getElementById('eventFaculty');
-    if (event.faculty_department && facultyInfoElement && eventFacultyElement) {
-        facultyInfoElement.style.display = 'flex';
-        eventFacultyElement.textContent = event.faculty_department;
-    }
-    
-    const eventLocationElement = document.getElementById('eventLocation');
-    if (eventLocationElement) {
-        eventLocationElement.textContent = event.location;
+    // Display location fields based on location type
+    if (locationType === 'outside-university') {
+        // Outside university: show venue and city
+        const venueName = event.venue_name || event.venueName || '';
+        const city = event.city || '';
+        let venueCity = '';
+        
+        if (venueName && city) {
+            venueCity = `${venueName}, ${city}`;
+        } else if (venueName) {
+            venueCity = venueName;
+        } else if (city) {
+            venueCity = city;
+        } else {
+            venueCity = 'Location TBA';
+        }
+        
+        const venueInfoElement = document.getElementById('venueInfo');
+        const eventVenueCityElement = document.getElementById('eventVenueCity');
+        if (venueInfoElement) venueInfoElement.style.display = 'flex';
+        if (eventVenueCityElement) eventVenueCityElement.textContent = venueCity;
+        
+        // Hide inside university fields
+        const universityInfoElement = document.getElementById('universityInfo');
+        const facultyInfoElement = document.getElementById('facultyInfo');
+        const exactLocationInfoElement = document.getElementById('exactLocationInfo');
+        if (universityInfoElement) universityInfoElement.style.display = 'none';
+        if (facultyInfoElement) facultyInfoElement.style.display = 'none';
+        if (exactLocationInfoElement) exactLocationInfoElement.style.display = 'none';
+    } else {
+        // Inside university: show university, faculty, and exact location
+        const universityInfoElement = document.getElementById('universityInfo');
+        const eventUniversityElement = document.getElementById('eventUniversity');
+        if (universityInfoElement) universityInfoElement.style.display = 'flex';
+        if (eventUniversityElement) eventUniversityElement.textContent = universityName;
+        
+        // Show faculty/department if available
+        if (event.faculty_department) {
+            const facultyInfoElement = document.getElementById('facultyInfo');
+            const eventFacultyElement = document.getElementById('eventFaculty');
+            if (facultyInfoElement) facultyInfoElement.style.display = 'flex';
+            if (eventFacultyElement) eventFacultyElement.textContent = event.faculty_department;
+        }
+        
+        const exactLocationInfoElement = document.getElementById('exactLocationInfo');
+        const eventLocationElement = document.getElementById('eventLocation');
+        if (exactLocationInfoElement) exactLocationInfoElement.style.display = 'flex';
+        if (eventLocationElement) eventLocationElement.textContent = event.location;
+        
+        // Hide outside university field
+        const venueInfoElement = document.getElementById('venueInfo');
+        if (venueInfoElement) venueInfoElement.style.display = 'none';
     }
     
     // Show participants info only if max_participants is set
@@ -179,14 +220,14 @@ function displayEventDetails(event) {
         eventAudienceElement.textContent = formatAudience(targetAudience);
     }
     
-    // Ticket type (show if not free-all)
+    // Ticket type - Always show with appropriate display
     const ticketInfoElement = document.getElementById('ticketInfo');
     const eventTicketTypeElement = document.getElementById('eventTicketType');
-    if (ticketType && ticketType !== 'free-all') {
-        if (ticketInfoElement) {
-            ticketInfoElement.style.display = 'block';
-        }
-        if (eventTicketTypeElement) {
+    if (ticketInfoElement) ticketInfoElement.style.display = 'block';
+    if (eventTicketTypeElement) {
+        if (ticketType === 'free-all') {
+            eventTicketTypeElement.innerHTML = '<span style="color: #10B981; font-weight: 600;">Free Event</span>';
+        } else {
             eventTicketTypeElement.textContent = formatTicketType(ticketType);
         }
     }
@@ -960,12 +1001,16 @@ if (shareBtn) {
 window.addEventListener('click', function(event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
+    const bankDetailsModal = document.getElementById('bankDetailsModal');
     
     if (event.target === joinModal) {
         closeJoinModal();
     }
     if (event.target === shareModal) {
         closeShareModal();
+    }
+    if (event.target === bankDetailsModal) {
+        closeBankDetailsModal();
     }
 });
 
@@ -1027,7 +1072,7 @@ function displaySponsorshipPackages() {
         packageCard.innerHTML = `
             <div class="package-header ${pkg.package_type}">
                 <h3>${packageType} Package</h3>
-                <div class="package-price">LKR ${parseFloat(pkg.price).toLocaleString()}</div>
+                <div class="package-price">LKR ${parseFloat(pkg.amount).toLocaleString()}</div>
             </div>
             <div class="package-body">
                 ${pkg.description ? `<p class="package-description">${pkg.description}</p>` : ''}
@@ -1038,8 +1083,8 @@ function displaySponsorshipPackages() {
                 </div>
             </div>
             <div class="package-footer">
-                <button class="btn btn-primary btn-sponsor" onclick="requestSponsorship(${pkg.id}, '${packageType}', ${pkg.price})">
-                    <i class="fas fa-handshake"></i> Request Sponsorship
+                <button class="btn btn-primary btn-sponsor" onclick="requestSponsorship(${pkg.id}, '${packageType}', ${pkg.amount})">
+                    <i class="fas fa-handshake"></i> Use This Package
                 </button>
             </div>
         `;
@@ -1096,20 +1141,93 @@ function scrollToEventDetails() {
     }
 }
 
-// Request sponsorship function
+// Request sponsorship function - show bank details modal
 function requestSponsorship(packageId, packageName, price) {
-    if (!confirm(`Request ${packageName} Package (LKR ${parseFloat(price).toLocaleString()})?\n\nYou will be redirected to complete your sponsorship request.`)) {
-        return;
-    }
+    const event = currentEvent || window.serverData?.event;
     
-    // Redirect to sponsorship request/payment page
-    const eventId = currentEvent?.id;
-    if (!eventId) {
+    if (!event) {
         alert('Event information not available');
         return;
     }
     
-    window.location.href = `/unipulse/public/sponsor/sponsorship/request?event_id=${eventId}&package_id=${packageId}`;
+    // Check if bank details are available
+    if (!event.sponsorship_bank_name || !event.sponsorship_account_number) {
+        alert('Bank account details are not available for this event. Please contact the event organizer directly.');
+        return;
+    }
+    
+    // Store selected package details for later use
+    window.selectedSponsorshipPackage = {
+        packageId: packageId,
+        packageName: packageName,
+        price: price
+    };
+    
+    // Populate modal with bank details
+    document.getElementById('modalBankName').textContent = event.sponsorship_bank_name || 'N/A';
+    document.getElementById('modalAccountName').textContent = event.sponsorship_account_name || 'N/A';
+    document.getElementById('modalAccountNumber').textContent = event.sponsorship_account_number || 'N/A';
+    document.getElementById('modalBranch').textContent = event.sponsorship_branch || 'N/A';
+    
+    // Show/hide SWIFT code if available
+    const swiftCodeItem = document.getElementById('swiftCodeItem');
+    const modalSwiftCode = document.getElementById('modalSwiftCode');
+    if (event.sponsorship_swift_code) {
+        swiftCodeItem.style.display = 'flex';
+        modalSwiftCode.textContent = event.sponsorship_swift_code;
+    } else {
+        swiftCodeItem.style.display = 'none';
+    }
+    
+    // Show/hide instructions if available
+    const instructionsContainer = document.getElementById('bankInstructionsContainer');
+    const modalInstructions = document.getElementById('modalInstructions');
+    if (event.sponsorship_instructions) {
+        instructionsContainer.style.display = 'block';
+        modalInstructions.textContent = event.sponsorship_instructions;
+    } else {
+        instructionsContainer.style.display = 'none';
+    }
+    
+    // Set package details
+    document.getElementById('modalPackageName').textContent = `${packageName} Package`;
+    document.getElementById('modalPackageAmount').textContent = `LKR ${parseFloat(price).toLocaleString()}`;
+    
+    // Show the modal
+    openBankDetailsModal();
+}
+
+// Open bank details modal
+function openBankDetailsModal() {
+    const modal = document.getElementById('bankDetailsModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// Close bank details modal
+function closeBankDetailsModal() {
+    const modal = document.getElementById('bankDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Confirm bank transfer and redirect to sponsorship request page
+function confirmBankTransfer() {
+    const packageData = window.selectedSponsorshipPackage;
+    const eventId = currentEvent?.id;
+    
+    if (!eventId || !packageData) {
+        alert('Unable to process sponsorship request. Please try again.');
+        return;
+    }
+    
+    // Close modal and redirect to sponsorship request confirmation page
+    closeBankDetailsModal();
+    
+    // Redirect to sponsorship request page
+    window.location.href = `/unipulse/public/sponsor/sponsorship/request?event_id=${eventId}&package_id=${packageData.packageId}`;
 }
 
 // Utility functions
@@ -1124,6 +1242,23 @@ function formatDate(dateString) {
         day: 'numeric' 
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+// Calculate event status based on event date
+function getEventStatus(eventDate) {
+    if (!eventDate) return 'upcoming';
+    const eventDateObj = new Date(eventDate);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+
+    if (eventDateObj < today) {
+        return 'completed';
+    } else if (eventDateObj.getTime() === today.getTime()) {
+        return 'ongoing';
+    }
+    return 'upcoming';
 }
 
 // Buy Tickets - redirect to payment page

@@ -140,8 +140,13 @@ function displayEventDetails(event) {
     }
     
     const eventStatusElement = document.getElementById('eventStatus');
+    // Calculate event status dynamically based on event date
+    const eventDate = event.event_date || event.date;
     if (eventStatusElement) {
-        eventStatusElement.textContent = event.status;
+        const calculatedStatus = getEventStatus(eventDate);
+        eventStatusElement.textContent = capitalizeFirstLetter(calculatedStatus);
+        // Update the class for proper styling
+        eventStatusElement.className = `event-status ${calculatedStatus}`;
     }
     
     const eventTitleElement = document.getElementById('eventTitle');
@@ -150,34 +155,66 @@ function displayEventDetails(event) {
     }
     
     // Event details grid
-    const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
+    const locationType = event.location_type || 'inside-university';
     
     const eventDateTimeElement = document.getElementById('eventDateTime');
     if (eventDateTimeElement) {
         eventDateTimeElement.textContent = `${formatDate(eventDate)} at ${eventTime}`;
     }
     
-    const eventUniversityElement = document.getElementById('eventUniversity');
-    if (eventUniversityElement) {
-        eventUniversityElement.textContent = universityName;
-    }
-    
-    // Show faculty/department if available
-    const facultyInfoElement = document.getElementById('facultyInfo');
-    const eventFacultyElement = document.getElementById('eventFaculty');
-    if (event.faculty_department) {
-        if (facultyInfoElement) {
-            facultyInfoElement.style.display = 'flex';
+    // Display location fields based on location type
+    if (locationType === 'outside-university') {
+        // Outside university: show venue and city
+        const venueName = event.venue_name || event.venueName || '';
+        const city = event.city || '';
+        let venueCity = '';
+        
+        if (venueName && city) {
+            venueCity = `${venueName}, ${city}`;
+        } else if (venueName) {
+            venueCity = venueName;
+        } else if (city) {
+            venueCity = city;
+        } else {
+            venueCity = 'Location TBA';
         }
-        if (eventFacultyElement) {
-            eventFacultyElement.textContent = event.faculty_department;
+        
+        const venueInfoElement = document.getElementById('venueInfo');
+        const eventVenueCityElement = document.getElementById('eventVenueCity');
+        if (venueInfoElement) venueInfoElement.style.display = 'flex';
+        if (eventVenueCityElement) eventVenueCityElement.textContent = venueCity;
+        
+        // Hide inside university fields
+        const universityInfoElement = document.getElementById('universityInfo');
+        const facultyInfoElement = document.getElementById('facultyInfo');
+        const exactLocationInfoElement = document.getElementById('exactLocationInfo');
+        if (universityInfoElement) universityInfoElement.style.display = 'none';
+        if (facultyInfoElement) facultyInfoElement.style.display = 'none';
+        if (exactLocationInfoElement) exactLocationInfoElement.style.display = 'none';
+    } else {
+        // Inside university: show university, faculty, and exact location
+        const universityInfoElement = document.getElementById('universityInfo');
+        const eventUniversityElement = document.getElementById('eventUniversity');
+        if (universityInfoElement) universityInfoElement.style.display = 'flex';
+        if (eventUniversityElement) eventUniversityElement.textContent = universityName;
+        
+        // Show faculty/department if available
+        if (event.faculty_department) {
+            const facultyInfoElement = document.getElementById('facultyInfo');
+            const eventFacultyElement = document.getElementById('eventFaculty');
+            if (facultyInfoElement) facultyInfoElement.style.display = 'flex';
+            if (eventFacultyElement) eventFacultyElement.textContent = event.faculty_department;
         }
-    }
-    
-    const eventLocationElement = document.getElementById('eventLocation');
-    if (eventLocationElement) {
-        eventLocationElement.textContent = event.location;
+        
+        const exactLocationInfoElement = document.getElementById('exactLocationInfo');
+        const eventLocationElement = document.getElementById('eventLocation');
+        if (exactLocationInfoElement) exactLocationInfoElement.style.display = 'flex';
+        if (eventLocationElement) eventLocationElement.textContent = event.location;
+        
+        // Hide outside university field
+        const venueInfoElement = document.getElementById('venueInfo');
+        if (venueInfoElement) venueInfoElement.style.display = 'none';
     }
     
     // Show participants info only if max_participants is set
@@ -200,25 +237,25 @@ function displayEventDetails(event) {
         eventAudienceElement.textContent = formatAudience(targetAudience);
     }
     
-    // Ticket type (show if not free-all)
+    // Ticket type - Always show with appropriate display
     const ticketInfoElement = document.getElementById('ticketInfo');
     const eventTicketTypeElement = document.getElementById('eventTicketType');
     const buyTicketBtn = document.getElementById('buyTicketBtn');
     
-    if (ticketType && ticketType !== 'free-all') {
-        if (ticketInfoElement) {
-            ticketInfoElement.style.display = 'block';
-        }
-        if (eventTicketTypeElement) {
+    if (ticketInfoElement) ticketInfoElement.style.display = 'block';
+    if (eventTicketTypeElement) {
+        if (ticketType === 'free-all') {
+            eventTicketTypeElement.innerHTML = '<span style="color: #10B981; font-weight: 600;">Free Event</span>';
+        } else {
             eventTicketTypeElement.textContent = formatTicketType(ticketType);
         }
-        // Show buy ticket button for paid events
-        if (buyTicketBtn) {
+    }
+    
+    // Show/hide buy ticket button based on ticket type
+    if (buyTicketBtn) {
+        if (ticketType && ticketType !== 'free-all') {
             buyTicketBtn.style.display = 'inline-flex';
-        }
-    } else {
-        // Hide buy ticket button for free events
-        if (buyTicketBtn) {
+        } else {
             buyTicketBtn.style.display = 'none';
         }
     }
@@ -2053,6 +2090,23 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Calculate event status based on event date
+function getEventStatus(eventDate) {
+    if (!eventDate) return 'upcoming';
+    const eventDateObj = new Date(eventDate);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+
+    if (eventDateObj < today) {
+        return 'completed';
+    } else if (eventDateObj.getTime() === today.getTime()) {
+        return 'ongoing';
+    }
+    return 'upcoming';
 }
 
 function visitPublisherProfile() {

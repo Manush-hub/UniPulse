@@ -131,13 +131,19 @@ function displayEventDetails(event) {
         if (eventCategoryEl) eventCategoryEl.textContent = capitalizeFirstLetter(event.category);
         
         const eventStatusEl = document.getElementById('eventStatus');
-        if (eventStatusEl) eventStatusEl.textContent = event.status;
+        // Calculate event status dynamically based on event date
+        const eventDate = event.event_date || event.date;
+        if (eventStatusEl) {
+            const calculatedStatus = getEventStatus(eventDate);
+            eventStatusEl.textContent = capitalizeFirstLetter(calculatedStatus);
+            // Update the class for proper styling
+            eventStatusEl.className = `event-status ${calculatedStatus}`;
+        }
         
         const eventTitleEl = document.getElementById('eventTitle');
         if (eventTitleEl) eventTitleEl.textContent = event.title;
         
     // Event details grid
-    const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
     const locationType = event.location_type || 'inside-university';
     
@@ -1904,6 +1910,23 @@ function formatDate(dateString) {
         day: 'numeric' 
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+// Calculate event status based on event date
+function getEventStatus(eventDate) {
+    if (!eventDate) return 'upcoming';
+    const eventDateObj = new Date(eventDate);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    eventDateObj.setHours(0, 0, 0, 0);
+
+    if (eventDateObj < today) {
+        return 'completed';
+    } else if (eventDateObj.getTime() === today.getTime()) {
+        return 'ongoing';
+    }
+    return 'upcoming';
 }
 
 // Edit event function for publisher's own events
