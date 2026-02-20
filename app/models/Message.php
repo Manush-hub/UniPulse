@@ -312,4 +312,177 @@ class Message {
             'user2_type' => $user2Type
         ]);
     }
+    
+    /**
+     * Get all conversations for a user (grouped by contact)
+     * Returns an array of conversations with the latest message
+     */
+    public function getConversations($userId, $userType) {
+        // First, get all unique conversation partners
+        $query = "SELECT DISTINCT
+                    CASE 
+                        WHEN m.from_user_id = ? AND m.from_user_type = ? 
+                        THEN m.to_user_id
+                        ELSE m.from_user_id
+                    END as contact_id,
+                    CASE 
+                        WHEN m.from_user_id = ? AND m.from_user_type = ? 
+                        THEN m.to_user_type
+                        ELSE m.from_user_type
+                    END as contact_type
+                FROM messages m
+                WHERE (m.from_user_id = ? AND m.from_user_type = ?)
+                   OR (m.to_user_id = ? AND m.to_user_type = ?)";
+        
+        $partners = $this->query($query, [
+            $userId, $userType, 
+            $userId, $userType,
+            $userId, $userType,
+            $userId, $userType
+        ]);
+        
+        if (!$partners || empty($partners)) {
+            return [];
+        }
+        
+        $conversations = [];
+        
+        // For each partner, get conversation details
+        foreach ($partners as $partner) {
+            $contactId = $partner->contact_id;
+            $contactType = $partner->contact_type;
+            
+            // Get contact details
+            $contactQuery = "SELECT 
+                                CASE 
+                                    WHEN ? = 'publisher' THEN p.society_name
+                                    WHEN ? = 'sponsor' THEN s.company_name
+                                    WHEN ? = 'moderator' THEN m.full_name
+                                END as contact_name,
+                                CASE 
+                                    WHEN ? = 'publisher' THEN p.email
+                                    WHEN ? = 'sponsor' THEN s.email
+                                    WHEN ? = 'moderator' THEN m.email
+                                END as contact_email
+                            FROM (SELECT 1) dummy
+                            LEFT JOIN publishers p ON ? = 'publisher' AND p.id = ?
+                            LEFT JOIN sponsors s ON ? = 'sponsor' AND s.id = ?
+                            LEFT JOIN moderators m ON ? = 'moderator' AND m.id = ?";
+            
+            $contactInfo = $this->getRow($contactQuery, [
+                $contactType, $contactType, $contactType,
+                $contactType, $contactType, $contactType,
+                $contactType, $contactId,
+                $contactType, $contactId,
+                $contactType, $contactId
+            ]);
+            
+            // Get latest message and conversation stats
+            $statsQuery = "SELECT 
+                            m.created_at as last_message_time,
+                            m.message as last_message,
+                            m.subject as last_subject,
+                            (SELECT COUNT(*) FROM messages 
+                             WHERE to_user_id = ? AND to_user_type = ?
+                             AND from_user_id = ? AND from_user_type = ?
+                             AND is_read = FALSE) as unread_count,
+                            (SELECT COUNT(*) FROM messages 
+                             WHERE ((from_user_id = ? AND from_user_type = ? 
+                                     AND to_user_id = ? AND to_user_type = ?)
+                                    OR (from_user_id = ? AND from_user_type = ? 
+                                        AND to_user_id = ? AND to_user_type = ?))) as message_count
+                        FROM messages m
+                        WHERE ((m.from_user_id = ? AND m.from_user_type = ? 
+                                AND m.to_user_id = ? AND m.to_user_type = ?)
+                               OR (m.from_user_id = ? AND m.from_user_type = ? 
+                                   AND m.to_user_id = ? AND m.to_user_type = ?))
+                        ORDER BY m.created_at DESC
+                        LIMIT 1";
+            
+            $stats = $this->getRow($statsQuery, [
+                $userId, $userType, $contactId, $contactType,
+                $userId, $userType, $contactId, $contactType,
+                $contactId, $contactType, $userId, $userType,
+                $userId, $userType, $contactId, $contactType,
+                $contactId, $contactType, $userId, $userType
+            ]);
+            
+            // Combine all data
+            if ($contactInfo && $stats) {
+                $conversations[] = (object)[
+                    'contact_id' => $contactId,
+                    'contact_type' => $contactType,
+                    'contact_name' => $contactInfo->contact_name,
+                    'contact_email' => $contactInfo->contact_email,
+                    'last_message_time' => $stats->last_message_time,
+                    'last_message' => $stats->last_message,
+                    'last_subject' => $stats->last_subject,
+                    'unread_count' => $stats->unread_count,
+                    'message_count' => $stats->message_count
+                ];
+            }
+        }
+        
+        // Sort by last message time
+        usort($conversations, function($a, $b) {
+            return strtotime($b->last_message_time) - strtotime($a->last_message_time);
+        });
+        
+        return $conversations;
+    }
+    
+    /**
+     * Get all messages in a conversation with a specific contact
+     */
+    public function getConversationMessages($userId, $userType, $contactId, $contactType) {
+        $query = "SELECT m.*, 
+                         -- Sender info
+                         CASE 
+                             WHEN m.from_user_type = 'publisher' THEN p.society_name
+                             WHEN m.from_user_type = 'sponsor' THEN s.company_name
+                             WHEN m.from_user_type = 'moderator' THEN `moderator`.full_name
+                             ELSE m.from_user_type
+                         END as sender_name,
+                         CASE 
+                             WHEN m.from_user_type = 'publisher' THEN p.email
+                             WHEN m.from_user_type = 'sponsor' THEN s.email
+                             WHEN m.from_user_type = 'moderator' THEN `moderator`.email
+                             ELSE NULL
+                         END as sender_email,
+                         -- Recipient info
+                         CASE 
+                             WHEN m.to_user_type = 'publisher' THEN p2.society_name
+                             WHEN m.to_user_type = 'sponsor' THEN s2.company_name
+                             WHEN m.to_user_type = 'moderator' THEN moderator2.full_name
+                             ELSE m.to_user_type
+                         END as recipient_name,
+                         CASE 
+                             WHEN m.to_user_type = 'publisher' THEN p2.email
+                             WHEN m.to_user_type = 'sponsor' THEN s2.email
+                             WHEN m.to_user_type = 'moderator' THEN moderator2.email
+                             ELSE NULL
+                         END as recipient_email,
+                         -- Is this message sent by current user
+                         CAST((m.from_user_id = ? AND m.from_user_type = ?) AS UNSIGNED) as is_mine
+                  FROM messages m
+                  LEFT JOIN publishers p ON (m.from_user_type = 'publisher' AND m.from_user_id = p.id)
+                  LEFT JOIN sponsors s ON (m.from_user_type = 'sponsor' AND m.from_user_id = s.id)
+                  LEFT JOIN moderators `moderator` ON (m.from_user_type = 'moderator' AND m.from_user_id = `moderator`.id)
+                  LEFT JOIN publishers p2 ON (m.to_user_type = 'publisher' AND m.to_user_id = p2.id)
+                  LEFT JOIN sponsors s2 ON (m.to_user_type = 'sponsor' AND m.to_user_id = s2.id)
+                  LEFT JOIN moderators moderator2 ON (m.to_user_type = 'moderator' AND m.to_user_id = moderator2.id)
+                  WHERE ((m.from_user_id = ? AND m.from_user_type = ? 
+                          AND m.to_user_id = ? AND m.to_user_type = ?)
+                         OR (m.from_user_id = ? AND m.from_user_type = ? 
+                          AND m.to_user_id = ? AND m.to_user_type = ?))
+                  ORDER BY m.created_at ASC";
+        
+        $result = $this->query($query, [
+            $userId, $userType,
+            $userId, $userType, $contactId, $contactType,
+            $contactId, $contactType, $userId, $userType
+        ]);
+        
+        return is_array($result) ? $result : [];
+    }
 }
