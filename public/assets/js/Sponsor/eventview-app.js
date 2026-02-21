@@ -1002,6 +1002,7 @@ window.addEventListener('click', function(event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
     const bankDetailsModal = document.getElementById('bankDetailsModal');
+    const uploadTranscriptModal = document.getElementById('uploadTranscriptModal');
     
     if (event.target === joinModal) {
         closeJoinModal();
@@ -1011,6 +1012,9 @@ window.addEventListener('click', function(event) {
     }
     if (event.target === bankDetailsModal) {
         closeBankDetailsModal();
+    }
+    if (event.target === uploadTranscriptModal) {
+        closeUploadTranscriptModal();
     }
 });
 
@@ -1223,12 +1227,141 @@ function confirmBankTransfer() {
         return;
     }
     
-    // Close modal and redirect to sponsorship request confirmation page
+    // Close bank details modal
     closeBankDetailsModal();
     
-    // Redirect to sponsorship request page
-    window.location.href = `/unipulse/public/sponsor/sponsorship/request?event_id=${eventId}&package_id=${packageData.packageId}`;
+    // Show upload transcript modal
+    openUploadTranscriptModal();
 }
+
+// Open upload transcript modal
+function openUploadTranscriptModal() {
+    const packageData = window.selectedSponsorshipPackage;
+    
+    if (!packageData) {
+        alert('Package information not available');
+        return;
+    }
+    
+    // Populate modal with package details
+    document.getElementById('uploadPackageName').textContent = `${packageData.packageName} Package`;
+    document.getElementById('uploadPackageAmount').textContent = `LKR ${parseFloat(packageData.price).toLocaleString()}`;
+    
+    // Show modal
+    const modal = document.getElementById('uploadTranscriptModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+// Close upload transcript modal
+function closeUploadTranscriptModal() {
+    const modal = document.getElementById('uploadTranscriptModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    // Reset form
+    const form = document.getElementById('uploadTranscriptForm');
+    if (form) {
+        form.reset();
+    }
+}
+
+// Submit sponsorship request with file upload
+function submitSponsorshipRequest() {
+    const packageData = window.selectedSponsorshipPackage;
+    const eventId = currentEvent?.id;
+    
+    if (!eventId || !packageData) {
+        alert('Missing sponsorship information. Please try again.');
+        return;
+    }
+    
+    // Validate form
+    const fileInput = document.getElementById('paymentProof');
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please upload your payment receipt/slip');
+        return;
+    }
+    
+    // Validate file size (5MB max)
+    const file = fileInput.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+        alert('File size must be less than 5MB');
+        return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+        alert('Please upload a valid file (JPG, PNG, or PDF)');
+        return;
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('event_id', eventId);
+    formData.append('package_id', packageData.packageId);
+    formData.append('amount', packageData.price);
+    formData.append('payment_proof', file);
+    formData.append('notes', document.getElementById('sponsorshipNotes')?.value || '');
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#uploadTranscriptModal .btn-primary');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    submitBtn.disabled = true;
+    
+    // Submit request
+    fetch('/unipulse/public/sponsor/sponsorship/submit', {
+        method: 'POST',
+        body: formData
+    })
+    .then(async response => {
+        const text = await response.text();
+        console.log('Server response:', text);
+        
+        // Try to parse as JSON
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error('Failed to parse JSON:', text);
+            throw new Error('Server returned invalid response. Please check your login status and try again.');
+        }
+        
+        if (!response.ok) {
+            throw new Error(data.message || `Server error (${response.status})`);
+        }
+        
+        return data;
+    })
+    .then(data => {
+        if (data.success) {
+            closeUploadTranscriptModal();
+            alert('Sponsorship request submitted successfully! The event organizer will review your request.');
+            
+            // Redirect to sponsorship requests page
+            setTimeout(() => {
+                window.location.href = '/unipulse/public/sponsor/sponsorships';
+            }, 1500);
+        } else {
+            alert(data.message || 'Failed to submit sponsorship request. Please try again.');
+            submitBtn.innerHTML = originalHTML;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error submitting sponsorship:', error);
+        alert('An error occurred: ' + error.message);
+        submitBtn.innerHTML = originalHTML;
+        submitBtn.disabled = false;
+    });
+}
+
 
 // Utility functions
 function capitalizeFirstLetter(string) {
