@@ -96,7 +96,7 @@
                         <h3>Volunteers</h3>
                         <p>Manage volunteer applications</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='sponsorships.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/publisher/sponsorships'">
                         <div class="action-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">

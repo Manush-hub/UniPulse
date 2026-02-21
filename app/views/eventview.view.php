@@ -571,6 +571,59 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             </div>
         </div>
     </div>
+
+    <!-- Upload Bank Transcript Modal (Sponsor Role Only) -->
+    <div id="uploadTranscriptModal" class="modal">
+        <div class="modal-content modal-upload-transcript">
+            <div class="modal-header">
+                <h2><i class="fas fa-upload"></i> Upload Bank Transaction Receipt</h2>
+                <button class="close-btn" onclick="closeUploadTranscriptModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-transcript-info">
+                    <p class="upload-intro">Please upload your bank transaction receipt/slip as proof of payment:</p>
+                    
+                    <div class="sponsorship-summary">
+                        <h4><i class="fas fa-info-circle"></i> Sponsorship Details</h4>
+                        <div class="summary-item">
+                            <strong>Package:</strong> <span id="uploadPackageName"></span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Amount Paid:</strong> <span id="uploadPackageAmount" class="amount-highlight"></span>
+                        </div>
+                    </div>
+                    
+                    <form id="uploadTranscriptForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="paymentProof">
+                                <i class="fas fa-file-upload"></i> Bank Receipt/Transaction Slip *
+                            </label>
+                            <input type="file" id="paymentProof" name="payment_proof" accept="image/*,application/pdf" required>
+                            <small class="form-help">Accepted formats: JPG, PNG, PDF (Max 5MB)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sponsorshipNotes">
+                                <i class="fas fa-comment"></i> Additional Notes (Optional)
+                            </label>
+                            <textarea id="sponsorshipNotes" name="notes" rows="3" placeholder="Any additional information about the payment..."></textarea>
+                        </div>
+                    </form>
+                    
+                    <div class="upload-note">
+                        <i class="fas fa-info-circle"></i>
+                        <p><strong>Note:</strong> Your sponsorship request will be sent to the event organizer for verification. You'll be notified once it's approved.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUploadTranscriptModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitSponsorshipRequest()">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
+            </div>
+        </div>
+    </div>
     <?php endif; ?>
 
     <!-- Pass PHP data to JavaScript -->
