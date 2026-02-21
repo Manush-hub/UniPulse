@@ -22,7 +22,14 @@
             <div class="container">
                 <div class="welcome-content">
                     <div class="welcome-text">
-                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($user['company_name'] ?? 'Sponsor') ?></span>! 👋</h1>
+                        <?php
+                        $welcomeNameRaw = $_SESSION['user_name'] ?? ($user['name'] ?? ($user['company_name'] ?? 'Sponsor'));
+                        $welcomeName = trim((string) $welcomeNameRaw);
+                        if ($welcomeName !== '' && $welcomeName === strtolower($welcomeName)) {
+                            $welcomeName = ucwords($welcomeName);
+                        }
+                        ?>
+                        <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($welcomeName) ?></span>! 👋</h1>
                         <p>Manage your sponsorships and discover new opportunities to support university events.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
@@ -49,62 +56,6 @@
                             </svg>
                             Find Events to Sponsor
                         </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Quick Actions -->
-        <section class="quick-actions">
-            <div class="container">
-                <h2>Quick Actions</h2>
-                <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='sponsorship-requests.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                        </div>
-                        <h3>Sponsorship Requests</h3>
-                        <p>Review event sponsorship proposals</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='current-sponsorships.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                            </svg>
-                        </div>
-                        <h3>Current Sponsorships</h3>
-                        <p>Manage your active sponsorships</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='analytics.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <line x1="18" y1="20" x2="18" y2="10"></line>
-                                <line x1="12" y1="20" x2="12" y2="4"></line>
-                                <line x1="6" y1="20" x2="6" y2="14"></line>
-                            </svg>
-                        </div>
-                        <h3>Performance Analytics</h3>
-                        <p>View sponsorship ROI and metrics</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='/unipulse/public/sponsor/messages'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                        </div>
-                        <h3>Messages <?php if (isset($unread_count) && $unread_count > 0): ?><span class="notification-badge"><?= $unread_count ?></span><?php endif; ?></h3>
-                        <p>Communicate with event organizers</p>
                     </div>
                 </div>
             </div>

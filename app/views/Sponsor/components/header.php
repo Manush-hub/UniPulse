@@ -1,6 +1,12 @@
 <?php
 $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+
+$sponsorDisplayNameRaw = $_SESSION['user_name'] ?? ((isset($user) && is_array($user) && isset($user['name'])) ? $user['name'] : 'Sponsor');
+$sponsorDisplayName = trim((string) $sponsorDisplayNameRaw);
+if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDisplayName)) {
+    $sponsorDisplayName = ucwords($sponsorDisplayName);
+}
 ?>
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
@@ -16,6 +22,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             <a href="/unipulse/public/sponsor/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/sponsor/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
             <a href="/unipulse/public/sponsor/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+            <a href="/unipulse/public/sponsor/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
         </nav>
         <div class="header-actions">
             <div class="notifications">
@@ -40,7 +47,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             <div class="user-menu">
                 <img src="/unipulse/public/assets/images/default-avatar.png" alt="Sponsor Avatar" class="avatar">
                 <div class="user-info">
-                    <span class="username" id="username">TechCorp Ltd</span>
+                    <span class="username" id="username"><?= htmlspecialchars($sponsorDisplayName) ?></span>
                     <span class="user-role" id="userRole">Sponsor</span>
                 </div>
                 <button class="user-dropdown-btn" onclick="toggleUserMenu()">
