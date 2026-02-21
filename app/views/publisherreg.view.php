@@ -229,54 +229,6 @@
     <?php include 'footer.php'; ?>
 
     <script>
-        // Make dropdowns show 5 items when opened
-        document.addEventListener('DOMContentLoaded', function() {
-            const universitySelect = document.getElementById('university');
-            const facultySelect = document.getElementById('faculty');
-            const countryCodeSelect = document.getElementById('country-code');
-            
-            // When user clicks on dropdown, show 5 items
-            universitySelect.addEventListener('focus', function() {
-                this.size = 5;
-            });
-            
-            universitySelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            universitySelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-            
-            facultySelect.addEventListener('focus', function() {
-                this.size = 5;
-            });
-            
-            facultySelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            facultySelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-            
-            // Country code dropdown - show 4 items
-            countryCodeSelect.addEventListener('focus', function() {
-                this.size = 4;
-            });
-            
-            countryCodeSelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            countryCodeSelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-        });
-
         // Help tooltip functionality
         function toggleHelp() {
             const tooltip = document.getElementById('helpTooltip');

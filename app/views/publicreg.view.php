@@ -182,40 +182,6 @@
     <?php include 'footer.php'; ?>
 
     <script>
-        // Make dropdowns show items when opened
-        document.addEventListener('DOMContentLoaded', function() {
-            const genderSelect = document.getElementById('gender');
-            const countryCodeSelect = document.getElementById('country-code');
-            
-            // Gender dropdown - show 3 items
-            genderSelect.addEventListener('focus', function() {
-                this.size = 3;
-            });
-            
-            genderSelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            genderSelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-            
-            // Country code dropdown - show 4 items
-            countryCodeSelect.addEventListener('focus', function() {
-                this.size = 4;
-            });
-            
-            countryCodeSelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            countryCodeSelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-        });
-
         // Terms validation with improved feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');

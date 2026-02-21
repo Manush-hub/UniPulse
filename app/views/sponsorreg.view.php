@@ -136,25 +136,6 @@
     <?php include 'footer.php'; ?>
 
     <script>
-        // Country code dropdown functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const countryCodeSelect = document.getElementById('country-code');
-            
-            // When user clicks on dropdown, show 4 items
-            countryCodeSelect.addEventListener('focus', function() {
-                this.size = 4;
-            });
-            
-            countryCodeSelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            countryCodeSelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-        });
-
         // Terms validation with improved feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
