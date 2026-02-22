@@ -166,12 +166,21 @@ class PublisherDashboard extends Controller{
                 SELECT 
                     e.*,
                     p.society_name as organizer_name,
-                    COUNT(ec.id) as comment_count,
-                    COUNT(CASE WHEN ec.rating > 0 THEN 1 END) as rating_count,
-                    AVG(CASE WHEN ec.rating > 0 THEN ec.rating END) as avg_rating
+                    COUNT(DISTINCT ec.id) as comment_count,
+                    COUNT(DISTINCT CASE WHEN ec.rating > 0 THEN ec.id END) as rating_count,
+                    AVG(CASE WHEN ec.rating > 0 THEN ec.rating END) as avg_rating,
+                    COUNT(DISTINCT CASE WHEN es.status = 'pending' THEN es.id END) as pending_sponsorships,
+                    COUNT(DISTINCT es.id) as total_sponsorships,
+                    COUNT(DISTINCT esp.id) as total_packages,
+                    SUM(DISTINCT CASE WHEN esp.is_active = 1 THEN esp.available_slots ELSE 0 END) as total_slots,
+                    SUM(DISTINCT CASE WHEN esp.is_active = 1 THEN esp.filled_slots ELSE 0 END) as filled_slots,
+                    (SELECT COALESCE(SUM(amount), 0) FROM event_sponsorships WHERE event_id = e.id AND status = 'completed') as approved_budget,
+                    (SELECT COALESCE(SUM(amount), 0) FROM event_sponsorships WHERE event_id = e.id AND status = 'pending') as pending_budget
                 FROM events e
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 LEFT JOIN event_comments ec ON e.id = ec.event_id AND ec.is_deleted = 0
+                LEFT JOIN event_sponsorships es ON e.id = es.event_id
+                LEFT JOIN event_sponsorship_packages esp ON e.id = esp.event_id
                 $whereClause
                 GROUP BY e.id
                 ORDER BY e.event_date DESC
@@ -189,7 +198,7 @@ class PublisherDashboard extends Controller{
                 // Calculate actual status based on event date
                 $eventStatus = $event->status;
                 if ($event->event_date < $currentDate) {
-                    $eventStatus = 'past';
+                    $eventStatus = 'completed';
                 } elseif ($event->event_date == $currentDate) {
                     $eventStatus = 'ongoing';
                 } elseif ($event->event_date > $currentDate) {
@@ -219,7 +228,19 @@ class PublisherDashboard extends Controller{
                     'max_participants' => $event->max_participants ?? null,
                     'comment_count' => (int)($event->comment_count ?? 0),
                     'rating_count' => (int)($event->rating_count ?? 0),
-                    'avg_rating' => $event->avg_rating ? round((float)$event->avg_rating, 1) : null
+                    'avg_rating' => $event->avg_rating ? round((float)$event->avg_rating, 1) : null,
+                    'pending_sponsorships' => (int)($event->pending_sponsorships ?? 0),
+                    'total_sponsorships' => (int)($event->total_sponsorships ?? 0),
+                    'accepts_sponsorships' => (int)($event->accepts_sponsorships ?? 0),
+                    'sponsorship_stats' => [
+                        'total_packages' => (int)($event->total_packages ?? 0),
+                        'total_slots' => (int)($event->total_slots ?? 0),
+                        'filled_slots' => (int)($event->filled_slots ?? 0),
+                        'available_slots' => (int)(($event->total_slots ?? 0) - ($event->filled_slots ?? 0)),
+                        'approved_budget' => (float)($event->approved_budget ?? 0),
+                        'pending_budget' => (float)($event->pending_budget ?? 0),
+                        'total_budget' => (float)(($event->approved_budget ?? 0) + ($event->pending_budget ?? 0))
+                    ]
                 ];
             }
             

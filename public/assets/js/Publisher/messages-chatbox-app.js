@@ -76,6 +76,33 @@ function selectConversation(element) {
     loadConversation(contactId, contactType, contactName);
 }
 
+// Start a new conversation with a contact
+function startConversation(contactId, contactType, contactName) {
+    // Remove active class from all conversations
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Set current contact info
+    currentContactId = contactId;
+    currentContactType = contactType;
+    currentContactName = contactName;
+    
+    // Update chat header
+    document.getElementById('chatContactName').textContent = contactName;
+    document.getElementById('chatContactType').textContent = contactType.charAt(0).toUpperCase() + contactType.slice(1);
+    document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
+    
+    // Update hidden form fields
+    document.getElementById('recipientId').value = contactId;
+    document.getElementById('recipientType').value = contactType;
+    
+    // Load conversation (will show empty if no messages exist)
+    loadConversation(contactId, contactType, contactName);
+    
+
+}
+
 // Load conversation messages
 function loadConversation(contactId, contactType, contactName, silent = false) {
     const chatMessages = document.getElementById('chatMessages');
@@ -219,15 +246,14 @@ function sendMessage(event) {
             // Reload conversation
             loadConversation(currentContactId, currentContactType, currentContactName, true);
             
-            // Show success briefly
-            showNotification('Message sent!', 'success');
         } else {
-            showNotification(data.message || 'Failed to send message', 'error');
+            console.error('Failed to send message:', data.message);
+            showNotification(`Failed to send message: ${data.message || 'Unknown error'}`, 'error');
         }
     })
     .catch(error => {
         console.error('Error sending message:', error);
-        showNotification('Failed to send message', 'error');
+        showNotification('Failed to send message: Network error', 'error');
     })
     .finally(() => {
         // Re-enable send button
@@ -240,7 +266,6 @@ function sendMessage(event) {
 function refreshChat() {
     if (currentContactId && currentContactType) {
         loadConversation(currentContactId, currentContactType, currentContactName);
-        showNotification('Messages refreshed', 'success');
     }
 }
 

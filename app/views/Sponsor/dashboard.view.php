@@ -38,7 +38,7 @@
                             </div>
                             <div class="stat-item">
                                 <span class="stat-number" id="pendingRequests">5</span>
-                                <span class="stat-label">Pending Requests</span>
+                                <span class="stat-label">Pending Sponsorships</span>
                             </div>
                             <div class="stat-item">
                                 <span class="stat-number" id="totalInvestment">LKR 4,200</span>
@@ -61,69 +61,12 @@
             </div>
         </section>
 
-        <!-- Recent Messages -->
-        <section class="recent-messages">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Recent Messages from Publishers</h2>
-                    <a href="/unipulse/public/sponsor/messages" class="view-all">View All</a>
-                </div>
-                <div class="messages-container">
-                    <?php if (isset($recent_messages) && !empty($recent_messages)): ?>
-                        <?php foreach ($recent_messages as $message): ?>
-                            <div class="message-card <?= !$message->is_read ? 'unread' : '' ?>" onclick="window.location.href='/unipulse/public/sponsor/messages/details/<?= $message->id ?>'">
-                                <div class="message-header">
-                                    <div class="sender-info">
-                                        <h4><?= htmlspecialchars($message->sender_name) ?></h4>
-                                        <span class="message-date"><?= date('M j, Y g:i A', strtotime($message->created_at)) ?></span>
-                                    </div>
-                                    <?php if (!$message->is_read): ?>
-                                        <span class="unread-indicator"></span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="message-preview">
-                                    <h5><?= htmlspecialchars($message->subject) ?></h5>
-                                    <p><?= htmlspecialchars(substr($message->message, 0, 150)) ?><?= strlen($message->message) > 150 ? '...' : '' ?></p>
-                                </div>
-                                <div class="message-footer">
-                                    <span class="message-type">From: <?= ucfirst($message->from_user_type) ?></span>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="no-messages">
-                            <div class="no-messages-icon">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                </svg>
-                            </div>
-                            <h3>No Messages Yet</h3>
-                            <p>When publishers send you messages, they'll appear here.</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </section>
-
-        <!-- Sponsorship Requests -->
-        <section class="sponsorship-requests">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Recent Sponsorship Requests</h2>
-                    <a href="sponsorship-requests.html" class="view-all">View All</a>
-                </div>
-                <div class="requests-table" id="requestsTable">
-                    <!-- Requests will be loaded here -->
-                </div>
-            </div>
-        </section>
-
         <!-- Active Sponsorships -->
         <section class="active-sponsorships">
             <div class="container">
                 <div class="section-header">
                     <h2>Your Active Sponsorships</h2>
-                    <a href="current-sponsorships.html" class="view-all">View All</a>
+                    <a href="/unipulse/public/sponsor/sponsorships" class="view-all">View All</a>
                 </div>
                 <div class="sponsorships-grid" id="sponsorshipsGrid">
                     <!-- Active sponsorships will be loaded here -->

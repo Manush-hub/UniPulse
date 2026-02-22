@@ -1,168 +1,116 @@
 // Initialize sponsor dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
     initializeSponsorDashboard();
-    loadSponsorshipRequests();
+    loadSponsorStats();
     loadActiveSponsorships();
 });
-
-
-const sponsorshipRequests = [
-    {
-        id: 1,
-        event: 'Annual Tech Symposium',
-        organizer: 'Computer Science Society',
-        date: '2025-09-20',
-        amount: 1000,
-        status: 'pending'
-    },
-    {
-        id: 2,
-        event: 'Cultural Festival',
-        organizer: 'Arts Club',
-        date: '2025-10-05',
-        amount: 750,
-        status: 'pending'
-    },
-    {
-        id: 3,
-        event: 'Sports Tournament',
-        organizer: 'Sports Department',
-        date: '2025-09-15',
-        amount: 1500,
-        status: 'pending'
-    }
-];
-
-const activeSponsorships = [
-    {
-        id: 1,
-        event: 'Hackathon 2025',
-        organizer: 'Engineering Faculty',
-        startDate: '2025-08-10',
-        endDate: '2025-08-12',
-        investment: 2000,
-        status: 'active',
-        audienceReach: 12500,
-        engagementRate: 5.2,
-        roi: 3.5
-    },
-    {
-        id: 2,
-        event: 'Business Summit',
-        organizer: 'Business School',
-        startDate: '2025-07-15',
-        endDate: '2025-07-17',
-        investment: 1500,
-        status: 'active',
-        audienceReach: 8600,
-        engagementRate: 4.1,
-        roi: 2.8
-    }
-];
-
 
 // Initialize sponsor dashboard
 function initializeSponsorDashboard() {
     updateDateTime();
     setInterval(updateDateTime, 60000); // Update every minute
-
     setupScrollAnimations();
 }
 
-
-
-// Load sponsorship requests
-function loadSponsorshipRequests() {
-    const table = document.getElementById('requestsTable');
-    table.innerHTML = '';
-
-    // Add header row
-    const headerRow = document.createElement('div');
-    headerRow.className = 'request-row header';
-    headerRow.innerHTML = `
-        <div>Event & Organizer</div>
-        <div>Date</div>
-        <div>Amount</div>
-        <div>Actions</div>
-    `;
-    table.appendChild(headerRow);
-
-    // Add request rows
-    sponsorshipRequests.forEach(request => {
-        const requestRow = createRequestRow(request);
-        table.appendChild(requestRow);
-    });
+// Load sponsor statistics
+async function loadSponsorStats() {
+    try {
+        const response = await fetch('/unipulse/public/sponsor/dashboard/getStats');
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update statistics in the welcome section
+            document.getElementById('totalSponsorships').textContent = data.stats.active_sponsorships;
+            document.getElementById('pendingRequests').textContent = data.stats.pending_requests;
+            document.getElementById('totalInvestment').textContent = `LKR ${data.stats.total_investment.toLocaleString()}`;
+        }
+    } catch (error) {
+        console.error('Error loading sponsor stats:', error);
+    }
 }
 
-// Create request row
-function createRequestRow(request) {
-    const row = document.createElement('div');
-    row.className = 'request-row';
-    row.onclick = () => viewRequestDetails(request.id);
-
-    row.innerHTML = `
-        <div>
-            <div class="request-event">${request.event}</div>
-            <div class="request-organizer">${request.organizer}</div>
-        </div>
-        <div class="request-date">${formatDate(request.date)}</div>
-    <div class="request-amount">LKR ${request.amount}</div>
-        <div class="request-actions">
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); acceptRequest(${request.id})">Accept</button>
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); rejectRequest(${request.id})">Reject</button>
-        </div>
-    `;
-
-    return row;
-}
-
-// Load active sponsorships
-function loadActiveSponsorships() {
+// Load active sponsorships (completed sponsorships for upcoming/ongoing events)
+async function loadActiveSponsorships() {
     const grid = document.getElementById('sponsorshipsGrid');
-    grid.innerHTML = '';
-
-    activeSponsorships.forEach(sponsorship => {
-        const card = createSponsorshipCard(sponsorship);
-        grid.appendChild(card);
-    });
+    grid.innerHTML = '<div class="loading-spinner">Loading sponsorships...</div>';
+    
+    try {
+        const response = await fetch('/unipulse/public/sponsor/dashboard/getActiveSponsorships');
+        const data = await response.json();
+        
+        if (data.success) {
+            grid.innerHTML = '';
+            
+            if (data.sponsorships && data.sponsorships.length > 0) {
+                data.sponsorships.forEach(sponsorship => {
+                    const card = createSponsorshipCard(sponsorship);
+                    grid.appendChild(card);
+                });
+            } else {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 3rem;">
+                        <div class="empty-icon" style="font-size: 4rem; margin-bottom: 1rem;">🎯</div>
+                        <h3 style="color: #1e293b; margin-bottom: 0.5rem;">No Active Sponsorships</h3>
+                        <p style="color: #64748b; margin-bottom: 1.5rem;">You don't have any active sponsorships for upcoming events.</p>
+                        <a href="/unipulse/public/sponsor/events?view=sponsor" class="btn btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                            Find Events to Sponsor
+                        </a>
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading active sponsorships:', error);
+        grid.innerHTML = '<div class="error-message">Failed to load sponsorships. Please try again.</div>';
+    }
 }
 
 // Create sponsorship card
 function createSponsorshipCard(sponsorship) {
     const card = document.createElement('div');
     card.className = 'sponsorship-card';
-    card.onclick = () => viewSponsorshipDetails(sponsorship.id);
+    card.onclick = () => viewEventDetails(sponsorship.event_id);
 
-    const statusClass = `status-${sponsorship.status}`;
+    const statusBadge = sponsorship.event_status === 'ongoing' 
+        ? '<div class="sponsorship-badge status-ongoing">ongoing</div>'
+        : '<div class="sponsorship-badge status-upcoming">upcoming</div>';
+
+    const eventDate = new Date(sponsorship.event_date);
+    const dateDisplay = formatDateFull(eventDate);
 
     card.innerHTML = `
         <div class="sponsorship-header">
-            <h3 class="sponsorship-title">${sponsorship.event}</h3>
-            <div class="sponsorship-organizer">${sponsorship.organizer}</div>
-            <div class="sponsorship-badge ${statusClass}">${sponsorship.status}</div>
+            <h3 class="sponsorship-title">${escapeHtml(sponsorship.event_title)}</h3>
+            <div class="sponsorship-organizer">${escapeHtml(sponsorship.organizer_name || 'Event Organizer')}</div>
+            ${statusBadge}
         </div>
         <div class="sponsorship-content">
             <div class="sponsorship-details">
                 <div class="sponsorship-detail">
+                    <span class="detail-label">Package</span>
+                    <span class="detail-value">${escapeHtml(sponsorship.package_name)} (${escapeHtml(sponsorship.package_type)})</span>
+                </div>
+                <div class="sponsorship-detail">
                     <span class="detail-label">Investment</span>
-                    <span class="detail-value">LKR ${sponsorship.investment}</span>
+                    <span class="detail-value">LKR ${parseFloat(sponsorship.amount).toLocaleString()}</span>
                 </div>
                 <div class="sponsorship-detail">
-                    <span class="detail-label">Duration</span>
-                    <span class="detail-value">${formatDate(sponsorship.startDate)} - ${formatDate(sponsorship.endDate)}</span>
+                    <span class="detail-label">Event Date</span>
+                    <span class="detail-value">${dateDisplay}</span>
                 </div>
                 <div class="sponsorship-detail">
-                    <span class="detail-label">Audience Reach</span>
-                    <span class="detail-value">${sponsorship.audienceReach.toLocaleString()}</span>
-                </div>
-                <div class="sponsorship-detail">
-                    <span class="detail-label">ROI</span>
-                    <span class="detail-value">${sponsorship.roi}x</span>
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value">${escapeHtml(sponsorship.venue_name || sponsorship.city || 'TBA')}</span>
                 </div>
             </div>
             <div class="sponsorship-actions">
-                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewPerformance(${sponsorship.id})">View Performance</button>
-                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); contactOrganizer(${sponsorship.id})">Contact Organizer</button>
+                <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); viewEventDetails(${sponsorship.event_id})">View Event</button>
+                ${sponsorship.organizer_id ? `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); contactOrganizer(${sponsorship.organizer_id}, '${escapeHtml(sponsorship.organizer_name || 'Event Organizer')}')">Contact Organizer</button>` : ''}
             </div>
         </div>
     `;
@@ -170,39 +118,15 @@ function createSponsorshipCard(sponsorship) {
     return card;
 }
 
-// Sponsor-specific functions
-function acceptRequest(requestId) {
-    console.log(`Accepting request ${requestId}`);
-    // API call to accept sponsorship request
-    alert(`Sponsorship request ${requestId} accepted!`);
-    // Refresh the requests list
-    loadSponsorshipRequests();
+// View event details
+function viewEventDetails(eventId) {
+    window.location.href = `/unipulse/public/sponsor/Events/event/${eventId}`;
 }
 
-function rejectRequest(requestId) {
-    console.log(`Rejecting request ${requestId}`);
-    // API call to reject sponsorship request
-    if (confirm('Are you sure you want to reject this sponsorship request?')) {
-        alert(`Sponsorship request ${requestId} rejected.`);
-        // Refresh the requests list
-        loadSponsorshipRequests();
-    }
-}
-
-function viewRequestDetails(requestId) {
-    window.location.href = `sponsorship-details.html?id=${requestId}`;
-}
-
-function viewSponsorshipDetails(sponsorshipId) {
-    window.location.href = `sponsorship-management.html?id=${sponsorshipId}`;
-}
-
-function viewPerformance(sponsorshipId) {
-    window.location.href = `analytics.html?id=${sponsorshipId}`;
-}
-
-function contactOrganizer(sponsorshipId) {
-    window.location.href = `messages.html?sponsorship=${sponsorshipId}`;
+// Contact organizer - redirect to messages
+function contactOrganizer(publisherId, organizerName) {
+    // Redirect to messages page with publisher parameter
+    window.location.href = `/unipulse/public/sponsor/messages?publisher=${publisherId}&name=${encodeURIComponent(organizerName)}`;
 }
 
 // Update date and time
@@ -216,18 +140,39 @@ function updateDateTime() {
         hour: '2-digit',
         minute: '2-digit'
     };
-
-    // You can add a date/time display element if needed
     console.log('Current time:', now.toLocaleDateString('en-US', options));
 }
 
-// Format date
+// Format date (short format)
 function formatDate(dateString) {
     const options = {
         month: 'short',
         day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+// Format date (full format)
+function formatDateFull(date) {
+    const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
 
 // Setup scroll animations
@@ -247,47 +192,10 @@ function setupScrollAnimations() {
     }, observerOptions);
 
     // Observe sections for animation
-    document.querySelectorAll('.action-card, .sponsorship-card, .performance-card').forEach(element => {
+    document.querySelectorAll('.sponsorship-card, .performance-card').forEach(element => {
         element.style.opacity = '0';
         element.style.transform = 'translateY(20px)';
         element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(element);
     });
-}
-
-// Utility functions for API integration
-async function fetchSponsorData() {
-    try {
-        // Replace with actual API call
-        const response = await fetch('/api/sponsor/dashboard');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching sponsor data:', error);
-        return sponsorData; // Fallback to sample data
-    }
-}
-
-async function fetchSponsorshipRequests() {
-    try {
-        // Replace with actual API call
-        const response = await fetch('/api/sponsor/requests');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching sponsorship requests:', error);
-        return sponsorshipRequests;
-    }
-}
-
-async function fetchActiveSponsorships() {
-    try {
-        // Replace with actual API call
-        const response = await fetch('/api/sponsor/active-sponsorships');
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching active sponsorships:', error);
-        return activeSponsorships;
-    }
 }

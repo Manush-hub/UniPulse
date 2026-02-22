@@ -1,39 +1,7 @@
 /* Sponsor Sponsorships Page Styles */
 
-/* CSS Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: #1e293b;
-    background: #f8fafc;
-}
-
-/* Remove default link styles */
-a {
-    color: inherit;
-    text-decoration: none;
-    background: transparent;
-}
-
-/* Remove default form element styles */
-input,
-select,
-button,
-textarea {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    margin: 0;
-}
-
 :root {
-    --primary-color: #9333ea;
+    --primary-color: #3b82f6;
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
@@ -45,23 +13,26 @@ textarea {
 
 .main-container {
     min-height: 100vh;
+    padding-top: 70px;
     background: var(--bg-color);
 }
 
 .page-header {
-    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+    background: linear-gradient(135deg, var(--primary-color), #2563eb);
     color: white;
     padding: 2rem 0;
     margin-bottom: 2rem;
 }
 
 .header-content {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
 }
 
 .header-text h1 {
@@ -73,60 +44,47 @@ textarea {
     gap: 0.75rem;
 }
 
+.header-text p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .header-stats {
     display: flex;
     gap: 1.5rem;
 }
 
 .stat-item {
-    text-align: center;
-    padding: 1rem 1.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-item.pending {
+    background: rgba(251, 191, 36, 0.2);
+}
+
+.stat-item.approved {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.stat-item.completed {
+    background: rgba(59, 130, 246, 0.2);
 }
 
 .stat-number {
-    display: block;
     font-size: 2rem;
     font-weight: 700;
+    line-height: 1;
     margin-bottom: 0.25rem;
 }
 
 .stat-label {
-    display: block;
     font-size: 0.875rem;
     opacity: 0.9;
-}
-
-.sponsorships-section {
-    padding: 0 2rem 2rem;
-}
-
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-/* Error Message */
-.error-message {
-    background: #fee2e2;
-    border: 1px solid #fca5a5;
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: #991b1b;
-}
-
-.error-message i {
-    font-size: 1.25rem;
-}
-
-.error-message p {
-    margin: 0;
     font-weight: 500;
 }
 
@@ -136,6 +94,7 @@ textarea {
     gap: 0.5rem;
     margin-bottom: 2rem;
     border-bottom: 2px solid var(--border-color);
+    flex-wrap: wrap;
 }
 
 .tab-btn {
@@ -170,16 +129,24 @@ textarea {
     display: block;
 }
 
+.sponsorships-section {
+    padding: 2rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    color: var(--text-secondary);
 }
 
-.empty-state .empty-icon {
+.empty-icon {
     color: var(--border-color);
     margin-bottom: 1.5rem;
 }
@@ -197,7 +164,7 @@ textarea {
 
 .sponsorships-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
 }
 
@@ -288,30 +255,39 @@ textarea {
 }
 
 .organizer-info {
-    background: #f9fafb;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    background: var(--bg-color);
     padding: 1rem;
+    border-radius: 8px;
     margin-bottom: 1rem;
 }
 
 .organizer-info h4 {
     font-size: 0.875rem;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.info-item {
+.organizer-info .info-item {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
-.info-item strong {
+.organizer-info .info-item strong {
     color: var(--text-primary);
+}
+
+.organizer-info .info-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.organizer-info .info-item a:hover {
+    text-decoration: underline;
 }
 
 .sponsorship-details {
@@ -340,39 +316,54 @@ textarea {
     color: var(--success-color);
 }
 
+.payment-proof-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #166534;
+}
+
 .payment-proof-section {
-    margin: 1rem 0;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .btn-proof {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    background: #f0fdf4;
-    border: 1px solid #86efac;
-    color: #166534;
-    border-radius: 8px;
-    text-decoration: none;
+    font-size: 0.875rem;
     font-weight: 600;
     transition: all 0.2s;
 }
 
 .btn-proof:hover {
-    background: #dcfce7;
+    background: #2563eb;
 }
 
 .notes-section {
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-    border-radius: 8px;
-    padding: 1rem;
     margin-top: 1rem;
+    padding: 1rem;
+    background: #fffbeb;
+    border-left: 3px solid var(--warning-color);
+    border-radius: 8px;
 }
 
 .notes-section h5 {
     font-size: 0.875rem;
-    color: #9a3412;
+    font-weight: 600;
+    color: var(--text-primary);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -381,7 +372,9 @@ textarea {
 
 .notes-section p {
     font-size: 0.875rem;
-    color: #7c2d12;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
 }
 
 .card-footer {
@@ -390,8 +383,6 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
 }
 
 .btn {
@@ -405,16 +396,11 @@ textarea {
     transition: all 0.2s;
     border: none;
     cursor: pointer;
-    font-size: 0.875rem;
 }
 
 .btn-primary {
     background: var(--primary-color);
     color: white;
-}
-
-.btn-primary:hover {
-    background: #7c3aed;
 }
 
 .btn-view {
@@ -423,7 +409,7 @@ textarea {
 }
 
 .btn-view:hover {
-    background: #7c3aed;
+    background: #2563eb;
 }
 
 .status-text {
@@ -431,6 +417,7 @@ textarea {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
+    color: var(--text-secondary);
 }
 
 .status-text.approved {
@@ -438,34 +425,62 @@ textarea {
 }
 
 .status-text.completed {
-    color: var(--success-color);
+    color: var(--primary-color);
 }
 
 .status-text.rejected {
     color: var(--danger-color);
 }
 
+.error-message {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
 @media (max-width: 768px) {
+    .sponsorships-grid {
+        grid-template-columns: 1fr;
+    }
+
     .header-content {
         flex-direction: column;
-        gap: 1.5rem;
+        align-items: flex-start;
     }
 
     .header-stats {
         width: 100%;
         justify-content: space-between;
+        gap: 0.75rem;
     }
 
-    .sponsorships-grid {
-        grid-template-columns: 1fr;
+    .stat-item {
+        flex: 1;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.75rem;
     }
 
     .tabs-navigation {
         overflow-x: auto;
-        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
     }
 
     .tab-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
         white-space: nowrap;
     }
 }

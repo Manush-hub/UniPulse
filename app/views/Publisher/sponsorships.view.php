@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sponsorship Requests - UniPulse</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/sponsorships-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -31,13 +32,13 @@
                             <span class="stat-number"><?= $stats['pending'] ?></span>
                             <span class="stat-label">Pending</span>
                         </div>
-                        <div class="stat-item approved">
-                            <span class="stat-number"><?= $stats['approved'] ?></span>
-                            <span class="stat-label">Approved</span>
-                        </div>
                         <div class="stat-item completed">
                             <span class="stat-number"><?= $stats['completed'] ?></span>
                             <span class="stat-label">Completed</span>
+                        </div>
+                        <div class="stat-item rejected">
+                            <span class="stat-number"><?= $stats['rejected'] ?></span>
+                            <span class="stat-label">Not Received</span>
                         </div>
                     </div>
                 </div>
@@ -59,14 +60,11 @@
                     <button class="tab-btn active" data-tab="pending">
                         Pending (<?= $stats['pending'] ?>)
                     </button>
-                    <button class="tab-btn" data-tab="approved">
-                        Approved (<?= $stats['approved'] ?>)
-                    </button>
                     <button class="tab-btn" data-tab="completed">
                         Completed (<?= $stats['completed'] ?>)
                     </button>
                     <button class="tab-btn" data-tab="rejected">
-                        Rejected (<?= $stats['rejected'] ?>)
+                        Not Received (<?= $stats['rejected'] ?>)
                     </button>
                     <button class="tab-btn" data-tab="all">
                         All (<?= $stats['total'] ?>)
@@ -91,22 +89,6 @@
                         <?php endif; ?>
                     </div>
 
-                    <!-- Approved Tab -->
-                    <div class="tab-pane" id="approved-tab">
-                        <?php if (empty($grouped['approved'])): ?>
-                            <div class="empty-state">
-                                <i class="fas fa-check-circle fa-3x"></i>
-                                <p>No approved sponsorships</p>
-                            </div>
-                        <?php else: ?>
-                            <div class="sponsorships-grid">
-                                <?php foreach ($grouped['approved'] as $sponsorship): ?>
-                                    <?php include __DIR__ . '/components/sponsorship-card.php'; ?>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
                     <!-- Completed Tab -->
                     <div class="tab-pane" id="completed-tab">
                         <?php if (empty($grouped['completed'])): ?>
@@ -123,12 +105,12 @@
                         <?php endif; ?>
                     </div>
 
-                    <!-- Rejected Tab -->
+                    <!-- Not Received Tab -->
                     <div class="tab-pane" id="rejected-tab">
                         <?php if (empty($grouped['rejected'])): ?>
                             <div class="empty-state">
                                 <i class="fas fa-times-circle fa-3x"></i>
-                                <p>No rejected sponsorships</p>
+                                <p>No payments marked as not received</p>
                             </div>
                         <?php else: ?>
                             <div class="sponsorships-grid">

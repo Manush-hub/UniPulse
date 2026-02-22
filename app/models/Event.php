@@ -159,6 +159,14 @@ class Event
             return ['clause' => '', 'params' => []];
         }
 
+        // Sponsors can only see public events
+        if ($userType === 'sponsor') {
+            return [
+                'clause' => "e.visibility = 'public'",
+                'params' => []
+            ];
+        }
+
         // Public events - everyone can see
         $visibilityConditions[] = "e.visibility = 'public'";
 

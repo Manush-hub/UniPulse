@@ -778,21 +778,49 @@ function displayLocationDetails(event) {
         }
     } else {
         // Inside university - show university, faculty/department, and exact location
-        locationHTML = '<div class="location-detail-item">';
+        locationHTML = '';
         
         if (universityName) {
-            locationHTML += `<div><strong>University:</strong> ${universityName}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>UNIVERSITY</strong>
+                        <span>${universityName}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.faculty_department) {
-            locationHTML += `<div><strong>Faculty/Department:</strong> ${event.faculty_department}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>FACULTY/DEPARTMENT</strong>
+                        <span>${event.faculty_department}</span>
+                    </div>
+                </div>
+            `;
         }
         
         if (event.location) {
-            locationHTML += `<div><strong>Exact Location:</strong> ${event.location}</div>`;
+            locationHTML += `
+                <div class="location-box">
+                    <div class="location-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="location-content">
+                        <strong>EXACT LOCATION</strong>
+                        <span>${event.location}</span>
+                    </div>
+                </div>
+            `;
         }
-        
-        locationHTML += '</div>';
         
         // Only show if there's actual content
         if (universityName || event.faculty_department || event.location) {
@@ -809,55 +837,185 @@ function displayLocationDetails(event) {
 function displayTicketDetails(event) {
     const ticketType = event.ticket_type || 'free-all';
     
-    if (ticketType === 'free-all') {
-        renderFreeRegistration(event);
+    if (ticketType === 'free-all' || ticketType === 'free-students') {
+        // Show free registration section
+        displayRegistrationTicketing(event);
         return;
     }
     
     const ticketDetailsCard = document.getElementById('ticketDetailsCard');
-    const ticketDetails = document.getElementById('ticketDetails');
+    const ticketDetailsDiv = document.getElementById('ticketDetails');
     
-    if (!ticketDetailsCard || !ticketDetails) {
+    if (!ticketDetailsCard || !ticketDetailsDiv) {
+        console.log('displayTicketDetails: ticketDetailsCard or ticketDetails element not found');
         return;
     }
     
+    // For paid or mixed events
     let ticketHTML = '<div class="ticket-detail-item">';
-    ticketHTML += `<div><strong>Ticket Type:</strong> ${formatTicketType(ticketType)}</div>`;
+    ticketHTML += `<div style="margin-bottom: 15px;"><strong>Ticket Type:</strong> <span style="color: #3b82f6; font-weight: 600;">${formatTicketType(ticketType)}</span></div>`;
     
     if (event.registration_start_date && event.registration_end_date) {
-        ticketHTML += `<div><strong>Registration Period:</strong> ${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</div>`;
+        ticketHTML += `<div style="margin-bottom: 10px;"><strong>Registration Period:</strong> ${formatDate(event.registration_start_date)} to ${formatDate(event.registration_end_date)}</div>`;
     }
     
     if (event.registration_limit) {
-        ticketHTML += `<div><strong>Registration Limit:</strong> ${event.registration_limit} participants</div>`;
+        ticketHTML += `<div style="margin-bottom: 15px;"><strong>Registration Limit:</strong> ${event.registration_limit} participants</div>`;
     }
     
-    if (event.ticket_types && Array.isArray(event.ticket_types)) {
-        ticketHTML += '<div><strong>Available Tickets:</strong></div>';
-        ticketHTML += '<ul class="ticket-types-list">';
-        event.ticket_types.forEach(ticket => {
-            ticketHTML += `<li>${ticket.name} - LKR ${ticket.price} (${ticket.quantity} available)</li>`;
-        });
-        ticketHTML += '</ul>';
+    // Display ticket types and prices
+    if (event.ticket_types) {
+        let tickets = event.ticket_types;
+        
+        // Parse if it's a JSON string
+        if (typeof tickets === 'string') {
+            try {
+                tickets = JSON.parse(tickets);
+            } catch (e) {
+                console.error('Error parsing ticket_types:', e);
+                tickets = [];
+            }
+        }
+        
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            ticketHTML += '<div style="margin-top: 25px; margin-bottom: 20px;"><strong style="font-size: 22px; color: #1f2937; letter-spacing: 0.5px;">Available Tickets:</strong></div>';
+            ticketHTML += '<div class="ticket-types-list" style="margin-top: 15px;">';
+            
+            tickets.forEach((ticket, index) => {
+                // Calculate capacity percentage and determine colors
+                const totalCapacity = parseInt(ticket.total_capacity || ticket.quantity);
+                const available = parseInt(ticket.quantity);
+                const sold = totalCapacity - available;
+                const soldPercentage = totalCapacity > 0 ? ((sold / totalCapacity) * 100).toFixed(1) : '0.0';
+                const availablePercentage = totalCapacity > 0 ? ((available / totalCapacity) * 100).toFixed(1) : '100.0';
+                
+                // Determine progress bar color based on availability
+                let progressColor, progressBg, statusText;
+                if (availablePercentage >= 50) {
+                    progressColor = '#10B981';
+                    progressBg = '#D1FAE5';
+                    statusText = 'Good Availability';
+                } else if (availablePercentage >= 25) {
+                    progressColor = '#F59E0B';
+                    progressBg = '#FEF3C7';
+                    statusText = 'Selling Fast';
+                } else if (availablePercentage > 0) {
+                    progressColor = '#EF4444';
+                    progressBg = '#FEE2E2';
+                    statusText = 'Almost Sold Out';
+                } else {
+                    progressColor = '#6B7280';
+                    progressBg = '#F3F4F6';
+                    statusText = 'Sold Out';
+                }
+                
+                ticketHTML += `
+                    <div class="ticket-option" data-ticket-index="${index}" data-ticket-name="${ticket.name}" data-ticket-price="${ticket.price}" data-ticket-quantity="${ticket.quantity}" style="background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%); border: 3px solid #d1d5db; border-radius: 16px; padding: 24px; margin-bottom: 18px; transition: all 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.08);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 24px; color: #1f2937; margin-bottom: 10px; letter-spacing: 0.5px;">${ticket.name}</div>
+                                ${ticket.description ? `<div style="color: #6b7280; font-size: 16px; margin-bottom: 12px; line-height: 1.5;">${ticket.description}</div>` : ''}
+                                
+                                <!-- Capacity Indicator -->
+                                <div style="margin-bottom: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-size: 13px; font-weight: 600; color: ${progressColor};">${statusText}</span>
+                                        <span style="font-size: 13px; font-weight: 600; color: #6b7280;">${soldPercentage}% Sold</span>
+                                    </div>
+                                    <div style="width: 100%; height: 12px; background: ${progressBg}; border-radius: 6px; overflow: hidden; position: relative;">
+                                        <div style="height: 100%; background: ${progressColor}; width: ${soldPercentage}%; transition: width 0.5s ease; border-radius: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 12px; color: #9ca3af;">
+                                        <span>${sold} sold</span>
+                                        <span>${available} available</span>
+                                    </div>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; gap: 16px; font-size: 15px; color: #6b7280; margin-top: 8px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px; background: #e0f2fe; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: #0369a1;"><i class="fas fa-users" style="font-size: 16px;"></i> Available: ${ticket.quantity}</span>
+                                    ${ticket.benefits ? `<span style="display: inline-flex; align-items: center; gap: 6px; font-weight: 500; color: #f59e0b;"><i class="fas fa-star" style="font-size: 14px;"></i> ${ticket.benefits}</span>` : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                                <span style="font-size: 26px; font-weight: 800; color: #3b82f6; white-space: nowrap; letter-spacing: 0.5px;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            ticketHTML += '</div>';
+        }
     }
     
     ticketHTML += '</div>';
     
     ticketDetailsCard.style.display = 'block';
-    ticketDetails.innerHTML = ticketHTML;
+    ticketDetailsDiv.innerHTML = ticketHTML;
+    
+    // Also display registration ticketing based on ticket type
+    displayRegistrationTicketing(event);
 }
 
-function renderFreeRegistration(event) {
+// Display Registration and Ticketing Section
+function displayRegistrationTicketing(event) {
+    const ticketType = event.ticket_type || 'free-students';
+    const requiresRegistration = event.requires_registration === 1 || event.requires_registration === '1' || event.requires_registration === true;
+    
     const freeSection = document.getElementById('freeRegistrationSection');
-    if (!freeSection) {
-        console.error('freeRegistrationSection element not found');
+    const paidSection = document.getElementById('paidTicketingSection');
+    const mixedSection = document.getElementById('mixedTicketingSection');
+    
+    if (!freeSection || !paidSection || !mixedSection) {
+        console.log('displayRegistrationTicketing: registration/ticketing section elements not found');
         return;
     }
     
-    console.log('Rendering free registration for event:', event.title);
+    // Hide all sections first
+    freeSection.style.display = 'none';
+    paidSection.style.display = 'none';
+    mixedSection.style.display = 'none';
     
-    // Show the free registration section
-    freeSection.style.display = 'block';
+    // Scenario 1: Free for University Students
+    if (ticketType === 'free-students' || ticketType === 'free-all') {
+        freeSection.style.display = 'block';
+        
+        const freeRegRequired = document.getElementById('freeRegRequired');
+        const freeNoRegRequired = document.getElementById('freeNoRegRequired');
+        const freeEntrySubtitle = document.getElementById('freeEntrySubtitle');
+        
+        if (requiresRegistration) {
+            if (freeRegRequired) freeRegRequired.style.display = 'block';
+            if (freeNoRegRequired) freeNoRegRequired.style.display = 'none';
+            if (freeEntrySubtitle) freeEntrySubtitle.textContent = 'Free entry with registration required';
+        } else {
+            if (freeRegRequired) freeRegRequired.style.display = 'none';
+            if (freeNoRegRequired) freeNoRegRequired.style.display = 'block';
+            if (freeEntrySubtitle) freeEntrySubtitle.textContent = 'Open entry - no registration needed';
+        }
+        
+    } else if (ticketType === 'paid-all') {
+        paidSection.style.display = 'block';
+        
+        const ticketPriceElement = document.getElementById('ticketPrice');
+        if (ticketPriceElement) {
+            ticketPriceElement.textContent = 'LKR 0.00';
+        }
+        
+    } else if (ticketType === 'mixed') {
+        mixedSection.style.display = 'block';
+        
+        const studentRegRequired = document.getElementById('studentRegRequired');
+        const studentNoRegRequired = document.getElementById('studentNoRegRequired');
+        
+        if (requiresRegistration) {
+            if (studentRegRequired) studentRegRequired.style.display = 'block';
+            if (studentNoRegRequired) studentNoRegRequired.style.display = 'none';
+        } else {
+            if (studentRegRequired) studentRegRequired.style.display = 'none';
+            if (studentNoRegRequired) studentNoRegRequired.style.display = 'block';
+        }
+    }
 }
 
 function displayCustomFields(customFields) {
