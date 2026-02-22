@@ -52,6 +52,11 @@
       </div>
     <?php endif; ?>
 
+    <!-- JavaScript Success Message -->
+    <div class="success-message" id="successMessage">
+      ✓ Thank you for your message! We'll get back to you within 24 hours.
+    </div>
+
     <section class="contact-grid" aria-label="Support channels">
       <article class="contact-card">
         <h3><span class="card-icon" aria-hidden="true">📧</span>Email Support</h3>
@@ -170,12 +175,43 @@
 
   <script>
     const contactForm = document.getElementById('contactForm');
+    const successMessage = document.getElementById('successMessage');
+
     if (contactForm) {
       contactForm.addEventListener('submit', function(event) {
         if (!contactForm.checkValidity()) {
           event.preventDefault();
           contactForm.reportValidity();
           return false;
+        }
+
+        // Show success message
+        if (successMessage) {
+          event.preventDefault();
+          
+          const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            category: document.getElementById('category').value,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value
+          };
+
+          console.log('Form Data:', formData);
+
+          successMessage.classList.add('show');
+          
+          contactForm.reset();
+
+          // Scroll to success message
+          successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          setTimeout(() => {
+            successMessage.classList.remove('show');
+            // Redirect to the same contact page
+            window.location.href = window.location.pathname;
+          }, 10000);
         }
       });
     }

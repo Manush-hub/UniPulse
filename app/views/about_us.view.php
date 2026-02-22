@@ -16,9 +16,6 @@
       </div>
       <nav class="top-nav">
         <a href="/unipulse/public/">Home</a>
-        <a href="#about">About</a>
-        <a href="#features">Features</a>
-        <a href="#contact">Contact</a>
       </nav>
     </div>
   </header>
