@@ -12,7 +12,7 @@
 <body>
     <!-- Header -->
     <?php
-    $pageConfig = ['activeNav' => 'dashboard'];
+    $pageConfig = ['activeNav' => 'messages'];
     include __DIR__ . '/components/header.php';
     ?>
 

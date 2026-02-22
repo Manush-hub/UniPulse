@@ -4,6 +4,19 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
+function formatDisplayName(name) {
+    if (!name) return '';
+
+    const trimmed = String(name).trim();
+    if (!trimmed) return '';
+
+    if (trimmed === trimmed.toLowerCase()) {
+        return trimmed.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    return trimmed;
+}
+
 // Load sponsor data from backend
 function loadSponsorData() {
     fetch('/unipulse/public/sponsor/dashboard/getUserProfile')
@@ -17,9 +30,17 @@ function loadSponsorData() {
             if (data.success) {
                 const usernameElement = document.getElementById('username');
                 const userRoleElement = document.getElementById('userRole');
+                const apiName = formatDisplayName(data.displayName || data.companyName || data.name || '');
                 
-                if (usernameElement && data.companyName) {
-                    usernameElement.textContent = data.companyName;
+                if (usernameElement) {
+                    const currentName = formatDisplayName(usernameElement.textContent || '');
+                    const isPlaceholder = !currentName || currentName === 'Sponsor' || currentName === 'TechCorp Ltd';
+
+                    if (isPlaceholder && apiName) {
+                        usernameElement.textContent = apiName;
+                    } else if (apiName && currentName.toLowerCase() === apiName.toLowerCase() && currentName !== apiName) {
+                        usernameElement.textContent = apiName;
+                    }
                 }
                 
                 if (userRoleElement) {

@@ -122,7 +122,7 @@
 
                 <div class="form-group terms">
                     <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I agree to the <a href="/unipulse/public/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a> and <a href="/unipulse/public/privacy_policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></label>
                 </div>
 
                 <button type="submit" class="button">Create Account</button>
@@ -136,25 +136,6 @@
     <?php include 'footer.php'; ?>
 
     <script>
-        // Country code dropdown functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const countryCodeSelect = document.getElementById('country-code');
-            
-            // When user clicks on dropdown, show 4 items
-            countryCodeSelect.addEventListener('focus', function() {
-                this.size = 4;
-            });
-            
-            countryCodeSelect.addEventListener('blur', function() {
-                this.size = 1;
-            });
-            
-            countryCodeSelect.addEventListener('change', function() {
-                this.size = 1;
-                this.blur();
-            });
-        });
-
         // Terms validation with improved feedback
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');

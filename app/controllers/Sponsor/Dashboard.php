@@ -50,8 +50,15 @@ class SponsorDashboard extends Controller{
                 exit;
             }
             
+            $displayName = $_SESSION['user_name'] ?? ($currentUser['name'] ?? ($currentUser['company_name'] ?? 'Sponsor'));
+            $displayName = trim((string) $displayName);
+            if ($displayName !== '' && $displayName === strtolower($displayName)) {
+                $displayName = ucwords($displayName);
+            }
+
             echo json_encode([
                 'success' => true,
+                'displayName' => $displayName,
                 'companyName' => $currentUser['company_name'] ?? 'Sponsor',
                 'email' => $currentUser['email'] ?? '',
                 'type' => 'sponsor'
