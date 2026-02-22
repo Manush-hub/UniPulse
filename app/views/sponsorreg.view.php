@@ -122,7 +122,7 @@
 
                 <div class="form-group terms">
                     <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I agree to the <a href="/unipulse/public/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a> and <a href="/unipulse/public/privacy_policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></label>
                 </div>
 
                 <button type="submit" class="button">Create Account</button>
