@@ -21,8 +21,9 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
         <nav class="nav">
             <a href="/unipulse/public/sponsor/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/sponsor/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
-            <a href="/unipulse/public/sponsor/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+            <a href="/unipulse/public/sponsor/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">My Sponsorships</a>
             <a href="/unipulse/public/sponsor/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
+            <a href="/unipulse/public/sponsor/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
         </nav>
         <div class="header-actions">
             <div class="notifications">

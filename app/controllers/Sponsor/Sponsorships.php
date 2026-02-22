@@ -1,6 +1,6 @@
 <?php
 
-class Sponsorship extends Controller
+class Sponsorships extends Controller
 {
     use Database;
 
@@ -54,13 +54,14 @@ class Sponsorship extends Controller
             // Group by status for easier display
             $grouped = [
                 'pending' => [],
-                'approved' => [],
                 'completed' => [],
                 'rejected' => []
             ];
 
             foreach ($sponsorships as $sponsorship) {
-                $grouped[$sponsorship['status']][] = $sponsorship;
+                if (isset($grouped[$sponsorship['status']])) {
+                    $grouped[$sponsorship['status']][] = $sponsorship;
+                }
             }
 
             $this->view('Sponsor/sponsorships', [
@@ -68,18 +69,17 @@ class Sponsorship extends Controller
                 'grouped' => $grouped,
                 'stats' => [
                     'pending' => count($grouped['pending']),
-                    'approved' => count($grouped['approved']),
                     'completed' => count($grouped['completed']),
                     'rejected' => count($grouped['rejected']),
                     'total' => count($sponsorships)
                 ]
             ]);
         } catch (Exception $e) {
-            error_log("Sponsorship::index error: " . $e->getMessage());
+            error_log("Sponsorships::index error: " . $e->getMessage());
             $this->view('Sponsor/sponsorships', [
                 'sponsorships' => [],
-                'grouped' => ['pending' => [], 'approved' => [], 'completed' => [], 'rejected' => []],
-                'stats' => ['pending' => 0, 'approved' => 0, 'completed' => 0, 'rejected' => 0, 'total' => 0],
+                'grouped' => ['pending' => [], 'completed' => [], 'rejected' => []],
+                'stats' => ['pending' => 0, 'completed' => 0, 'rejected' => 0, 'total' => 0],
                 'error' => 'Failed to load sponsorship requests'
             ]);
         }
@@ -211,7 +211,7 @@ class Sponsorship extends Controller
             }
 
         } catch (Exception $e) {
-            error_log("Sponsorship::submit error: " . $e->getMessage());
+            error_log("Sponsorships::submit error: " . $e->getMessage());
             
             // Clean up uploaded file if database insert failed
             if (isset($uploadPath) && file_exists($uploadPath)) {
@@ -277,7 +277,7 @@ class Sponsorship extends Controller
                 'sponsorship' => $sponsorship[0]
             ]);
         } catch (Exception $e) {
-            error_log("Sponsorship::detail error: " . $e->getMessage());
+            error_log("Sponsorships::detail error: " . $e->getMessage());
             header('Location: /unipulse/public/sponsor/sponsorships');
             exit;
         }

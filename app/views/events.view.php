@@ -59,12 +59,12 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $config['pageTitle']; ?></title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
     <link rel="stylesheet" href="<?php echo $config['cssFile']; ?>">
     <?php if ($config['additionalCss']): ?>
     <link rel="stylesheet" href="<?php echo $config['additionalCss']; ?>">
     <?php endif; ?>
     <?php if ($currentRole === 'Moderator'): ?>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
     <?php endif; ?>
 </head>
 

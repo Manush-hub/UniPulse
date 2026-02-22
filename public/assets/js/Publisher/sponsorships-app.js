@@ -24,9 +24,9 @@ function switchTab(tabName) {
     document.getElementById(`${tabName}-tab`).classList.add('active');
 }
 
-// Approve sponsorship
+// Approve sponsorship (marks as received and completed)
 function approveSponsorshipButton(sponsorshipId) {
-    if (!confirm('Are you sure you want to approve this sponsorship request?')) {
+    if (!confirm('Mark this sponsorship as received and completed? This will update the package slots.')) {
         return;
     }
     
@@ -40,7 +40,7 @@ function approveSponsorshipButton(sponsorshipId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Sponsorship approved successfully!');
+            alert('Sponsorship marked as received and completed!');
             location.reload();
         } else {
             alert(data.message || 'Failed to approve sponsorship');
@@ -94,34 +94,6 @@ function confirmReject() {
     })
     .catch(error => {
         console.error('Error rejecting sponsorship:', error);
-        alert('An error occurred. Please try again.');
-    });
-}
-
-// Mark sponsorship as completed
-function completeSponsorshipButton(sponsorshipId) {
-    if (!confirm('Mark this sponsorship as completed? This indicates you have received the payment.')) {
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('sponsorship_id', sponsorshipId);
-    
-    fetch('/unipulse/public/publisher/sponsorships/complete', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Sponsorship marked as completed!');
-            location.reload();
-        } else {
-            alert(data.message || 'Failed to complete sponsorship');
-        }
-    })
-    .catch(error => {
-        console.error('Error completing sponsorship:', error);
         alert('An error occurred. Please try again.');
     });
 }

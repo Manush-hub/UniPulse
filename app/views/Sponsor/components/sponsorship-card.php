@@ -4,7 +4,7 @@
             <?php 
                 $statusLabels = [
                     'pending' => 'Pending',
-                    'rejected' => 'Not Received',
+                    'rejected' => 'Not Delivered',
                     'completed' => 'Completed'
                 ];
                 echo $statusLabels[$sponsorship['status']] ?? ucfirst($sponsorship['status']);
@@ -18,22 +18,17 @@
     <div class="card-body">
         <h3 class="event-title"><?= htmlspecialchars($sponsorship['event_title']) ?></h3>
         
-        <div class="sponsor-info">
-            <h4><i class="fas fa-building"></i> Sponsor Details</h4>
+        <div class="organizer-info">
+            <h4><i class="fas fa-building"></i> Event Organizer</h4>
             <div class="info-item">
-                <strong>Company:</strong> <?= htmlspecialchars($sponsorship['sponsor_name']) ?>
+                <strong>Organization:</strong> <?= htmlspecialchars($sponsorship['organizer_name']) ?>
             </div>
             <div class="info-item">
                 <strong>Email:</strong> 
-                <a href="mailto:<?= htmlspecialchars($sponsorship['sponsor_email']) ?>">
-                    <?= htmlspecialchars($sponsorship['sponsor_email']) ?>
+                <a href="mailto:<?= htmlspecialchars($sponsorship['organizer_email']) ?>">
+                    <?= htmlspecialchars($sponsorship['organizer_email']) ?>
                 </a>
             </div>
-            <?php if ($sponsorship['sponsor_phone']): ?>
-                <div class="info-item">
-                    <strong>Phone:</strong> <?= htmlspecialchars($sponsorship['sponsor_phone']) ?>
-                </div>
-            <?php endif; ?>
         </div>
         
         <div class="sponsorship-details">
@@ -53,21 +48,25 @@
             </div>
             
             <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>
+                    <?php if ($sponsorship['university_name']): ?>
+                        <?= htmlspecialchars($sponsorship['university_name']) ?>
+                    <?php else: ?>
+                        <?= htmlspecialchars($sponsorship['venue_name'] ?? $sponsorship['city'] ?? 'Location TBA') ?>
+                    <?php endif; ?>
+                </span>
+            </div>
+            
+            <div class="detail-item">
                 <i class="fas fa-clock"></i>
-                <span>Requested: <?= date('M d, Y', strtotime($sponsorship['created_at'])) ?></span>
+                <span>Submitted: <?= date('M d, Y', strtotime($sponsorship['created_at'])) ?></span>
             </div>
             
             <?php if ($sponsorship['payment_reference']): ?>
                 <div class="detail-item">
                     <i class="fas fa-hashtag"></i>
                     <span>Ref: <?= htmlspecialchars($sponsorship['payment_reference']) ?></span>
-                </div>
-            <?php endif; ?>
-            
-            <?php if ($sponsorship['payment_date']): ?>
-                <div class="detail-item">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>Paid: <?= date('M d, Y', strtotime($sponsorship['payment_date'])) ?></span>
                 </div>
             <?php endif; ?>
         </div>
@@ -90,21 +89,16 @@
     
     <div class="card-footer">
         <?php if ($sponsorship['status'] === 'pending'): ?>
-            <div class="action-buttons">
-                <button class="btn btn-approve" onclick="approveSponsorshipButton(<?= $sponsorship['id'] ?>)">
-                    <i class="fas fa-check"></i> Mark as Received & Completed
-                </button>
-                <button class="btn btn-reject" onclick="openRejectModal(<?= $sponsorship['id'] ?>)">
-                    <i class="fas fa-times"></i> Not Received
-                </button>
-            </div>
+            <span class="status-text">
+                <i class="fas fa-hourglass-half"></i> Awaiting confirmation
+            </span>
         <?php elseif ($sponsorship['status'] === 'completed'): ?>
             <span class="status-text completed">
-                <i class="fas fa-trophy"></i> Sponsorship completed
+                <i class="fas fa-check-double"></i> Sponsorship Completed
             </span>
         <?php elseif ($sponsorship['status'] === 'rejected'): ?>
             <span class="status-text rejected">
-                <i class="fas fa-ban"></i> Payment not received
+                <i class="fas fa-times-circle"></i> Sponsorship Not Delivered
             </span>
         <?php endif; ?>
     </div>

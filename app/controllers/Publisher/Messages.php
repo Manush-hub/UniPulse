@@ -20,10 +20,27 @@ class PublisherMessages extends Controller {
             // Get unread count
             $unreadCount = $message->getUnreadCount($currentUser['id'], 'publisher');
             
+            // Get publisher details to get their university
+            $publisherModel = new Publisher();
+            $publisherData = $publisherModel->findById($currentUser['id']);
+            
+            // Get available sponsors
+            $sponsorModel = new Sponsor();
+            $availableSponsors = $sponsorModel->getAllSponsors();
+            
+            // Get moderators for publisher's university
+            $moderatorModel = new Moderator();
+            $availableModerators = [];
+            if ($publisherData && !empty($publisherData->university)) {
+                $availableModerators = $moderatorModel->getByUniversity($publisherData->university);
+            }
+            
             $data = [
                 'user' => $currentUser,
                 'conversations' => $conversations,
                 'unread_count' => $unreadCount,
+                'available_sponsors' => $availableSponsors,
+                'available_moderators' => $availableModerators,
                 'page_title' => 'Messages'
             ];
             
@@ -36,6 +53,8 @@ class PublisherMessages extends Controller {
                 'user' => $currentUser,
                 'conversations' => [],
                 'unread_count' => 0,
+                'available_sponsors' => [],
+                'available_moderators' => [],
                 'page_title' => 'Messages',
                 'error' => 'Failed to load messages'
             ];

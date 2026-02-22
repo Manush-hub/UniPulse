@@ -72,9 +72,20 @@ class SponsorEvents extends Controller{
             error_log("=========================");
             
             // Get total count for pagination (without limit)
-            $totalEventsObj = $this->eventModel->getAllEvents([], $currentUser);
-            $totalEvents = is_array($totalEventsObj) ? $totalEventsObj : [];
-            $totalPages = ceil(count($totalEvents) / $limit);
+            $totalEventsFilters = $filters;
+            unset($totalEventsFilters['limit']);
+            unset($totalEventsFilters['offset']);
+            $allEventsObj = $this->eventModel->getAllEvents($totalEventsFilters, $currentUser);
+            
+            // Convert all events to array
+            $allEvents = [];
+            if ($allEventsObj && is_array($allEventsObj)) {
+                foreach ($allEventsObj as $event) {
+                    $allEvents[] = is_object($event) ? (array) $event : $event;
+                }
+            }
+            
+            $totalPages = ceil(count($allEvents) / $limit);
             
             // Prepare data for view with server data for JavaScript
             $data = [
@@ -83,8 +94,14 @@ class SponsorEvents extends Controller{
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
                 'filters' => $filters,
-                'apiEndpoint' => '/unipulse/public/sponsor/events/getEvents',
-                'eventsPerPage' => $limit
+                'serverData' => [
+                    'events' => $allEvents,  // Pass ALL events to JavaScript for client-side pagination
+                    'currentPage' => $page,
+                    'totalPages' => $totalPages,
+                    'filters' => $filters,
+                    'apiEndpoint' => '/unipulse/public/sponsor/events/getEvents',
+                    'eventsPerPage' => $limit
+                ]
             ];
             
         } catch (Exception $e) {
@@ -96,7 +113,15 @@ class SponsorEvents extends Controller{
                 'sponsorshipEvents' => [],
                 'currentPage' => 1,
                 'totalPages' => 1,
-                'filters' => []
+                'filters' => [],
+                'serverData' => [
+                    'events' => [],
+                    'currentPage' => 1,
+                    'totalPages' => 1,
+                    'filters' => [],
+                    'apiEndpoint' => '/unipulse/public/sponsor/events/getEvents',
+                    'eventsPerPage' => 12
+                ]
             ];
         }
         

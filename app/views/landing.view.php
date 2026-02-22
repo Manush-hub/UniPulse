@@ -44,6 +44,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $config['pageTitle']; ?></title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/landing-style.css">
 </head>
 

@@ -138,6 +138,7 @@
 </div>
 
 <!-- Include the CSS and JavaScript -->
+<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
 <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/comments-style.css">
 <script src="/unipulse/public/assets/js/Publisher/comments-app.js"></script>
 

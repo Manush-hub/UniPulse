@@ -21,273 +21,298 @@ textarea {
     color: black;
 }
 
+/* Header-specific resets with higher specificity */
+.header a {
+    color: inherit !important;
+    text-decoration: none !important;
+    background: transparent !important;
+}
+
+.header input,
+.header select,
+.header button,
+.header textarea {
+    font-family: inherit !important;
+    font-size: inherit !important;
+}
+
 .header {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    background: white !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    padding: 1rem 0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    margin: 0 !important;
 }
 
 .header-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 0 2rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
 }
 
 .header .logo {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .logo-image {
-    height: 48px;
-    width: auto;
-    object-fit: contain;
+    height: 48px !important;
+    width: auto !important;
+    object-fit: contain !important;
 }
 
 .nav {
-    display: flex;
-    gap: 2rem;
+    display: flex !important;
+    gap: 2rem !important;
 }
 
 .nav a {
-    color: #666;
-    font-weight: 500;
-    padding: 0.5rem 0;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s ease;
+    color: #666 !important;
+    padding: 0.5rem 0 !important;
+    border-bottom: 2px solid transparent !important;
+    transition: all 0.3s ease !important;
 }
 
 .nav a:hover,
 .nav a.active {
-    color: #1E3A8A;
-    border-bottom-color: #1E3A8A;
+    color: #1E3A8A !important;
+    border-bottom-color: #1E3A8A !important;
 }
 
 .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
 }
 
 /* Notifications */
 .notifications {
-    position: relative;
+    position: relative !important;
 }
 
 .notification-btn {
-    position: relative;
-    padding: 0.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    color: #666;
+    position: relative !important;
+    padding: 0.5rem !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
+    color: #666 !important;
+    background: transparent !important;
+    border: none !important;
 }
 
 .notification-btn:hover {
-    background: #f3f4f6;
+    background: #f3f4f6 !important;
 }
 
 .notification-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 0.7rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    background: #ef4444 !important;
+    color: white !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.7rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .notification-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 320px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    display: none;
-    z-index: 1000;
-    margin-top: 0.5rem;
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    width: 320px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    display: none !important;
+    z-index: 1000 !important;
+    margin-top: 0.5rem !important;
 }
 
 .notification-dropdown.show {
-    display: block;
+    display: block !important;
 }
 
 .notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1rem !important;
+    border-bottom: 1px solid #f3f4f6 !important;
 }
 
 .notification-header h3 {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
 }
 
 .notification-header button {
-    color: #1E3A8A;
-    font-size: 0.8rem;
-    cursor: pointer;
+    color: #1E3A8A !important;
+    font-size: 0.8rem !important;
+    cursor: pointer !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
 }
 
 .notification-list {
-    max-height: 300px;
-    overflow-y: auto;
+    max-height: 300px !important;
+    overflow-y: auto !important;
 }
 
 .notification-item {
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    padding: 1rem !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease !important;
 }
 
 .notification-item:hover {
-    background: #f8fafc;
+    background: #f8fafc !important;
 }
 
 .notification-item.unread {
-    background: #f0f9ff;
+    background: #f0f9ff !important;
 }
 
 .notification-content h4 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.25rem !important;
 }
 
 .notification-content p {
-    font-size: 0.8rem;
-    color: #666;
-    margin-bottom: 0.25rem;
+    font-size: 0.8rem !important;
+    color: #666 !important;
+    margin-bottom: 0.25rem !important;
 }
 
 .notification-time {
-    font-size: 0.7rem;
-    color: #999;
+    font-size: 0.7rem !important;
+    color: #999 !important;
 }
 
 /* User Menu */
 .user-menu {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    background: #f8fafc;
-    cursor: pointer;
-    width: 200px;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 12px !important;
+    background: #f8fafc !important;
+    cursor: pointer !important;
+    width: 200px !important;
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
 }
 
 .user-info {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    flex: 1;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    flex: 1 !important;
 }
 
 .username {
-    font-weight: 600;
-    color: #333;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 600 !important;
+    color: #333 !important;
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 .user-role {
-    font-size: 0.8rem;
-    color: #666;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.8rem !important;
+    color: #666 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
 }
 
 .user-dropdown-btn {
-    color: #666;
-    padding: 0.25rem;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    flex-shrink: 0;
+    color: #666 !important;
+    padding: 0.25rem !important;
+    border-radius: 4px !important;
+    transition: background-color 0.3s ease !important;
+    flex-shrink: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
 }
 
 .user-dropdown-btn:hover {
-    background: #e5e7eb;
+    background: #e5e7eb !important;
 }
 
 .user-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 200px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    display: none;
-    z-index: 1000;
-    margin-top: 0.5rem;
-    padding: 0.5rem 0;
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    width: 200px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    display: none !important;
+    z-index: 1000 !important;
+    margin-top: 0.5rem !important;
+    padding: 0.5rem 0 !important;
 }
 
 .user-dropdown.show {
-    display: block;
+    display: block !important;
 }
 
 .user-dropdown a {
-    display: block;
-    padding: 0.75rem 1rem;
-    color: #333;
-    transition: background-color 0.3s ease;
+    display: block !important;
+    padding: 0.75rem 1rem !important;
+    color: #333 !important;
+    transition: background-color 0.3s ease !important;
+    text-decoration: none !important;
 }
 
 .user-dropdown a:hover {
-    background: #f8fafc;
+    background: #f8fafc !important;
 }
 
 .user-dropdown a.logout {
-    color: #ef4444;
+    color: #ef4444 !important;
 }
 
 .user-dropdown hr {
-    margin: 0.5rem 0;
-    border: none;
-    border-top: 1px solid #f3f4f6;
+    margin: 0.5rem 0 !important;
+    border: none !important;
+    border-top: 1px solid #f3f4f6 !important;
 }
 
 @media (max-width: 768px){
     .header-container {
-        padding: 0 1rem;
-        flex-wrap: wrap;
-        gap: 1rem;
+        padding: 0 1rem !important;
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
     }
     
     .nav {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        gap: 1rem;
+        order: 3 !important;
+        width: 100% !important;
+        justify-content: center !important;
+        gap: 1rem !important;
     }
 }
