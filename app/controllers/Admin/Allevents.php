@@ -50,7 +50,8 @@ class AdminAllevents extends Controller{
             
             // Get total count for pagination (without limit)
             $totalEvents = $this->eventModel->getAllEvents([], $currentUser);
-            $totalPages = ceil(count($totalEvents) / $limit);
+            $totalCount = is_array($totalEvents) ? count($totalEvents) : 0;
+            $totalPages = $totalCount > 0 ? ceil($totalCount / $limit) : 1;
             
             // Prepare data for view with server data for JavaScript
             $data = [
