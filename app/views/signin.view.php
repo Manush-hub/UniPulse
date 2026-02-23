@@ -150,7 +150,7 @@
 
                     <!-- Forgot Password Link -->
                     <div class="forgot-password">
-                        <a href="#forgot-password">Forgot password?</a>
+                        <a href="/unipulse/public/forgotpassword">Forgot password?</a>
                     </div>
 
                     <!-- Sign In Button -->

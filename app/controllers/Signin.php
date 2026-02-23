@@ -27,6 +27,11 @@ class Signin extends Controller{
                 $data['success'] = 'You have been successfully logged out.';
             }
             
+            // Check for password reset success message
+            if (isset($_GET['message']) && $_GET['message'] === 'password_reset_success') {
+                $data['success'] = '✅ Password reset successful! You can now sign in with your new password.';
+            }
+            
             // Check for registration success message
             if (isset($_SESSION['registration_success'])) {
                 $data['success'] = $_SESSION['registration_success'];
