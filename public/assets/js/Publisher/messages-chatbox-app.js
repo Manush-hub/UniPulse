@@ -88,19 +88,85 @@ function startConversation(contactId, contactType, contactName) {
     currentContactType = contactType;
     currentContactName = contactName;
     
-    // Update chat header
-    document.getElementById('chatContactName').textContent = contactName;
-    document.getElementById('chatContactType').textContent = contactType.charAt(0).toUpperCase() + contactType.slice(1);
-    document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
-    
-    // Update hidden form fields
-    document.getElementById('recipientId').value = contactId;
-    document.getElementById('recipientType').value = contactType;
+    // Check if chat interface exists, if not create it
+    if (!document.getElementById('chatContactName')) {
+        const chatPanel = document.querySelector('.chat-panel');
+        if (chatPanel) {
+            chatPanel.innerHTML = `
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="chat-contact-info">
+                        <div class="chat-avatar" id="chatAvatar">
+                            ${contactName.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div class="chat-contact-details">
+                            <h3 id="chatContactName">${contactName}</h3>
+                            <span class="contact-type" id="chatContactType">
+                                ${contactType.charAt(0).toUpperCase() + contactType.slice(1)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" onclick="refreshChat()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="loading-messages">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading messages...</p>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <form id="chatForm" onsubmit="sendMessage(event)">
+                        <input type="hidden" id="recipientId" value="${contactId}">
+                        <input type="hidden" id="recipientType" value="${contactType}">
+                        <div class="chat-input-wrapper">
+                            <textarea 
+                                id="messageInput" 
+                                placeholder="Type your message..." 
+                                rows="1"
+                                maxlength="2000"
+                                required
+                            ></textarea>
+                            <button type="submit" class="send-btn" id="sendBtn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / 2000
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            // Re-initialize character counter for the new textarea
+            const messageInput = document.getElementById('messageInput');
+            const charCount = document.getElementById('charCount');
+            if (messageInput && charCount) {
+                messageInput.addEventListener('input', function() {
+                    charCount.textContent = this.value.length;
+                });
+            }
+        }
+    } else {
+        // Update chat header if interface already exists
+        document.getElementById('chatContactName').textContent = contactName;
+        document.getElementById('chatContactType').textContent = contactType.charAt(0).toUpperCase() + contactType.slice(1);
+        document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
+        
+        // Update hidden form fields
+        document.getElementById('recipientId').value = contactId;
+        document.getElementById('recipientType').value = contactType;
+    }
     
     // Load conversation (will show empty if no messages exist)
     loadConversation(contactId, contactType, contactName);
-    
-
 }
 
 // Load conversation messages

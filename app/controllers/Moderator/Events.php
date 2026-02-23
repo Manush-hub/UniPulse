@@ -69,12 +69,18 @@ class ModeratorEvents extends Controller{
             $currentUser = AuthService::getCurrentUser();
             $userRole = $currentUser ? $currentUser['type'] : 'user';
             
+            // Add moderator's university to currentUser for filtering
+            if ($userRole === 'moderator' && isset($moderator) && $moderator) {
+                $currentUser['university'] = $moderator->university;
+            }
+            
             // Get events from database based on user role
             $events = $this->eventModel->getEventsByRole($userRole, $filters, $currentUser);
             
             // Get total count for pagination (without limit)
             $totalEvents = $this->eventModel->getEventsByRole($userRole, [], $currentUser);
-            $totalPages = ceil(count($totalEvents) / $limit);
+            $totalCount = is_array($totalEvents) ? count($totalEvents) : 0;
+            $totalPages = $totalCount > 0 ? ceil($totalCount / $limit) : 1;
             
             // Prepare data for view with server data for JavaScript
             $data['events'] = $events;
@@ -85,8 +91,9 @@ class ModeratorEvents extends Controller{
                 'events' => $events,
                 'currentPage' => $page,
                 'totalPages' => $totalPages,
+                'totalCount' => $totalCount,
                 'filters' => $filters,
-                'apiEndpoint' => '/unipulse/public/Moderator/events/getEvents'
+                'apiEndpoint' => '/unipulse/public/moderator/events/getEvents'
             ];
             
         } catch (Exception $e) {
@@ -108,7 +115,7 @@ class ModeratorEvents extends Controller{
         
         $data['userRole'] = 'Moderator';
         
-        $this->view('Moderator/events', $data);
+        $this->view('events', $data);
     }
     
     /**
@@ -148,6 +155,14 @@ class ModeratorEvents extends Controller{
             // Get current user role
             $currentUser = AuthService::getCurrentUser();
             $userRole = $currentUser ? $currentUser['type'] : 'user';
+            
+            // Add moderator's university to currentUser for filtering
+            if ($userRole === 'moderator') {
+                $moderatorData = $this->moderatorModel->findById($currentUser['id']);
+                if ($moderatorData) {
+                    $currentUser['university'] = $moderatorData->university;
+                }
+            }
             
             // Get events from database based on user role
             $events = $this->eventModel->getEventsByRole($userRole, $filters, $currentUser);
@@ -407,12 +422,19 @@ class ModeratorEvents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
+            // Get current user with university info
+            $currentUser = AuthService::getCurrentUser();
+            if (isset($moderator) && $moderator) {
+                $currentUser['university'] = $moderator->university;
+            }
+            
             // Get hidden events from database
-            $hiddenEvents = $this->eventModel->getHiddenEvents($filters);
+            $hiddenEvents = $this->eventModel->getHiddenEvents($filters, $currentUser);
             
             // Get total count for pagination (without limit)
-            $totalHiddenEvents = $this->eventModel->getHiddenEvents();
-            $totalPages = ceil(count($totalHiddenEvents) / $limit);
+            $totalHiddenEvents = $this->eventModel->getHiddenEvents([], $currentUser);
+            $totalCount = is_array($totalHiddenEvents) ? count($totalHiddenEvents) : 0;
+            $totalPages = $totalCount > 0 ? ceil($totalCount / $limit) : 1;
             
             // Prepare data for view with server data for JavaScript
             $data['events'] = $hiddenEvents;
@@ -444,7 +466,7 @@ class ModeratorEvents extends Controller{
             ];
         }
         
-        $this->view('Moderator/hidden_events', $data);
+        $this->view('hidden_events', $data);
     }
     
     /**
@@ -486,11 +508,18 @@ class ModeratorEvents extends Controller{
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
             
+            // Get current user with university info
+            $currentUser = AuthService::getCurrentUser();
+            $moderatorData = $this->moderatorModel->findById($currentUser['id']);
+            if ($moderatorData) {
+                $currentUser['university'] = $moderatorData->university;
+            }
+            
             // Get hidden events from database
-            $hiddenEvents = $this->eventModel->getHiddenEvents($filters);
+            $hiddenEvents = $this->eventModel->getHiddenEvents($filters, $currentUser);
             
             // Get total count for pagination
-            $totalHiddenEvents = $this->eventModel->getHiddenEvents();
+            $totalHiddenEvents = $this->eventModel->getHiddenEvents([], $currentUser);
             $totalPages = ceil(count($totalHiddenEvents) / $limit);
             
             // Format events data
@@ -514,8 +543,7 @@ class ModeratorEvents extends Controller{
                 'success' => false,
                 'error' => 'An error occurred while fetching hidden events'
             ]);
-        }
-        
+        }       
         exit;
     }
 }
