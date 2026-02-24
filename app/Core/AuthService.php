@@ -153,6 +153,10 @@ class AuthService
                 if ($userData['type'] === 'university' && isset($userData['user']->faculty)) {
                     $_SESSION['user_faculty'] = $userData['user']->faculty;
                 }
+                // Store university for moderators
+                if ($userData['type'] === 'moderator' && isset($userData['user']->university)) {
+                    $_SESSION['user_university'] = $userData['user']->university;
+                }
                 break;
             case 'sponsor':
                 $_SESSION['user_name'] = $userData['user']->company_name;

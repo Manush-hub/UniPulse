@@ -1166,7 +1166,7 @@ function changeProfileImage(event) {
 
         clubProfile.showNotification('Uploading profile logo...', 'info');
 
-        fetch('/UniPulse/public/publisher/profile/uploadProfileImage', {
+        fetch('/unipulse/public/publisher/profile/uploadProfileImage', {
             method: 'POST',
             body: formData
         })

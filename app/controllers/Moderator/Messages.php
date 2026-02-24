@@ -1,240 +1,207 @@
 <?php
 
 class ModeratorMessages extends Controller {
-
+    
     public function index($a = '', $b = '', $c = '') {
-        // Check if user is moderator
-        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
-            header('Location: /unipulse/public/signin');
-            exit();
-        }
-
+        // Check authentication
         $currentUser = AuthService::getCurrentUser();
-        $data['user'] = $currentUser;
-
-        // Get moderator data
-        $moderatorModel = new Moderator();
-        $moderator = $moderatorModel->findById($currentUser['id']);
-        $data['moderator'] = $moderator;
-
-        // Get all messages sent by this moderator
-        $messageModel = new Message();
-        $messages = $messageModel->getUserMessages($currentUser['id'], 'moderator', 'sent');
-        $data['messages'] = $messages;
-
-        $this->view('Moderator/messages', $data);
-    }
-
-    /**
-     * Display form to send a new message to a publisher
-     */
-    public function compose($publisherId = '', $b = '', $c = '') {
-        // Check if user is moderator
-        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
-            header('Location: /unipulse/public/signin');
-            exit();
-        }
-
-        $currentUser = AuthService::getCurrentUser();
-        $data['user'] = $currentUser;
-
-        // Get moderator data
-        $moderatorModel = new Moderator();
-        $moderator = $moderatorModel->findById($currentUser['id']);
-        $data['moderator'] = $moderator;
-
-        // Get list of publishers from moderator's university
-        $publisherModel = new Publisher();
         
-        if ($publisherId && is_numeric($publisherId)) {
-            // Get specific publisher
-            $publisher = $publisherModel->getPublisherById($publisherId);
-            if ($publisher) {
-                $data['selected_publisher'] = $publisher;
+        if (!$currentUser || $currentUser['type'] !== 'moderator') {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+        
+        try {
+            $message = new Message();
+            
+            // Get all conversations for this moderator
+            $conversations = $message->getConversations($currentUser['id'], 'moderator');
+            
+            // Get unread count
+            $unreadCount = $message->getUnreadCount($currentUser['id'], 'moderator');
+            
+            // Get moderator details to get their university
+            $moderatorModel = new Moderator();
+            $moderatorData = $moderatorModel->findById($currentUser['id']);
+            
+            // Get available publishers from moderator's university
+            $publisherModel = new Publisher();
+            $availablePublishers = [];
+            if ($moderatorData && !empty($moderatorData->university)) {
+                error_log("ModeratorMessages: Moderator university = " . $moderatorData->university);
+                $availablePublishers = $publisherModel->getApprovedByUniversity($moderatorData->university);
+                error_log("ModeratorMessages: Found " . (is_array($availablePublishers) ? count($availablePublishers) : 0) . " publishers");
+                if (is_array($availablePublishers) && count($availablePublishers) > 0) {
+                    error_log("ModeratorMessages: Publishers = " . json_encode(array_map(function($p) { 
+                        return ['id' => $p->id, 'name' => $p->society_name, 'approval' => $p->approval_status ?? 'unknown']; 
+                    }, $availablePublishers)));
+                }
+            } else {
+                error_log("ModeratorMessages: No moderator data or university not set");
             }
+            
+            $data = [
+                'user' => $currentUser,
+                'moderator' => $moderatorData,
+                'conversations' => $conversations,
+                'unread_count' => $unreadCount,
+                'available_publishers' => $availablePublishers,
+                'page_title' => 'Messages'
+            ];
+            
+            parent::view('Moderator/messages', $data);
+            
+        } catch (Exception $e) {
+            error_log("Error in ModeratorMessages::index: " . $e->getMessage());
+            
+            $data = [
+                'user' => $currentUser,
+                'moderator' => $moderatorData ?? null,
+                'conversations' => [],
+                'unread_count' => 0,
+                'available_publishers' => [],
+                'page_title' => 'Messages',
+                'error' => 'Failed to load messages'
+            ];
+            
+            parent::view('Moderator/messages', $data);
         }
-
-        // Get all approved publishers from moderator's university
-        $publishers = $publisherModel->getApprovedByUniversity($moderator->university);
-        $data['publishers'] = $publishers;
-
-        $this->view('Moderator/send-message', $data);
     }
-
+    
     /**
-     * Handle sending message to publisher
+     * Get conversation messages via AJAX
      */
-    public function send($a = '', $b = '', $c = '') {
-        // Enable error reporting for debugging
-        error_reporting(E_ALL);
-        ini_set('display_errors', 0); // Don't display, but log
-        
-        // Set JSON header first thing
+    public function conversation($contactId = '', $contactType = '') {
         header('Content-Type: application/json');
         
-        // Log the request for debugging
-        error_log("ModeratorMessages::send called");
-        error_log("POST data: " . print_r($_POST, true));
-        
-        // Check if user is moderator
-        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
-            error_log("Auth failed");
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            exit();
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            error_log("Not POST method");
-            http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-            exit();
-        }
-
         try {
             $currentUser = AuthService::getCurrentUser();
-            error_log("Current user: " . print_r($currentUser, true));
-            
-            $errors = [];
-
-            // Validate input
-            $publisherId = $_POST['publisher_id'] ?? '';
-            $subject = trim($_POST['subject'] ?? '');
-            $message = trim($_POST['message'] ?? '');
-
-            error_log("Publisher ID: $publisherId, Subject: $subject");
-
-            if (empty($publisherId) || !is_numeric($publisherId)) {
-                $errors[] = 'Please select a publisher';
-            }
-
-            if (empty($subject)) {
-                $errors[] = 'Subject is required';
-            } elseif (strlen($subject) > 200) {
-                $errors[] = 'Subject must not exceed 200 characters';
-            }
-
-            if (empty($message)) {
-                $errors[] = 'Message is required';
-            } elseif (strlen($message) > 2000) {
-                $errors[] = 'Message must not exceed 2000 characters';
-            }
-
-            // Verify publisher exists and belongs to moderator's university
-            if (empty($errors)) {
-                $moderatorModel = new Moderator();
-                $moderator = $moderatorModel->findById($currentUser['id']);
-
-                error_log("Moderator: " . print_r($moderator, true));
-
-                if (!$moderator) {
-                    http_response_code(400);
-                    echo json_encode([
-                        'success' => false,
-                        'message' => 'Moderator profile not found'
-                    ]);
-                    exit();
-                }
-
-                $publisherModel = new Publisher();
-                $publisher = $publisherModel->getPublisherById($publisherId);
-
-                error_log("Publisher: " . print_r($publisher, true));
-
-                if (!$publisher) {
-                    $errors[] = 'Publisher not found';
-                } elseif ($publisher->university !== $moderator->university) {
-                    $errors[] = 'You can only send messages to publishers from your university';
-                }
-            }
-
-            if (!empty($errors)) {
-                error_log("Validation errors: " . implode(', ', $errors));
-                http_response_code(400);
-                echo json_encode([
-                    'success' => false,
-                    'message' => implode('<br>', $errors)
-                ]);
+            if (!$currentUser || $currentUser['type'] !== 'moderator') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
                 exit();
             }
-
-            // Send message
-            $messageModel = new Message();
-            $messageData = [
-                'from_user_id' => $currentUser['id'],
-                'from_user_type' => 'moderator',
-                'to_user_id' => $publisherId,
-                'to_user_type' => 'publisher',
-                'subject' => $subject,
-                'message' => $message
-            ];
-
-            error_log("Sending message: " . print_r($messageData, true));
-
-            $messageId = $messageModel->sendMessage($messageData);
-
-            error_log("Message ID: $messageId");
-
-            if ($messageId) {
-                http_response_code(200);
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Message sent successfully to publisher',
-                    'message_id' => $messageId
-                ]);
-            } else {
-                http_response_code(500);
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Failed to send message. Please try again.'
-                ]);
+            
+            if (empty($contactId) || empty($contactType)) {
+                echo json_encode(['success' => false, 'message' => 'Contact ID and type are required']);
+                exit();
             }
-        } catch (Exception $e) {
-            error_log("Exception in ModeratorMessages::send - " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
-            http_response_code(500);
+            
+            $message = new Message();
+            $messages = $message->getConversationMessages(
+                $currentUser['id'], 
+                'moderator', 
+                $contactId, 
+                $contactType
+            );
+            
+            // Mark all unread messages in this conversation as read
+            if (is_array($messages)) {
+                foreach ($messages as $msg) {
+                    if (!$msg->is_read && $msg->to_user_id == $currentUser['id']) {
+                        $message->markAsRead($msg->id, $currentUser['id'], 'moderator');
+                    }
+                }
+            }
+            
             echo json_encode([
-                'success' => false,
-                'message' => 'An unexpected error occurred: ' . $e->getMessage()
+                'success' => true, 
+                'messages' => $messages ? $messages : []
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Get conversation error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Failed to load conversation: ' . $e->getMessage()
             ]);
         }
         exit();
     }
-
+    
     /**
-     * View message details
+     * Send a new message in a conversation
      */
-    public function details($messageId = '', $b = '', $c = '') {
-        // Check if user is moderator
-        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'moderator') {
-            header('Location: /unipulse/public/signin');
-            exit();
+    public function send($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'moderator') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+                exit();
+            }
+            
+            $toUserId = trim($_POST['to_user_id'] ?? '');
+            $toUserType = trim($_POST['to_user_type'] ?? '');
+            $subject = trim($_POST['subject'] ?? 'Message');
+            $messageContent = trim($_POST['message'] ?? '');
+            
+            if (empty($toUserId) || empty($toUserType) || empty($messageContent)) {
+                echo json_encode(['success' => false, 'message' => 'Recipient and message are required']);
+                exit();
+            }
+            
+            $message = new Message();
+            $messageId = $message->sendMessage([
+                'from_user_id' => $currentUser['id'],
+                'from_user_type' => 'moderator',
+                'to_user_id' => $toUserId,
+                'to_user_type' => $toUserType,
+                'subject' => $subject,
+                'message' => $messageContent
+            ]);
+            
+            if ($messageId) {
+                // Get the newly created message
+                $newMessage = $message->getMessageById($messageId);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Message sent successfully',
+                    'message_data' => $newMessage
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to send message']);
+            }
+            
+        } catch (Exception $e) {
+            error_log('Send message error: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Failed to send message: ' . $e->getMessage()
+            ]);
         }
-
-        if (!$messageId || !is_numeric($messageId)) {
-            header('Location: /unipulse/public/moderator/messages');
-            exit();
+        exit();
+    }
+    
+    /**
+     * Get unread message count
+     */
+    public function unreadCount($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'moderator') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            
+            $message = new Message();
+            $count = $message->getUnreadCount($currentUser['id'], 'moderator');
+            
+            echo json_encode(['success' => true, 'count' => $count]);
+            
+        } catch (Exception $e) {
+            error_log('Get unread count error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to get unread count']);
         }
-
-        $currentUser = AuthService::getCurrentUser();
-        $data['user'] = $currentUser;
-
-        // Get moderator data
-        $moderatorModel = new Moderator();
-        $moderator = $moderatorModel->findById($currentUser['id']);
-        $data['moderator'] = $moderator;
-
-        // Get message
-        $messageModel = new Message();
-        $message = $messageModel->getMessageById($messageId, $currentUser['id'], 'moderator');
-
-        if (!$message) {
-            header('Location: /unipulse/public/moderator/messages');
-            exit();
-        }
-
-        $data['message'] = $message;
-
-        $this->view('Moderator/message-details', $data);
+        exit();
     }
 }
