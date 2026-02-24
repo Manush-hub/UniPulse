@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Publisher Dashboard</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/UniPulse/public/assets/css/Publisher/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
@@ -96,7 +97,7 @@
                         <h3>Volunteers</h3>
                         <p>Manage volunteer applications</p>
                     </div>
-                    <div class="action-card" onclick="window.location.href='sponsorships.html'">
+                    <div class="action-card" onclick="window.location.href='/unipulse/public/publisher/sponsorships'">
                         <div class="action-icon">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
@@ -131,7 +132,7 @@
                     <div class="event-filters">
                         <button class="filter-btn active" data-filter="all">All Events</button>
                         <button class="filter-btn" data-filter="upcoming">Upcoming</button>
-                        <button class="filter-btn" data-filter="past">Past</button>
+                        <button class="filter-btn" data-filter="past">Completed</button>
                     </div>
                     <div class="event-slider-controls" style="margin-top: 1rem;">
                         <button class="btn btn-outline" id="prevEventsBtn" type="button"><i class="fas fa-chevron-left"></i> Prev</button>

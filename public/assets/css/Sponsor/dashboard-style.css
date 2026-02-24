@@ -802,6 +802,16 @@ body {
     color: #059669;
 }
 
+.status-ongoing {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.status-upcoming {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+}
+
 .status-pending {
     color: #D97706;
 }

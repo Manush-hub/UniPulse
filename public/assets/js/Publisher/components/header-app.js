@@ -20,7 +20,7 @@ const organizerData = {
 // Load publisher data from session
 async function loadPublisherData() {
     try {
-        const response = await fetch('/UniPulse/public/publisher/profile/getCurrentPublisher');
+        const response = await fetch('/unipulse/public/publisher/profile/getCurrentPublisher');
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.publisher) {
@@ -311,7 +311,7 @@ function logout() {
 
 // Initialize header functionality
 function initializeHeader() {
-    updateUserProfile();
+    loadPublisherData(); // Load publisher data from database including logo
     setupDropdowns();
     initDarkMode();
 }

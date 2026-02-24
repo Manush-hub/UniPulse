@@ -458,6 +458,41 @@ function createEventCard(event) {
                     <span>${secondaryInfo}</span>
                 </div>
                 ` : ''}
+                ${(event.accepts_sponsorships && event.sponsorship_stats && event.sponsorship_stats.total_packages> 0) && event.status != 'completed' ? `
+                <div class="meta-item sponsorship-info" style="border-top: 1px solid #e2e8f0; padding-top: 0.75rem; margin-top: 0.5rem; display: block; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; color: #9333ea; font-weight: 600;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        <span>Sponsorship Packages</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.875rem;">
+                        <div style="background: #f0fdf4; padding: 0.5rem; border-radius: 6px;">
+                            <div style="color: #065f46; font-weight: 600;">${event.sponsorship_stats.filled_slots} / ${event.sponsorship_stats.total_slots}</div>
+                            <div style="color: #047857; font-size: 0.75rem;">Slots Filled</div>
+                        </div>
+                        <div style="background: #fef3c7; padding: 0.5rem; border-radius: 6px;">
+                            <div style="color: #92400e; font-weight: 600;">${event.sponsorship_stats.available_slots}</div>
+                            <div style="color: #b45309; font-size: 0.75rem;">Available</div>
+                        </div>
+                        <div style="background: #dbeafe; padding: 0.5rem; border-radius: 6px;">
+                            <div style="color: #1e40af; font-weight: 600;">Rs. ${event.sponsorship_stats.approved_budget.toLocaleString()}</div>
+                            <div style="color: #1e3a8a; font-size: 0.75rem;">Budget Covered</div>
+                        </div>
+                        ${event.sponsorship_stats.pending_budget > 0 ? `
+                        <div style="background: #fff7ed; padding: 0.5rem; border-radius: 6px;">
+                            <div style="color: #9a3412; font-weight: 600;">Rs. ${event.sponsorship_stats.pending_budget.toLocaleString()}</div>
+                            <div style="color: #c2410c; font-size: 0.75rem;">Pending</div>
+                        </div>
+                        ` : `
+                        <div style="background: #f3f4f6; padding: 0.5rem; border-radius: 6px;">
+                            <div style="color: #4b5563; font-weight: 600;">${event.sponsorship_stats.total_packages}</div>
+                            <div style="color: #6b7280; font-size: 0.75rem;">Packages</div>
+                        </div>
+                        `}
+                    </div>
+                </div>
+                ` : ''}
             </div>
             <div class="event-footer">
                 <div class="event-organizer">

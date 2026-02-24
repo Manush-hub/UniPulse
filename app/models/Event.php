@@ -154,9 +154,33 @@ class Event
         $userUniversity = $currentUser['university'] ?? null;
         $userFaculty = $currentUser['faculty'] ?? null;
 
-        // Publishers, admins, and moderators can see all events
-        if (in_array($userType, ['publisher', 'admin', 'moderator'])) {
+        // Admins and publishers can see all events
+        if (in_array($userType, ['publisher', 'admin'])) {
             return ['clause' => '', 'params' => []];
+        }
+
+        // Moderators can only see events from publishers of their university
+        if ($userType === 'moderator') {
+            if (!empty($userUniversity)) {
+                return [
+                    'clause' => 'p.university = :moderator_university',
+                    'params' => ['moderator_university' => $userUniversity]
+                ];
+            } else {
+                // If moderator has no university assigned, show no events
+                return [
+                    'clause' => '1 = 0',
+                    'params' => []
+                ];
+            }
+        }
+
+        // Sponsors can only see public events
+        if ($userType === 'sponsor') {
+            return [
+                'clause' => "e.visibility = 'public'",
+                'params' => []
+            ];
         }
 
         // Public events - everyone can see
@@ -1000,38 +1024,52 @@ class Event
     /**
      * Get all hidden (soft-deleted) events
      */
-    public function getHiddenEvents($filters = [])
+    public function getHiddenEvents($filters = [], $currentUser = null)
     {
-        $whereClause = ['is_deleted = 1']; // Only soft-deleted events
+        $whereClause = ['e.is_deleted = 1']; // Only soft-deleted events
         $params = [];
+
+        // For moderators, only show hidden events from publishers of their university
+        if ($currentUser && ($currentUser['type'] ?? null) === 'moderator') {
+            if (!empty($currentUser['university'])) {
+                $whereClause[] = 'p.university = :moderator_university';
+                $params['moderator_university'] = $currentUser['university'];
+            } else {
+                // If moderator has no university, show no events
+                $whereClause[] = '1 = 0';
+            }
+        }
 
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'category = :category';
+            $whereClause[] = 'e.category = :category';
             $params['category'] = $filters['category'];
         }
 
         if (!empty($filters['university'])) {
-            $whereClause[] = 'university = :university';
+            $whereClause[] = 'e.university = :university';
             $params['university'] = $filters['university'];
         }
 
         if (!empty($filters['search'])) {
-            $whereClause[] = '(title LIKE :search OR description LIKE :search OR university_name LIKE :search OR organizer LIKE :search OR location LIKE :search)';
+            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
         $sql = "SELECT e.*, 
                        m.full_name as moderator_name,
-                       m.email as moderator_email
+                       m.email as moderator_email,
+                       p.society_name as organizer_name,
+                       p.university as publisher_university
                 FROM {$this->table} e
-                LEFT JOIN moderators m ON e.deleted_by = m.id";
+                LEFT JOIN moderators m ON e.deleted_by = m.id
+                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'";
 
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
         }
 
-        $sql .= ' ORDER BY deleted_at DESC';
+        $sql .= ' ORDER BY e.deleted_at DESC';
 
         // Add pagination if specified
         if (isset($filters['limit'])) {

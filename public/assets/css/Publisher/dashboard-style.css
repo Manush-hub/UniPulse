@@ -1790,7 +1790,7 @@ body {
 /* ===== Event Boosting Section Styles ===== */
 .event-boosting-section {
     padding: 3rem 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
     margin: 2rem 0;
 }
 
@@ -1804,6 +1804,7 @@ body {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
     font-weight: 700;
+    color: white;
 }
 
 .event-boosting-section .section-header p {

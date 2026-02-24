@@ -30,8 +30,9 @@ function loadNotifications() {
             }
         })
         .catch(error => {
-            console.error('Error loading notifications:', error);
-            notificationList.innerHTML = '<div class="no-data">Failed to load notifications</div>';
+            console.log('Notifications endpoint not available:', error.message);
+            // Don't show error to user, just hide notification badge silently
+            notificationList.innerHTML = '<div class="no-data">No notifications</div>';
             const notificationBadge = document.getElementById('notificationBadge');
             if (notificationBadge) {
                 notificationBadge.style.display = 'none';

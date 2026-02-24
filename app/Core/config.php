@@ -34,3 +34,12 @@ define('APP_NAME', "My website");
 define('APP_DESC', "MY WEBSITES");
 
 define('DEBUG', true);
+
+// SMTP configuration (for password reset emails)
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_ENCRYPTION', 'tls');
+define('SMTP_USER', '');
+define('SMTP_PASS', '');
+define('SMTP_FROM_EMAIL', '');
+define('SMTP_FROM_NAME', 'UniPulse');

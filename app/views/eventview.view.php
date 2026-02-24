@@ -29,6 +29,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details - UniPulse</title>
+    <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/eventview-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/User/comments-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -568,6 +569,59 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeBankDetailsModal()">Close</button>
                 <button class="btn btn-primary" onclick="confirmBankTransfer()">I've Made the Transfer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Bank Transcript Modal (Sponsor Role Only) -->
+    <div id="uploadTranscriptModal" class="modal">
+        <div class="modal-content modal-upload-transcript">
+            <div class="modal-header">
+                <h2><i class="fas fa-upload"></i> Upload Bank Transaction Receipt</h2>
+                <button class="close-btn" onclick="closeUploadTranscriptModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-transcript-info">
+                    <p class="upload-intro">Please upload your bank transaction receipt/slip as proof of payment:</p>
+                    
+                    <div class="sponsorship-summary">
+                        <h4><i class="fas fa-info-circle"></i> Sponsorship Details</h4>
+                        <div class="summary-item">
+                            <strong>Package:</strong> <span id="uploadPackageName"></span>
+                        </div>
+                        <div class="summary-item">
+                            <strong>Amount Paid:</strong> <span id="uploadPackageAmount" class="amount-highlight"></span>
+                        </div>
+                    </div>
+                    
+                    <form id="uploadTranscriptForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="paymentProof">
+                                <i class="fas fa-file-upload"></i> Bank Receipt/Transaction Slip *
+                            </label>
+                            <input type="file" id="paymentProof" name="payment_proof" accept="image/*,application/pdf" required>
+                            <small class="form-help">Accepted formats: JPG, PNG, PDF (Max 5MB)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sponsorshipNotes">
+                                <i class="fas fa-comment"></i> Additional Notes (Optional)
+                            </label>
+                            <textarea id="sponsorshipNotes" name="notes" rows="3" placeholder="Any additional information about the payment..."></textarea>
+                        </div>
+                    </form>
+                    
+                    <div class="upload-note">
+                        <i class="fas fa-info-circle"></i>
+                        <p><strong>Note:</strong> Your sponsorship request will be sent to the event organizer for verification. You'll be notified once it's approved.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUploadTranscriptModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitSponsorshipRequest()">
+                    <i class="fas fa-paper-plane"></i> Submit Request
+                </button>
             </div>
         </div>
     </div>

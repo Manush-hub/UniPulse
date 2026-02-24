@@ -14,20 +14,33 @@ class PublisherMessages extends Controller {
         try {
             $message = new Message();
             
-            // Get sent messages for the publisher
-            $sentMessages = $message->getUserMessages($currentUser['id'], 'publisher', 'sent');
-            
-            // Get received messages for the publisher  
-            $receivedMessages = $message->getUserMessages($currentUser['id'], 'publisher', 'received');
+            // Get all conversations for this publisher
+            $conversations = $message->getConversations($currentUser['id'], 'publisher');
             
             // Get unread count
             $unreadCount = $message->getUnreadCount($currentUser['id'], 'publisher');
             
+            // Get publisher details to get their university
+            $publisherModel = new Publisher();
+            $publisherData = $publisherModel->findById($currentUser['id']);
+            
+            // Get available sponsors
+            $sponsorModel = new Sponsor();
+            $availableSponsors = $sponsorModel->getAllSponsors();
+            
+            // Get moderators for publisher's university
+            $moderatorModel = new Moderator();
+            $availableModerators = [];
+            if ($publisherData && !empty($publisherData->university)) {
+                $availableModerators = $moderatorModel->getByUniversity($publisherData->university);
+            }
+            
             $data = [
                 'user' => $currentUser,
-                'sent_messages' => $sentMessages ?: [],
-                'received_messages' => $receivedMessages ?: [],
+                'conversations' => $conversations,
                 'unread_count' => $unreadCount,
+                'available_sponsors' => $availableSponsors,
+                'available_moderators' => $availableModerators,
                 'page_title' => 'Messages'
             ];
             
@@ -38,15 +51,124 @@ class PublisherMessages extends Controller {
             
             $data = [
                 'user' => $currentUser,
-                'sent_messages' => [],
-                'received_messages' => [],
+                'conversations' => [],
                 'unread_count' => 0,
+                'available_sponsors' => [],
+                'available_moderators' => [],
                 'page_title' => 'Messages',
                 'error' => 'Failed to load messages'
             ];
             
             parent::view('Publisher/messages', $data);
         }
+    }
+    
+    /**
+     * Get conversation messages via AJAX
+     */
+    public function conversation($contactId = '', $contactType = '') {
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            
+            if (empty($contactId) || empty($contactType)) {
+                echo json_encode(['success' => false, 'message' => 'Contact ID and type are required']);
+                exit();
+            }
+            
+            $message = new Message();
+            $messages = $message->getConversationMessages(
+                $currentUser['id'], 
+                'publisher', 
+                $contactId, 
+                $contactType
+            );
+            
+            // Mark all unread messages in this conversation as read
+            if (is_array($messages)) {
+                foreach ($messages as $msg) {
+                    if (!$msg->is_read && $msg->to_user_id == $currentUser['id']) {
+                        $message->markAsRead($msg->id, $currentUser['id'], 'publisher');
+                    }
+                }
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'messages' => $messages ? $messages : []
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Get conversation error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Failed to load conversation: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+    
+    /**
+     * Send a new message in a conversation
+     */
+    public function send($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+                exit();
+            }
+            
+            $toUserId = trim($_POST['to_user_id'] ?? '');
+            $toUserType = trim($_POST['to_user_type'] ?? '');
+            $subject = trim($_POST['subject'] ?? 'Message');
+            $messageContent = trim($_POST['message'] ?? '');
+            
+            if (empty($toUserId) || empty($toUserType) || empty($messageContent)) {
+                echo json_encode(['success' => false, 'message' => 'Recipient and message are required']);
+                exit();
+            }
+            
+            $message = new Message();
+            $messageId = $message->sendMessage([
+                'from_user_id' => $currentUser['id'],
+                'from_user_type' => 'publisher',
+                'to_user_id' => $toUserId,
+                'to_user_type' => $toUserType,
+                'subject' => $subject,
+                'message' => $messageContent
+            ]);
+            
+            if ($messageId) {
+                // Get the sent message details
+                $sentMessage = $message->getMessageById($messageId);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Message sent successfully',
+                    'data' => $sentMessage
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to send message']);
+            }
+            
+        } catch (Exception $e) {
+            error_log('Send message error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to send message']);
+        }
+        exit();
     }
     
     public function details($messageId = '', $b = '', $c = '') {
