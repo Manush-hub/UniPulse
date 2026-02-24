@@ -12,6 +12,7 @@ This directory contains all project documentation organized by feature/module.
 #### Events
 - [Event Boosting Guide](EVENT_BOOSTING_GUIDE.md) - Event boosting feature documentation
 - [Event Filtering by Date](EVENT_FILTERING_BY_DATE.md) - Date-based filtering implementation
+- [Event Visibility Filtering README](EVENT_VISIBILITY_FILTERING_README.md) - Visibility rules for users and organizers
 - [Registered Events Dashboard](REGISTERED_EVENTS_DASHBOARD_IMPLEMENTATION.md) - User event registration dashboard
 
 #### Profile Management
@@ -88,6 +89,7 @@ unipulse/
 - **Latest Feature**: [Landing Template Unification](LANDING_TEMPLATE_UNIFICATION.md)
 - **Payment Integration**: [Payment Gateway Guide](PAYMENT_GATEWAY_GUIDE.md)
 - **Event Management**: [Event Boosting Guide](EVENT_BOOSTING_GUIDE.md)
+- **Event Visibility**: [Event Visibility Filtering README](EVENT_VISIBILITY_FILTERING_README.md)
 
 ## 📝 Contributing
 
