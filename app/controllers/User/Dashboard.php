@@ -246,6 +246,78 @@ class UserDashboard extends Controller
     }
 
     /**
+     * API endpoint to get latest volunteering status
+     */
+    public function getVolunteeringStatus()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser) {
+                echo json_encode(['success' => false, 'error' => 'User data not found']);
+                return;
+            }
+
+            $userId = $currentUser['id'];
+            $userType = $currentUser['type'];
+
+            $volunteerReg = new VolunteerRegistration();
+
+            $sql = "SELECT vr.status, vr.created_at, vr.event_id,
+                           e.title, e.event_date, e.event_time
+                    FROM volunteer_registrations vr
+                    LEFT JOIN events e ON e.id = vr.event_id
+                    WHERE vr.user_id = :user_id
+                      AND vr.user_type = :user_type
+                      AND vr.status != 'withdrawn'
+                    ORDER BY vr.created_at DESC
+                    LIMIT 1";
+
+            $result = $volunteerReg->query($sql, [
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+
+            if (!$result || count($result) === 0) {
+                echo json_encode([
+                    'success' => true,
+                    'hasApplication' => false,
+                    'application' => null
+                ]);
+                return;
+            }
+
+            $latest = $result[0];
+
+            echo json_encode([
+                'success' => true,
+                'hasApplication' => true,
+                'application' => [
+                    'event_id' => $latest->event_id,
+                    'event_title' => $latest->title,
+                    'event_date' => $latest->event_date,
+                    'event_time' => $latest->event_time,
+                    'status' => $latest->status,
+                    'applied_at' => $latest->created_at
+                ]
+            ]);
+        } catch (Exception $e) {
+            error_log("Error in getVolunteeringStatus: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load volunteering status'
+            ]);
+        }
+    }
+
+    /**
      * API endpoint to get monthly evolution data
      */
     public function getMonthlyEvolution()

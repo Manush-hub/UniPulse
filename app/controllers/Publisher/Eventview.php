@@ -4,11 +4,13 @@ class PublisherEventview extends Controller {
     
     private $eventModel;
     private $registrationModel;
+    private $volunteerRegistrationModel;
     
     public function __construct() {
         // Initialize Event model
         $this->eventModel = new Event();
         $this->registrationModel = new EventRegistration();
+        $this->volunteerRegistrationModel = new VolunteerRegistration();
     }
     
     public function index($id = null) {
@@ -62,8 +64,10 @@ class PublisherEventview extends Controller {
                         
                         // Check if publisher is already registered
                         $isRegistered = false;
+                        $isVolunteerApplied = false;
                         if ($currentPublisherId) {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
+                            $isVolunteerApplied = $this->volunteerRegistrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
                         }
                         
                         // Pass server data to view for JavaScript (use raw event object, not formatted)
@@ -78,8 +82,10 @@ class PublisherEventview extends Controller {
                                 'similarEvents' => $similarEvents,
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,
+                                'isVolunteerApplied' => $isVolunteerApplied,
                                 'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
-                                'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent'
+                                'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent',
+                                'volunteerApplyEndpoint' => '/unipulse/public/publisher/eventview/applyVolunteer'
                             ]
                         ];
                     } else {
@@ -168,6 +174,16 @@ class PublisherEventview extends Controller {
             
             // Format event data for JSON response
             $eventData = $this->formatEventForResponse($event);
+
+            $isVolunteerApplied = false;
+            $currentUser = AuthService::getCurrentUser();
+            if ($currentUser && $currentUser['type'] === 'publisher') {
+                $isVolunteerApplied = $this->volunteerRegistrationModel->isUserRegistered(
+                    $eventId,
+                    $currentUser['id'],
+                    'publisher'
+                );
+            }
             
             // Format similar events
             $formattedSimilarEvents = [];
@@ -178,7 +194,8 @@ class PublisherEventview extends Controller {
             echo json_encode([
                 'success' => true,
                 'event' => $eventData,
-                'similarEvents' => $formattedSimilarEvents
+                'similarEvents' => $formattedSimilarEvents,
+                'isVolunteerApplied' => $isVolunteerApplied
             ]);
             
         } catch (Exception $e) {
@@ -388,5 +405,119 @@ class PublisherEventview extends Controller {
         }
         
         return $eventData;
+    }
+
+    /**
+     * Quick volunteer apply endpoint
+     */
+    public function applyVolunteer($id = null) {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'You must be logged in to apply as a volunteer'
+            ]);
+            exit;
+        }
+
+        $eventId = $id;
+        if (!$eventId && isset($_POST['id'])) {
+            $eventId = $_POST['id'];
+        }
+
+        if (!$eventId || !is_numeric($eventId)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Invalid event ID'
+            ]);
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $userType = $_SESSION['user_type'];
+
+        try {
+            $event = $this->eventModel->getEventById($eventId);
+
+            if (!$event) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Event not found'
+                ]);
+                exit;
+            }
+
+            if (!$event->needs_volunteers) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'This event is not accepting volunteers'
+                ]);
+                exit;
+            }
+
+            if (!is_null($event->volunteers_needed) && (int)$event->volunteers_needed <= 0) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'No volunteer positions are currently available'
+                ]);
+                exit;
+            }
+
+            if ($this->volunteerRegistrationModel->isUserRegistered($eventId, $userId, $userType)) {
+                echo json_encode([
+                    'success' => false,
+                    'alreadyRegistered' => true,
+                    'error' => 'You have already applied as a volunteer for this event',
+                    'volunteers_needed' => $event->volunteers_needed
+                ]);
+                exit;
+            }
+
+            $volunteerData = [
+                'user_id' => $userId,
+                'user_type' => $userType,
+                'event_id' => $eventId,
+                'volunteer_position' => 'General Volunteer',
+                'availability' => 'Flexible',
+                'experience' => 'Submitted via quick apply',
+                'motivation' => 'Interested in supporting this event',
+                'skills' => 'N/A',
+                'have_transportation' => 0,
+                'commitment_understanding' => 1,
+                'receive_updates' => 1,
+                'terms_accepted' => 1,
+                'status' => 'pending'
+            ];
+
+            if (!$this->volunteerRegistrationModel->insert($volunteerData)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Failed to submit volunteer application'
+                ]);
+                exit;
+            }
+
+            if (!is_null($event->volunteers_needed) && (int)$event->volunteers_needed > 0) {
+                $remainingVolunteers = max(0, (int)$event->volunteers_needed - 1);
+                $this->eventModel->update($eventId, ['volunteers_needed' => $remainingVolunteers]);
+            }
+
+            $updatedEvent = $this->eventModel->getEventById($eventId);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Volunteer application submitted successfully',
+                'volunteers_needed' => $updatedEvent ? $updatedEvent->volunteers_needed : $event->volunteers_needed
+            ]);
+        } catch (Exception $e) {
+            error_log("Database error in PublisherEventview::applyVolunteer: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unable to apply as volunteer. Please try again later.'
+            ]);
+        }
+
+        exit;
     }
 }

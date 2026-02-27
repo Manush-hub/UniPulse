@@ -368,6 +368,13 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
                         <div id="volunteerInfo"></div>
                     </div>
+
+                    <?php if ($currentRole !== 'User'): ?>
+                    <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                        <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                        <div id="volunteerInvolvementInfo"></div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -418,6 +425,29 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <input type="text" id="shareLink" readonly class="share-link-input">
                     <button class="btn btn-primary" onclick="copyShareLink()">Copy Link</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volunteer Consent Modal -->
+    <div id="volunteerConsentModal" class="modal">
+        <div class="modal-content volunteer-consent-content">
+            <div class="modal-header">
+                <h2>Volunteer Application Consent</h2>
+                <button class="close-btn" onclick="closeVolunteerConsentModal()">&times;</button>
+            </div>
+            <div class="modal-body volunteer-consent-body">
+                <div class="volunteer-consent-icon" aria-hidden="true">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <p class="volunteer-consent-message">
+                    By applying as a volunteer, your private details including your phone number and email address will be shared with the publisher.
+                </p>
+                <p class="volunteer-consent-question">Do you want to continue?</p>
+            </div>
+            <div class="modal-footer volunteer-consent-footer">
+                <button class="btn btn-secondary" onclick="closeVolunteerConsentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmVolunteerConsent()">Confirm</button>
             </div>
         </div>
     </div>

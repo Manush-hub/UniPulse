@@ -3,7 +3,9 @@ let currentEvent = window.serverData?.event || null;
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
+const volunteerApplyEndpoint = window.serverData?.volunteerApplyEndpoint || '/unipulse/public/publisher/eventview/applyVolunteer';
 let isUserRegistered = window.serverData?.isRegistered || false;
+let isVolunteerApplied = window.serverData?.isVolunteerApplied || false;
 
 // Debug logging
 console.log('=== EventView Page Debug ===');
@@ -52,6 +54,7 @@ function loadEventDetails() {
             .then(data => {
                 if (data.success) {
                     currentEvent = data.event;
+                    isVolunteerApplied = data.isVolunteerApplied || false;
                     displayEventDetails(currentEvent);
                     hideLoading();
                     showEventContainer();
@@ -265,12 +268,31 @@ function displayEventDetails(event) {
     // Handle registration and ticketing sections
     displayRegistrationTicketing(event);
     
-    // Volunteer information - hide card if not accepting volunteers
+    // Volunteer information - hide card if not accepting volunteers or no slots left
     if (event.needs_volunteers && event.needs_volunteers == 1) {
-        displayVolunteerInfo(event);
+        const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+            ? parseInt(event.volunteers_needed, 10)
+            : null;
+        
+        if (volunteersNeeded === null || volunteersNeeded > 0) {
+            displayVolunteerInfo(event);
+        } else {
+            if (document.getElementById('volunteerCard')) {
+                document.getElementById('volunteerCard').style.display = 'none';
+            }
+        }
     } else {
         if (document.getElementById('volunteerCard')) {
             document.getElementById('volunteerCard').style.display = 'none';
+        }
+    }
+
+    if (isVolunteerApplied) {
+        displayVolunteerInvolvement(event);
+    } else {
+        const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+        if (volunteerInvolvementCard) {
+            volunteerInvolvementCard.style.display = 'none';
         }
     }
     
@@ -703,6 +725,70 @@ function openShareModal() {
 function closeShareModal() {
     const shareModal = document.getElementById('shareModal');
     if (shareModal) shareModal.style.display = 'none';
+}
+
+function openVolunteerConsentModal() {
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
+    if (volunteerConsentModal) volunteerConsentModal.style.display = 'flex';
+}
+
+function closeVolunteerConsentModal() {
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
+    if (volunteerConsentModal) volunteerConsentModal.style.display = 'none';
+}
+
+function confirmVolunteerConsent() {
+    if (!currentEvent || !currentEvent.id) {
+        alert('Event data not available');
+        return;
+    }
+
+    const confirmBtn = document.querySelector('#volunteerConsentModal .btn-primary');
+    const originalText = confirmBtn ? confirmBtn.innerHTML : 'Confirm';
+
+    if (confirmBtn) {
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        confirmBtn.disabled = true;
+    }
+
+    const formData = new FormData();
+    formData.append('id', currentEvent.id);
+
+    fetch(volunteerApplyEndpoint, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.volunteers_needed !== undefined && data.volunteers_needed !== null) {
+                    currentEvent.volunteers_needed = parseInt(data.volunteers_needed, 10);
+                }
+
+                isVolunteerApplied = true;
+
+                displayVolunteerInfo(currentEvent);
+                displayVolunteerInvolvement(currentEvent);
+                closeVolunteerConsentModal();
+                window.location.href = '/unipulse/public/publisher/dashboard?volunteer_applied=1';
+            } else if (data.alreadyRegistered) {
+                closeVolunteerConsentModal();
+                alert('You have already applied as a volunteer for this event.');
+                window.location.href = '/unipulse/public/publisher/dashboard';
+            } else {
+                alert(data.error || 'Failed to submit volunteer application. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying as volunteer:', error);
+            alert('Failed to submit volunteer application. Please try again.');
+        })
+        .finally(() => {
+            if (confirmBtn) {
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        });
 }
 
 // Event actions
@@ -1196,22 +1282,35 @@ function displayVolunteerInfo(event) {
     
     let volunteerHTML = '<div class="volunteer-detail-item">';
     
-    if (event.volunteers_needed) {
-        volunteerHTML += `<div><strong>Volunteers Needed:</strong> ${event.volunteers_needed}</div>`;
+    const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+        ? parseInt(event.volunteers_needed, 10)
+        : null;
+    const hasVolunteerSlots = volunteersNeeded === null || Number.isNaN(volunteersNeeded) || volunteersNeeded > 0;
+
+    if (volunteersNeeded !== null && !Number.isNaN(volunteersNeeded) && volunteersNeeded <= 0) {
+        volunteerCard.style.display = 'none';
+        return;
+    }
+
+    if (volunteersNeeded !== null && !Number.isNaN(volunteersNeeded)) {
+        volunteerHTML += `<div><strong>Volunteers Needed:</strong> <span id="volunteersNeededCount">${volunteersNeeded}</span></div>`;
     }
     
     if (event.volunteer_sources && Array.isArray(event.volunteer_sources)) {
-        volunteerHTML += '<div><strong>Recruiting From:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-sources-list">';
-        event.volunteer_sources.forEach(source => {
-            const sourceMap = {
-                'faculty': 'Faculty Members',
-                'university': 'University Students',
-                'public': 'Public Users'
-            };
-            volunteerHTML += `<li>${sourceMap[source] || source}</li>`;
-        });
-        volunteerHTML += '</ul>';
+        const visibleSources = event.volunteer_sources.filter(source => source !== 'faculty');
+
+        if (visibleSources.length > 0) {
+            volunteerHTML += '<div><strong>Recruiting From:</strong></div>';
+            volunteerHTML += '<ul class="volunteer-sources-list">';
+            visibleSources.forEach(source => {
+                const sourceMap = {
+                    'university': 'University Students',
+                    'public': 'Public Users'
+                };
+                volunteerHTML += `<li>${sourceMap[source] || source}</li>`;
+            });
+            volunteerHTML += '</ul>';
+        }
     }
     
     // if (event.volunteer_positions && Array.isArray(event.volunteer_positions)) {
@@ -1224,13 +1323,44 @@ function displayVolunteerInfo(event) {
     // }
     
     volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
+    volunteerHTML += `<button class="btn btn-primary" onclick="applyAsVolunteer()" ${hasVolunteerSlots ? '' : 'disabled style="opacity:0.6;cursor:not-allowed;"'}>${hasVolunteerSlots ? 'Apply as Volunteer' : 'Volunteer Positions Filled'}</button>`;
     volunteerHTML += '</div>';
     
     volunteerHTML += '</div>';
     
     volunteerCard.style.display = 'block';
     volunteerInfo.innerHTML = volunteerHTML;
+}
+
+function displayVolunteerInvolvement(event) {
+    const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+    const volunteerInvolvementInfo = document.getElementById('volunteerInvolvementInfo');
+
+    if (!volunteerInvolvementCard || !volunteerInvolvementInfo) {
+        return;
+    }
+
+    const eventDate = formatDate(event.event_date || event.date);
+    const eventTime = event.event_time || event.time || 'TBA';
+
+    volunteerInvolvementInfo.innerHTML = `
+        <div class="volunteer-involvement-summary">
+            <div class="volunteer-involvement-status">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong>You have applied as a volunteer</strong>
+                    <p>Your application is currently under review.</p>
+                </div>
+            </div>
+            <div class="volunteer-involvement-meta">
+                <p><strong>Event:</strong> ${event.title}</p>
+                <p><strong>Date:</strong> ${eventDate} at ${eventTime}</p>
+                <p><strong>Next step:</strong> Check your dashboard for updates.</p>
+            </div>
+        </div>
+    `;
+
+    volunteerInvolvementCard.style.display = 'block';
 }
 
 // Display Registration and Ticketing Section
@@ -1838,16 +1968,7 @@ function processDonation() {
 }
 
 function applyAsVolunteer() {
-    // Get the event ID from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('id');
-    
-    // Redirect to volunteer registration page with event ID
-    if (eventId) {
-        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
-    } else {
-        alert('Event ID not found');
-    }
+    openVolunteerConsentModal();
 }
 
 // Event listeners for donation amounts
@@ -1889,12 +2010,16 @@ if (shareBtn) {
 window.addEventListener('click', function(event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
     
     if (event.target === joinModal) {
         closeJoinModal();
     }
     if (event.target === shareModal) {
         closeShareModal();
+    }
+    if (event.target === volunteerConsentModal) {
+        closeVolunteerConsentModal();
     }
 });
 
@@ -2582,6 +2707,8 @@ window.processDonation = processDonation;
 window.closeJoinModal = closeJoinModal;
 window.confirmJoinEvent = confirmJoinEvent;
 window.closeShareModal = closeShareModal;
+window.closeVolunteerConsentModal = closeVolunteerConsentModal;
+window.confirmVolunteerConsent = confirmVolunteerConsent;
 window.showCommentForm = showCommentForm;
 window.updateComment = updateComment;
 window.confirmDeleteComment = confirmDeleteComment;
