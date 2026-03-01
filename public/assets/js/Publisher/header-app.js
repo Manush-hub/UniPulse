@@ -1,48 +1,48 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadNotifications();
     setupEventListeners();
+    startNotificationPolling();
 });
 
-const notifications = [
-    {
-        id: 1,
-        title: 'Event Published',
-        message: 'Your event "Tech Conference 2025" has been published successfully',
-        time: '2 hours ago',
-        unread: true,
-        type: 'success'
-    },
-    {
-        id: 2,
-        title: 'Registration Update',
-        message: '25 new registrations for AI Workshop',
-        time: '4 hours ago',
-        unread: true,
-        type: 'info'
-    },
-    {
-        id: 3,
-        title: 'Event Approval',
-        message: 'Cultural Night event is pending approval',
-        time: '1 day ago',
-        unread: false,
-        type: 'warning'
-    }
-];
+let notifications = [];
+let unreadNotificationsCount = 0;
 
-// Load notifications
-function loadNotifications() {
+async function loadNotifications() {
     const notificationList = document.getElementById('notificationList');
     const notificationBadge = document.getElementById('notificationBadge');
-    
+
     if (!notificationList || !notificationBadge) return;
-    
+
+    try {
+        const response = await fetch(`/unipulse/public/publisher/dashboard/getNotifications?t=${Date.now()}`, {
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch notifications');
+        }
+
+        const data = await response.json();
+        notifications = data.success && Array.isArray(data.notifications) ? data.notifications : [];
+        unreadNotificationsCount = data.success && Number.isInteger(data.unread_count)
+            ? data.unread_count
+            : notifications.filter(n => !n.read).length;
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        notifications = [];
+        unreadNotificationsCount = 0;
+    }
+
     notificationList.innerHTML = '';
-    
-    const unreadCount = notifications.filter(n => n.unread).length;
-    notificationBadge.textContent = unreadCount;
-    notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    
+
+    notificationBadge.textContent = unreadNotificationsCount;
+    notificationBadge.classList.toggle('hidden', unreadNotificationsCount <= 0);
+
+    if (notifications.length === 0) {
+        notificationList.innerHTML = '<div class="notification-item"><div class="notification-content"><p>No notifications</p></div></div>';
+        return;
+    }
+
     notifications.forEach(notification => {
         const notificationItem = createNotificationItem(notification);
         notificationList.appendChild(notificationItem);
@@ -52,27 +52,67 @@ function loadNotifications() {
 // Create notification item
 function createNotificationItem(notification) {
     const item = document.createElement('div');
-    item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
-    item.onclick = () => markNotificationAsRead(notification.id);
-    
+    item.className = `notification-item ${notification.read ? '' : 'unread'}`;
+    item.onclick = () => {
+        if (!notification.read) {
+            notification.read = true;
+            item.classList.remove('unread');
+            updateBadgeCountFromCurrentList();
+            markNotificationAsRead(notification);
+        }
+        const eventId = Number(notification.id || 0);
+        if (eventId > 0) {
+            window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;
+        } else {
+            window.location.href = '/unipulse/public/publisher/events';
+        }
+    };
+
     item.innerHTML = `
         <div class="notification-content">
             <h4>${notification.title}</h4>
             <p>${notification.message}</p>
-            <div class="notification-time">${notification.time}</div>
+            <div class="notification-time">${notification.time || 'Just now'}</div>
         </div>
     `;
-    
+
     return item;
+}
+
+function markNotificationAsRead(notification) {
+    fetch('/unipulse/public/publisher/dashboard/markNotificationRead', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            event_id: Number(notification.id || 0),
+            created_at: notification.created_at || ''
+        }),
+        keepalive: true
+    }).catch(error => {
+        console.error('Error marking notification as read:', error);
+    });
+}
+
+function updateBadgeCountFromCurrentList() {
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (!notificationBadge) {
+        return;
+    }
+
+    unreadNotificationsCount = notifications.filter(n => !n.read).length;
+    notificationBadge.textContent = unreadNotificationsCount;
+    notificationBadge.classList.toggle('hidden', unreadNotificationsCount <= 0);
 }
 
 // Setup event listeners
 function setupEventListeners() {
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const notificationDropdown = document.getElementById('notificationDropdown');
         const userDropdown = document.getElementById('userDropdown');
-        
+
         if (!e.target.closest('.notifications') && notificationDropdown) {
             notificationDropdown.classList.remove('show');
         }
@@ -85,7 +125,11 @@ function setupEventListeners() {
 // Toggle notifications dropdown
 function toggleNotifications() {
     const dropdown = document.getElementById('notificationDropdown');
+    const userDropdown = document.getElementById('userDropdown');
     if (dropdown) {
+        if (userDropdown) {
+            userDropdown.classList.remove('show');
+        }
         dropdown.classList.toggle('show');
     }
 }
@@ -93,25 +137,57 @@ function toggleNotifications() {
 // Toggle user menu dropdown
 function toggleUserMenu() {
     const dropdown = document.getElementById('userDropdown');
+    const notificationDropdown = document.getElementById('notificationDropdown');
     if (dropdown) {
+        if (notificationDropdown) {
+            notificationDropdown.classList.remove('show');
+        }
         dropdown.classList.toggle('show');
     }
 }
 
-// Mark notification as read
-function markNotificationAsRead(notificationId) {
-    const notification = notifications.find(n => n.id === notificationId);
-    if (notification) {
-        notification.unread = false;
+// Mark all notifications as read
+async function markAllAsRead() {
+    const previousNotifications = [...notifications];
+
+    notifications = notifications.map(notification => ({
+        ...notification,
+        read: true
+    }));
+    unreadNotificationsCount = 0;
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (notificationBadge) {
+        notificationBadge.textContent = '0';
+        notificationBadge.classList.add('hidden');
+    }
+
+    try {
+        const response = await fetch('/unipulse/public/publisher/dashboard/markAllNotificationsRead', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to mark notifications as read');
+        }
+
+        showToast('All notifications marked as read', 'success');
         loadNotifications();
+    } catch (error) {
+        console.error('Error marking notifications as read:', error);
+        notifications = previousNotifications;
+        updateBadgeCountFromCurrentList();
+        loadNotifications();
+        showToast('Failed to mark notifications as read', 'error');
     }
 }
 
-// Mark all notifications as read
-function markAllAsRead() {
-    notifications.forEach(n => n.unread = false);
-    loadNotifications();
-    showToast('All notifications marked as read', 'success')
+function startNotificationPolling() {
+    setInterval(() => {
+        loadNotifications();
+    }, 60000);
 }
 
 function showToast(message, type = 'info') {
@@ -119,7 +195,7 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.textContent = message;
-    
+
     // Add styles if not already added
     if (!document.querySelector('#toast-styles')) {
         const style = document.createElement('style');
@@ -149,15 +225,15 @@ function showToast(message, type = 'info') {
         `;
         document.head.appendChild(style);
     }
-    
+
     document.body.appendChild(toast);
-    
+
     // Trigger reflow
     void toast.offsetWidth;
-    
+
     // Show toast
     toast.classList.add('show');
-    
+
     // Hide after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
@@ -171,7 +247,7 @@ function showToast(message, type = 'info') {
 function logout() {
     console.log('Logging out...');
     showToast('Logging out...', 'info');
-    
+
     // Simulate logout process
     setTimeout(() => {
         window.location.href = '/unipulse/public/logout';

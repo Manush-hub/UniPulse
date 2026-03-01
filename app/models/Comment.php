@@ -119,15 +119,25 @@ class Comment
             return ['success' => false, 'errors' => $errors];
         }
 
-        // Check if event exists and is completed
+        // Check if event exists
         $event = $this->getEventForComment($data['event_id']);
         if (!$event) {
             return ['success' => false, 'errors' => ['Event not found']];
         }
 
-        // Calculate event status based on event date (not stored status column)
-        // Allow comments on any event, regardless of status
-        // Users can comment on upcoming, ongoing, and completed events
+        $eventDate = !empty($event->event_date) ? new DateTime($event->event_date) : null;
+        $today = new DateTime('today');
+        $status = strtolower(trim((string)($event->status ?? '')));
+        $isCompleted = ($status === 'completed') || ($eventDate && $eventDate < $today);
+
+        if (!$isCompleted) {
+            return ['success' => false, 'errors' => ['Comments are allowed only for completed events']];
+        }
+
+        // Prevent duplicate comment submissions for the same user and event
+        if ($this->hasUserCommented($data['event_id'], $data['user_id'], $data['user_type'])) {
+            return ['success' => false, 'errors' => ['You have already commented on this event']];
+        }
 
         // Set user table based on user type
         $userTableMap = [
@@ -136,6 +146,11 @@ class Comment
             'publisher' => 'publishers',
             'sponsor' => 'sponsors'
         ];
+
+        if (!isset($userTableMap[$data['user_type']])) {
+            return ['success' => false, 'errors' => ['Invalid user type for commenting']];
+        }
+
         $data['user_table'] = $userTableMap[$data['user_type']];
 
         // Clean comment text
@@ -323,11 +338,14 @@ class Comment
             AND is_deleted = 0
         ";
 
-        $result = $this->first($query, [
+        $stmt = $this->connect()->prepare($query);
+        $stmt->execute([
             'event_id' => $eventId,
             'user_id' => $userId,
             'user_type' => $userType
         ]);
+
+        $result = $stmt->fetch(PDO::FETCH_OBJ);
 
         return $result !== false;
     }
