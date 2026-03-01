@@ -29,6 +29,12 @@
             </div>
         </section>
 
+        <section class="volunteering-section" id="volunteeringSection" style="display: none;">
+            <div class="container">
+                <div id="volunteeringCard"></div>
+            </div>
+        </section>
+
         <!-- Quick Actions -->
         <!-- <section class="quick-actions">
             <div class="container">

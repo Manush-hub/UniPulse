@@ -356,18 +356,18 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Volunteer Management</h2>
-                    <a href="volunteers.html" class="view-all">View All</a>
+                    <a href="#volunteerApplicationsList" class="view-all">View All</a>
                 </div>
                 <div class="volunteer-layout">
                     <div class="volunteer-applications">
-                        <h3>Recent Applications</h3>
-                        <div class="volunteer-list" id="volunteerApplicationsList">
+                        <h3 class="volunteer-subtitle">Recent Applications</h3>
+                        <div class="activity-list volunteer-list" id="volunteerApplicationsList">
                             <!-- Volunteer applications will be loaded here -->
                         </div>
                     </div>
                     <div class="volunteer-shifts">
-                        <h3>Upcoming Shifts</h3>
-                        <div class="volunteer-list" id="volunteerShiftsList">
+                        <h3 class="volunteer-subtitle">Upcoming Shifts</h3>
+                        <div class="activity-list volunteer-list" id="volunteerShiftsList">
                             <!-- Volunteer shifts will be loaded here -->
                         </div>
                     </div>

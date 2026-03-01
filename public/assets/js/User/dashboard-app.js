@@ -1,10 +1,140 @@
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
+    showVolunteerSuccessMessage();
+    renderVolunteeringSection();
+    startVolunteeringAutoRefresh();
     initializeDashboard();
     loadUserData();
     loadUpcomingEvents();
     loadRecentActivity();
 });
+
+let volunteeringRefreshTimer = null;
+
+function startVolunteeringAutoRefresh() {
+    if (volunteeringRefreshTimer) {
+        clearInterval(volunteeringRefreshTimer);
+    }
+
+    volunteeringRefreshTimer = setInterval(() => {
+        renderVolunteeringSection();
+    }, 30000);
+}
+
+function showVolunteerSuccessMessage() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('volunteer_applied') === '1') {
+        const toast = document.createElement('div');
+        toast.className = 'dashboard-success-toast';
+        toast.innerHTML = `
+            <div class="dashboard-success-toast-icon">✓</div>
+            <div class="dashboard-success-toast-content">
+                <h4>Volunteer Application Submitted</h4>
+                <p>You’ve successfully applied as a volunteer. The organizer will contact you soon.</p>
+            </div>
+            <button class="dashboard-success-toast-close" aria-label="Close">×</button>
+        `;
+
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        const closeToast = () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 250);
+        };
+
+        const closeBtn = toast.querySelector('.dashboard-success-toast-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeToast);
+        }
+
+        setTimeout(closeToast, 5000);
+
+        params.delete('volunteer_applied');
+        const cleanQuery = params.toString();
+        const cleanUrl = `${window.location.pathname}${cleanQuery ? `?${cleanQuery}` : ''}`;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
+}
+
+async function renderVolunteeringSection() {
+    const volunteeringSection = document.getElementById('volunteeringSection');
+    const volunteeringCard = document.getElementById('volunteeringCard');
+
+    if (!volunteeringSection || !volunteeringCard) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/unipulse/public/user/dashboard/getVolunteeringStatus', {
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch volunteering status');
+        }
+
+        const data = await response.json();
+        if (!data.success || !data.hasApplication || !data.application) {
+            volunteeringSection.style.display = 'none';
+            return;
+        }
+
+        const application = data.application;
+        const eventDateText = formatFullDate(application.event_date);
+        const statusText = formatVolunteerStatus(application.status);
+        const eventDateTimeText = `${eventDateText}${application.event_time ? ` at ${application.event_time}` : ''}`;
+
+        volunteeringCard.innerHTML = `
+            <div class="section-header">
+                <h2>Your Volunteering</h2>
+                <a class="view-all" href="/unipulse/public/user/events">Browse More</a>
+            </div>
+            <div class="activity-list">
+                <div class="activity-item">
+                    <div class="activity-icon">🤝</div>
+                    <div class="activity-content">
+                        <h4>${application.event_title || 'Volunteer Application'}</h4>
+                        <p>Status: <strong>${statusText}</strong></p>
+                        <span class="activity-time">${eventDateTimeText}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        volunteeringSection.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading volunteering section:', error);
+        volunteeringSection.style.display = 'none';
+    }
+}
+
+function formatVolunteerStatus(status) {
+    const map = {
+        pending: 'Pending Review',
+        accepted: 'Accepted',
+        rejected: 'Rejected',
+        completed: 'Completed'
+    };
+
+    return map[status] || 'Application Sent';
+}
+
+function formatFullDate(dateString) {
+    if (!dateString) return 'Date TBA';
+
+    const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    };
+
+    return new Date(dateString).toLocaleDateString('en-US', options);
+}
 
 // Initialize dashboard
 function initializeDashboard() {

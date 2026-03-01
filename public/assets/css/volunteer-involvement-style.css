@@ -1,0 +1,186 @@
+/* Volunteer Involvement Section Styles */
+
+.volunteer-involvement-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.volunteer-involvement-message {
+    margin-bottom: 1rem;
+}
+
+.message-box {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 8px;
+    align-items: flex-start;
+}
+
+.message-box.success-message {
+    background: #f0fdf4;
+    border-left: 4px solid #22c55e;
+    color: #15803d;
+}
+
+.message-box i {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+}
+
+.message-content h4 {
+    margin: 0 0 0.5rem 0;
+    color: #166534;
+    font-size: 1.25rem;
+}
+
+.message-content p {
+    margin: 0;
+    line-height: 1.5;
+    font-size: 1.05rem;
+}
+
+.volunteer-involvement-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.involvement-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.involvement-item i {
+    font-size: 1.5rem;
+    color: #1e3a8a;
+    flex-shrink: 0;
+}
+
+.involvement-item strong {
+    display: block;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+    font-size: 1.02rem;
+}
+
+.involvement-item p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.approved {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.completed {
+    background: #dbeafe;
+    color: #0c4a6e;
+}
+
+.volunteer-involvement-actions {
+    background: #f3f4f6;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.involvement-note {
+    margin: 0;
+    color: #6b7280;
+    font-size: 1.03rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.involvement-note i {
+    color: #dc2626;
+}
+
+/* Toast notification styles */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(1rem);
+    transition: all 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast i {
+    font-size: 1.25rem;
+}
+
+.toast.success {
+    border-left: 4px solid #22c55e;
+    color: #15803d;
+}
+
+.toast.error {
+    border-left: 4px solid #ef4444;
+    color: #7f1d1d;
+}
+
+.toast.info {
+    border-left: 4px solid #3b82f6;
+    color: #0c4a6e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .volunteer-involvement-info {
+        grid-template-columns: 1fr;
+    }
+
+    .toast {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+    }
+
+    .message-box {
+        flex-direction: column;
+    }
+
+    .message-box i {
+        margin-top: 0;
+    }
+}

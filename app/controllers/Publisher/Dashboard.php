@@ -257,6 +257,158 @@ class PublisherDashboard extends Controller{
     }
 
     /**
+     * Get volunteer applications and shifts for publisher dashboard
+     */
+    public function getVolunteerData() {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $query = "
+                SELECT
+                    vr.id,
+                    vr.user_id,
+                    vr.user_type,
+                    vr.event_id,
+                    vr.volunteer_position,
+                    vr.availability,
+                    vr.status,
+                    vr.created_at,
+                    e.title as event_title,
+                    e.event_date,
+                    CASE
+                        WHEN vr.user_type = 'university' THEN uu.full_name
+                        WHEN vr.user_type = 'public' THEN pu.full_name
+                        WHEN vr.user_type = 'publisher' THEN p.society_name
+                        WHEN vr.user_type = 'sponsor' THEN s.company_name
+                        ELSE CONCAT('User #', vr.user_id)
+                    END as volunteer_name
+                FROM volunteer_registrations vr
+                INNER JOIN events e ON e.id = vr.event_id
+                LEFT JOIN university_users uu ON vr.user_type = 'university' AND vr.user_id = uu.id
+                LEFT JOIN public_users pu ON vr.user_type = 'public' AND vr.user_id = pu.id
+                LEFT JOIN publishers p ON vr.user_type = 'publisher' AND vr.user_id = p.id
+                LEFT JOIN sponsors s ON vr.user_type = 'sponsor' AND vr.user_id = s.id
+                WHERE e.created_by_type = 'publisher'
+                  AND e.created_by = :publisher_id
+                  AND vr.status != 'withdrawn'
+                ORDER BY vr.created_at DESC
+                LIMIT 50
+            ";
+
+            $stmt = $this->connect()->prepare($query);
+            $stmt->execute(['publisher_id' => $currentUser['id']]);
+            $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+            $applications = [];
+            $shifts = [];
+
+            foreach ($rows as $row) {
+                $name = $row->volunteer_name ?: 'Volunteer';
+                $applications[] = [
+                    'id' => $row->id,
+                    'name' => $name,
+                    'event_title' => $row->event_title,
+                    'role' => $row->volunteer_position ?: 'General Volunteer',
+                    'status' => $row->status,
+                    'applied_at' => $row->created_at
+                ];
+
+                if ($row->status === 'accepted') {
+                    $shifts[] = [
+                        'id' => $row->id,
+                        'name' => $name,
+                        'event_title' => $row->event_title,
+                        'shift' => $row->availability ?: 'Schedule pending',
+                        'status' => $row->status
+                    ];
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'applications' => array_slice($applications, 0, 8),
+                'shifts' => array_slice($shifts, 0, 8)
+            ]);
+        } catch (Exception $e) {
+            error_log('Error getting volunteer data: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load volunteer data']);
+        }
+    }
+
+    /**
+     * Update volunteer application status (publisher management)
+     */
+    public function updateVolunteerStatus() {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $registrationId = $_POST['registration_id'] ?? null;
+        $newStatus = $_POST['status'] ?? null;
+        $allowedStatuses = ['accepted', 'rejected', 'pending'];
+
+        if (!$registrationId || !is_numeric($registrationId) || !in_array($newStatus, $allowedStatuses)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid request data']);
+            return;
+        }
+
+        try {
+            $ownershipQuery = "
+                SELECT vr.id
+                FROM volunteer_registrations vr
+                INNER JOIN events e ON e.id = vr.event_id
+                WHERE vr.id = :registration_id
+                  AND e.created_by_type = 'publisher'
+                  AND e.created_by = :publisher_id
+                LIMIT 1
+            ";
+
+            $stmt = $this->connect()->prepare($ownershipQuery);
+            $stmt->execute([
+                'registration_id' => $registrationId,
+                'publisher_id' => $currentUser['id']
+            ]);
+
+            $owned = $stmt->fetch(PDO::FETCH_OBJ);
+            if (!$owned) {
+                echo json_encode(['success' => false, 'error' => 'Application not found for your events']);
+                return;
+            }
+
+            $volunteerReg = new VolunteerRegistration();
+            $updated = $volunteerReg->updateStatus((int)$registrationId, $newStatus);
+
+            if (!$updated) {
+                echo json_encode(['success' => false, 'error' => 'Failed to update status']);
+                return;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Volunteer status updated successfully',
+                'status' => $newStatus
+            ]);
+        } catch (Exception $e) {
+            error_log('Error updating volunteer status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to update volunteer status']);
+        }
+    }
+
+    /**
      * Format date for display
      */
     private function formatDate($dateString) {
