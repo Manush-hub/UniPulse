@@ -102,6 +102,7 @@ class Sponsor {
             'phone' => trim($data['phone']),
             'country_code' => $data['country-code'] ?? '+94',
             'password_hash' => password_hash($data['password'], PASSWORD_DEFAULT)
+            // 'verification_status' => 'Verified' // Default to verified for simplicity, can be changed based on actual verification process
         ];
     }
     
