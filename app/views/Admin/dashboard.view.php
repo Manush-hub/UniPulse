@@ -267,9 +267,9 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Recent User Registrations</h2>
-                    <button onclick="toggleUserManagement()" class="view-all expand-btn" id="userManagementBtn">
+                    <button onclick="toggleUserManagement()" class="view-all expand-btn" id="userManagementBtn" title="View all users in a popup">
                         <span class="btn-text">Manage All Users</span>
-                        <i class="fas fa-chevron-down expand-icon"></i>
+                        <i class="fas fa-external-link-alt expand-icon"></i>
                     </button>
                 </div>
                 <div class="user-table">
@@ -306,30 +306,29 @@
                                                     $status = 'Rejected';
                                                     $statusClass = 'status-rejected';
                                                 } elseif ($registration->approval_status === 'approved') {
-                                                    $status = 'Approved';
+                                                    $status = 'Active';
                                                     $statusClass = 'status-active';
                                                 } else {
                                                     $status = 'Pending';
                                                     $statusClass = 'status-pending';
                                                 }
                                             } elseif ($registration->user_type === 'sponsor' && isset($registration->verification_status)) {
-                                                if ($registration->verification_status === 'pending') {
-                                                    $status = 'Pending Verification';
-                                                    $statusClass = 'status-pending';
-                                                } elseif ($registration->verification_status === 'rejected') {
-                                                    $status = 'Rejected';
-                                                    $statusClass = 'status-rejected';
-                                                } elseif ($registration->verification_status === 'verified') {
-                                                    $status = 'Verified';
+                                                if ($registration->verification_status === 'active') {
+                                                    $status = 'Active';
                                                     $statusClass = 'status-active';
                                                 } else {
-                                                    $status = 'Pending';
+                                                    $status = 'Pending Verification';
                                                     $statusClass = 'status-pending';
                                                 }
                                             } else {
-                                                // For university and public users - default to Registered
-                                                $status = 'Registered';
+                                                $status = 'Active';
                                                 $statusClass = 'status-active';
+                                            }
+                                            
+                                            // Always override with suspended status — applies to ALL user types
+                                            if (isset($registration->is_suspended) && $registration->is_suspended) {
+                                                $status = 'Suspended';
+                                                $statusClass = 'status-inactive';
                                             }
                                         } else {
                                             // Array format fallback
@@ -348,7 +347,7 @@
                                         $rowClass = $index >= 5 ? 'hidden-row' : '';
                                         $rowStyle = $index >= 5 ? 'style="display: none;"' : '';
                                     ?>
-                                    <tr class="<?php echo $rowClass; ?>" <?php echo $rowStyle; ?>>
+                                    <tr class="<?php echo $rowClass; ?>" <?php echo $rowStyle; ?> id="dashboard-user-<?php echo $registration->id; ?>-<?php echo $registration->user_type; ?>">
                                         <td>
                                             <div class="user-info">
                                                 <!-- <div class="user-avatar"><?php echo strtoupper(substr($name, 0, 1)); ?></div> -->
@@ -415,6 +414,64 @@
                 <div style="margin-top: 20px; text-align: right;">
                     <button onclick="closeSuspensionModal()" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
                     <button onclick="confirmSuspension()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Suspend Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Users Modal -->
+    <div id="allUsersModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 1200px; width: 95%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
+            <span class="close-button" onclick="closeAllUsersModal()">&times;</span>
+            <h3 style="margin-bottom: 20px;">All User Registrations</h3>
+            <div id="allUsersLoadingMessage" style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>Loading all users...</p>
+            </div>
+            <div id="allUsersContent" style="display: none; overflow-y: auto; flex: 1;">
+                <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+                    <input 
+                        type="text" 
+                        id="userSearchInput" 
+                        placeholder="Search by name, email, or role..." 
+                        style="flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                        onkeyup="filterUsers()"
+                    >
+                    <select id="userTypeFilter" onchange="filterUsers()" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">All User Types</option>
+                        <option value="university">University</option>
+                        <option value="public">Public</option>
+                        <option value="publisher">Publisher</option>
+                        <option value="sponsor">Sponsor</option>
+                    </select>
+                    <select id="userStatusFilter" onchange="filterUsers()" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">All Statuses</option>
+                        <option value="Active">Active</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="user-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                <th style="padding: 12px; text-align: left;">User</th>
+                                <th style="padding: 12px; text-align: left;">Role</th>
+                                <th style="padding: 12px; text-align: left;">Registration Date</th>
+                                <th style="padding: 12px; text-align: left;">Status</th>
+                                <th style="padding: 12px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allUsersTableBody">
+                            <!-- User rows will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noUsersMessage" style="display: none; text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.3;"></i>
+                    <p>No users found matching your filters.</p>
                 </div>
             </div>
         </div>
@@ -488,30 +545,122 @@
             }
         }
 
-        // Toggle User Management - show/hide additional user rows
+        // Toggle User Management - open modal to show all users
         function toggleUserManagement() {
-            const userTable = document.getElementById('userTableBody');
-            const hiddenRows = userTable.querySelectorAll('tr.hidden-row');
-            const btn = document.getElementById('userManagementBtn');
-            const icon = btn.querySelector('.expand-icon');
-            const btnText = btn.querySelector('.btn-text');
+            // Open the modal
+            const modal = document.getElementById('allUsersModal');
+            modal.style.display = 'flex';
             
-            if (hiddenRows.length > 0) {
-                const firstHiddenRow = hiddenRows[0];
-                const isCurrentlyHidden = firstHiddenRow.style.display === 'none' || !firstHiddenRow.style.display;
-                
-                hiddenRows.forEach(row => {
-                    if (isCurrentlyHidden) {
-                        row.style.display = 'table-row';
-                        icon.style.transform = 'rotate(180deg)';
-                        btnText.textContent = 'Show Less';
+            // Show loading message
+            document.getElementById('allUsersLoadingMessage').style.display = 'block';
+            document.getElementById('allUsersContent').style.display = 'none';
+            
+            // Fetch all users
+            fetch('/unipulse/public/Admin/Dashboard/getAllUsers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Store all users data globally for filtering
+                        window.allUsersData = data.users;
+                        
+                        // Hide loading, show content
+                        document.getElementById('allUsersLoadingMessage').style.display = 'none';
+                        document.getElementById('allUsersContent').style.display = 'block';
+                        
+                        // Display users
+                        displayAllUsers(data.users);
                     } else {
-                        row.style.display = 'none';
-                        icon.style.transform = 'rotate(0deg)';
-                        btnText.textContent = 'Manage All Users';
+                        alert('Failed to load users: ' + (data.error || 'Unknown error'));
+                        closeAllUsersModal();
                     }
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                    alert('An error occurred while loading users');
+                    closeAllUsersModal();
                 });
+        }
+        
+        // Display all users in the modal table
+        function displayAllUsers(users) {
+            const tbody = document.getElementById('allUsersTableBody');
+            const noUsersMessage = document.getElementById('noUsersMessage');
+            
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '';
+                noUsersMessage.style.display = 'block';
+                return;
             }
+            
+            noUsersMessage.style.display = 'none';
+            
+            tbody.innerHTML = users.map(user => `
+                <tr data-name="${user.name.toLowerCase()}" data-email="${user.email.toLowerCase()}" data-type="${user.userType.toLowerCase()}" data-status="${user.status}">
+                    <td style="padding: 12px;">
+                        <div class="user-info">
+                            <div>
+                                <div class="user-name" style="font-weight: 500;">${user.name}</div>
+                                <div class="user-email" style="font-size: 0.85rem; color: #666;">${user.email}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 12px;">
+                        <span class="role-badge role-${user.userType.toLowerCase()}" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                            ${user.userType}
+                        </span>
+                    </td>
+                    <td style="padding: 12px;">${user.createdAt}</td>
+                    <td style="padding: 12px;">
+                        <span class="status-badge ${user.statusClass}" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; text-align: center;">
+                        <div class="action-buttons">
+                            ${user.isSuspended ? 
+                                `<button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${user.id}, '${user.userType.toLowerCase()}')">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>` : 
+                                `<button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${user.id}, '${user.userType.toLowerCase()}', '${user.name.replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-ban"></i>
+                                </button>`
+                            }
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Filter users based on search and dropdown filters
+        function filterUsers() {
+            if (!window.allUsersData) return;
+            
+            const searchTerm = document.getElementById('userSearchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('userTypeFilter').value.toLowerCase();
+            const statusFilter = document.getElementById('userStatusFilter').value;
+            
+            const filteredUsers = window.allUsersData.filter(user => {
+                const matchesSearch = searchTerm === '' || 
+                    user.name.toLowerCase().includes(searchTerm) || 
+                    user.email.toLowerCase().includes(searchTerm) ||
+                    user.userType.toLowerCase().includes(searchTerm);
+                
+                const matchesType = typeFilter === '' || user.userType.toLowerCase() === typeFilter;
+                const matchesStatus = statusFilter === '' || user.status === statusFilter;
+                
+                return matchesSearch && matchesType && matchesStatus;
+            });
+            
+            displayAllUsers(filteredUsers);
+        }
+        
+        // Close all users modal
+        function closeAllUsersModal() {
+            document.getElementById('allUsersModal').style.display = 'none';
+            // Reset filters
+            document.getElementById('userSearchInput').value = '';
+            document.getElementById('userTypeFilter').value = '';
+            document.getElementById('userStatusFilter').value = '';
         }
     </script>
     
@@ -531,6 +680,75 @@
             pendingSuspension = { userId: null, userType: null };
         }
         
+        // Check if All Users Modal is currently open
+        function isAllUsersModalOpen() {
+            const modal = document.getElementById('allUsersModal');
+            return modal && modal.style.display === 'flex';
+        }
+        
+        // Refresh the All Users Modal data
+        function refreshAllUsersModal() {
+            // Show loading message
+            document.getElementById('allUsersLoadingMessage').style.display = 'block';
+            document.getElementById('allUsersContent').style.display = 'none';
+            
+            // Fetch all users
+            fetch('/unipulse/public/Admin/Dashboard/getAllUsers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Store all users data globally for filtering
+                        window.allUsersData = data.users;
+                        
+                        // Hide loading, show content
+                        document.getElementById('allUsersLoadingMessage').style.display = 'none';
+                        document.getElementById('allUsersContent').style.display = 'block';
+                        
+                        // Display users with current filters applied
+                        filterUsers();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error refreshing users:', error);
+                });
+        }
+        
+        // Update a row in the dashboard table in-place
+        function updateDashboardRow(userId, userType, isSuspended) {
+            const rowId = `dashboard-user-${userId}-${userType}`;
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            
+            // Update status badge
+            const statusBadge = row.querySelector('.status-badge');
+            if (statusBadge) {
+                if (isSuspended) {
+                    statusBadge.textContent = 'Suspended';
+                    statusBadge.className = 'status-badge status-inactive';
+                } else {
+                    statusBadge.textContent = 'Active';
+                    statusBadge.className = 'status-badge status-active';
+                }
+            }
+            
+            // Update action button
+            const actionButtons = row.querySelector('.action-buttons');
+            if (actionButtons) {
+                if (isSuspended) {
+                    actionButtons.innerHTML = `
+                        <button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${userId}, '${userType}')">
+                            <i class="fas fa-check-circle"></i>
+                        </button>`;
+                } else {
+                    const userName = row.querySelector('.user-name')?.textContent || '';
+                    actionButtons.innerHTML = `
+                        <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${userId}, '${userType}', '${userName.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-ban"></i>
+                        </button>`;
+                }
+            }
+        }
+        
         function confirmSuspension() {
             const reason = document.getElementById('suspensionReason').value.trim();
             
@@ -538,6 +756,8 @@
                 alert('Please provide a reason for suspension');
                 return;
             }
+            
+            const modalIsOpen = isAllUsersModalOpen();
             
             fetch('/unipulse/public/admin/dashboard/suspendUser', {
                 method: 'POST',
@@ -552,9 +772,18 @@
             })
             .then(response => response.json())
             .then(data => {
+                closeSuspensionModal();
+                
                 if (data.success) {
                     alert('Account suspended successfully');
-                    location.reload();
+                    
+                    // Update dashboard table row in-place
+                    updateDashboardRow(pendingSuspension.userId, pendingSuspension.userType, true);
+                    
+                    // If All Users Modal is open, refresh it instead of reloading page
+                    if (modalIsOpen) {
+                        refreshAllUsersModal();
+                    }
                 } else {
                     alert('Error: ' + (data.message || 'Failed to suspend account'));
                 }
@@ -562,15 +791,16 @@
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while suspending the account');
+                closeSuspensionModal();
             });
-            
-            closeSuspensionModal();
         }
         
         function reactivateAccount(userId, userType) {
             if (!confirm('Are you sure you want to reactivate this account?')) {
                 return;
             }
+            
+            const modalIsOpen = isAllUsersModalOpen();
             
             fetch('/unipulse/public/admin/dashboard/reactivateUser', {
                 method: 'POST',
@@ -586,7 +816,14 @@
             .then(data => {
                 if (data.success) {
                     alert('Account reactivated successfully');
-                    location.reload();
+                    
+                    // Update dashboard table row in-place
+                    updateDashboardRow(userId, userType, false);
+                    
+                    // If All Users Modal is open, refresh it instead of reloading page
+                    if (modalIsOpen) {
+                        refreshAllUsersModal();
+                    }
                 } else {
                     alert('Error: ' + (data.message || 'Failed to reactivate account'));
                 }
@@ -599,9 +836,15 @@
         
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('suspensionModal');
-            if (event.target == modal) {
+            const suspensionModal = document.getElementById('suspensionModal');
+            const allUsersModal = document.getElementById('allUsersModal');
+            
+            if (event.target == suspensionModal) {
                 closeSuspensionModal();
+            }
+            
+            if (event.target == allUsersModal) {
+                closeAllUsersModal();
             }
         }
         
