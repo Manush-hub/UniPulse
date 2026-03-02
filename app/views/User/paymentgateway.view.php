@@ -222,8 +222,8 @@
     <div class="payment-container">
         <div class="payment-card">
             <div class="payment-header">
-                <h1><i class="fas fa-credit-card"></i> Payment Gateway</h1>
-                <p>Complete your ticket purchase</p>
+                <h1><i class="fas fa-credit-card"></i> Secure Payment</h1>
+                <p>Complete your ticket purchase via PayHere</p>
             </div>
 
             <div id="errorMessage" class="error-message"></div>
@@ -261,65 +261,32 @@
                 </h3>
 
                 <div class="payment-methods">
-                    <div class="payment-method active" data-method="card">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Credit Card</span>
-                    </div>
-                    <div class="payment-method" data-method="paypal">
-                        <i class="fab fa-paypal"></i>
-                        <span>PayPal</span>
-                    </div>
-                    <div class="payment-method" data-method="bank">
-                        <i class="fas fa-university"></i>
-                        <span>Bank Transfer</span>
+                    <div class="payment-method active" data-method="payhere" style="cursor: default; background: #f0f9ff; border: 2px solid #00457C;">
+                        <img src="https://www.payhere.lk/downloads/images/payhere_short_logo.png" 
+                             alt="PayHere" 
+                             style="height: 24px; vertical-align: middle;"
+                             onerror="this.style.display='none'">
+                        <span style="margin-left: 10px; color: #00457C; font-weight: 600;">PayHere</span>
                     </div>
                 </div>
 
-                <div id="cardPaymentFields">
-                    <h3 style="margin-bottom: 20px; color: #2c3e50;">
-                        <i class="fas fa-user"></i> Billing Information
-                    </h3>
-
-                    <div class="form-group">
-                        <label for="cardName">
-                            <i class="fas fa-user"></i> Cardholder Name
-                        </label>
-                        <input type="text" id="cardName" name="cardName" placeholder="John Doe" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="cardNumber">
-                            <i class="fas fa-credit-card"></i> Card Number
-                        </label>
-                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expiryDate">
-                                <i class="fas fa-calendar"></i> Expiry Date
-                            </label>
-                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="cvv">
-                                <i class="fas fa-lock"></i> CVV
-                            </label>
-                            <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="3" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">
-                            <i class="fas fa-envelope"></i> Email Address
-                        </label>
-                        <input type="email" id="email" name="email" placeholder="john.doe@example.com" required>
-                    </div>
+                <div style="margin-top: 20px; background: #f0f9ff; border: 1px solid #bae6fd;
+                            border-radius: 10px; padding: 14px 16px; font-size: 13px;">
+                    <p style="margin: 0 0 8px 0; color: #0369a1;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>You'll be redirected to PayHere's secure checkout</strong>
+                    </p>
+                    <p style="margin: 0; color: #6b7280; font-size: 12px;">
+                        <i class="fas fa-credit-card"></i> Visa, Mastercard, Amex, Internet Banking &amp; more accepted
+                    </p>
+                    <p style="margin: 6px 0 0 0; color: #6b7280; font-size: 12px;">
+                        <i class="fas fa-flask"></i> <strong>Test card:</strong> 4111 1111 1111 1111 | OTP: 123456
+                    </p>
                 </div>
 
                 <div class="secure-notice">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Your payment information is encrypted and secure</span>
+                    <span>Secure payment processed via PayHere - Sri Lanka's trusted payment gateway</span>
                 </div>
 
                 <div class="btn-container">
@@ -327,7 +294,7 @@
                         <i class="fas fa-times"></i> Cancel
                     </a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-lock"></i> Complete Payment
+                        <i class="fas fa-credit-card"></i> Proceed to PayHere
                     </button>
                 </div>
             </form>
@@ -347,9 +314,13 @@
             }
 
             loadEventDetails();
-            setupPaymentMethodSelection();
-            setupFormValidation();
             setupCancelButton();
+            
+            // Setup form submission for PayHere redirect
+            document.getElementById('paymentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                processPayment();
+            });
         });
 
         function loadEventDetails() {
@@ -376,8 +347,14 @@
             const ticketType = event.ticket_type || 'Standard';
             document.getElementById('ticketType').textContent = formatTicketType(ticketType);
             
-            // Calculate amount based on ticket type
-            const amount = calculateTicketPrice(ticketType);
+            // Get actual ticket price from ticket_types
+            let amount = 100; // Default
+            if (event.ticket_types && event.ticket_types.length > 0) {
+                const firstTicket = event.ticket_types[0];
+                amount = firstTicket.discounted_price || firstTicket.price || 100;
+                window.currentEventPrice = amount; // Store for later use
+            }
+            
             document.getElementById('totalAmount').textContent = `LKR ${amount.toFixed(2)}`;
         }
 
@@ -397,7 +374,9 @@
         }
 
         function calculateTicketPrice(ticketType) {
-            // This is a placeholder - you should get actual prices from the database
+            // Get price from ticket_types if available, or use default
+            // This will be properly populated by the event data
+            return window.currentEventPrice || 100; // Default fallback
             const priceMap = {
                 'paid': 1000.00,
                 'donation-based': 500.00,
@@ -405,53 +384,6 @@
                 'free-all': 0.00
             };
             return priceMap[ticketType] || 1000.00;
-        }
-
-        function setupPaymentMethodSelection() {
-            const paymentMethods = document.querySelectorAll('.payment-method');
-            
-            paymentMethods.forEach(method => {
-                method.addEventListener('click', function() {
-                    paymentMethods.forEach(m => m.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const selectedMethod = this.dataset.method;
-                    // You can add logic to show/hide different payment fields based on method
-                });
-            });
-        }
-
-        function setupFormValidation() {
-            const cardNumber = document.getElementById('cardNumber');
-            const expiryDate = document.getElementById('expiryDate');
-            const cvv = document.getElementById('cvv');
-
-            // Format card number
-            cardNumber.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\s/g, '');
-                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-                e.target.value = formattedValue;
-            });
-
-            // Format expiry date
-            expiryDate.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length >= 2) {
-                    value = value.slice(0, 2) + '/' + value.slice(2, 4);
-                }
-                e.target.value = value;
-            });
-
-            // CVV validation
-            cvv.addEventListener('input', function(e) {
-                e.target.value = e.target.value.replace(/\D/g, '');
-            });
-
-            // Form submission
-            document.getElementById('paymentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                processPayment();
-            });
         }
 
         function setupCancelButton() {
@@ -467,18 +399,25 @@
             // Show loading state
             const submitBtn = document.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting to PayHere...';
             submitBtn.disabled = true;
 
-            // Simulate payment processing
-            setTimeout(() => {
-                // Here you would normally send payment data to your backend
-                showSuccess('Payment successful! Redirecting...');
-                
-                setTimeout(() => {
-                    window.location.href = `/unipulse/public/user/eventview?id=${eventId}`;
-                }, 2000);
-            }, 2000);
+            // Get payment data
+            const totalAmountText = document.getElementById('totalAmount').textContent;
+            const amount = parseFloat(totalAmountText.replace('LKR', '').trim());
+
+            // Redirect to PayHere payment with session setup
+            // The Payment controller expects these params
+            const paymentUrl = `/unipulse/public/payment?amount=${amount}&type=ticket&event_id=${eventId}&description=Event Ticket`;
+            
+            console.log('Redirecting to PayHere:', {
+                event_id: eventId,
+                amount: amount,
+                url: paymentUrl
+            });
+
+            // Redirect to payment page which will show PayHere option
+            window.location.href = paymentUrl;
         }
 
         function showError(message) {

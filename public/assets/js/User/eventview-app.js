@@ -1251,13 +1251,8 @@ function buyTickets() {
     sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
     console.log('Payment data saved to sessionStorage');
     
-    const publisherId = currentEvent.created_by || currentEvent.organizerId;
-    const paymentUrl = `/unipulse/public/payment?` +
-        `amount=${totalPrice.toFixed(2)}` +
-        `&type=ticket` +
-        `&event_id=${currentEvent.id}` +
-        (publisherId ? `&publisher_id=${publisherId}` : '') +
-        `&description=${encodeURIComponent('Ticket for ' + currentEvent.title)}`;
+    // Redirect to user payment gateway (PayHere only)
+    const paymentUrl = `/unipulse/public/user/paymentgateway?event_id=${currentEvent.id}`;
     
     console.log('Redirecting to:', paymentUrl);
     window.location.href = paymentUrl;

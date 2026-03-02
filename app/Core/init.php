@@ -14,6 +14,13 @@ spl_autoload_register(function($classname){
         require_once $coreFile;
         return;
     }
+
+    // Check for service files
+    $serviceFile = "../app/services/".$classname. ".php";
+    if (file_exists($serviceFile)) {
+        require_once $serviceFile;
+        return;
+    }
     
     // Fallback: try with ucfirst for backward compatibility
     $modelFileUcfirst = "../app/models/".ucfirst($classname). ".php";

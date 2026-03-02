@@ -43,3 +43,17 @@ define('SMTP_USER', '');
 define('SMTP_PASS', '');
 define('SMTP_FROM_EMAIL', '');
 define('SMTP_FROM_NAME', 'UniPulse');
+
+// ─── PayHere Sandbox Configuration ───────────────────────────────────────────
+// 1. Register at https://www.payhere.lk → Login → Settings → Domains & Credentials
+// 2. Find your Merchant ID and Merchant Secret, paste them below
+// 3. Add your site URL (http://localhost/UniPulse/public) to allowed domains
+// 4. Change PAYHERE_MODE to 'live' and swap credentials when going to production
+define('PAYHERE_MODE',        'sandbox');  // 'sandbox' | 'live'
+define('PAYHERE_MERCHANT_ID', '1234247');    // ← your sandbox merchant ID
+define('PAYHERE_SECRET',      'MjEzNjk0MDU1OTEwMzg5NTk3NjAzODQwMjk5OTM5MTQxMTg3MDgwMw=='); // ← your sandbox secret
+
+// Sandbox checkout endpoint (accepts LKR natively — no conversion needed)
+define('PAYHERE_CHECKOUT_URL', 'https://sandbox.payhere.lk/pay/checkout');
+// Live endpoint (swap when going live):
+// define('PAYHERE_CHECKOUT_URL', 'https://www.payhere.lk/pay/checkout');
