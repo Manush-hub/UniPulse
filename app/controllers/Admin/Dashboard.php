@@ -588,4 +588,124 @@ class AdminDashboard extends Controller {
             echo json_encode(['success' => false, 'message' => 'Database error']);
         }
     }
+
+    /**
+     * API endpoint to get all user registrations
+     */
+    public function getAllUsers() {
+        header('Content-Type: application/json');
+        
+        // Check if user is admin
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            // Get all registrations from all user types
+            $universityUser = new UniversityUser();
+            $publicUser = new PublicUser();
+            $publisher = new Publisher();
+            $sponsor = new Sponsor();
+            
+            // Get all registrations (no limit)
+            $universityRegistrations = $universityUser->getRecentRegistrations(1000);
+            $publicRegistrations = $publicUser->getRecentRegistrations(1000);
+            $publisherRegistrations = $publisher->getRecentRegistrations(1000);
+            $sponsorRegistrations = $sponsor->getRecentRegistrations(1000);
+            
+            // Merge all registrations
+            $allUsers = array_merge(
+                is_array($universityRegistrations) ? $universityRegistrations : [],
+                is_array($publicRegistrations) ? $publicRegistrations : [],
+                is_array($publisherRegistrations) ? $publisherRegistrations : [],
+                is_array($sponsorRegistrations) ? $sponsorRegistrations : []
+            );
+            
+            // Sort by created_at descending
+            if (count($allUsers) > 0) {
+                usort($allUsers, function($a, $b) {
+                    $timeA = is_object($a) ? strtotime($a->created_at) : strtotime($a['created_at']);
+                    $timeB = is_object($b) ? strtotime($b->created_at) : strtotime($b['created_at']);
+                    return $timeB - $timeA;
+                });
+            }
+            
+            // Format users for response
+            $formattedUsers = [];
+            foreach ($allUsers as $user) {
+                $status = 'Active';
+                $statusClass = 'status-active';
+                
+                if (is_object($user)) {
+                    $name = $user->name ?? 'N/A';
+                    $email = $user->email ?? 'N/A';
+                    $userType = ucfirst($user->user_type ?? 'User');
+                    $createdAt = date('M j, Y', strtotime($user->created_at));
+                    $userId = $user->id ?? 0;
+                    $isSuspended = isset($user->is_suspended) ? $user->is_suspended : false;
+                    
+                    // Check status based on user type
+                    if ($user->user_type === 'publisher' && isset($user->approval_status)) {
+                        if ($user->approval_status === 'pending') {
+                            $status = 'Pending Approval';
+                            $statusClass = 'status-pending';
+                        } elseif ($user->approval_status === 'rejected') {
+                            $status = 'Rejected';
+                            $statusClass = 'status-rejected';
+                        } elseif ($user->approval_status === 'approved') {
+                            $status = 'Active';
+                            $statusClass = 'status-active';
+                        }
+                    } elseif ($user->user_type === 'sponsor' && isset($user->verification_status)) {
+                        if ($user->verification_status === 'suspended') {
+                            $status = 'Suspended';
+                            $statusClass = 'status-suspended';
+                        } elseif ($user->verification_status === 'active') {
+                            $status = 'Active';
+                            $statusClass = 'status-active';
+                        }
+                    }
+                    
+                    if ($isSuspended) {
+                        $status = 'Suspended';
+                        $statusClass = 'status-inactive';
+                    }
+                } else {
+                    $name = $user['name'] ?? 'N/A';
+                    $email = $user['email'] ?? 'N/A';
+                    $userType = ucfirst($user['user_type'] ?? 'User');
+                    $createdAt = date('M j, Y', strtotime($user['created_at']));
+                    $userId = $user['id'] ?? 0;
+                    $isSuspended = isset($user['is_suspended']) ? $user['is_suspended'] : false;
+                    
+                    if ($isSuspended) {
+                        $status = 'Suspended';
+                        $statusClass = 'status-inactive';
+                    }
+                }
+                
+                $formattedUsers[] = [
+                    'id' => $userId,
+                    'name' => $name,
+                    'email' => $email,
+                    'userType' => $userType,
+                    'createdAt' => $createdAt,
+                    'status' => $status,
+                    'statusClass' => $statusClass,
+                    'isSuspended' => $isSuspended
+                ];
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'users' => $formattedUsers,
+                'total' => count($formattedUsers)
+            ]);
+        } catch (Exception $e) {
+            error_log("Error fetching all users: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to fetch users']);
+        }
+    }
 }

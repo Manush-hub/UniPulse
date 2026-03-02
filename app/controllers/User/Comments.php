@@ -1,39 +1,42 @@
 <?php
 
-class UserComments extends Controller {
-    
+class UserComments extends Controller
+{
+
     use Database; // Add database access
-    
+
     private $commentModel;
     private $eventModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->commentModel = new Comment();
         $this->eventModel = new Event();
     }
-    
+
     /**
      * Get comments for an event (AJAX endpoint)
      */
-    public function getComments($eventId = null) {
+    public function getComments($eventId = null)
+    {
         header('Content-Type: application/json');
-        
+
         if (!$eventId && isset($_GET['event_id'])) {
             $eventId = $_GET['event_id'];
         }
-        
+
         if (!$eventId || !is_numeric($eventId)) {
             echo json_encode(['success' => false, 'error' => 'Invalid event ID']);
             return;
         }
-        
+
         try {
             // Get comments
             $comments = $this->commentModel->getEventComments($eventId);
-            
+
             // Get comment statistics
             $stats = $this->commentModel->getEventCommentStats($eventId);
-            
+
             // Format comments for display
             $formattedComments = [];
             foreach ($comments as $comment) {
@@ -51,7 +54,7 @@ class UserComments extends Controller {
                     'can_delete' => $this->canUserDeleteComment($comment)
                 ];
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'comments' => $formattedComments,
@@ -61,50 +64,50 @@ class UserComments extends Controller {
                     'rated_comments' => (int)$stats->rated_comments
                 ]
             ]);
-            
         } catch (Exception $e) {
             error_log("Error getting comments: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load comments']);
         }
     }
-    
+
     /**
      * Add a new comment (AJAX endpoint)
      */
-    public function addComment() {
+    public function addComment()
+    {
         header('Content-Type: application/json');
-        
+
         // Start session explicitly
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        
+
         // Debug logging
         error_log("=== addComment Debug ===");
         error_log("Session ID: " . session_id());
         error_log("Session Data: " . print_r($_SESSION, true));
         error_log("Is Logged In: " . (AuthService::isLoggedIn() ? 'YES' : 'NO'));
-        
+
         // Get POST data first to check for user info
         $input = json_decode(file_get_contents('php://input'), true);
         if (!$input) {
             $input = $_POST;
         }
-        
+
         if (empty($input)) {
             echo json_encode(['success' => false, 'error' => 'No data provided']);
             return;
         }
-        
+
         // Check if user is logged in
         if (!AuthService::isLoggedIn()) {
             error_log("User not logged in during addComment");
-            
+
             // Fallback authentication using provided username
             if (isset($input['fallback_user_name']) && !empty($input['fallback_user_name'])) {
                 $userName = $input['fallback_user_name'];
                 error_log("Attempting fallback authentication for user: " . $userName);
-                
+
                 // Try to find user in different user tables
                 $fallbackUser = $this->findUserByName($userName);
                 if ($fallbackUser) {
@@ -124,7 +127,7 @@ class UserComments extends Controller {
             // Get current user normally
             $currentUser = AuthService::getCurrentUser();
         }
-        
+
         try {
             // Prepare comment data
             $commentData = [
@@ -134,14 +137,14 @@ class UserComments extends Controller {
                 'comment_text' => $input['comment_text'] ?? '',
                 'rating' => !empty($input['rating']) ? (int)$input['rating'] : null
             ];
-            
+
             // Add comment
             $result = $this->commentModel->addComment($commentData);
-            
+
             if ($result['success']) {
                 // Get the new comment details
                 $newComment = $this->commentModel->getCommentById($result['comment_id']);
-                
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Comment added successfully',
@@ -164,41 +167,41 @@ class UserComments extends Controller {
                     'error' => implode(', ', $result['errors'])
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log("Error adding comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to add comment']);
         }
     }
-    
+
     /**
      * Update a comment (AJAX endpoint)
      */
-    public function updateComment($commentId = null) {
+    public function updateComment($commentId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Check if user is logged in
         if (!AuthService::isLoggedIn()) {
             echo json_encode(['success' => false, 'error' => 'You must be logged in to edit comments']);
             return;
         }
-        
+
         if (!$commentId) {
             echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
             return;
         }
-        
+
         // Get PUT/POST data
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             $input = $_POST;
         }
-        
+
         try {
             // Get current user
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Update comment
             $result = $this->commentModel->updateComment(
                 $commentId,
@@ -206,11 +209,11 @@ class UserComments extends Controller {
                 $currentUser['id'],
                 $currentUser['type']
             );
-            
+
             if ($result['success']) {
                 // Get updated comment
                 $updatedComment = $this->commentModel->getCommentById($commentId);
-                
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Comment updated successfully',
@@ -231,41 +234,41 @@ class UserComments extends Controller {
                     'error' => implode(', ', $result['errors'])
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log("Error updating comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update comment']);
         }
     }
-    
+
     /**
      * Delete a comment (AJAX endpoint)
      */
-    public function deleteComment($commentId = null) {
+    public function deleteComment($commentId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Check if user is logged in
         if (!AuthService::isLoggedIn()) {
             echo json_encode(['success' => false, 'error' => 'You must be logged in to delete comments']);
             return;
         }
-        
+
         if (!$commentId) {
             echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
             return;
         }
-        
+
         try {
             // Get current user
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Delete comment
             $result = $this->commentModel->deleteComment(
                 $commentId,
                 $currentUser['id'],
                 $currentUser['type']
             );
-            
+
             if ($result['success']) {
                 echo json_encode([
                     'success' => true,
@@ -277,17 +280,17 @@ class UserComments extends Controller {
                     'error' => implode(', ', $result['errors'])
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log("Error deleting comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to delete comment']);
         }
     }
-    
+
     /**
      * Find user by display name across all user tables (fallback authentication)
      */
-    private function findUserByName($userName) {
+    private function findUserByName($userName)
+    {
         $userTables = [
             'public_users' => ['type' => 'public', 'name_col' => 'full_name'],
             'university_users' => ['type' => 'university', 'name_col' => 'full_name'],
@@ -296,7 +299,7 @@ class UserComments extends Controller {
             'admins' => ['type' => 'admin', 'name_col' => 'full_name'],
             'moderators' => ['type' => 'moderator', 'name_col' => 'full_name']
         ];
-        
+
         foreach ($userTables as $table => $config) {
             try {
                 $nameCol = $config['name_col'];
@@ -304,7 +307,7 @@ class UserComments extends Controller {
                 $stmt = $this->connect()->prepare($query);
                 $stmt->execute(['name' => $userName]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($user) {
                     return [
                         'id' => $user['id'],
@@ -319,21 +322,22 @@ class UserComments extends Controller {
                 continue;
             }
         }
-        
+
         return null;
     }
-    
+
     /**
      * Check if user has already commented on an event
      */
-    public function checkUserComment($eventId = null) {
+    public function checkUserComment($eventId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Start session explicitly
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
-        
+
         // Debug logging
         error_log("=== checkUserComment Debug ===");
         error_log("Event ID: " . $eventId);
@@ -341,7 +345,7 @@ class UserComments extends Controller {
         error_log("Session Status: " . session_status());
         error_log("Session Data: " . print_r($_SESSION, true));
         error_log("Is Logged In: " . (AuthService::isLoggedIn() ? 'YES' : 'NO'));
-        
+
         if (!AuthService::isLoggedIn()) {
             error_log("User not logged in - Session details:");
             error_log("logged_in key exists: " . (isset($_SESSION['logged_in']) ? 'YES' : 'NO'));
@@ -351,43 +355,43 @@ class UserComments extends Controller {
             echo json_encode(['has_commented' => false, 'can_comment' => false, 'debug' => 'not_logged_in', 'session_id' => session_id()]);
             return;
         }
-        
+
         if (!$eventId || !is_numeric($eventId)) {
             error_log("Invalid event ID: " . $eventId);
             echo json_encode(['has_commented' => false, 'can_comment' => false, 'debug' => 'invalid_event_id']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
             error_log("Current User: " . print_r($currentUser, true));
-            
+
             // Check if event is completed
             $event = $this->eventModel->getEventById($eventId);
             error_log("Event found: " . ($event ? 'YES' : 'NO'));
             if ($event) {
                 error_log("Event status: " . $event->status);
             }
-            
-            if (!$event || $event->status !== 'completed') {
+
+            if (!$event || !$this->isCompletedEvent($event)) {
                 error_log("Event not found or not completed");
                 echo json_encode([
-                    'has_commented' => false, 
-                    'can_comment' => false, 
+                    'has_commented' => false,
+                    'can_comment' => false,
                     'debug' => 'event_not_completed',
                     'event_status' => $event ? $event->status : 'not_found'
                 ]);
                 return;
             }
-            
+
             $hasCommented = $this->commentModel->hasUserCommented(
                 $eventId,
                 $currentUser['id'],
                 $currentUser['type']
             );
-            
+
             error_log("Has commented: " . ($hasCommented ? 'YES' : 'NO'));
-            
+
             echo json_encode([
                 'has_commented' => $hasCommented,
                 'can_comment' => !$hasCommented,
@@ -395,21 +399,21 @@ class UserComments extends Controller {
                 'user_id' => $currentUser['id'],
                 'user_type' => $currentUser['type']
             ]);
-            
         } catch (Exception $e) {
             error_log("Error checking user comment: " . $e->getMessage());
             echo json_encode(['has_commented' => false, 'can_comment' => false]);
         }
     }
-    
+
     /**
      * Format date for display
      */
-    private function formatDate($dateString) {
+    private function formatDate($dateString)
+    {
         $date = new DateTime($dateString);
         $now = new DateTime();
         $interval = $now->diff($date);
-        
+
         if ($interval->d == 0) {
             if ($interval->h == 0) {
                 if ($interval->i == 0) {
@@ -424,28 +428,56 @@ class UserComments extends Controller {
             return $date->format('M j, Y');
         }
     }
-    
+
     /**
      * Check if current user can edit a comment
      */
-    private function canUserEditComment($comment) {
+    private function canUserEditComment($comment)
+    {
         if (!AuthService::isLoggedIn()) {
             return false;
         }
-        
+
         $currentUser = AuthService::getCurrentUser();
         return $comment->user_id == $currentUser['id'] && $comment->user_type == $currentUser['type'];
     }
-    
+
     /**
      * Check if current user can delete a comment
      */
-    private function canUserDeleteComment($comment) {
+    private function canUserDeleteComment($comment)
+    {
         if (!AuthService::isLoggedIn()) {
             return false;
         }
-        
+
         $currentUser = AuthService::getCurrentUser();
         return $comment->user_id == $currentUser['id'] && $comment->user_type == $currentUser['type'];
+    }
+
+    private function isCompletedEvent($event)
+    {
+        if (!$event) {
+            return false;
+        }
+
+        $status = strtolower(trim((string)($event->status ?? '')));
+        if ($status === 'completed') {
+            return true;
+        }
+
+        if (empty($event->event_date)) {
+            return false;
+        }
+
+        try {
+            $eventDate = new DateTime($event->event_date);
+            $eventDate->setTime(0, 0, 0);
+            $today = new DateTime('today');
+            return $eventDate < $today;
+        } catch (Exception $e) {
+            error_log("Error parsing event date in isCompletedEvent: " . $e->getMessage());
+            return false;
+        }
     }
 }

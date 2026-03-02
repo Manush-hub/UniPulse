@@ -68,24 +68,24 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             </div>
         </div>
 
-         <!-- Sponsorship Packages Section (Sponsor Role Only) -->
+        <!-- Sponsorship Packages Section (Sponsor Role Only) -->
         <?php if ($currentRole === 'Sponsor'): ?>
-        <div id="sponsorshipPackagesCard" class="sponsorship-packages-section" style="display: none;">
-            <div class="container">
-                <div class="section-header">
-                    <h2><i class="fas fa-handshake"></i> Sponsorship Opportunities</h2>
-                    <p>Support this event by becoming a sponsor</p>
-                    <div class="event-details-link">
-                        <button id="viewEventDetailsBtn" class="btn-view-event-details" onclick="viewProposalDetails()">
-                            <i class="fas fa-file-alt"></i> View Details
-                        </button>
+            <div id="sponsorshipPackagesCard" class="sponsorship-packages-section" style="display: none;">
+                <div class="container">
+                    <div class="section-header">
+                        <h2><i class="fas fa-handshake"></i> Sponsorship Opportunities</h2>
+                        <p>Support this event by becoming a sponsor</p>
+                        <div class="event-details-link">
+                            <button id="viewEventDetailsBtn" class="btn-view-event-details" onclick="viewProposalDetails()">
+                                <i class="fas fa-file-alt"></i> View Details
+                            </button>
+                        </div>
+                    </div>
+                    <div id="sponsorshipPackagesContainer" class="sponsorship-packages-grid">
+                        <!-- Sponsorship packages will be loaded here by JavaScript -->
                     </div>
                 </div>
-                <div id="sponsorshipPackagesContainer" class="sponsorship-packages-grid">
-                    <!-- Sponsorship packages will be loaded here by JavaScript -->
-                </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <!-- Event Content -->
@@ -103,7 +103,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                             <span class="event-status" id="eventStatus">Loading...</span>
                         </div>
                         <h1 class="event-title" id="eventTitle">Loading Event Title...</h1>
-                        
+
                         <div class="event-details-grid">
                             <div class="detail-item">
                                 <i class="fas fa-calendar-alt"></i>
@@ -112,7 +112,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventDateTime">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item" id="exactLocationInfo" style="display: none;">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <div>
@@ -120,7 +120,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventLocation">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item" id="venueInfo" style="display: none;">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <div>
@@ -128,7 +128,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventVenueCity">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item" id="universityInfo" style="display: none;">
                                 <i class="fas fa-university"></i>
                                 <div>
@@ -136,7 +136,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventUniversity">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item" id="facultyInfo" style="display: none;">
                                 <i class="fas fa-building"></i>
                                 <div>
@@ -144,7 +144,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventFaculty">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item">
                                 <i class="fas fa-eye"></i>
                                 <div>
@@ -152,7 +152,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                     <span id="eventAudience">Loading...</span>
                                 </div>
                             </div>
-                            
+
                             <div class="detail-item" id="ticketInfo" style="display: none;">
                                 <i class="fas fa-ticket-alt"></i>
                                 <div>
@@ -171,7 +171,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <div class="section-header">
                         <h2 class="section-title">About This Event</h2>
                     </div>
-                    
+
                     <div class="description-organizer-grid">
                         <div class="organizer-sidebar">
                             <div class="content-card organizer-card">
@@ -213,7 +213,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <div class="section-header">
                         <h2 class="section-title">Event Details</h2>
                     </div>
-                    
+
                     <div class="details-grid">
                         <div class="content-card" id="locationDetailsCard" style="display: none;">
                             <h3><i class="fas fa-map-marker-alt"></i> Location & Venue</h3>
@@ -245,7 +245,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         <h2 class="section-title">Registration & Ticketing</h2>
                         <p class="section-subtitle">Get your tickets or register for this event</p>
                     </div>
-                    
+
                     <div class="registration-section" id="ticketingSectionWrapper">
                         <div class="content-card registration-card" id="mainTicketCard">
                             <div id="registrationTicketPeriodCard" style="display: none;">
@@ -261,7 +261,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div id="ticketBuyingPeriod" class="period-section" style="display: none;">
                                     <div class="period-header">
                                         <div class="period-icon ticket-period">
@@ -274,7 +274,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="divider" id="periodDivider"></div>
                             </div>
 
@@ -382,6 +382,13 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
                         <div id="volunteerInfo"></div>
                     </div>
+
+                    <?php if ($currentRole !== 'User'): ?>
+                        <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                            <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                            <div id="volunteerInvolvementInfo"></div>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -436,17 +443,96 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
         </div>
     </div>
 
+    <!-- Volunteer Consent Modal -->
+    <div id="volunteerConsentModal" class="modal">
+        <div class="modal-content volunteer-consent-content">
+            <div class="modal-header">
+                <h2>Volunteer Application Consent</h2>
+                <button class="close-btn" onclick="closeVolunteerConsentModal()">&times;</button>
+            </div>
+            <div class="modal-body volunteer-consent-body">
+                <div class="volunteer-consent-icon" aria-hidden="true">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <p class="volunteer-consent-message">
+                    By applying as a volunteer, your private details including your phone number and email address will be shared with the publisher.
+                </p>
+                <p class="volunteer-consent-question">Do you want to continue?</p>
+            </div>
+            <div class="modal-footer volunteer-consent-footer">
+                <button class="btn btn-secondary" onclick="closeVolunteerConsentModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmVolunteerConsent()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Comments Section -->
     <div class="comments-section" id="commentsSection" style="display: none;">
         <div class="container">
-            <h2>Comments</h2>
-            <div class="comments-container">
-                <div class="add-comment-form">
-                    <textarea id="commentText" placeholder="Write a comment..." rows="3"></textarea>
-                    <button class="btn btn-primary" onclick="submitComment()">Post Comment</button>
+            <div class="comments-header">
+                <h3>
+                    <i class="fas fa-comments"></i>
+                    Comments
+                </h3>
+                <div class="comments-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-comment"></i>
+                        <span id="totalCommentsCount">0</span>
+                    </div>
+                    <div class="stat-item" id="averageRatingDisplay" style="display: none;">
+                        <i class="fas fa-star"></i>
+                        <span id="averageRatingValue">0</span>
+                    </div>
                 </div>
-                <div class="comments-list" id="commentsList">
-                    <!-- Comments will be loaded here -->
+            </div>
+
+            <div class="add-comment-section">
+                <div class="login-prompt" id="loginPrompt" style="display: none;">
+                    <div class="prompt-content">
+                        <i class="fas fa-user-lock"></i>
+                        <h4>Sign in to leave a comment</h4>
+                        <p>You need an account to share your feedback on this event.</p>
+                        <a href="/unipulse/public/signin" class="btn btn-primary">Sign In</a>
+                    </div>
+                </div>
+
+                <div class="add-comment-trigger" id="addCommentTrigger" style="display: none;">
+                    <button class="btn btn-primary" onclick="showCommentForm()">
+                        <i class="fas fa-pen"></i>
+                        Add Your Comment
+                    </button>
+                </div>
+
+                <div class="comment-form" id="addCommentSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="commentText">Your Comment</label>
+                        <textarea id="commentText" placeholder="Write your comment here..." rows="4" maxlength="1000"></textarea>
+                        <div class="char-count"><span id="charCount">0</span>/1000</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rating (Optional)</label>
+                        <div class="rating-input" id="ratingInput">
+                            <span class="star">☆</span>
+                            <span class="star">☆</span>
+                            <span class="star">☆</span>
+                            <span class="star">☆</span>
+                            <span class="star">☆</span>
+                        </div>
+                        <div class="rating-text" id="ratingText">Click stars to rate</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCommentBtn">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="submitCommentBtn">Post Comment</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comments-list" id="commentsList">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading comments...</p>
                 </div>
             </div>
         </div>
@@ -460,11 +546,26 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                 <button class="close-btn" onclick="closeEditCommentModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <textarea id="editCommentText" rows="4"></textarea>
+                <div class="form-group">
+                    <label for="editCommentText">Comment</label>
+                    <textarea id="editCommentText" rows="4" maxlength="1000"></textarea>
+                    <div class="char-count"><span id="editCharCount">0</span>/1000</div>
+                </div>
+                <div class="form-group">
+                    <label>Rating (Optional)</label>
+                    <div class="rating-input" id="editRatingInput">
+                        <span class="star">☆</span>
+                        <span class="star">☆</span>
+                        <span class="star">☆</span>
+                        <span class="star">☆</span>
+                        <span class="star">☆</span>
+                    </div>
+                    <div class="rating-text" id="editRatingText">Click stars to rate</div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeEditCommentModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmEditComment()">Save Changes</button>
+                <button class="btn btn-primary" id="updateCommentBtn">Save Changes</button>
             </div>
         </div>
     </div>
@@ -481,7 +582,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmDeleteComment()">Delete</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
             </div>
         </div>
     </div>
@@ -514,180 +615,185 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 
     <!-- Bank Details Modal (Sponsor Role Only) -->
     <?php if ($currentRole === 'Sponsor'): ?>
-    <div id="bankDetailsModal" class="modal">
-        <div class="modal-content modal-bank-details">
-            <div class="modal-header">
-                <h2><i class="fas fa-university"></i> Bank Account Details for Sponsorship</h2>
-                <button class="close-btn" onclick="closeBankDetailsModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="bank-details-info">
-                    <p class="bank-details-intro">Please use the following bank account details to transfer your sponsorship payment:</p>
-                    
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">
-                            <i class="fas fa-building"></i>
-                            <strong>Bank Name</strong>
-                        </div>
-                        <div class="bank-detail-value" id="modalBankName">Loading...</div>
-                    </div>
-                    
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">
-                            <i class="fas fa-user"></i>
-                            <strong>Account Name</strong>
-                        </div>
-                        <div class="bank-detail-value" id="modalAccountName">Loading...</div>
-                    </div>
-                    
-                    <div class="bank-detail-item highlight">
-                        <div class="bank-detail-label">
-                            <i class="fas fa-credit-card"></i>
-                            <strong>Account Number</strong>
-                        </div>
-                        <div class="bank-detail-value" id="modalAccountNumber">Loading...</div>
-                    </div>
-                    
-                    <div class="bank-detail-item">
-                        <div class="bank-detail-label">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <strong>Branch</strong>
-                        </div>
-                        <div class="bank-detail-value" id="modalBranch">Loading...</div>
-                    </div>
-                    
-                    <div class="bank-detail-item" id="swiftCodeItem" style="display: none;">
-                        <div class="bank-detail-label">
-                            <i class="fas fa-globe"></i>
-                            <strong>SWIFT Code</strong>
-                        </div>
-                        <div class="bank-detail-value" id="modalSwiftCode">Loading...</div>
-                    </div>
-                    
-                    <div class="sponsorship-amount-display">
-                        <strong>Sponsorship Package:</strong> <span id="modalPackageName"></span><br>
-                        <strong>Amount to Transfer:</strong> <span id="modalPackageAmount" class="amount-highlight"></span>
-                    </div>
-                    
-                    <div class="bank-instructions" id="bankInstructionsContainer" style="display: none;">
-                        <h4><i class="fas fa-info-circle"></i> Additional Instructions</h4>
-                        <p id="modalInstructions"></p>
-                    </div>
-                    
-                    <div class="bank-details-note">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p><strong>Important:</strong> After completing the bank transfer, please contact the event organizer with your payment proof to confirm your sponsorship.</p>
-                    </div>
+        <div id="bankDetailsModal" class="modal">
+            <div class="modal-content modal-bank-details">
+                <div class="modal-header">
+                    <h2><i class="fas fa-university"></i> Bank Account Details for Sponsorship</h2>
+                    <button class="close-btn" onclick="closeBankDetailsModal()">&times;</button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeBankDetailsModal()">Close</button>
-                <button class="btn btn-primary" onclick="confirmBankTransfer()">I've Made the Transfer</button>
-            </div>
-        </div>
-    </div>
+                <div class="modal-body">
+                    <div class="bank-details-info">
+                        <p class="bank-details-intro">Please use the following bank account details to transfer your sponsorship payment:</p>
 
-    <!-- Upload Bank Transcript Modal (Sponsor Role Only) -->
-    <div id="uploadTranscriptModal" class="modal">
-        <div class="modal-content modal-upload-transcript">
-            <div class="modal-header">
-                <h2><i class="fas fa-upload"></i> Upload Bank Transaction Receipt</h2>
-                <button class="close-btn" onclick="closeUploadTranscriptModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="upload-transcript-info">
-                    <p class="upload-intro">Please upload your bank transaction receipt/slip as proof of payment:</p>
-                    
-                    <div class="sponsorship-summary">
-                        <h4><i class="fas fa-info-circle"></i> Sponsorship Details</h4>
-                        <div class="summary-item">
-                            <strong>Package:</strong> <span id="uploadPackageName"></span>
+                        <div class="bank-detail-item">
+                            <div class="bank-detail-label">
+                                <i class="fas fa-building"></i>
+                                <strong>Bank Name</strong>
+                            </div>
+                            <div class="bank-detail-value" id="modalBankName">Loading...</div>
                         </div>
-                        <div class="summary-item">
-                            <strong>Amount Paid:</strong> <span id="uploadPackageAmount" class="amount-highlight"></span>
+
+                        <div class="bank-detail-item">
+                            <div class="bank-detail-label">
+                                <i class="fas fa-user"></i>
+                                <strong>Account Name</strong>
+                            </div>
+                            <div class="bank-detail-value" id="modalAccountName">Loading...</div>
                         </div>
-                    </div>
-                    
-                    <form id="uploadTranscriptForm" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="paymentProof">
-                                <i class="fas fa-file-upload"></i> Bank Receipt/Transaction Slip *
-                            </label>
-                            <input type="file" id="paymentProof" name="payment_proof" accept="image/*,application/pdf" required>
-                            <small class="form-help">Accepted formats: JPG, PNG, PDF (Max 5MB)</small>
+
+                        <div class="bank-detail-item highlight">
+                            <div class="bank-detail-label">
+                                <i class="fas fa-credit-card"></i>
+                                <strong>Account Number</strong>
+                            </div>
+                            <div class="bank-detail-value" id="modalAccountNumber">Loading...</div>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="sponsorshipNotes">
-                                <i class="fas fa-comment"></i> Additional Notes (Optional)
-                            </label>
-                            <textarea id="sponsorshipNotes" name="notes" rows="3" placeholder="Any additional information about the payment..."></textarea>
+
+                        <div class="bank-detail-item">
+                            <div class="bank-detail-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <strong>Branch</strong>
+                            </div>
+                            <div class="bank-detail-value" id="modalBranch">Loading...</div>
                         </div>
-                    </form>
-                    
-                    <div class="upload-note">
-                        <i class="fas fa-info-circle"></i>
-                        <p><strong>Note:</strong> Your sponsorship request will be sent to the event organizer for verification. You'll be notified once it's approved.</p>
+
+                        <div class="bank-detail-item" id="swiftCodeItem" style="display: none;">
+                            <div class="bank-detail-label">
+                                <i class="fas fa-globe"></i>
+                                <strong>SWIFT Code</strong>
+                            </div>
+                            <div class="bank-detail-value" id="modalSwiftCode">Loading...</div>
+                        </div>
+
+                        <div class="sponsorship-amount-display">
+                            <strong>Sponsorship Package:</strong> <span id="modalPackageName"></span><br>
+                            <strong>Amount to Transfer:</strong> <span id="modalPackageAmount" class="amount-highlight"></span>
+                        </div>
+
+                        <div class="bank-instructions" id="bankInstructionsContainer" style="display: none;">
+                            <h4><i class="fas fa-info-circle"></i> Additional Instructions</h4>
+                            <p id="modalInstructions"></p>
+                        </div>
+
+                        <div class="bank-details-note">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p><strong>Important:</strong> After completing the bank transfer, please contact the event organizer with your payment proof to confirm your sponsorship.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeUploadTranscriptModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="submitSponsorshipRequest()">
-                    <i class="fas fa-paper-plane"></i> Submit Request
-                </button>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeBankDetailsModal()">Close</button>
+                    <button class="btn btn-primary" onclick="confirmBankTransfer()">I've Made the Transfer</button>
+                </div>
             </div>
         </div>
-    </div>
+
+        <!-- Upload Bank Transcript Modal (Sponsor Role Only) -->
+        <div id="uploadTranscriptModal" class="modal">
+            <div class="modal-content modal-upload-transcript">
+                <div class="modal-header">
+                    <h2><i class="fas fa-upload"></i> Upload Bank Transaction Receipt</h2>
+                    <button class="close-btn" onclick="closeUploadTranscriptModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-transcript-info">
+                        <p class="upload-intro">Please upload your bank transaction receipt/slip as proof of payment:</p>
+
+                        <div class="sponsorship-summary">
+                            <h4><i class="fas fa-info-circle"></i> Sponsorship Details</h4>
+                            <div class="summary-item">
+                                <strong>Package:</strong> <span id="uploadPackageName"></span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>Amount Paid:</strong> <span id="uploadPackageAmount" class="amount-highlight"></span>
+                            </div>
+                        </div>
+
+                        <form id="uploadTranscriptForm" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="paymentProof">
+                                    <i class="fas fa-file-upload"></i> Bank Receipt/Transaction Slip *
+                                </label>
+                                <input type="file" id="paymentProof" name="payment_proof" accept="image/*,application/pdf" required>
+                                <small class="form-help">Accepted formats: JPG, PNG, PDF (Max 5MB)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sponsorshipNotes">
+                                    <i class="fas fa-comment"></i> Additional Notes (Optional)
+                                </label>
+                                <textarea id="sponsorshipNotes" name="notes" rows="3" placeholder="Any additional information about the payment..."></textarea>
+                            </div>
+                        </form>
+
+                        <div class="upload-note">
+                            <i class="fas fa-info-circle"></i>
+                            <p><strong>Note:</strong> Your sponsorship request will be sent to the event organizer for verification. You'll be notified once it's approved.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeUploadTranscriptModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitSponsorshipRequest()">
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+                </div>
+            </div>
+        </div>
     <?php endif; ?>
 
     <!-- Pass PHP data to JavaScript -->
     <script>
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
         const userRole = '<?php echo $currentRole; ?>';
-        
+
         <?php if ($config['purchaseTicketFunction']): ?>
-        // Purchase ticket function - redirects to payment gateway
-        function purchaseTicket() {
-            const eventId = window.currentEvent?.id;
-            if (!eventId) {
-                alert('Event information not available');
-                return;
-            }
-            
-            // Check if user is logged in
-            const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-            if (!isLoggedIn) {
-                alert('Please log in to purchase tickets');
-                window.location.href = '/unipulse/public/signin?redirect=' + encodeURIComponent(window.location.pathname);
-                return;
-            }
-            
-            // Check if event requires tickets
-            const ticketType = window.currentEvent?.ticket_type;
-            if (ticketType === 'free-all') {
-                alert('This is a free event. No ticket purchase required.');
-                return;
+            // Purchase ticket function - redirects to payment gateway
+            function purchaseTicket() {
+                const eventId = window.currentEvent?.id;
+                if (!eventId) {
+                    alert('Event information not available');
+                    return;
+                }
+
+                // Check if user is logged in
+                const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+                if (!isLoggedIn) {
+                    alert('Please log in to purchase tickets');
+                    window.location.href = '/unipulse/public/signin?redirect=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+
+                // Check if event requires tickets
+                const ticketType = window.currentEvent?.ticket_type;
+                if (ticketType === 'free-all') {
+                    alert('This is a free event. No ticket purchase required.');
+                    return;
+                }
+
+                // Redirect to payment page
+                window.location.href = `/unipulse/public/payment/ticket?event_id=${eventId}`;
             }
             
             // Redirect to payment page (PayHere)
             window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
         }
         <?php endif; ?>
-        
+
         <?php if ($config['visitProfileFunction']): ?>
-        // Function to visit publisher profile
-        function visitPublisherProfile() {
-            const publisherId = window.currentEvent?.publisher_id || window.currentEvent?.created_by;
-            if (publisherId) {
-                window.location.href = `/unipulse/public/publisher/public?id=${publisherId}`;
-            } else {
-                alert('Publisher profile not available');
+            // Function to visit publisher profile
+            function visitPublisherProfile() {
+                const publisherId = window.currentEvent?.publisher_id || window.currentEvent?.created_by;
+                if (publisherId) {
+                    window.location.href = `/unipulse/public/publisher/public?id=${publisherId}`;
+                } else {
+                    alert('Publisher profile not available');
+                }
             }
-        }
         <?php endif; ?>
     </script>
 
     <script src="<?php echo $config['jsFile']; ?>"></script>
 </body>
+
 </html>

@@ -1,50 +1,54 @@
 <?php
 
-class PublisherComments extends Controller {
-    
+class PublisherComments extends Controller
+{
+
     use Database;
-    
+
     private $commentModel;
     private $notificationModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->commentModel = new Comment();
         $this->notificationModel = new Notification();
     }
-    
+
     /**
      * Display comments dashboard for publisher
      */
-    public function index() {
+    public function index()
+    {
         // Check if publisher is logged in
         SessionMiddleware::requireAuth('publisher');
-        
+
         $data = [
             'title' => 'Comments on Your Events',
             'page' => 'comments'
         ];
-        
+
         $this->view('Publisher/comments', $data);
     }
-    
+
     /**
      * Get comments for publisher's events
      */
-    public function getMyEventComments() {
+    public function getMyEventComments()
+    {
         header('Content-Type: application/json');
-        
+
         if (!AuthService::isLoggedIn()) {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
             if ($currentUser['type'] !== 'publisher') {
                 echo json_encode(['success' => false, 'error' => 'Publisher access required']);
                 return;
             }
-            
+
             $query = "
                 SELECT 
                     c.*,
@@ -76,11 +80,11 @@ class PublisherComments extends Controller {
                 ORDER BY c.created_at DESC
                 LIMIT 100
             ";
-            
+
             $stmt = $this->connect()->prepare($query);
             $stmt->execute(['publisher_id' => $currentUser['id']]);
             $comments = $stmt->fetchAll(PDO::FETCH_OBJ);
-            
+
             $formattedComments = [];
             foreach ($comments as $comment) {
                 $formattedComments[] = [
@@ -101,7 +105,7 @@ class PublisherComments extends Controller {
                     'formatted_date' => $this->formatDate($comment->created_at)
                 ];
             }
-            
+
             // Get summary stats for publisher
             $statsQuery = "
                 SELECT 
@@ -115,11 +119,11 @@ class PublisherComments extends Controller {
                 AND e.created_by_type = 'publisher'
                 AND e.created_by = :publisher_id
             ";
-            
+
             $statsStmt = $this->connect()->prepare($statsQuery);
             $statsStmt->execute(['publisher_id' => $currentUser['id']]);
             $stats = $statsStmt->fetch(PDO::FETCH_OBJ);
-            
+
             echo json_encode([
                 'success' => true,
                 'comments' => $formattedComments,
@@ -131,40 +135,40 @@ class PublisherComments extends Controller {
                 ],
                 'total' => count($formattedComments)
             ]);
-            
         } catch (Exception $e) {
             error_log("Error getting publisher comments: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load comments']);
         }
     }
-    
+
     /**
      * Get comments for a specific event (publisher view)
      */
-    public function getEventComments($eventId = null) {
+    public function getEventComments($eventId = null)
+    {
         header('Content-Type: application/json');
-        
+
         if (!AuthService::isLoggedIn()) {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
             if ($currentUser['type'] !== 'publisher') {
                 echo json_encode(['success' => false, 'error' => 'Publisher access required']);
                 return;
             }
-            
+
             if (!$eventId && isset($_GET['event_id'])) {
                 $eventId = $_GET['event_id'];
             }
-            
+
             if (!$eventId || !is_numeric($eventId)) {
                 echo json_encode(['success' => false, 'error' => 'Invalid event ID']);
                 return;
             }
-            
+
             // Check if event belongs to this publisher
             $eventQuery = "
                 SELECT * FROM events 
@@ -178,16 +182,16 @@ class PublisherComments extends Controller {
                 'publisher_id' => $currentUser['id']
             ]);
             $event = $eventStmt->fetch(PDO::FETCH_OBJ);
-            
+
             if (!$event) {
                 echo json_encode(['success' => false, 'error' => 'Event not found or not yours']);
                 return;
             }
-            
+
             // Get comments for the event
             $comments = $this->commentModel->getEventComments($eventId);
             $stats = $this->commentModel->getEventCommentStats($eventId);
-            
+
             $formattedComments = [];
             foreach ($comments as $comment) {
                 $formattedComments[] = [
@@ -203,7 +207,7 @@ class PublisherComments extends Controller {
                     'formatted_date' => $this->formatDate($comment->created_at)
                 ];
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'comments' => $formattedComments,
@@ -218,40 +222,40 @@ class PublisherComments extends Controller {
                     'rated_comments' => (int)$stats->rated_comments
                 ]
             ]);
-            
         } catch (Exception $e) {
             error_log("Error getting publisher event comments: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load comments']);
         }
     }
-    
+
     /**
      * Get notifications for publisher (AJAX endpoint)
      */
-    public function getNotifications() {
+    public function getNotifications()
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Get notifications
             $notifications = $this->notificationModel->getUserNotifications(
-                $currentUser['id'], 
+                $currentUser['id'],
                 'publisher'
             );
-            
+
             // Get unread count
             $unreadCount = $this->notificationModel->getUnreadCount(
-                $currentUser['id'], 
+                $currentUser['id'],
                 'publisher'
             );
-            
+
             // Format notifications
             $formattedNotifications = [];
             foreach ($notifications as $notification) {
@@ -267,104 +271,104 @@ class PublisherComments extends Controller {
                     'formatted_date' => $this->formatDate($notification->created_at)
                 ];
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'notifications' => $formattedNotifications,
                 'unread_count' => $unreadCount
             ]);
-            
         } catch (Exception $e) {
             error_log("Error getting notifications: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load notifications']);
         }
     }
-    
+
     /**
      * Mark notification as read (AJAX endpoint)
      */
-    public function markNotificationRead($notificationId = null) {
+    public function markNotificationRead($notificationId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         if (!$notificationId) {
             echo json_encode(['success' => false, 'error' => 'Notification ID is required']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
-            
+
             $result = $this->notificationModel->markAsRead(
                 $notificationId,
                 $currentUser['id'],
                 'publisher'
             );
-            
+
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Notification marked as read']);
             } else {
                 echo json_encode(['success' => false, 'error' => 'Failed to mark notification as read']);
             }
-            
         } catch (Exception $e) {
             error_log("Error marking notification as read: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update notification']);
         }
     }
-    
+
     /**
      * Mark all notifications as read (AJAX endpoint)
      */
-    public function markAllNotificationsRead() {
+    public function markAllNotificationsRead()
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
-            
+
             $result = $this->notificationModel->markAllAsRead(
                 $currentUser['id'],
                 'publisher'
             );
-            
+
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'All notifications marked as read']);
             } else {
                 echo json_encode(['success' => false, 'error' => 'Failed to mark notifications as read']);
             }
-            
         } catch (Exception $e) {
             error_log("Error marking all notifications as read: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update notifications']);
         }
     }
-    
+
     /**
      * Get comment statistics for publisher dashboard
      */
-    public function getStats() {
+    public function getStats()
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         try {
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Get overall statistics
             $query = "
                 SELECT 
@@ -380,15 +384,15 @@ class PublisherComments extends Controller {
                 AND e.created_by_type = 'publisher'
                 AND c.is_deleted = 0
             ";
-            
+
             $stats = $this->commentModel->first($query, ['publisher_id' => $currentUser['id']]);
-            
+
             // Get unread notifications count
             $unreadCount = $this->notificationModel->getUnreadCount(
-                $currentUser['id'], 
+                $currentUser['id'],
                 'publisher'
             );
-            
+
             echo json_encode([
                 'success' => true,
                 'stats' => [
@@ -401,41 +405,41 @@ class PublisherComments extends Controller {
                     'unread_notifications' => $unreadCount
                 ]
             ]);
-            
         } catch (Exception $e) {
             error_log("Error getting comment stats: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load statistics']);
         }
     }
-    
+
     /**
      * Delete a comment (AJAX endpoint) - Publishers can delete comments on their events
      */
-    public function deleteComment($commentId = null) {
+    public function deleteComment($commentId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'You must be logged in as a publisher to delete comments']);
             return;
         }
-        
+
         if (!$commentId) {
             echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
             return;
         }
-        
+
         try {
             // Get current user
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Delete comment using the same model logic
             $result = $this->commentModel->deleteComment(
                 $commentId,
                 $currentUser['id'],
                 $currentUser['type']
             );
-            
+
             if ($result['success']) {
                 echo json_encode([
                     'success' => true,
@@ -447,7 +451,6 @@ class PublisherComments extends Controller {
                     'error' => implode(', ', $result['errors'])
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log("Error deleting comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to delete comment']);
@@ -457,31 +460,32 @@ class PublisherComments extends Controller {
     /**
      * Update a comment (AJAX endpoint) - Publishers can update their comments
      */
-    public function updateComment($commentId = null) {
+    public function updateComment($commentId = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Check if publisher is logged in
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'error' => 'You must be logged in as a publisher to update comments']);
             return;
         }
-        
+
         if (!$commentId) {
             echo json_encode(['success' => false, 'error' => 'Comment ID is required']);
             return;
         }
-        
+
         // Get PUT/POST data
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             $input = $_POST;
         }
-        
+
         try {
             // Get current user
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Update comment
             $result = $this->commentModel->updateComment(
                 $commentId,
@@ -489,11 +493,11 @@ class PublisherComments extends Controller {
                 $currentUser['id'],
                 $currentUser['type']
             );
-            
+
             if ($result['success']) {
                 // Get updated comment
                 $updatedComment = $this->commentModel->getCommentById($commentId);
-                
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Comment updated successfully',
@@ -514,7 +518,6 @@ class PublisherComments extends Controller {
                     'error' => implode(', ', $result['errors'])
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log("Error updating comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update comment']);
@@ -524,11 +527,12 @@ class PublisherComments extends Controller {
     /**
      * Format date for display
      */
-    private function formatDate($dateString) {
+    private function formatDate($dateString)
+    {
         $date = new DateTime($dateString);
         $now = new DateTime();
         $interval = $now->diff($date);
-        
+
         if ($interval->d == 0) {
             if ($interval->h == 0) {
                 if ($interval->i == 0) {

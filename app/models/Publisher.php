@@ -782,13 +782,13 @@ class Publisher
             $userUniversity = $currentUser['university'] ?? null;
             $userFaculty = $currentUser['faculty'] ?? null;
 
-            // Publishers, admins, and moderators can see all events
-            if (!in_array($userType, ['publisher', 'admin', 'moderator'])) {
+            // Admins and moderators can see all events
+            if (!in_array($userType, ['admin', 'moderator'])) {
                 // Build visibility conditions for regular users
                 $visibilityConditions = ["e.visibility = 'public'"];
 
-                // All universities events - all university users can see
-                if (in_array($userType, ['university', 'university_user'])) {
+                // All universities events - university users and publishers can see
+                if (in_array($userType, ['university', 'university_user', 'publisher'])) {
                     $visibilityConditions[] = "e.visibility = 'all-universities'";
 
                     // University-only events - only users from that university
@@ -841,13 +841,13 @@ class Publisher
             $userUniversity = $currentUser['university'] ?? null;
             $userFaculty = $currentUser['faculty'] ?? null;
 
-            // Publishers, admins, and moderators can see all events
-            if (!in_array($userType, ['publisher', 'admin', 'moderator'])) {
+            // Admins and moderators can see all events
+            if (!in_array($userType, ['admin', 'moderator'])) {
                 // Build visibility conditions for regular users
                 $visibilityConditions = ["e.visibility = 'public'"];
 
-                // All universities events - all university users can see
-                if (in_array($userType, ['university', 'university_user'])) {
+                // All universities events - university users and publishers can see
+                if (in_array($userType, ['university', 'university_user', 'publisher'])) {
                     $visibilityConditions[] = "e.visibility = 'all-universities'";
 
                     // University-only events - only users from that university
@@ -881,16 +881,51 @@ class Publisher
     /**
      * Get all events for a specific publisher (for profile display)
      */
-    public function getAllPublisherEvents($publisherId)
+    public function getAllPublisherEvents($publisherId, $currentUser = null)
     {
-        $query = "SELECT e.*, p.society_name as organizer_name 
+        $whereClause = [
+            'e.created_by = :publisher_id',
+            "e.created_by_type = 'publisher'",
+            'e.is_deleted = 0'
+        ];
+        $params = ['publisher_id' => $publisherId];
+
+        if (!$currentUser) {
+            $whereClause[] = "e.visibility = 'public'";
+        } else {
+            $userType = $currentUser['type'] ?? null;
+            $userUniversity = $currentUser['university'] ?? null;
+            $userFaculty = $currentUser['faculty'] ?? null;
+
+            if (!in_array($userType, ['admin', 'moderator'])) {
+                $visibilityConditions = ["e.visibility = 'public'"];
+
+                if (in_array($userType, ['university', 'university_user', 'publisher'])) {
+                    $visibilityConditions[] = "e.visibility = 'all-universities'";
+
+                    if (!empty($userUniversity)) {
+                        $visibilityConditions[] = "(e.visibility = 'university-only' AND e.university = :user_university)";
+                        $params['user_university'] = $userUniversity;
+
+                        if (!empty($userFaculty)) {
+                            $visibilityConditions[] = "(e.visibility = 'faculty-only' AND e.university = :user_university2 AND e.faculty_department = :user_faculty)";
+                            $params['user_university2'] = $userUniversity;
+                            $params['user_faculty'] = $userFaculty;
+                        }
+                    }
+                }
+
+                $whereClause[] = '(' . implode(' OR ', $visibilityConditions) . ')';
+            }
+        }
+
+        $query = "SELECT e.*, p.society_name as organizer_name
                 FROM events e
                 LEFT JOIN publishers p ON e.created_by = p.id
-                WHERE e.created_by = :publisher_id 
-                AND e.created_by_type = 'publisher'
+                WHERE " . implode(' AND ', $whereClause) . "
                 ORDER BY e.event_date DESC";
 
-        $events = $this->query($query, ['publisher_id' => $publisherId]);
+        $events = $this->query($query, $params);
         return $events ?: [];
     }
 

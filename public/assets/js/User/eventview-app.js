@@ -5,9 +5,10 @@ let isUserRegistered = window.serverData?.isRegistered || false;
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
+const volunteerApplyEndpoint = window.serverData?.volunteerApplyEndpoint || '/unipulse/public/user/eventview/applyVolunteer';
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('User Eventview Page Loaded');
     console.log('window.serverData:', window.serverData);
     console.log('currentEvent:', currentEvent);
@@ -27,14 +28,14 @@ function loadEventDetails() {
     console.log('loadEventDetails called');
     console.log('hasError:', hasError);
     console.log('currentEvent:', currentEvent);
-    
+
     if (hasError) {
         console.log('Error detected, showing error page');
         hideLoading();
         showError();
         return;
     }
-    
+
     if (currentEvent) {
         console.log('Using server data for event:', currentEvent.id);
         // Use server data directly
@@ -47,7 +48,7 @@ function loadEventDetails() {
         // Fallback to AJAX if no server data
         const eventId = getEventIdFromURL();
         console.log('Event ID from URL:', eventId);
-        
+
         if (!eventId) {
             console.log('No event ID found, showing error');
             showError();
@@ -94,7 +95,7 @@ function displayEventDetails(event) {
     const targetAudience = event.target_audience || event.targetAudience;
     const ticketType = event.ticket_type || event.ticketType;
     const imageUrl = event.image_url || event.imageUrl || event.cover_image || event.image;
-    
+
     // Display hero image if available
     if (imageUrl) {
         const heroImageContainer = document.getElementById('heroImageContainer');
@@ -112,64 +113,69 @@ function displayEventDetails(event) {
                 // Relative path from database - add /unipulse/public/ prefix
                 imagePath = `/unipulse/public/${imageUrl}`;
             }
-            
+
             console.log('Image URL from DB:', imageUrl);
             console.log('Constructed image path:', imagePath);
-            
+
             heroImage.src = imagePath;
             heroImage.alt = event.title + ' Cover Image';
             heroImageContainer.style.display = 'block';
-            
+
             // Add error handler
-            heroImage.onerror = function() {
+            heroImage.onerror = function () {
                 console.error('Failed to load image:', imagePath);
                 heroImageContainer.style.display = 'none';
             };
-            
+
             // Add load handler for debugging
-            heroImage.onload = function() {
+            heroImage.onload = function () {
                 console.log('Image loaded successfully:', imagePath);
             };
         }
     }
-    
+
     // Basic event info
     const eventCategoryElement = document.getElementById('eventCategory');
     if (eventCategoryElement) {
         eventCategoryElement.textContent = capitalizeFirstLetter(event.category);
     }
-    
+
     const eventStatusElement = document.getElementById('eventStatus');
-    // Calculate event status dynamically based on event date
     const eventDate = event.event_date || event.date;
+    const rawStatus = (event.status || '').toString().trim().toLowerCase();
+    const calculatedStatus = getEventStatus(eventDate);
+    const normalizedStatus = (rawStatus === 'cancelled' || rawStatus === 'completed')
+        ? rawStatus
+        : calculatedStatus;
+    event.status = normalizedStatus;
+
     if (eventStatusElement) {
-        const calculatedStatus = getEventStatus(eventDate);
-        eventStatusElement.textContent = capitalizeFirstLetter(calculatedStatus);
+        eventStatusElement.textContent = capitalizeFirstLetter(normalizedStatus);
         // Update the class for proper styling
-        eventStatusElement.className = `event-status ${calculatedStatus}`;
+        eventStatusElement.className = `event-status ${normalizedStatus}`;
     }
-    
+
     const eventTitleElement = document.getElementById('eventTitle');
     if (eventTitleElement) {
         eventTitleElement.textContent = event.title;
     }
-    
+
     // Event details grid
     const eventTime = event.event_time || event.time;
     const locationType = event.location_type || 'inside-university';
-    
+
     const eventDateTimeElement = document.getElementById('eventDateTime');
     if (eventDateTimeElement) {
         eventDateTimeElement.textContent = `${formatDate(eventDate)} at ${eventTime}`;
     }
-    
+
     // Display location fields based on location type
     if (locationType === 'outside-university') {
         // Outside university: show venue and city
         const venueName = event.venue_name || event.venueName || '';
         const city = event.city || '';
         let venueCity = '';
-        
+
         if (venueName && city) {
             venueCity = `${venueName}, ${city}`;
         } else if (venueName) {
@@ -179,12 +185,12 @@ function displayEventDetails(event) {
         } else {
             venueCity = 'Location TBA';
         }
-        
+
         const venueInfoElement = document.getElementById('venueInfo');
         const eventVenueCityElement = document.getElementById('eventVenueCity');
         if (venueInfoElement) venueInfoElement.style.display = 'flex';
         if (eventVenueCityElement) eventVenueCityElement.textContent = venueCity;
-        
+
         // Hide inside university fields
         const universityInfoElement = document.getElementById('universityInfo');
         const facultyInfoElement = document.getElementById('facultyInfo');
@@ -198,7 +204,7 @@ function displayEventDetails(event) {
         const eventUniversityElement = document.getElementById('eventUniversity');
         if (universityInfoElement) universityInfoElement.style.display = 'flex';
         if (eventUniversityElement) eventUniversityElement.textContent = universityName;
-        
+
         // Show faculty/department if available
         if (event.faculty_department) {
             const facultyInfoElement = document.getElementById('facultyInfo');
@@ -206,17 +212,17 @@ function displayEventDetails(event) {
             if (facultyInfoElement) facultyInfoElement.style.display = 'flex';
             if (eventFacultyElement) eventFacultyElement.textContent = event.faculty_department;
         }
-        
+
         const exactLocationInfoElement = document.getElementById('exactLocationInfo');
         const eventLocationElement = document.getElementById('eventLocation');
         if (exactLocationInfoElement) exactLocationInfoElement.style.display = 'flex';
         if (eventLocationElement) eventLocationElement.textContent = event.location;
-        
+
         // Hide outside university field
         const venueInfoElement = document.getElementById('venueInfo');
         if (venueInfoElement) venueInfoElement.style.display = 'none';
     }
-    
+
     // Show participants info only if max_participants is set
     const participantsInfoElement = document.getElementById('participantsInfo');
     if (participantsInfoElement) {
@@ -230,18 +236,18 @@ function displayEventDetails(event) {
             participantsInfoElement.style.display = 'none';
         }
     }
-    
+
     // Target audience
     const eventAudienceElement = document.getElementById('eventAudience');
     if (eventAudienceElement) {
         eventAudienceElement.textContent = formatAudience(targetAudience);
     }
-    
+
     // Ticket type - Always show with appropriate display
     const ticketInfoElement = document.getElementById('ticketInfo');
     const eventTicketTypeElement = document.getElementById('eventTicketType');
     const buyTicketBtn = document.getElementById('buyTicketBtn');
-    
+
     if (ticketInfoElement) ticketInfoElement.style.display = 'block';
     if (eventTicketTypeElement) {
         if (ticketType === 'free-all') {
@@ -250,7 +256,7 @@ function displayEventDetails(event) {
             eventTicketTypeElement.textContent = formatTicketType(ticketType);
         }
     }
-    
+
     // Show/hide buy ticket button based on ticket type
     if (buyTicketBtn) {
         if (ticketType && ticketType !== 'free-all') {
@@ -259,16 +265,16 @@ function displayEventDetails(event) {
             buyTicketBtn.style.display = 'none';
         }
     }
-    
+
     // Full description
     const eventDescriptionElement = document.getElementById('eventDescription');
     if (eventDescriptionElement) {
         eventDescriptionElement.textContent = event.description;
     }
-    
+
     // Registration Period
     displayRegistrationPeriod(event);
-    
+
     // Schedule - hide card if no schedule data
     const scheduleCardElement = document.getElementById('scheduleCard');
     if (event.schedule && Array.isArray(event.schedule) && event.schedule.length > 0) {
@@ -281,7 +287,7 @@ function displayEventDetails(event) {
             scheduleCardElement.style.display = 'none';
         }
     }
-    
+
     // Requirements - hide card if no requirements
     const requirementsCardElement = document.getElementById('requirementsCard');
     if (event.requirements && Array.isArray(event.requirements) && event.requirements.length > 0) {
@@ -294,13 +300,13 @@ function displayEventDetails(event) {
             requirementsCardElement.style.display = 'none';
         }
     }
-    
+
     // Location details
     displayLocationDetails(event);
-    
+
     // Ticket details
     displayTicketDetails(event);
-    
+
     // Custom fields - hide card if no custom fields
     if (event.custom_fields && Array.isArray(event.custom_fields) && event.custom_fields.length > 0) {
         displayCustomFields(event.custom_fields);
@@ -309,16 +315,26 @@ function displayEventDetails(event) {
             document.getElementById('customFieldsCard').style.display = 'none';
         }
     }
-    
-    // Volunteer information - hide card if not accepting volunteers
+
+    // Volunteer information - hide card if not accepting volunteers or no slots left
     if (event.needs_volunteers && event.needs_volunteers == 1) {
-        displayVolunteerInfo(event);
+        const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+            ? parseInt(event.volunteers_needed, 10)
+            : null;
+
+        if (volunteersNeeded === null || volunteersNeeded > 0) {
+            displayVolunteerInfo(event);
+        } else {
+            if (document.getElementById('volunteerCard')) {
+                document.getElementById('volunteerCard').style.display = 'none';
+            }
+        }
     } else {
         if (document.getElementById('volunteerCard')) {
             document.getElementById('volunteerCard').style.display = 'none';
         }
     }
-    
+
     // Donation information - hide card if not accepting donations
     if (event.accepts_donations && event.accepts_donations == 1) {
         if (document.getElementById('donationCard')) {
@@ -329,19 +345,19 @@ function displayEventDetails(event) {
             document.getElementById('donationCard').style.display = 'none';
         }
     }
-    
+
     // Organizer info - use organizer_name from publisher profile for live updates
     const organizerNameElement = document.getElementById('organizerName');
     if (organizerNameElement) {
         organizerNameElement.textContent = event.organizer_name || event.organizer;
     }
-    
+
     // Set organizer role if available, otherwise use default
     const organizerRoleElement = document.getElementById('organizerRole');
     if (organizerRoleElement) {
         organizerRoleElement.textContent = event.organizer_role || 'Event Organizer';
     }
-    
+
     // Display organizer profile photo if available
     const organizerAvatar = document.getElementById('organizerAvatar');
     if (organizerAvatar) {
@@ -351,34 +367,34 @@ function displayEventDetails(event) {
             organizerAvatar.innerHTML = '<i class="fas fa-user-circle"></i>';
         }
     }
-    
+
     // Store organizer email for contact function
     currentEvent.organizerEmail = organizerEmail;
-    
+
     // Statistics - only show if max_participants is set
     const eventStatsCardElement = document.getElementById('eventStatsCard');
     if (maxParticipants !== null && maxParticipants !== undefined) {
         if (eventStatsCardElement) {
             eventStatsCardElement.style.display = 'block';
         }
-        
+
         const totalParticipantsElement = document.getElementById('totalParticipants');
         if (totalParticipantsElement) {
             totalParticipantsElement.textContent = currentParticipants;
         }
-        
+
         const availableSpotsElement = document.getElementById('availableSpots');
         if (availableSpotsElement) {
             availableSpotsElement.textContent = maxParticipants - currentParticipants;
         }
-        
+
         // Participation percentage
         const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
         const participationPercentageElement = document.getElementById('participationPercentage');
         if (participationPercentageElement) {
             participationPercentageElement.textContent = `${percentage}%`;
         }
-        
+
         const participationFillElement = document.getElementById('participationFill');
         if (participationFillElement) {
             participationFillElement.style.width = `${percentage}%`;
@@ -388,18 +404,18 @@ function displayEventDetails(event) {
             eventStatsCardElement.style.display = 'none';
         }
     }
-    
+
     // Set event link for sharing
     const shareLinkElement = document.getElementById('shareLink');
     if (shareLinkElement) {
         shareLinkElement.value = window.location.href;
     }
-    
+
     // Update status styling
-    updateStatusStyling(event.status, currentParticipants, maxParticipants);
-    
+    updateStatusStyling(normalizedStatus, currentParticipants, maxParticipants);
+
     // Show comments section if event is completed
-    if (event.status === 'completed') {
+    if (normalizedStatus === 'completed') {
         const commentsSection = document.getElementById('commentsSection');
         if (commentsSection) {
             commentsSection.style.display = 'block';
@@ -412,14 +428,14 @@ function displayEventDetails(event) {
 function displayRegistrationPeriod(event) {
     const registrationPeriodCard = document.getElementById('registrationPeriodCard');
     const registrationPeriodContainer = document.getElementById('registrationPeriod');
-    
+
     // Check if elements exist
     if (!registrationPeriodCard || !registrationPeriodContainer) return;
-    
+
     // Check if registration dates are available
     if (event.registration_start_date && event.registration_end_date) {
         let registrationHTML = '<div class="registration-period-item">';
-        
+
         // Registration Start
         registrationHTML += '<div style="margin-bottom: 15px;">';
         registrationHTML += '<div><strong>Registration Opens:</strong></div>';
@@ -429,7 +445,7 @@ function displayRegistrationPeriod(event) {
             registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_start_time}`;
         }
         registrationHTML += '</div></div>';
-        
+
         // Registration End
         registrationHTML += '<div style="margin-bottom: 15px;">';
         registrationHTML += '<div><strong>Registration Closes:</strong></div>';
@@ -439,7 +455,7 @@ function displayRegistrationPeriod(event) {
             registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_end_time}`;
         }
         registrationHTML += '</div></div>';
-        
+
         // Registration limit if available
         if (event.registration_limit) {
             registrationHTML += '<div>';
@@ -447,9 +463,9 @@ function displayRegistrationPeriod(event) {
             registrationHTML += `<div style="color: #666; margin-top: 5px;"><i class="fas fa-users"></i> ${event.registration_limit} participants</div>`;
             registrationHTML += '</div>';
         }
-        
+
         registrationHTML += '</div>';
-        
+
         registrationPeriodContainer.innerHTML = registrationHTML;
         registrationPeriodCard.style.display = 'block';
     }
@@ -459,9 +475,9 @@ function displayRegistrationPeriod(event) {
 function displaySchedule(schedule) {
     const scheduleContainer = document.getElementById('eventSchedule');
     if (!scheduleContainer) return;
-    
+
     scheduleContainer.innerHTML = '';
-    
+
     schedule.forEach(item => {
         const scheduleItem = document.createElement('div');
         scheduleItem.className = 'schedule-item';
@@ -477,10 +493,10 @@ function displaySchedule(schedule) {
 function displayRequirements(requirements) {
     const requirementsContainer = document.getElementById('eventRequirements');
     if (!requirementsContainer) return;
-    
+
     const requirementsList = document.createElement('ul');
     requirementsList.className = 'requirements-list';
-    
+
     requirements.forEach(requirement => {
         const listItem = document.createElement('li');
         listItem.innerHTML = `
@@ -489,7 +505,7 @@ function displayRequirements(requirements) {
         `;
         requirementsList.appendChild(listItem);
     });
-    
+
     requirementsContainer.innerHTML = '';
     requirementsContainer.appendChild(requirementsList);
 }
@@ -498,12 +514,12 @@ function displayRequirements(requirements) {
 function loadSimilarEvents(events) {
     const similarEventsContainer = document.getElementById('similarEvents');
     if (!similarEventsContainer) return;
-    
+
     if (!events || events.length === 0) {
         similarEventsContainer.innerHTML = '<p>No similar events found.</p>';
         return;
     }
-    
+
     similarEventsContainer.innerHTML = '';
     events.forEach(event => {
         const eventCard = document.createElement('div');
@@ -526,7 +542,7 @@ function updateStatusStyling(status, participants, maxParticipants) {
     if (statusElement) {
         statusElement.className = `event-status ${status}`;
     }
-    
+
     const joinBtn = document.getElementById('joinBtn');
     if (joinBtn) {
         if (status === 'completed' || status === 'cancelled') {
@@ -573,115 +589,183 @@ function closeShareModal() {
     }
 }
 
+function openVolunteerConsentModal() {
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
+    if (volunteerConsentModal) {
+        volunteerConsentModal.style.display = 'flex';
+    }
+}
+
+function closeVolunteerConsentModal() {
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
+    if (volunteerConsentModal) {
+        volunteerConsentModal.style.display = 'none';
+    }
+}
+
+function confirmVolunteerConsent() {
+    if (!currentEvent || !currentEvent.id) {
+        alert('Event data not available');
+        return;
+    }
+
+    const confirmBtn = document.querySelector('#volunteerConsentModal .btn-primary');
+    const originalText = confirmBtn ? confirmBtn.innerHTML : 'Confirm';
+
+    if (confirmBtn) {
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        confirmBtn.disabled = true;
+    }
+
+    const formData = new FormData();
+    formData.append('id', currentEvent.id);
+
+    fetch(volunteerApplyEndpoint, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.volunteers_needed !== undefined && data.volunteers_needed !== null) {
+                    currentEvent.volunteers_needed = parseInt(data.volunteers_needed, 10);
+                }
+
+                displayVolunteerInfo(currentEvent);
+                closeVolunteerConsentModal();
+                window.location.href = '/unipulse/public/user/dashboard?volunteer_applied=1';
+            } else if (data.alreadyRegistered) {
+                closeVolunteerConsentModal();
+                alert('You have already applied as a volunteer for this event.');
+                window.location.href = '/unipulse/public/user/dashboard';
+            } else {
+                alert(data.error || 'Failed to submit volunteer application. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying as volunteer:', error);
+            alert('Failed to submit volunteer application. Please try again.');
+        })
+        .finally(() => {
+            if (confirmBtn) {
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+        });
+}
+
 // Make modal functions globally accessible
 window.openJoinModal = openJoinModal;
 window.closeJoinModal = closeJoinModal;
 window.openShareModal = openShareModal;
 window.closeShareModal = closeShareModal;
+window.openVolunteerConsentModal = openVolunteerConsentModal;
+window.closeVolunteerConsentModal = closeVolunteerConsentModal;
+window.confirmVolunteerConsent = confirmVolunteerConsent;
 
 // Event actions
 function confirmJoinEvent() {
     const notes = document.getElementById('participantNotes').value;
-    
+
     if (!currentEvent) {
         alert('Event data not available');
         return;
     }
-    
+
     // Show loading state
     const confirmBtn = document.querySelector('#joinModal .btn-primary');
     const originalText = confirmBtn.innerHTML;
     confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Joining...';
     confirmBtn.disabled = true;
-    
+
     // Make API call to join event
     const formData = new FormData();
     formData.append('id', currentEvent.id);
     formData.append('notes', notes);
-    
+
     fetch(joinEndpoint, {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Successfully joined "${currentEvent.title}"!`);
-            
-            // Mark user as registered
-            isUserRegistered = true;
-            
-            // Update join button state
-            const joinBtn = document.getElementById('joinBtn');
-            if (joinBtn) {
-                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
-                joinBtn.classList.add('disabled');
-                joinBtn.style.cursor = 'not-allowed';
-                joinBtn.style.opacity = '0.6';
-                joinBtn.disabled = true;
-                joinBtn.removeEventListener('click', openJoinModal);
-            }
-            
-            // Update current event data
-            const newCurrentParticipants = data.current_participants || data.participants || 0;
-            const maxParticipants = data.max_participants || currentEvent.max_participants || currentEvent.maxParticipants;
-            
-            currentEvent.current_participants = newCurrentParticipants;
-            currentEvent.participants = data.participants; // Legacy
-            
-            // Update UI with new participant count only if max_participants is set
-            if (maxParticipants !== null && maxParticipants !== undefined) {
-                // Update participants in detail section
-                const participantsInfo = document.getElementById('participantsInfo');
-                if (participantsInfo) {
-                    participantsInfo.style.display = 'flex';
-                    document.getElementById('eventParticipants').textContent = `${newCurrentParticipants}/${maxParticipants}`;
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Successfully joined "${currentEvent.title}"!`);
+
+                // Mark user as registered
+                isUserRegistered = true;
+
+                // Update join button state
+                const joinBtn = document.getElementById('joinBtn');
+                if (joinBtn) {
+                    joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                    joinBtn.classList.add('disabled');
+                    joinBtn.style.cursor = 'not-allowed';
+                    joinBtn.style.opacity = '0.6';
+                    joinBtn.disabled = true;
+                    joinBtn.removeEventListener('click', openJoinModal);
                 }
-                
-                // Update statistics card
-                const statsCard = document.getElementById('eventStatsCard');
-                if (statsCard && statsCard.style.display !== 'none') {
-                    document.getElementById('totalParticipants').textContent = newCurrentParticipants;
-                    document.getElementById('availableSpots').textContent = data.availableSpots !== null ? data.availableSpots : maxParticipants - newCurrentParticipants;
-                    
-                    // Update participation percentage
-                    const percentage = maxParticipants > 0 ? Math.round((newCurrentParticipants / maxParticipants) * 100) : 0;
-                    document.getElementById('participationPercentage').textContent = `${percentage}%`;
-                    document.getElementById('participationFill').style.width = `${percentage}%`;
+
+                // Update current event data
+                const newCurrentParticipants = data.current_participants || data.participants || 0;
+                const maxParticipants = data.max_participants || currentEvent.max_participants || currentEvent.maxParticipants;
+
+                currentEvent.current_participants = newCurrentParticipants;
+                currentEvent.participants = data.participants; // Legacy
+
+                // Update UI with new participant count only if max_participants is set
+                if (maxParticipants !== null && maxParticipants !== undefined) {
+                    // Update participants in detail section
+                    const participantsInfo = document.getElementById('participantsInfo');
+                    if (participantsInfo) {
+                        participantsInfo.style.display = 'flex';
+                        document.getElementById('eventParticipants').textContent = `${newCurrentParticipants}/${maxParticipants}`;
+                    }
+
+                    // Update statistics card
+                    const statsCard = document.getElementById('eventStatsCard');
+                    if (statsCard && statsCard.style.display !== 'none') {
+                        document.getElementById('totalParticipants').textContent = newCurrentParticipants;
+                        document.getElementById('availableSpots').textContent = data.availableSpots !== null ? data.availableSpots : maxParticipants - newCurrentParticipants;
+
+                        // Update participation percentage
+                        const percentage = maxParticipants > 0 ? Math.round((newCurrentParticipants / maxParticipants) * 100) : 0;
+                        document.getElementById('participationPercentage').textContent = `${percentage}%`;
+                        document.getElementById('participationFill').style.width = `${percentage}%`;
+                    }
                 }
+
+                closeJoinModal();
+            } else if (data.alreadyRegistered) {
+                // User is already registered
+                alert('You have already registered for this event.');
+                isUserRegistered = true;
+
+                // Update join button state
+                const joinBtn = document.getElementById('joinBtn');
+                if (joinBtn) {
+                    joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
+                    joinBtn.classList.add('disabled');
+                    joinBtn.style.cursor = 'not-allowed';
+                    joinBtn.style.opacity = '0.6';
+                    joinBtn.disabled = true;
+                    joinBtn.removeEventListener('click', openJoinModal);
+                }
+
+                closeJoinModal();
+            } else {
+                alert('Failed to join event: ' + (data.error || 'Unknown error'));
             }
-            
-            closeJoinModal();
-        } else if (data.alreadyRegistered) {
-            // User is already registered
-            alert('You have already registered for this event.');
-            isUserRegistered = true;
-            
-            // Update join button state
-            const joinBtn = document.getElementById('joinBtn');
-            if (joinBtn) {
-                joinBtn.innerHTML = '<i class="fas fa-check"></i> Already Registered';
-                joinBtn.classList.add('disabled');
-                joinBtn.style.cursor = 'not-allowed';
-                joinBtn.style.opacity = '0.6';
-                joinBtn.disabled = true;
-                joinBtn.removeEventListener('click', openJoinModal);
-            }
-            
-            closeJoinModal();
-        } else {
-            alert('Failed to join event: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        console.error('Error joining event:', error);
-        alert('Failed to join event. Please try again.');
-    })
-    .finally(() => {
-        // Reset button state
-        confirmBtn.innerHTML = originalText;
-        confirmBtn.disabled = false;
-    });
+        })
+        .catch(error => {
+            console.error('Error joining event:', error);
+            alert('Failed to join event. Please try again.');
+        })
+        .finally(() => {
+            // Reset button state
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        });
 }
 
 // Register for free event (with or without registration requirement)
@@ -690,21 +774,21 @@ function registerForEvent() {
         alert('Event data not available');
         return;
     }
-    
+
     // Check if user is already registered
     if (isUserRegistered) {
         alert('You are already registered for this event.');
         return;
     }
-    
+
     // Check if event requires registration
     const requiresReg = currentEvent.requires_registration == 1 || currentEvent.requires_registration === '1';
-    
+
     if (!requiresReg) {
         alert('This is an open event. No registration is required - just show up!');
         return;
     }
-    
+
     // Show join modal for registration
     openJoinModal();
 }
@@ -715,38 +799,38 @@ function buyTickets() {
         alert('Event data not available');
         return;
     }
-    
+
     // Collect selected tickets
     const quantityInputs = document.querySelectorAll('.quantity-input');
     const selectedTickets = [];
     let totalAmount = 0;
-    
+
     quantityInputs.forEach(input => {
         const quantity = parseInt(input.value) || 0;
         if (quantity > 0) {
             const ticketOption = input.closest('.ticket-option');
             const ticketName = ticketOption.dataset.ticketName;
             const ticketPrice = parseFloat(ticketOption.dataset.ticketPrice);
-            
+
             selectedTickets.push({
                 name: ticketName,
                 price: ticketPrice,
                 quantity: quantity,
                 subtotal: ticketPrice * quantity
             });
-            
+
             totalAmount += ticketPrice * quantity;
         }
     });
-    
+
     if (selectedTickets.length === 0) {
         alert('Please select at least one ticket.');
         return;
     }
-    
+
     // TODO: Implement payment gateway integration
     alert(`Total: LKR ${totalAmount.toFixed(2)}\n\nPayment gateway integration coming soon!`);
-    
+
     // For now, log the selected tickets
     console.log('Selected tickets:', selectedTickets);
     console.log('Total amount:', totalAmount);
@@ -794,7 +878,7 @@ function copyShareLink() {
     if (shareLink) {
         shareLink.select();
         shareLink.setSelectionRange(0, 99999); // For mobile devices
-        
+
         // Try modern clipboard API first
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareLink.value)
@@ -826,7 +910,7 @@ function showLoading() {
     const loadingContainer = document.getElementById('loadingContainer');
     const errorContainer = document.getElementById('errorContainer');
     const eventContainer = document.getElementById('eventContainer');
-    
+
     if (loadingContainer) loadingContainer.style.display = 'flex';
     if (errorContainer) errorContainer.style.display = 'none';
     if (eventContainer) eventContainer.style.display = 'none';
@@ -842,7 +926,7 @@ function hideLoading() {
 function showError() {
     const errorContainer = document.getElementById('errorContainer');
     const eventContainer = document.getElementById('eventContainer');
-    
+
     if (errorContainer) errorContainer.style.display = 'flex';
     if (eventContainer) eventContainer.style.display = 'none';
 }
@@ -850,7 +934,7 @@ function showError() {
 function showEventContainer() {
     const eventContainer = document.getElementById('eventContainer');
     const errorContainer = document.getElementById('errorContainer');
-    
+
     if (eventContainer) {
         eventContainer.style.display = 'block';
     }
@@ -883,10 +967,10 @@ function displayLocationDetails(event) {
     const locationType = event.location_type || 'inside-university';
     const universityName = event.university_name || event.universityName;
     let locationHTML = '';
-    
+
     if (locationType === 'outside-university') {
         locationHTML = '';
-        
+
         if (event.venue_name) {
             locationHTML += `
                 <div class="location-box">
@@ -900,7 +984,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (event.street_address) {
             locationHTML += `
                 <div class="location-box">
@@ -914,7 +998,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (event.city) {
             locationHTML += `
                 <div class="location-box">
@@ -928,7 +1012,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (event.district_province) {
             locationHTML += `
                 <div class="location-box">
@@ -942,7 +1026,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (locationHTML) {
             document.getElementById('locationDetailsCard').style.display = 'block';
             document.getElementById('locationDetails').innerHTML = locationHTML;
@@ -950,7 +1034,7 @@ function displayLocationDetails(event) {
     } else {
         // Inside university - show university, faculty/department, and exact location
         locationHTML = '';
-        
+
         if (universityName) {
             locationHTML += `
                 <div class="location-box">
@@ -964,7 +1048,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (event.faculty_department) {
             locationHTML += `
                 <div class="location-box">
@@ -978,7 +1062,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         if (event.location) {
             locationHTML += `
                 <div class="location-box">
@@ -992,7 +1076,7 @@ function displayLocationDetails(event) {
                 </div>
             `;
         }
-        
+
         // Only show if there's actual content
         if (universityName || event.faculty_department || event.location) {
             document.getElementById('locationDetailsCard').style.display = 'block';
@@ -1003,12 +1087,12 @@ function displayLocationDetails(event) {
 
 function displayTicketDetails(event) {
     const ticketType = event.ticket_type || 'free-all';
-    
+
     if (ticketType === 'free-all') {
         renderFreeRegistration(event);
         return;
     }
-    
+
     // Show appropriate ticket section based on ticket type
     if (ticketType === 'paid-all') {
         renderPaidTickets(event);
@@ -1023,9 +1107,9 @@ function renderFreeRegistration(event) {
         console.error('freeRegistrationSection element not found');
         return;
     }
-    
+
     console.log('Rendering free registration for event:', event.title);
-    
+
     // Show the free registration section
     freeSection.style.display = 'block';
 }
@@ -1033,7 +1117,7 @@ function renderFreeRegistration(event) {
 function renderPaidTickets(event) {
     const paidSection = document.getElementById('paidTicketingSection');
     if (!paidSection) return;
-    
+
     // Parse ticket_types if it's a string
     let ticketTypes = event.ticket_types;
     if (typeof ticketTypes === 'string') {
@@ -1044,14 +1128,14 @@ function renderPaidTickets(event) {
             return;
         }
     }
-    
+
     if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
         return;
     }
-    
+
     // Render ticket options
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
-    
+
     ticketTypes.forEach((ticket, index) => {
         ticketsHTML += `
             <div class="ticket-option" 
@@ -1078,20 +1162,20 @@ function renderPaidTickets(event) {
             </div>
         `;
     });
-    
+
     ticketsHTML += '</div>';
-    
+
     document.getElementById('ticketDetails').innerHTML = ticketsHTML;
     document.getElementById('ticketDetailsCard').style.display = 'block';
     paidSection.style.display = 'block';
-    
+
     setupTicketQuantityListeners();
 }
 
 function renderMixedTickets(event) {
     const mixedSection = document.getElementById('mixedTicketingSection');
     if (!mixedSection) return;
-    
+
     let ticketTypes = event.ticket_types;
     if (typeof ticketTypes === 'string') {
         try {
@@ -1101,13 +1185,13 @@ function renderMixedTickets(event) {
             return;
         }
     }
-    
+
     if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
         return;
     }
-    
+
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
-    
+
     ticketTypes.forEach((ticket, index) => {
         ticketsHTML += `
             <div class="ticket-option" 
@@ -1134,13 +1218,13 @@ function renderMixedTickets(event) {
             </div>
         `;
     });
-    
+
     ticketsHTML += '</div>';
-    
+
     document.getElementById('mixedTicketDetails').innerHTML = ticketsHTML;
     document.getElementById('mixedTicketDetailsCard').style.display = 'block';
     mixedSection.style.display = 'block';
-    
+
     const requiresReg = event.requires_registration == 1 || event.requires_registration === '1';
     if (document.getElementById('studentRegRequired')) {
         document.getElementById('studentRegRequired').style.display = requiresReg ? 'block' : 'none';
@@ -1148,7 +1232,7 @@ function renderMixedTickets(event) {
     if (document.getElementById('studentNoRegRequired')) {
         document.getElementById('studentNoRegRequired').style.display = requiresReg ? 'none' : 'block';
     }
-    
+
     setupTicketQuantityListeners();
 }
 
@@ -1164,20 +1248,20 @@ function setupTicketQuantityListeners() {
 function updateTotalPrice() {
     const allTickets = document.querySelectorAll('.ticket-option');
     let totalPrice = 0;
-    
+
     allTickets.forEach(ticket => {
         const index = ticket.dataset.ticketIndex;
-        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
-                            document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`) ||
+            document.getElementById(`mixed-ticket-quantity-${index}`);
         const quantity = parseInt(quantityInput?.value) || 0;
         const price = parseFloat(ticket.dataset.ticketPrice) || 0;
-        
+
         totalPrice += quantity * price;
     });
-    
+
     const ticketPriceEl = document.getElementById('ticketPrice');
     const mixedTicketPriceEl = document.getElementById('mixedTicketPrice');
-    
+
     if (ticketPriceEl) {
         ticketPriceEl.textContent = `LKR ${totalPrice.toFixed(2)}`;
     }
@@ -1188,38 +1272,38 @@ function updateTotalPrice() {
 
 function buyTickets() {
     console.log('buyTickets called');
-    
+
     if (!currentEvent) {
         console.error('currentEvent is not defined');
         alert('Event data not available. Please refresh the page and try again.');
         return;
     }
-    
+
     console.log('Current event:', currentEvent);
-    
+
     const allTickets = document.querySelectorAll('.ticket-option');
     console.log('Found tickets:', allTickets.length);
-    
+
     if (allTickets.length === 0) {
         console.error('No ticket options found in the page');
         alert('No tickets available. Please refresh the page.');
         return;
     }
-    
+
     const ticketSelections = [];
     let totalPrice = 0;
-    
+
     allTickets.forEach(ticket => {
         const index = ticket.dataset.ticketIndex;
-        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
-                            document.getElementById(`mixed-ticket-quantity-${index}`);
+        const quantityInput = document.getElementById(`ticket-quantity-${index}`) ||
+            document.getElementById(`mixed-ticket-quantity-${index}`);
         const quantity = parseInt(quantityInput?.value) || 0;
-        
+
         if (quantity > 0) {
             const ticketName = ticket.dataset.ticketName;
             const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
             const subtotal = ticketPrice * quantity;
-            
+
             ticketSelections.push({
                 index: index,
                 name: ticketName,
@@ -1227,19 +1311,19 @@ function buyTickets() {
                 quantity: quantity,
                 subtotal: subtotal
             });
-            
+
             totalPrice += subtotal;
         }
     });
-    
+
     console.log('Ticket selections:', ticketSelections);
     console.log('Total price:', totalPrice);
-    
+
     if (ticketSelections.length === 0) {
         alert('Please select at least one ticket by setting quantity greater than 0');
         return;
     }
-    
+
     const paymentData = {
         eventId: currentEvent.id,
         eventTitle: currentEvent.title,
@@ -1247,7 +1331,7 @@ function buyTickets() {
         totalAmount: totalPrice,
         timestamp: Date.now()
     };
-    
+
     sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
     console.log('Payment data saved to sessionStorage');
     
@@ -1262,7 +1346,7 @@ function displayCustomFields(customFields) {
     if (!Array.isArray(customFields) || customFields.length === 0) {
         return;
     }
-    
+
     let fieldsHTML = '<div class="custom-fields-list">';
     customFields.forEach(field => {
         fieldsHTML += `<div class="custom-field-item">
@@ -1271,47 +1355,51 @@ function displayCustomFields(customFields) {
         </div>`;
     });
     fieldsHTML += '</div>';
-    
+
     document.getElementById('customFieldsCard').style.display = 'block';
     document.getElementById('customFields').innerHTML = fieldsHTML;
 }
 
 function displayVolunteerInfo(event) {
     let volunteerHTML = '<div class="volunteer-detail-item">';
-    
-    if (event.volunteers_needed) {
-        volunteerHTML += `<div><strong>Volunteers Needed:</strong> ${event.volunteers_needed}</div>`;
+
+    const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+        ? parseInt(event.volunteers_needed, 10)
+        : null;
+    const hasVolunteerSlots = volunteersNeeded === null || Number.isNaN(volunteersNeeded) || volunteersNeeded > 0;
+
+    if (volunteersNeeded !== null && !Number.isNaN(volunteersNeeded) && volunteersNeeded <= 0) {
+        document.getElementById('volunteerCard').style.display = 'none';
+        return;
     }
-    
+
+    if (volunteersNeeded !== null && !Number.isNaN(volunteersNeeded)) {
+        volunteerHTML += `<div><strong>Volunteers Needed:</strong> <span id="volunteersNeededCount">${volunteersNeeded}</span></div>`;
+    }
+
     if (event.volunteer_sources && Array.isArray(event.volunteer_sources)) {
-        volunteerHTML += '<div><strong>Recruiting From:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-sources-list">';
-        event.volunteer_sources.forEach(source => {
-            const sourceMap = {
-                'faculty': 'Faculty Members',
-                'university': 'University Students',
-                'public': 'Public Users'
-            };
-            volunteerHTML += `<li>${sourceMap[source] || source}</li>`;
-        });
-        volunteerHTML += '</ul>';
+        const visibleSources = event.volunteer_sources.filter(source => source !== 'faculty');
+
+        if (visibleSources.length > 0) {
+            volunteerHTML += '<div><strong>Recruiting From:</strong></div>';
+            volunteerHTML += '<ul class="volunteer-sources-list">';
+            visibleSources.forEach(source => {
+                const sourceMap = {
+                    'university': 'University Students',
+                    'public': 'Public Users'
+                };
+                volunteerHTML += `<li>${sourceMap[source] || source}</li>`;
+            });
+            volunteerHTML += '</ul>';
+        }
     }
-    
-    if (event.volunteer_positions && Array.isArray(event.volunteer_positions)) {
-        volunteerHTML += '<div><strong>Available Positions:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-positions-list">';
-        event.volunteer_positions.forEach(position => {
-            volunteerHTML += `<li>${position}</li>`;
-        });
-        volunteerHTML += '</ul>';
-    }
-    
+
     volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
+    volunteerHTML += `<button class="btn btn-primary" onclick="applyAsVolunteer()" ${hasVolunteerSlots ? '' : 'disabled style="opacity:0.6;cursor:not-allowed;"'}>${hasVolunteerSlots ? 'Apply as Volunteer' : 'Volunteer Positions Filled'}</button>`;
     volunteerHTML += '</div>';
-    
+
     volunteerHTML += '</div>';
-    
+
     document.getElementById('volunteerCard').style.display = 'block';
     document.getElementById('volunteerInfo').innerHTML = volunteerHTML;
 }
@@ -1328,14 +1416,14 @@ function closeDonationModal() {
 function processDonation() {
     const selectedAmount = document.querySelector('.donation-amount.selected');
     const customAmount = document.getElementById('customDonationAmount').value;
-    
+
     const amount = selectedAmount ? selectedAmount.dataset.amount : customAmount;
-    
+
     if (!amount || amount < 100) {
         alert('Please select or enter a valid donation amount (minimum LKR 100)');
         return;
     }
-    
+
     // Here you would integrate with payment gateway
     alert(`Thank you for your donation of LKR ${amount}! Payment integration would be implemented here.`);
     closeDonationModal();
@@ -1347,23 +1435,14 @@ window.closeDonationModal = closeDonationModal;
 window.processDonation = processDonation;
 
 function applyAsVolunteer() {
-    // Get the event ID from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('id');
-    
-    // Redirect to volunteer registration page with event ID
-    if (eventId) {
-        window.location.href = `/unipulse/public/volunteerreg?event_id=${eventId}`;
-    } else {
-        alert('Event ID not found');
-    }
+    openVolunteerConsentModal();
 }
 
 // Event listeners for donation amounts
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const donationAmounts = document.querySelectorAll('.donation-amount');
     donationAmounts.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             donationAmounts.forEach(btn => btn.classList.remove('selected'));
             this.classList.add('selected');
             document.getElementById('customDonationAmount').value = '';
@@ -1403,7 +1482,7 @@ if (shareBtn) {
 
 // Comments event listeners - check if DOM is loaded
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         setupCommentsEventListeners();
     });
 } else {
@@ -1415,12 +1494,12 @@ function setupCommentsEventListeners() {
     // Character count for comment text
     const commentText = document.getElementById('commentText');
     const charCount = document.getElementById('charCount');
-    
+
     if (commentText && charCount) {
-        commentText.addEventListener('input', function() {
+        commentText.addEventListener('input', function () {
             const count = this.value.length;
             charCount.textContent = count;
-            
+
             if (count > 900) {
                 charCount.classList.add('danger');
                 charCount.classList.remove('warning');
@@ -1432,28 +1511,28 @@ function setupCommentsEventListeners() {
             }
         });
     }
-    
+
     // Rating input
     setupRatingInput('ratingInput', (rating) => {
         currentUserRating = rating;
         updateRatingText('ratingText', rating);
     });
-    
+
     // Edit comment modal rating
     setupRatingInput('editRatingInput', (rating) => {
         editingCommentRating = rating;
         updateRatingText('editRatingText', rating);
     });
-    
+
     // Edit comment character count
     const editCommentText = document.getElementById('editCommentText');
     const editCharCount = document.getElementById('editCharCount');
-    
+
     if (editCommentText && editCharCount) {
-        editCommentText.addEventListener('input', function() {
+        editCommentText.addEventListener('input', function () {
             const count = this.value.length;
             editCharCount.textContent = count;
-            
+
             if (count > 900) {
                 editCharCount.classList.add('danger');
                 editCharCount.classList.remove('warning');
@@ -1465,25 +1544,25 @@ function setupCommentsEventListeners() {
             }
         });
     }
-    
+
     // Form buttons
     const submitCommentBtn = document.getElementById('submitCommentBtn');
     const cancelCommentBtn = document.getElementById('cancelCommentBtn');
     const updateCommentBtn = document.getElementById('updateCommentBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    
+
     if (submitCommentBtn) {
         submitCommentBtn.addEventListener('click', submitComment);
     }
-    
+
     if (cancelCommentBtn) {
         cancelCommentBtn.addEventListener('click', hideCommentForm);
     }
-    
+
     if (updateCommentBtn) {
         updateCommentBtn.addEventListener('click', updateComment);
     }
-    
+
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', confirmDeleteComment);
     }
@@ -1493,20 +1572,20 @@ function setupCommentsEventListeners() {
 function setupRatingInput(containerId, callback) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    
+
     const stars = container.querySelectorAll('.star');
-    
+
     stars.forEach((star, index) => {
-        star.addEventListener('mouseenter', function() {
+        star.addEventListener('mouseenter', function () {
             highlightStars(container, index + 1);
         });
-        
-        star.addEventListener('mouseleave', function() {
+
+        star.addEventListener('mouseleave', function () {
             const currentRating = containerId === 'editRatingInput' ? editingCommentRating : currentUserRating;
             highlightStars(container, currentRating);
         });
-        
-        star.addEventListener('click', function() {
+
+        star.addEventListener('click', function () {
             const rating = index + 1;
             callback(rating);
             highlightStars(container, rating);
@@ -1532,15 +1611,15 @@ function highlightStars(container, rating) {
 function updateRatingText(textElementId, rating) {
     const textElement = document.getElementById(textElementId);
     if (!textElement) return;
-    
+
     const ratingTexts = {
         1: 'Poor',
-        2: 'Fair', 
+        2: 'Fair',
         3: 'Good',
         4: 'Very Good',
         5: 'Excellent'
     };
-    
+
     if (rating > 0) {
         textElement.textContent = `${ratingTexts[rating]} (${rating}/5)`;
     } else {
@@ -1551,18 +1630,18 @@ function updateRatingText(textElementId, rating) {
 // Load comments for the current event
 async function loadComments() {
     if (!currentEvent) return;
-    
+
     try {
         const response = await fetch(`/unipulse/public/user/comments/getComments?event_id=${currentEvent.id}`, {
             method: 'GET',
             credentials: 'same-origin' // Include session cookies
         });
         const data = await response.json();
-        
+
         if (data.success) {
             displayComments(data.comments);
             updateCommentsStats(data.stats);
-            
+
             // Check if user can comment
             checkUserCommentStatus();
         } else {
@@ -1581,14 +1660,14 @@ async function checkUserCommentStatus() {
         console.log('No current event found');
         return;
     }
-    
+
     // Check if user is logged in by looking for user info in the page
     const userElement = document.querySelector('.username, #username');
     const isLoggedInByPage = userElement && userElement.textContent.trim() !== '' && userElement.textContent.trim() !== 'Guest';
-    
+
     console.log('User element found:', userElement);
     console.log('Is logged in by page check:', isLoggedInByPage);
-    
+
     if (!isLoggedInByPage) {
         // User not logged in - show login prompt
         console.log('User not logged in - showing login prompt');
@@ -1598,7 +1677,7 @@ async function checkUserCommentStatus() {
         if (loginPrompt) loginPrompt.style.display = 'block';
         return;
     }
-    
+
     try {
         console.log(`Checking comment status for event ${currentEvent.id}`);
         const response = await fetch(`/unipulse/public/user/comments/checkUserComment/${currentEvent.id}`, {
@@ -1606,17 +1685,17 @@ async function checkUserCommentStatus() {
             credentials: 'same-origin' // Include session cookies
         });
         const data = await response.json();
-        
+
         console.log('Comment status response:', data);
-        
+
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
-        
+
         console.log('Elements found:', {
             addCommentTrigger: !!addCommentTrigger,
             loginPrompt: !!loginPrompt
         });
-        
+
         // If API says not logged in but page shows logged in, force show comment button
         if (!data.can_comment && data.debug === 'not_logged_in' && isLoggedInByPage) {
             console.log('API session issue detected - forcing comment button based on page auth');
@@ -1624,7 +1703,7 @@ async function checkUserCommentStatus() {
             if (loginPrompt) loginPrompt.style.display = 'none';
             return;
         }
-        
+
         if (data.can_comment) {
             // User can comment
             console.log('User can comment - showing add button');
@@ -1641,13 +1720,13 @@ async function checkUserCommentStatus() {
             if (addCommentTrigger) addCommentTrigger.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'block';
         }
-        
+
     } catch (error) {
         console.error('Error checking user comment status:', error);
         // Fallback: if logged in by page, show comment button
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
-        
+
         if (isLoggedInByPage) {
             console.log('API error but user is logged in - showing comment button');
             if (addCommentTrigger) addCommentTrigger.style.display = 'block';
@@ -1663,12 +1742,12 @@ async function checkUserCommentStatus() {
 function displayComments(comments) {
     const commentsList = document.getElementById('commentsList');
     if (!commentsList) return;
-    
+
     if (comments.length === 0) {
         displayEmptyComments();
         return;
     }
-    
+
     const commentsHTML = comments.map(comment => createCommentHTML(comment)).join('');
     commentsList.innerHTML = commentsHTML;
 }
@@ -1678,7 +1757,7 @@ function createCommentHTML(comment) {
     const userInitials = comment.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
     const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : '';
     const editedBadge = comment.is_edited ? '<span class="edited-badge">Edited</span>' : '';
-    
+
     const actionButtons = comment.can_edit || comment.can_delete ? `
         <div class="comment-actions">
             ${comment.can_edit ? `
@@ -1695,7 +1774,7 @@ function createCommentHTML(comment) {
             ` : ''}
         </div>
     ` : '';
-    
+
     return `
         <div class="comment-card" data-comment-id="${comment.id}">
             <div class="comment-header">
@@ -1731,7 +1810,7 @@ function createCommentHTML(comment) {
 function displayEmptyComments() {
     const commentsList = document.getElementById('commentsList');
     if (!commentsList) return;
-    
+
     commentsList.innerHTML = `
         <div class="empty-comments">
             <i class="fas fa-comments"></i>
@@ -1739,7 +1818,7 @@ function displayEmptyComments() {
             <p>Be the first to share your experience about this event.</p>
         </div>
     `;
-    
+
     // Check if user can comment when displaying empty state
     checkUserCommentStatus();
 }
@@ -1749,11 +1828,11 @@ function updateCommentsStats(stats) {
     const totalCommentsCount = document.getElementById('totalCommentsCount');
     const averageRatingDisplay = document.getElementById('averageRatingDisplay');
     const averageRatingValue = document.getElementById('averageRatingValue');
-    
+
     if (totalCommentsCount) {
         totalCommentsCount.textContent = stats.total_comments;
     }
-    
+
     if (stats.average_rating && averageRatingDisplay && averageRatingValue) {
         averageRatingValue.textContent = stats.average_rating;
         averageRatingDisplay.style.display = 'inline-flex';
@@ -1766,10 +1845,10 @@ function updateCommentsStats(stats) {
 function showCommentForm() {
     const addCommentSection = document.getElementById('addCommentSection');
     const addCommentTrigger = document.getElementById('addCommentTrigger');
-    
+
     if (addCommentSection) addCommentSection.style.display = 'block';
     if (addCommentTrigger) addCommentTrigger.style.display = 'none';
-    
+
     // Focus on textarea
     const commentText = document.getElementById('commentText');
     if (commentText) {
@@ -1784,10 +1863,10 @@ window.showCommentForm = showCommentForm;
 function hideCommentForm() {
     const addCommentSection = document.getElementById('addCommentSection');
     const addCommentTrigger = document.getElementById('addCommentTrigger');
-    
+
     if (addCommentSection) addCommentSection.style.display = 'none';
     if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-    
+
     // Reset form
     resetCommentForm();
 }
@@ -1797,13 +1876,13 @@ function resetCommentForm() {
     const commentText = document.getElementById('commentText');
     const charCount = document.getElementById('charCount');
     const ratingText = document.getElementById('ratingText');
-    
+
     if (commentText) commentText.value = '';
     if (charCount) {
         charCount.textContent = '0';
         charCount.classList.remove('warning', 'danger');
     }
-    
+
     currentUserRating = 0;
     highlightStars(document.getElementById('ratingInput'), 0);
     updateRatingText('ratingText', 0);
@@ -1812,34 +1891,34 @@ function resetCommentForm() {
 // Submit comment
 async function submitComment() {
     const commentText = document.getElementById('commentText').value.trim();
-    
+
     if (!commentText) {
         showToast('Please enter a comment', 'error');
         return;
     }
-    
+
     if (commentText.length < 5) {
         showToast('Comment must be at least 5 characters long', 'error');
         return;
     }
-    
+
     const submitBtn = document.getElementById('submitCommentBtn');
     const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
     submitBtn.disabled = true;
-    
+
     try {
         // Get user info from the page as fallback for session issues
         const userElement = document.querySelector('.username, #username');
         const userName = userElement ? userElement.textContent.trim() : '';
-        
+
         console.log('Submitting comment:', {
             event_id: currentEvent.id,
             comment_text: commentText,
             rating: currentUserRating,
             fallback_user_name: userName
         });
-        
+
         const response = await fetch('/unipulse/public/user/comments/addComment', {
             method: 'POST',
             headers: {
@@ -1854,16 +1933,28 @@ async function submitComment() {
                 fallback_user_name: userName // Add fallback user identification
             })
         });
-        
+
         console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+
+        const responseText = await response.text();
+        let data = null;
+
+        try {
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('Non-JSON addComment response:', responseText);
+            if (!response.ok) {
+                throw new Error(`Request failed (${response.status})`);
+            }
+            throw new Error('Invalid server response');
         }
-        
-        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data?.error || `HTTP error! status: ${response.status}`);
+        }
+
         console.log('Response data:', data);
-        
+
         if (data.success) {
             showToast('Comment posted successfully!', 'success');
             hideCommentForm();
@@ -1875,7 +1966,7 @@ async function submitComment() {
         }
     } catch (error) {
         console.error('Error posting comment:', error);
-        showToast('Failed to post comment', 'error');
+        showToast(error.message || 'Failed to post comment', 'error');
     } finally {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
@@ -1887,28 +1978,28 @@ function editComment(commentId) {
     // Find the comment
     const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
     if (!commentCard) return;
-    
+
     const commentContent = commentCard.querySelector('.comment-content').textContent.trim();
     const ratingElement = commentCard.querySelector('.rating-value');
     const currentRating = ratingElement ? parseInt(ratingElement.textContent.split('/')[0]) : 0;
-    
+
     // Set editing state
     editingCommentId = commentId;
     editingCommentRating = currentRating;
-    
+
     // Populate edit form
     const editCommentText = document.getElementById('editCommentText');
     const editCharCount = document.getElementById('editCharCount');
-    
+
     if (editCommentText) {
         editCommentText.value = commentContent;
         editCharCount.textContent = commentContent.length;
     }
-    
+
     // Set rating
     highlightStars(document.getElementById('editRatingInput'), currentRating);
     updateRatingText('editRatingText', currentRating);
-    
+
     // Show modal
     document.getElementById('editCommentModal').style.display = 'flex';
 }
@@ -1919,22 +2010,22 @@ window.editComment = editComment;
 // Update comment
 async function updateComment() {
     const commentText = document.getElementById('editCommentText').value.trim();
-    
+
     if (!commentText) {
         showToast('Please enter a comment', 'error');
         return;
     }
-    
+
     if (commentText.length < 5) {
         showToast('Comment must be at least 5 characters long', 'error');
         return;
     }
-    
+
     const updateBtn = document.getElementById('updateCommentBtn');
     const originalText = updateBtn.innerHTML;
     updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
     updateBtn.disabled = true;
-    
+
     try {
         const response = await fetch(`/unipulse/public/user/comments/updateComment/${editingCommentId}`, {
             method: 'POST',
@@ -1948,9 +2039,9 @@ async function updateComment() {
                 rating: editingCommentRating || null
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Comment updated successfully!', 'success');
             closeEditCommentModal();
@@ -1982,7 +2073,7 @@ async function confirmDeleteComment() {
     const originalText = deleteBtn.innerHTML;
     deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
     deleteBtn.disabled = true;
-    
+
     try {
         const response = await fetch(`/unipulse/public/user/comments/deleteComment/${editingCommentId}`, {
             method: 'POST',
@@ -1992,9 +2083,9 @@ async function confirmDeleteComment() {
             },
             credentials: 'same-origin' // Include session cookies
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showToast('Comment deleted successfully!', 'success');
             closeDeleteCommentModal();
@@ -2028,17 +2119,21 @@ window.closeEditCommentModal = closeEditCommentModal;
 window.closeDeleteCommentModal = closeDeleteCommentModal;
 
 // Close modals when clicking outside
-window.addEventListener('click', function(event) {
+window.addEventListener('click', function (event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
+    const volunteerConsentModal = document.getElementById('volunteerConsentModal');
     const editCommentModal = document.getElementById('editCommentModal');
     const deleteCommentModal = document.getElementById('deleteCommentModal');
-    
+
     if (event.target === joinModal) {
         closeJoinModal();
     }
     if (event.target === shareModal) {
         closeShareModal();
+    }
+    if (event.target === volunteerConsentModal) {
+        closeVolunteerConsentModal();
     }
     if (event.target === editCommentModal) {
         closeEditCommentModal();
@@ -2056,11 +2151,11 @@ function showToast(message, type = 'info') {
         <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
         ${message}
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => toast.classList.add('show'), 100);
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => document.body.removeChild(toast), 300);
@@ -2073,10 +2168,10 @@ function capitalizeFirstLetter(string) {
 }
 
 function formatDate(dateString) {
-    const options = { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+    const options = {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
 }

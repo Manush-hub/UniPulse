@@ -71,6 +71,181 @@ class UserDashboard extends Controller
     }
 
     /**
+     * API endpoint to get header notifications for users
+     * Notification source: newly published visible upcoming events
+     */
+    public function getNotifications()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated', 'notifications' => []]);
+            return;
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || !in_array($currentUser['type'] ?? '', ['public', 'university'])) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized', 'notifications' => []]);
+            return;
+        }
+
+        try {
+            $eventModel = new Event();
+
+            $userId = (int)($currentUser['id'] ?? 0);
+            $sessionKey = 'user_event_notifications_last_read_at_' . $userId;
+            $readItemsKey = 'user_event_notifications_read_items_' . $userId;
+
+            if (empty($_SESSION[$sessionKey])) {
+                $_SESSION[$sessionKey] = '1970-01-01 00:00:00';
+            }
+            if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
+                $_SESSION[$readItemsKey] = [];
+            }
+
+            $lastReadAt = $_SESSION[$sessionKey];
+            $readItems = $_SESSION[$readItemsKey];
+
+            // Use the same visibility rules as user event listings.
+            $events = $eventModel->getAllEvents([
+                'status' => 'upcoming',
+                'limit' => 100,
+                'offset' => 0
+            ], $currentUser);
+
+            if (!$events) {
+                echo json_encode([
+                    'success' => true,
+                    'notifications' => [],
+                    'unread_count' => 0
+                ]);
+                return;
+            }
+
+            // Sort by latest publish-related time (newest first).
+            // Using updated_at helps detect events that become visible later
+            // (e.g. pending -> upcoming approval flow).
+            usort($events, function ($a, $b) {
+                $aTime = strtotime($a->updated_at ?? $a->created_at ?? '1970-01-01 00:00:00');
+                $bTime = strtotime($b->updated_at ?? $b->created_at ?? '1970-01-01 00:00:00');
+                return $bTime <=> $aTime;
+            });
+
+            $notifications = [];
+            $unreadCount = 0;
+
+            foreach ($events as $event) {
+                $notificationTime = $event->updated_at ?? $event->created_at ?? date('Y-m-d H:i:s');
+                $eventId = (int)($event->id ?? 0);
+                $notificationKey = $eventId . '|' . $notificationTime;
+
+                $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
+                $isMarkedIndividually = in_array($notificationKey, $readItems, true);
+                $isUnread = !($isMarkedByTime || $isMarkedIndividually);
+
+                if ($isUnread) {
+                    $unreadCount++;
+                }
+
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => 'New Event Published',
+                    'message' => ($event->title ?? 'A new event') . ' is now available in All Events.',
+                    'time' => $this->formatRelativeTime($notificationTime),
+                    'read' => !$isUnread,
+                    'created_at' => $notificationTime,
+                    'notification_key' => $notificationKey
+                ];
+            }
+
+            echo json_encode([
+                'success' => true,
+                'notifications' => array_slice($notifications, 0, 10),
+                'unread_count' => $unreadCount
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in UserDashboard::getNotifications: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load notifications',
+                'notifications' => []
+            ]);
+        }
+    }
+
+    /**
+     * API endpoint to mark a single header notification as read
+     */
+    public function markNotificationRead()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || !in_array($currentUser['type'] ?? '', ['public', 'university'])) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+        $eventId = (int)($payload['event_id'] ?? 0);
+        $createdAt = trim((string)($payload['created_at'] ?? ''));
+
+        if ($eventId <= 0 || $createdAt === '') {
+            echo json_encode(['success' => false, 'error' => 'Invalid notification payload']);
+            return;
+        }
+
+        $userId = (int)($currentUser['id'] ?? 0);
+        $readItemsKey = 'user_event_notifications_read_items_' . $userId;
+        if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
+            $_SESSION[$readItemsKey] = [];
+        }
+
+        $notificationKey = $eventId . '|' . $createdAt;
+        if (!in_array($notificationKey, $_SESSION[$readItemsKey], true)) {
+            $_SESSION[$readItemsKey][] = $notificationKey;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Notification marked as read'
+        ]);
+    }
+
+    /**
+     * API endpoint to mark all header notifications as read
+     */
+    public function markAllNotificationsRead()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || !in_array($currentUser['type'] ?? '', ['public', 'university'])) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $userId = (int)($currentUser['id'] ?? 0);
+        $_SESSION['user_event_notifications_last_read_at_' . $userId] = date('Y-m-d H:i:s');
+        $_SESSION['user_event_notifications_read_items_' . $userId] = [];
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'All notifications marked as read'
+        ]);
+    }
+
+    /**
      * API endpoint to get user's registered upcoming events
      */
     public function getUpcomingEvents()
@@ -241,6 +416,78 @@ class UserDashboard extends Controller
                 'success' => false,
                 'error' => $e->getMessage(),
                 'trace' => DEBUG ? $e->getTraceAsString() : ''
+            ]);
+        }
+    }
+
+    /**
+     * API endpoint to get latest volunteering status
+     */
+    public function getVolunteeringStatus()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser) {
+                echo json_encode(['success' => false, 'error' => 'User data not found']);
+                return;
+            }
+
+            $userId = $currentUser['id'];
+            $userType = $currentUser['type'];
+
+            $volunteerReg = new VolunteerRegistration();
+
+            $sql = "SELECT vr.status, vr.created_at, vr.event_id,
+                           e.title, e.event_date, e.event_time
+                    FROM volunteer_registrations vr
+                    LEFT JOIN events e ON e.id = vr.event_id
+                    WHERE vr.user_id = :user_id
+                      AND vr.user_type = :user_type
+                      AND vr.status != 'withdrawn'
+                    ORDER BY vr.created_at DESC
+                    LIMIT 1";
+
+            $result = $volunteerReg->query($sql, [
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+
+            if (!$result || count($result) === 0) {
+                echo json_encode([
+                    'success' => true,
+                    'hasApplication' => false,
+                    'application' => null
+                ]);
+                return;
+            }
+
+            $latest = $result[0];
+
+            echo json_encode([
+                'success' => true,
+                'hasApplication' => true,
+                'application' => [
+                    'event_id' => $latest->event_id,
+                    'event_title' => $latest->title,
+                    'event_date' => $latest->event_date,
+                    'event_time' => $latest->event_time,
+                    'status' => $latest->status,
+                    'applied_at' => $latest->created_at
+                ]
+            ]);
+        } catch (Exception $e) {
+            error_log("Error in getVolunteeringStatus: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load volunteering status'
             ]);
         }
     }
@@ -644,6 +891,36 @@ class UserDashboard extends Controller
             return '"' . str_replace('"', '""', $value) . '"';
         }
         return $value;
+    }
+
+    /**
+     * Format timestamp as relative time text
+     */
+    private function formatRelativeTime($dateTime)
+    {
+        $timestamp = strtotime($dateTime ?: 'now');
+        $seconds = time() - $timestamp;
+
+        if ($seconds < 60) {
+            return 'Just now';
+        }
+
+        $minutes = floor($seconds / 60);
+        if ($minutes < 60) {
+            return $minutes . ' minute' . ($minutes > 1 ? 's' : '') . ' ago';
+        }
+
+        $hours = floor($minutes / 60);
+        if ($hours < 24) {
+            return $hours . ' hour' . ($hours > 1 ? 's' : '') . ' ago';
+        }
+
+        $days = floor($hours / 24);
+        if ($days < 7) {
+            return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+        }
+
+        return date('M d, Y', $timestamp);
     }
 
     /**

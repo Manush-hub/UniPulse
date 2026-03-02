@@ -1,12 +1,15 @@
 // Global state
 let currentEventFilter = 'all';
+let volunteerRefreshTimer = null;
 
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function () {
     try {
+        showVolunteerSuccessMessage();
         initializeDashboard();
         loadEventsManagement();
         loadVolunteerData();
+        startVolunteerAutoRefresh();
         loadRecentActivity();
         setupEventListeners();
         setupEventFilters();
@@ -70,67 +73,55 @@ const eventsData = [
     }
 ];
 
-const volunteerApplications = [
-    {
-        id: 1,
-        name: 'John Doe',
-        initials: 'JD',
-        role: 'Event Setup Crew',
-        status: 'pending'
-    },
-    {
-        id: 2,
-        name: 'Alice Smith',
-        initials: 'AS',
-        role: 'Registration Desk',
-        status: 'interviewed'
-    },
-    {
-        id: 3,
-        name: 'Robert Johnson',
-        initials: 'RJ',
-        role: 'Guest Services',
-        status: 'accepted'
-    },
-    {
-        id: 4,
-        name: 'Emma Wilson',
-        initials: 'EW',
-        role: 'Catering Assistant',
-        status: 'rejected'
-    }
-];
+function showVolunteerSuccessMessage() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('volunteer_applied') === '1') {
+        const toast = document.createElement('div');
+        toast.className = 'dashboard-success-toast';
+        toast.innerHTML = `
+            <div class="dashboard-success-toast-icon">✓</div>
+            <div class="dashboard-success-toast-content">
+                <h4>Volunteer Application Submitted</h4>
+                <p>Your volunteer application was submitted successfully.</p>
+            </div>
+            <button class="dashboard-success-toast-close" aria-label="Close">×</button>
+        `;
 
-const volunteerShifts = [
-    {
-        id: 1,
-        name: 'Michael Jones',
-        initials: 'MJ',
-        shift: 'Morning Shift (9am-1pm)',
-        status: 'confirmed'
-    },
-    {
-        id: 2,
-        name: 'Sarah Davis',
-        initials: 'SD',
-        shift: 'Afternoon Shift (1pm-5pm)',
-        status: 'confirmed'
-    },
-    {
-        id: 3,
-        name: 'Thomas Brown',
-        initials: 'TB',
-        shift: 'Evening Shift (5pm-9pm)',
-        status: 'pending'
-    },
-    {
-        id: 4,
-        name: 'Lisa White',
-        initials: 'LW',
-        shift: 'All Day (9am-5pm)',
-        status: 'interviewed'
+        document.body.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        const closeToast = () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 250);
+        };
+
+        const closeBtn = toast.querySelector('.dashboard-success-toast-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeToast);
+        }
+
+        setTimeout(closeToast, 5000);
+
+        params.delete('volunteer_applied');
+        const cleanQuery = params.toString();
+        const cleanUrl = `${window.location.pathname}${cleanQuery ? `?${cleanQuery}` : ''}`;
+        window.history.replaceState({}, document.title, cleanUrl);
     }
-];
+}
+
+function startVolunteerAutoRefresh() {
+    if (volunteerRefreshTimer) {
+        clearInterval(volunteerRefreshTimer);
+    }
+
+    volunteerRefreshTimer = setInterval(() => {
+        loadVolunteerData();
+    }, 30000);
+}
 
 const recentActivity = [
     {
@@ -572,51 +563,168 @@ function getStatusClass(status) {
 
 // Load volunteer data
 function loadVolunteerData() {
-    const applicationsList = document.querySelector('.volunteer-list.applications');
-    const shiftsList = document.querySelector('.volunteer-list.shifts');
+    const applicationsList = document.getElementById('volunteerApplicationsList');
+    const shiftsList = document.getElementById('volunteerShiftsList');
 
     if (applicationsList) {
-        applicationsList.innerHTML = '';
-        volunteerApplications.forEach(volunteer => {
-            const volunteerItem = document.createElement('div');
-            volunteerItem.className = 'volunteer-item';
-            volunteerItem.innerHTML = `
-                <div class="volunteer-info">
-                    <div class="volunteer-avatar">${volunteer.initials}</div>
-                    <div>
-                        <div class="volunteer-name">${volunteer.name}</div>
-                        <div>${volunteer.role}</div>
-                    </div>
-                </div>
-                <span class="volunteer-status status-${volunteer.status}">${capitalizeFirstLetter(volunteer.status)}</span>
-            `;
-            applicationsList.appendChild(volunteerItem);
-        });
+        applicationsList.innerHTML = '<div class="no-data">Loading applications...</div>';
+    }
+    if (shiftsList) {
+        shiftsList.innerHTML = '<div class="no-data">Loading shifts...</div>';
     }
 
-    if (shiftsList) {
-        shiftsList.innerHTML = '';
-        volunteerShifts.forEach(volunteer => {
-            const volunteerItem = document.createElement('div');
-            volunteerItem.className = 'volunteer-item';
-            volunteerItem.innerHTML = `
-                <div class="volunteer-info">
-                    <div class="volunteer-avatar">${volunteer.initials}</div>
-                    <div>
-                        <div class="volunteer-name">${volunteer.name}</div>
-                        <div>${volunteer.shift}</div>
-                    </div>
-                </div>
-                <span class="volunteer-status status-${volunteer.status}">${capitalizeFirstLetter(volunteer.status)}</span>
-            `;
-            shiftsList.appendChild(volunteerItem);
+    fetch('/unipulse/public/publisher/dashboard/getVolunteerData', { cache: 'no-store' })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch volunteer data');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load volunteer data');
+            }
+
+            const applications = Array.isArray(data.applications) ? data.applications : [];
+            const shifts = Array.isArray(data.shifts) ? data.shifts : [];
+
+            if (applicationsList) {
+                if (applications.length === 0) {
+                    applicationsList.innerHTML = '<div class="no-data">No volunteer applications yet.</div>';
+                } else {
+                    applicationsList.innerHTML = '';
+                    applications.forEach(volunteer => {
+                        const initials = getInitials(volunteer.name);
+                        const volunteerItem = document.createElement('div');
+                        volunteerItem.className = 'activity-item volunteer-item';
+                        const isPending = volunteer.status === 'pending';
+                        volunteerItem.innerHTML = `
+                            <div class="activity-icon volunteer-avatar">${initials}</div>
+                            <div class="activity-content volunteer-info-content">
+                                <h4 class="volunteer-name">${volunteer.name}</h4>
+                                <p>${volunteer.role} • ${volunteer.event_title}</p>
+                                <span class="activity-time">Application: ${capitalizeFirstLetter(volunteer.status)}</span>
+                            </div>
+                            <div class="volunteer-controls">
+                                <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
+                                ${isPending ? `
+                                <div class="volunteer-actions">
+                                    <button class="volunteer-action-btn approve" onclick="updateVolunteerStatus(${volunteer.id}, 'accepted')">Approve</button>
+                                    <button class="volunteer-action-btn reject" onclick="updateVolunteerStatus(${volunteer.id}, 'rejected')">Reject</button>
+                                </div>
+                                ` : ''}
+                            </div>
+                        `;
+                        applicationsList.appendChild(volunteerItem);
+                    });
+                }
+            }
+
+            if (shiftsList) {
+                if (shifts.length === 0) {
+                    shiftsList.innerHTML = '<div class="no-data">No accepted volunteer shifts yet.</div>';
+                } else {
+                    shiftsList.innerHTML = '';
+                    shifts.forEach(volunteer => {
+                        const initials = getInitials(volunteer.name);
+                        const volunteerItem = document.createElement('div');
+                        volunteerItem.className = 'activity-item volunteer-item';
+                        volunteerItem.innerHTML = `
+                            <div class="activity-icon volunteer-avatar">${initials}</div>
+                            <div class="activity-content volunteer-info-content">
+                                <h4 class="volunteer-name">${volunteer.name}</h4>
+                                <p>${volunteer.shift} • ${volunteer.event_title}</p>
+                                <span class="activity-time">Shift assigned</span>
+                            </div>
+                            <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
+                        `;
+                        shiftsList.appendChild(volunteerItem);
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading volunteer data:', error);
+            if (applicationsList) {
+                applicationsList.innerHTML = '<div class="no-data">Failed to load applications.</div>';
+            }
+            if (shiftsList) {
+                shiftsList.innerHTML = '<div class="no-data">Failed to load shifts.</div>';
+            }
         });
-    }
 }
+
+function getInitials(name) {
+    if (!name) return 'NA';
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    return parts.map(part => part.charAt(0).toUpperCase()).join('');
+}
+
+function mapVolunteerStatusClass(status) {
+    if (status === 'pending') return 'status-new';
+    if (status === 'accepted') return 'status-upcoming';
+    if (status === 'rejected') return 'rejected';
+    return 'status-ongoing';
+}
+
+function showDashboardToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 250);
+    }, 3000);
+}
+
+function updateVolunteerStatus(registrationId, status) {
+    const formData = new FormData();
+    formData.append('registration_id', registrationId);
+    formData.append('status', status);
+
+    fetch('/unipulse/public/publisher/dashboard/updateVolunteerStatus', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update volunteer status');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to update volunteer status');
+            }
+
+            loadVolunteerData();
+
+            const statusLabel = status === 'accepted'
+                ? 'approved'
+                : status === 'rejected'
+                    ? 'rejected'
+                    : 'updated';
+            showDashboardToast(`Volunteer application ${statusLabel} successfully.`, 'success');
+        })
+        .catch(error => {
+            console.error('Error updating volunteer status:', error);
+            showDashboardToast('Failed to update volunteer status. Please try again.', 'error');
+        });
+}
+
+window.updateVolunteerStatus = updateVolunteerStatus;
 
 // Load recent activity
 function loadRecentActivity() {
-    const activityList = document.querySelector('.activity-list');
+    const activityList = document.getElementById('activityList');
     if (!activityList) return;
 
     activityList.innerHTML = '';

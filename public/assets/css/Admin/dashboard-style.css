@@ -863,6 +863,11 @@ body {
     color: #d97706;
 }
 
+.status-rejected {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
 .status-inactive {
     background: #f3f4f6;
     color: #6b7280;

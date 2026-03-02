@@ -38,7 +38,7 @@ textarea {
 
 .header {
     background: white !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
     padding: 1rem 0 !important;
     position: sticky !important;
     top: 0 !important;
@@ -125,6 +125,10 @@ textarea {
     justify-content: center !important;
 }
 
+.notification-badge.hidden {
+    display: none !important;
+}
+
 .notification-dropdown {
     position: absolute !important;
     top: 100% !important;
@@ -132,7 +136,7 @@ textarea {
     width: 320px !important;
     background: white !important;
     border-radius: 12px !important;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
     display: none !important;
     z-index: 1000 !important;
     margin-top: 0.5rem !important;
@@ -269,7 +273,7 @@ textarea {
     width: 200px !important;
     background: white !important;
     border-radius: 12px !important;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
     display: none !important;
     z-index: 1000 !important;
     margin-top: 0.5rem !important;
@@ -302,13 +306,13 @@ textarea {
     border-top: 1px solid #f3f4f6 !important;
 }
 
-@media (max-width: 768px){
+@media (max-width: 768px) {
     .header-container {
         padding: 0 1rem !important;
         flex-wrap: wrap !important;
         gap: 1rem !important;
     }
-    
+
     .nav {
         order: 3 !important;
         width: 100% !important;
