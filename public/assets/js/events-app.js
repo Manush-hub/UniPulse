@@ -84,7 +84,7 @@ function setupEventListeners() {
             });
         }
         // Update category counts initially
-        updateCategoryCounts(allEvents);
+        // updateCategoryCounts(allEvents);
     }
 }
 
@@ -102,38 +102,38 @@ function debounce(func, wait) {
 }
 
 // Update category counts for ongoing and upcoming events only (User role)
-function updateCategoryCounts(events) {
-    if (!config.showCategoryHeader) return;
+// function updateCategoryCounts(events) {
+//     if (!config.showCategoryHeader) return;
     
-    const categoryCounts = {
-        'technology': 0,
-        'sports': 0,
-        'cultural': 0,
-        'academic': 0,
-        'social': 0
-    };
+//     const categoryCounts = {
+//         'technology': 0,
+//         'sports': 0,
+//         'cultural': 0,
+//         'academic': 0,
+//         'social': 0
+//     };
 
-    events.forEach(event => {
-        const status = getEventStatus(event.event_date || event.date);
-        if (status === 'upcoming' || status === 'ongoing') {
-            const category = (event.category || '').toLowerCase();
-            if (categoryCounts.hasOwnProperty(category)) {
-                categoryCounts[category]++;
-            }
-        }
-    });
+//     events.forEach(event => {
+//         const status = getEventStatus(event.event_date || event.date);
+//         if (status === 'upcoming' || status === 'ongoing' || status === 'completed') {
+//             const category = (event.category || '').toLowerCase();
+//             if (categoryCounts.hasOwnProperty(category)) {
+//                 categoryCounts[category]++;
+//             }
+//         }
+//     });
 
-    const categoriesContainer = document.getElementById('categoriesContainer');
-    if (categoriesContainer) {
-        categoriesContainer.querySelectorAll('p[data-category]').forEach(categoryItem => {
-            const category = categoryItem.getAttribute('data-category');
-            const countSpan = categoryItem.querySelector('.category-count');
-            if (countSpan) {
-                countSpan.textContent = categoryCounts[category] || 0;
-            }
-        });
-    }
-}
+//     const categoriesContainer = document.getElementById('categoriesContainer');
+//     if (categoriesContainer) {
+//         categoriesContainer.querySelectorAll('p[data-category]').forEach(categoryItem => {
+//             const category = categoryItem.getAttribute('data-category');
+//             const countSpan = categoryItem.querySelector('.category-count');
+//             if (countSpan) {
+//                 countSpan.textContent = categoryCounts[category] || 0;
+//             }
+//         });
+//     }
+// }
 
 // Filter events by category from the category header
 function filterByCategory(category) {
@@ -153,11 +153,11 @@ function fetchAllEventsForCounting() {
     
     fetch(apiEndpoint)
         .then(response => response.json())
-        .then(data => {
-            if (data.success && data.events) {
-                updateCategoryCounts(data.events);
-            }
-        })
+        // .then(data => {
+        //     if (data.success && data.events) {
+        //         updateCategoryCounts(data.events);
+        //     }
+        // })
         .catch(error => console.error('Error fetching events for counting:', error));
 }
 

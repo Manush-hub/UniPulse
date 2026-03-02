@@ -85,7 +85,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="container">
                 <h1><?php echo $config['pageHeading']; ?></h1>
                 <p><?php echo $config['pageDescription']; ?></p>
-                <?php if ($config['showCategories']): ?>
+                <!-- <?php if ($config['showCategories']): ?>
                 <div class="container_categories" id="categoriesContainer">
                     <p data-category="technology">Technology <span class="category-count">0</span></p>
                     <p data-category="sports">Sports <span class="category-count">0</span></p>
@@ -93,7 +93,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <p data-category="academic">Academic <span class="category-count">0</span></p>
                     <p data-category="social">Social <span class="category-count">0</span></p>
                 </div>
-                <?php endif; ?>
+                <?php endif; ?> -->
             </div>
         </div>
 
