@@ -241,7 +241,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         </div>
                     </div>
 
-                    <div class="section-header">
+                    <div class="section-header" id="registrationSectionHeader">
                         <h2 class="section-title">Registration & Ticketing</h2>
                         <p class="section-subtitle">Get your tickets or register for this event</p>
                     </div>
@@ -322,15 +322,15 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-value" id="ticketPrice">LKR 0.00</span>
                                         </div>
                                         <?php if ($config['purchaseTicketFunction']): ?>
-                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
-                                            <i class="fas fa-shopping-cart"></i>
-                                            Proceed to Payment
-                                        </button>
+                                            <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                Proceed to Payment
+                                            </button>
                                         <?php else: ?>
-                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
-                                            <i class="fas fa-info-circle"></i>
-                                            <strong>Note:</strong> Only university and public users can purchase tickets.
-                                        </div>
+                                            <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Note:</strong> Only university and public users can purchase tickets.
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -362,15 +362,15 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-value" id="mixedTicketPrice">LKR 0.00</span>
                                         </div>
                                         <?php if ($config['purchaseTicketFunction']): ?>
-                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
-                                            <i class="fas fa-shopping-cart"></i>
-                                            Buy Tickets Now
-                                        </button>
+                                            <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                Buy Tickets Now
+                                            </button>
                                         <?php else: ?>
-                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
-                                            <i class="fas fa-info-circle"></i>
-                                            <strong>Note:</strong> Only university and public users can purchase tickets.
-                                        </div>
+                                            <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Note:</strong> Only university and public users can purchase tickets.
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -378,17 +378,31 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         </div>
                     </div>
 
-                    <div class="content-card" id="volunteerCard" style="display: none;">
-                        <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
-                        <div id="volunteerInfo"></div>
+                    <div class="section-header" id="volunteerDonationHeader" style="display: none;">
+                        <h2 class="section-title">Volunteer & Donations</h2>
                     </div>
 
-                    <?php if ($currentRole !== 'User'): ?>
-                        <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
-                            <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
-                            <div id="volunteerInvolvementInfo"></div>
+                    <div class="details-grid" id="volunteerDonationGrid" style="display: none;">
+                        <div class="content-card" id="volunteerCard" style="display: none;">
+                            <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
+                            <div id="volunteerInfo"></div>
                         </div>
-                    <?php endif; ?>
+
+                        <div class="content-card" id="donationCard" style="display: none;">
+                            <h3><i class="fas fa-hand-holding-heart"></i> Support This Event</h3>
+                            <p>Contribute to this event with a donation.</p>
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="openDonationModal()">Donate Now</button>
+                            </div>
+                        </div>
+
+                        <?php if ($currentRole !== 'User'): ?>
+                            <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                                <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                                <div id="volunteerInvolvementInfo"></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -597,10 +611,10 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="modal-body">
                 <p>Support this event with a donation:</p>
                 <div class="donation-amounts">
-                    <button class="donation-btn" data-amount="500">LKR 500</button>
-                    <button class="donation-btn" data-amount="1000">LKR 1,000</button>
-                    <button class="donation-btn" data-amount="2000">LKR 2,000</button>
-                    <input type="number" id="customAmount" placeholder="Custom amount" class="custom-amount-input">
+                    <button class="donation-btn donation-amount" data-amount="500">LKR 500</button>
+                    <button class="donation-btn donation-amount" data-amount="1000">LKR 1,000</button>
+                    <button class="donation-btn donation-amount" data-amount="2000">LKR 2,000</button>
+                    <input type="number" id="customDonationAmount" placeholder="Custom amount" class="custom-amount-input">
                 </div>
             </div>
             <div class="modal-footer">
@@ -774,10 +788,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                 // Redirect to payment page
                 window.location.href = `/unipulse/public/payment/ticket?event_id=${eventId}`;
             }
-            
-            // Redirect to payment page (PayHere)
-            window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
-        }
         <?php endif; ?>
 
         <?php if ($config['visitProfileFunction']): ?>

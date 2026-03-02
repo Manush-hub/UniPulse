@@ -1,68 +1,71 @@
 <?php
 
-class PublisherEvents extends Controller{
+class PublisherEvents extends Controller
+{
 
     private $eventModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         parent::__construct();
         // Initialize Event model
         $this->eventModel = new Event();
     }
 
-    public function index($a = '', $b = '' , $c = ''){
-        
+    public function index($a = '', $b = '', $c = '')
+    {
+
         // Check if user is logged in and is a publisher
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
             header('Location: /unipulse/public/signin');
             exit();
         }
-        
+
         $data = [];
-        
+
         try {
             // Get filters from request
             $filters = [];
-            
+
             if (isset($_GET['category']) && !empty($_GET['category'])) {
                 $filters['category'] = $_GET['category'];
             }
-            
+
             if (isset($_GET['university']) && !empty($_GET['university'])) {
                 $filters['university'] = $_GET['university'];
             }
-            
+
             if (isset($_GET['status']) && !empty($_GET['status'])) {
                 $filters['status'] = $_GET['status'];
             }
-            
+
             if (isset($_GET['search']) && !empty($_GET['search'])) {
                 $filters['search'] = $_GET['search'];
             }
-            
+
             // Get pagination parameters
             $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
             $limit = 6; // Events per page
             $offset = ($page - 1) * $limit;
-            
+
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
-            
+
             // Get current user role
             $currentUser = AuthService::getCurrentUser();
             $userRole = $currentUser ? $currentUser['type'] : 'user';
-            
+
             // Get total events (without limit/offset) for JavaScript to handle pagination
             $allEventsFilters = $filters;
             unset($allEventsFilters['limit']);
             unset($allEventsFilters['offset']);
             $allEvents = $this->eventModel->getAllEvents($allEventsFilters, $currentUser);
-            
+
             // Get paginated events for initial display
             $events = $this->eventModel->getAllEvents($filters, $currentUser);
-            
+
             $totalPages = ceil(count($allEvents) / $limit);
-            
+
             // Prepare data for view with server data for JavaScript
             $data = [
                 'events' => $events,
@@ -77,7 +80,6 @@ class PublisherEvents extends Controller{
                     'apiEndpoint' => '/unipulse/public/publisher/events/getEvents'
                 ]
             ];
-            
         } catch (Exception $e) {
             // Log error and show user-friendly message
             error_log("Database error in PublisherEvents::index: " . $e->getMessage());
@@ -96,60 +98,61 @@ class PublisherEvents extends Controller{
                 ]
             ];
         }
-        
+
         $data['userRole'] = 'Publisher';
-        
+
         $this->view('events', $data);
     }
-    
+
     /**
      * API endpoint to get events as JSON
      */
-    public function getEvents() {
+    public function getEvents()
+    {
         header('Content-Type: application/json');
-        
+
         try {
             // Get filters from request
             $filters = [];
-            
+
             if (isset($_GET['category']) && !empty($_GET['category'])) {
                 $filters['category'] = $_GET['category'];
             }
-            
+
             if (isset($_GET['university']) && !empty($_GET['university'])) {
                 $filters['university'] = $_GET['university'];
             }
-            
+
             if (isset($_GET['status']) && !empty($_GET['status'])) {
                 $filters['status'] = $_GET['status'];
             }
-            
+
             if (isset($_GET['search']) && !empty($_GET['search'])) {
                 $filters['search'] = $_GET['search'];
             }
-            
+
             // Get pagination parameters
             $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
             $limit = isset($_GET['limit']) ? max(1, intval($_GET['limit'])) : 6;
             $offset = ($page - 1) * $limit;
-            
+
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
-            
+
             // Get current user role
             $currentUser = AuthService::getCurrentUser();
             $userRole = $currentUser ? $currentUser['type'] : 'user';
-            
+
             // Get events from database based on user role
             $events = $this->eventModel->getEventsByRole($userRole, $filters, $currentUser);
-            
+
             // Format events for JSON response
             $formattedEvents = [];
             foreach ($events as $event) {
                 $formattedEvent = $this->formatEventForResponse($event);
                 $formattedEvents[] = $formattedEvent;
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'events' => $formattedEvents,
@@ -159,7 +162,6 @@ class PublisherEvents extends Controller{
                     'hasMore' => count($events) == $limit
                 ]
             ]);
-            
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in PublisherEvents::getEvents: " . $e->getMessage());
@@ -174,28 +176,36 @@ class PublisherEvents extends Controller{
                 ]
             ]);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Helper method to format event data for API responses
      */
-    private function formatEventForResponse($event) {
+    private function formatEventForResponse($event)
+    {
         $formattedEvent = (array) $event;
-        
-        // Calculate actual status based on event date
-        $currentDate = date('Y-m-d');
-        if (isset($formattedEvent['event_date'])) {
-            if ($formattedEvent['event_date'] < $currentDate) {
-                $formattedEvent['status'] = 'past';
-            } elseif ($formattedEvent['event_date'] == $currentDate) {
-                $formattedEvent['status'] = 'ongoing';
-            } elseif ($formattedEvent['event_date'] > $currentDate) {
+
+        // Calculate actual status based on event date + start time + end time
+        if (!empty($formattedEvent['event_date']) && !empty($formattedEvent['event_time'])) {
+            $nowTs = time();
+            $startTs = strtotime($formattedEvent['event_date'] . ' ' . $formattedEvent['event_time']);
+            $endTs = !empty($formattedEvent['event_end_time'])
+                ? strtotime($formattedEvent['event_date'] . ' ' . $formattedEvent['event_end_time'])
+                : null;
+
+            if ($startTs !== false && $startTs > $nowTs) {
                 $formattedEvent['status'] = 'upcoming';
+            } elseif ($endTs !== null && $endTs !== false && $nowTs >= $endTs) {
+                $formattedEvent['status'] = 'completed';
+            } elseif ($endTs === null && strtotime($formattedEvent['event_date']) < strtotime(date('Y-m-d'))) {
+                $formattedEvent['status'] = 'completed';
+            } else {
+                $formattedEvent['status'] = 'ongoing';
             }
         }
-        
+
         // Decode JSON fields
         if (isset($formattedEvent['requirements']) && is_string($formattedEvent['requirements'])) {
             $formattedEvent['requirements'] = json_decode($formattedEvent['requirements'], true) ?: [];
@@ -203,16 +213,16 @@ class PublisherEvents extends Controller{
         if (isset($formattedEvent['schedule']) && is_string($formattedEvent['schedule'])) {
             $formattedEvent['schedule'] = json_decode($formattedEvent['schedule'], true) ?: [];
         }
-        
+
         // Format date and time for frontend
         if (isset($formattedEvent['event_date'])) {
             $formattedEvent['date'] = $formattedEvent['event_date'];
         }
-        
+
         if (isset($formattedEvent['event_time'])) {
             $formattedEvent['time'] = date('h:i A', strtotime($formattedEvent['event_time']));
         }
-        
+
         return $formattedEvent;
     }
 }

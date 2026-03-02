@@ -142,6 +142,7 @@ class PublisherCreateevent extends Controller
                 'category' => $_POST['event_category'] ?? '',
                 'event_date' => $_POST['event_date'] ?? '',
                 'event_time' => $_POST['event_time'] ?? '',
+                'event_end_time' => !empty($_POST['event_end_time']) ? $_POST['event_end_time'] : null,
                 'location' => $location,
                 'location_type' => $locationType,
                 'venue_name' => $_POST['venue_name'] ?? '',
