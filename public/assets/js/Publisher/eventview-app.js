@@ -2618,80 +2618,9 @@ function closeDeleteCommentModal() {
 
 // Ticket Purchase Function
 function buyTickets() {
-    console.log('buyTickets called');
-    
-    if (!currentEvent) {
-        console.error('currentEvent is not defined');
-        alert('Event data not available. Please refresh the page and try again.');
-        return;
-    }
-    
-    console.log('Current event:', currentEvent);
-    
-    const allTickets = document.querySelectorAll('.ticket-option');
-    console.log('Found tickets:', allTickets.length);
-    
-    if (allTickets.length === 0) {
-        console.error('No ticket options found in the page');
-        alert('No tickets available. Please refresh the page.');
-        return;
-    }
-    
-    const ticketSelections = [];
-    let totalPrice = 0;
-    
-    allTickets.forEach(ticket => {
-        const index = ticket.dataset.ticketIndex;
-        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
-                            document.getElementById(`mixed-ticket-quantity-${index}`);
-        const quantity = parseInt(quantityInput?.value) || 0;
-        
-        if (quantity > 0) {
-            const ticketName = ticket.dataset.ticketName;
-            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
-            const subtotal = ticketPrice * quantity;
-            
-            ticketSelections.push({
-                index: index,
-                name: ticketName,
-                price: ticketPrice,
-                quantity: quantity,
-                subtotal: subtotal
-            });
-            
-            totalPrice += subtotal;
-        }
-    });
-    
-    console.log('Ticket selections:', ticketSelections);
-    console.log('Total price:', totalPrice);
-    
-    if (ticketSelections.length === 0) {
-        alert('Please select at least one ticket by setting quantity greater than 0');
-        return;
-    }
-    
-    const paymentData = {
-        eventId: currentEvent.id,
-        eventTitle: currentEvent.title,
-        tickets: ticketSelections,
-        totalAmount: totalPrice,
-        timestamp: Date.now()
-    };
-    
-    sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
-    console.log('Payment data saved to sessionStorage');
-    
-    const publisherId = currentEvent.created_by || currentEvent.organizerId;
-    const paymentUrl = `/unipulse/public/payment?` +
-        `amount=${totalPrice.toFixed(2)}` +
-        `&type=ticket` +
-        `&event_id=${currentEvent.id}` +
-        (publisherId ? `&publisher_id=${publisherId}` : '') +
-        `&description=${encodeURIComponent('Ticket for ' + currentEvent.title)}`;
-    
-    console.log('Redirecting to:', paymentUrl);
-    window.location.href = paymentUrl;
+    // Publishers cannot buy tickets - show message
+    alert('Publishers cannot purchase tickets. Only university and public users can buy tickets.');
+    return;
 }
 
 // Expose functions globally for inline event handlers

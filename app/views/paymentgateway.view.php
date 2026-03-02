@@ -39,6 +39,24 @@
                 <div class="payment-form-step active" data-step="1">
                     <h2 style="margin-bottom: 20px;">Select Tickets</h2>
 
+                    <?php
+                        // Get ticket price from event data
+                        $eventTicketPrice = 0;
+                        if (isset($data['event']) && isset($data['event']->ticket_types)) {
+                            $ticketTypes = $data['event']->ticket_types;
+                            if (is_string($ticketTypes)) {
+                                $ticketTypes = json_decode($ticketTypes, true);
+                            }
+                            if (is_array($ticketTypes) && !empty($ticketTypes)) {
+                                $firstTicket = $ticketTypes[0];
+                                $eventTicketPrice = $firstTicket['discounted_price'] ?? $firstTicket['price'] ?? 0;
+                            }
+                        }
+                    ?>
+                    <input type="hidden" id="eventId" value="<?= htmlspecialchars($data['event_id'] ?? '') ?>">
+                    <input type="hidden" id="publisherId" value="<?= htmlspecialchars($data['event']->created_by ?? '') ?>">
+                    <input type="hidden" id="eventTitle" value="<?= htmlspecialchars($data['event']->title ?? 'Event') ?>">
+
                     <div class="payment-form-group">
                         <label class="payment-label">Ticket Quantity</label>
                         <div class="payment-ticket-controls">
@@ -48,7 +66,7 @@
                                 <button type="button" onclick="increaseQuantity()">+</button>
                             </div>
                             <div class="payment-ticket-price">
-                                Rs <span id="ticketPrice">50.00</span> each
+                                Rs <span id="ticketPrice"><?= number_format($eventTicketPrice, 2) ?></span> each
                             </div>
                         </div>
                     </div>
@@ -57,7 +75,7 @@
                         <h3 style="margin-bottom: 15px;">Order Summary</h3>
                         <div class="payment-summary-row">
                             <span>Ticket Price:</span>
-                            <span>Rs <span id="displayPrice">50.00</span></span>
+                            <span>Rs <span id="displayPrice"><?= number_format($eventTicketPrice, 2) ?></span></span>
                         </div>
                         <div class="payment-summary-row">
                             <span>Quantity:</span>
@@ -65,7 +83,7 @@
                         </div>
                         <div class="payment-summary-row total">
                             <span>Total:</span>
-                            <span>Rs <span id="totalPrice">50.00</span></span>
+                            <span>Rs <span id="totalPrice"><?= number_format($eventTicketPrice, 2) ?></span></span>
                         </div>
                     </div>
 
@@ -86,11 +104,11 @@
                         </div>
                         <div class="payment-summary-row">
                             <span>Ticket Price:</span>
-                            <span>Rs <span id="summaryPrice">50.00</span></span>
+                            <span>Rs <span id="summaryPrice"><?= number_format($eventTicketPrice, 2) ?></span></span>
                         </div>
                         <div class="payment-summary-row total">
                             <span>Total:</span>
-                            <span>Rs <span id="summaryTotal">50.00</span></span>
+                            <span>Rs <span id="summaryTotal"><?= number_format($eventTicketPrice, 2) ?></span></span>
                         </div>
                     </div>
 
@@ -190,7 +208,7 @@
 
     <script>
         let currentStep = 1;
-        let ticketPrice = 50.00;
+        let ticketPrice = <?= (float)$eventTicketPrice ?>;
         let selectedPaymentMethod = 'card';
         let hasUploadedSlip = false;
         let currentOrderId = '';
@@ -400,28 +418,85 @@
         }
 
         function processPayment() {
-            if (validateStep(2)) {
-                // Generate order ID
-                currentOrderId = Math.floor(100000 + Math.random() * 900000).toString();
+            if (!validateStep(2)) return;
 
-                if (selectedPaymentMethod === 'slip') {
-                    // For slip payment, show pending confirmation
-                    document.getElementById('confirmationTitle').textContent = 'Payment Slip Uploaded!';
-                    document.getElementById('confirmationMessage').innerHTML =
-                        'Your payment slip has been uploaded successfully.<br>' +
-                        'Your tickets are pending confirmation and will be activated after payment verification.<br>' +
-                        'This usually takes 1-2 business days.';
+            const paymentButton = document.getElementById('paymentButton');
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Processing...';
+
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            const totalAmount = (ticketPrice * quantity).toFixed(2);
+            const eventId = document.getElementById('eventId').value;
+            const publisherId = document.getElementById('publisherId').value;
+            const eventTitle = document.getElementById('eventTitle').value;
+
+            // Build form data to send to the server
+            const formData = new FormData();
+            formData.append('event_id', eventId);
+            formData.append('payment_method', selectedPaymentMethod);
+            formData.append('amount', totalAmount);
+            formData.append('quantity', quantity);
+
+            // If payment slip, attach the file
+            if (selectedPaymentMethod === 'slip') {
+                const slipFile = document.getElementById('slipFile').files[0];
+                if (slipFile) {
+                    formData.append('payment_slip', slipFile);
                 }
-
-                currentStep = 3;
-                updateProgress();
-                showStep(3);
-
-                // Set order ID and generate barcode
-                document.getElementById('orderId').textContent = currentOrderId;
-                document.getElementById('barcodeOrderId').textContent = currentOrderId;
-                generateBarcode(currentOrderId);
             }
+
+            // Send AJAX request to backend
+            console.log('Sending payment request:', {
+                event_id: eventId,
+                payment_method: selectedPaymentMethod,
+                amount: totalAmount,
+                quantity: quantity
+            });
+
+            fetch('<?= ROOT ?>/user/paymentgateway/processPayment', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Payment response:', data);
+                if (data.success) {
+                    currentOrderId = data.transaction_id || Math.floor(100000 + Math.random() * 900000).toString();
+
+                    if (selectedPaymentMethod === 'slip') {
+                        document.getElementById('confirmationTitle').textContent = 'Payment Slip Uploaded!';
+                        document.getElementById('confirmationMessage').innerHTML =
+                            'Your payment slip has been uploaded successfully.<br>' +
+                            'Your tickets are pending confirmation and will be activated after payment verification.<br>' +
+                            'This usually takes 1-2 business days.';
+                    }
+
+                    currentStep = 3;
+                    updateProgress();
+                    showStep(3);
+
+                    // Set order ID and generate barcode
+                    document.getElementById('orderId').textContent = currentOrderId;
+                    document.getElementById('barcodeOrderId').textContent = currentOrderId;
+                    generateBarcode(currentOrderId);
+                } else {
+                    alert('Payment failed: ' + (data.error || 'Unknown error. Please try again.'));
+                    paymentButton.disabled = false;
+                    paymentButton.textContent = selectedPaymentMethod === 'slip' ? 'Upload Payment Slip' : 'Complete Payment';
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                alert('Payment processing failed. Please try again.');
+                paymentButton.disabled = false;
+                paymentButton.textContent = selectedPaymentMethod === 'slip' ? 'Upload Payment Slip' : 'Complete Payment';
+            });
         }
 
         function resetForm() {

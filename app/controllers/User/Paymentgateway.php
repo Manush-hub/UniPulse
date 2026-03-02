@@ -2,6 +2,8 @@
 
 class UserPaymentgateway extends Controller {
     
+    use Database;
+    
     private $eventModel;
     
     public function __construct() {
@@ -14,6 +16,20 @@ class UserPaymentgateway extends Controller {
         if (!isset($_SESSION['user_id'])) {
             // Redirect to login if not authenticated
             header('Location: /unipulse/public/signin');
+            exit;
+        }
+        
+        // Only allow regular users (university/public) to purchase tickets
+        // Publishers and sponsors cannot buy tickets
+        $userType = $_SESSION['user_type'] ?? 'user';
+        if ($userType === 'publisher' || $userType === 'sponsor') {
+            $_SESSION['error_message'] = 'Only university and public users can purchase tickets. Publishers and sponsors cannot buy tickets.';
+            $eventId = $_GET['event_id'] ?? null;
+            if ($eventId) {
+                header("Location: /unipulse/public/{$userType}/eventview?id={$eventId}");
+            } else {
+                header("Location: /unipulse/public/{$userType}/dashboard");
+            }
             exit;
         }
         
@@ -48,6 +64,10 @@ class UserPaymentgateway extends Controller {
     public function processPayment() {
         // This method will handle the actual payment processing
         // It should be called via AJAX from the payment form
+        
+        error_log('ProcessPayment called - Method: ' . $_SERVER['REQUEST_METHOD']);
+        error_log('POST data: ' . print_r($_POST, true));
+        error_log('Session user_id: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -94,25 +114,73 @@ class UserPaymentgateway extends Controller {
             
             // Simulate successful payment
             $transactionId = 'TXN' . time() . rand(1000, 9999);
+            $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
             
-            // Store payment record (you'll need to create a payments table and model)
-            // $paymentModel = new Payment();
-            // $paymentModel->createPayment([
-            //     'user_id' => $_SESSION['user_id'],
-            //     'event_id' => $eventId,
-            //     'amount' => $amount,
-            //     'payment_method' => $paymentMethod,
-            //     'transaction_id' => $transactionId,
-            //     'status' => 'completed'
-            // ]);
+            // Calculate commission (5% for ticket sales)
+            $commissionAmount = round($amount * 0.05, 2);
+            $organizerAmount = round($amount - $commissionAmount, 2);
+            
+            // Store payment record in the database
+            $query = "INSERT INTO payments (
+                user_id, user_type, amount, quantity, payment_method, payment_type,
+                transaction_id, status, event_id, publisher_id,
+                commission_amount, organizer_amount, description, created_at
+            ) VALUES (
+                :user_id, :user_type, :amount, :quantity, :payment_method, 'ticket',
+                :transaction_id, 'completed', :event_id, :publisher_id,
+                :commission_amount, :organizer_amount, :description, :created_at
+            )";
+            
+            $params = [
+                'user_id'           => $_SESSION['user_id'],
+                'user_type'         => $_SESSION['user_type'] ?? 'user',
+                'amount'            => $amount,
+                'quantity'          => $quantity,
+                'payment_method'    => $paymentMethod,
+                'transaction_id'    => $transactionId,
+                'event_id'          => $eventId,
+                'publisher_id'      => $event->created_by ?? null,
+                'commission_amount' => $commissionAmount,
+                'organizer_amount'  => $organizerAmount,
+                'description'       => 'Event Ticket - ' . ($event->title ?? 'Event'),
+                'created_at'        => date('Y-m-d H:i:s'),
+            ];
+            
+            error_log('About to insert payment: ' . print_r($params, true));
+            
+            // Try to insert the payment
+            try {
+                $result = $this->query($query, $params);
+                error_log('Insert result: ' . ($result ? 'SUCCESS' : 'FAILED/EMPTY'));
+                
+                // Verify the insert by checking if we can find it
+                $checkQuery = "SELECT id FROM payments WHERE transaction_id = :tid LIMIT 1";
+                $checkResult = $this->query($checkQuery, ['tid' => $transactionId]);
+                
+                if (!$checkResult) {
+                    throw new Exception('Payment record was not inserted into database');
+                }
+                
+                error_log('Payment verified in database! Transaction ID: ' . $transactionId);
+                
+            } catch (Exception $e) {
+                error_log('Database error during payment insert: ' . $e->getMessage());
+                throw $e;
+            }
             
             // Register user for event after successful payment
-            $registrationModel = new EventRegistration();
-            $registrationModel->registerUser(
-                $eventId,
-                $_SESSION['user_id'],
-                $_SESSION['user_type']
-            );
+            try {
+                $registrationModel = new EventRegistration();
+                $registrationModel->registerUser(
+                    $eventId,
+                    $_SESSION['user_id'],
+                    $_SESSION['user_type']
+                );
+                error_log('User registered for event successfully');
+            } catch (Exception $e) {
+                error_log('Event registration failed but payment recorded: ' . $e->getMessage());
+                // Don't throw - payment is already recorded
+            }
             
             echo json_encode([
                 'success' => true,

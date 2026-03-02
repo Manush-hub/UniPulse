@@ -1554,65 +1554,7 @@ function getEventStatus(eventDate) {
 
 // Buy Tickets - redirect to payment page
 function buyTickets() {
-    if (!currentEvent) {
-        alert('Event data not available. Please refresh the page and try again.');
-        return;
-    }
-    
-    // Collect selected tickets from both paid and mixed sections
-    const allTickets = document.querySelectorAll('.ticket-option');
-    const ticketSelections = [];
-    let totalPrice = 0;
-    
-    allTickets.forEach(ticket => {
-        const index = ticket.dataset.ticketIndex;
-        // Check both regular and mixed ticket quantity inputs
-        const quantityInput = document.getElementById(`ticket-quantity-${index}`) || 
-                            document.getElementById(`mixed-ticket-quantity-${index}`);
-        const quantity = parseInt(quantityInput?.value) || 0;
-        
-        if (quantity > 0) {
-            const ticketName = ticket.dataset.ticketName;
-            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
-            const subtotal = ticketPrice * quantity;
-            
-            ticketSelections.push({
-                index: index,
-                name: ticketName,
-                price: ticketPrice,
-                quantity: quantity,
-                subtotal: subtotal
-            });
-            
-            totalPrice += subtotal;
-        }
-    });
-    
-    if (ticketSelections.length === 0) {
-        alert('Please select at least one ticket by setting quantity greater than 0');
-        return;
-    }
-    
-    // Store ticket selections in session storage for payment page
-    const paymentData = {
-        eventId: currentEvent.id,
-        eventTitle: currentEvent.title,
-        tickets: ticketSelections,
-        totalAmount: totalPrice,
-        timestamp: Date.now()
-    };
-    
-    sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
-    
-    // Build payment URL with query parameters
-    const publisherId = currentEvent.created_by || currentEvent.organizerId;
-    const paymentUrl = `/unipulse/public/payment?` +
-        `amount=${totalPrice.toFixed(2)}` +
-        `&type=ticket` +
-        `&event_id=${currentEvent.id}` +
-        (publisherId ? `&publisher_id=${publisherId}` : '') +
-        `&description=${encodeURIComponent('Ticket for ' + currentEvent.title)}`;
-    
-    // Redirect to payment page
-    window.location.href = paymentUrl;
+    // Sponsors cannot buy tickets - show message
+    alert('Sponsors cannot purchase tickets. Only university and public users can buy tickets.');
+    return;
 }

@@ -28,9 +28,15 @@ class PublisherPayment extends Controller {
                 // Process payment
                 $paymentResult = $this->processPayment($_POST);
                 
+                error_log("Publisher Payment - processPayment result: " . json_encode($paymentResult));
+                
                 if ($paymentResult['success']) {
                     // Create the boost after successful payment
+                    error_log("Publisher Payment - About to call createBoost. Session data: event_id=" . ($_SESSION['boost_event_id'] ?? 'NULL') . ", duration=" . ($_SESSION['boost_duration'] ?? 'NULL'));
+                    
                     $boostResult = $this->createBoost();
+                    
+                    error_log("Publisher Payment - createBoost result: " . json_encode($boostResult));
                     
                     if ($boostResult['success']) {
                         $_SESSION['payment_success'] = "Payment successful! Your event has been boosted.";
@@ -80,6 +86,19 @@ class PublisherPayment extends Controller {
         $data['event_id'] = $_GET['event_id'] ?? '';
         $data['duration'] = $_GET['duration'] ?? '';
         $data['item_description'] = $_GET['description'] ?? 'Event Boost';
+        
+        // Set session variables for PayHere integration
+        $_SESSION['payment_amount'] = $data['amount'];
+        $_SESSION['payment_type'] = 'boost';
+        $_SESSION['payment_event_id'] = $data['event_id'];
+        $_SESSION['payment_publisher_id'] = $currentUser['id'];
+        $_SESSION['payment_description'] = 'Event Boost';
+        
+        // Set boost-specific session variables
+        $_SESSION['boost_event_id'] = $data['event_id'];
+        $_SESSION['boost_duration'] = $data['duration'];
+        $_SESSION['boost_amount'] = $data['amount'];
+        $_SESSION['boost_publisher_id'] = $currentUser['id'];
         
         $this->view('payment', $data);
     }
@@ -173,6 +192,11 @@ class PublisherPayment extends Controller {
             
             $this->query($query, $params);
             
+            // Store transaction ID in session for boost creation
+            $_SESSION['last_payment_transaction_id'] = $transactionId;
+            
+            error_log("Publisher Payment - Payment inserted successfully. Transaction ID: $transactionId");
+            
             return [
                 'success' => true,
                 'transaction_id' => $transactionId,
@@ -195,8 +219,12 @@ class PublisherPayment extends Controller {
             $amount = $_SESSION['boost_amount'];
             $publisherId = $_SESSION['boost_publisher_id'];
             
+            error_log("createBoost called - eventId: $eventId, duration: $durationDays, amount: $amount, publisherId: $publisherId");
+            
             if (!$eventId || !$durationDays || !$amount || !$publisherId) {
-                return ['success' => false, 'error' => 'Missing boost parameters'];
+                $error = "Missing boost parameters: eventId=$eventId, duration=$durationDays, amount=$amount, publisherId=$publisherId";
+                error_log("createBoost FAILED: $error");
+                return ['success' => false, 'error' => $error];
             }
             
             // Verify event belongs to publisher
@@ -206,8 +234,12 @@ class PublisherPayment extends Controller {
                 'publisher_id' => $publisherId
             ]);
             
+            error_log("createBoost - Event verification query returned " . count($events) . " events");
+            
             if (empty($events)) {
-                return ['success' => false, 'error' => 'Event not found or unauthorized'];
+                $error = "Event not found or unauthorized. EventID: $eventId, PublisherID: $publisherId";
+                error_log("createBoost FAILED: $error");
+                return ['success' => false, 'error' => $error];
             }
 
             // Calculate boost dates
@@ -215,8 +247,10 @@ class PublisherPayment extends Controller {
             $endDate = clone $startDate;
             $endDate->modify("+{$durationDays} days");
             
-            // Generate transaction ID
-            $transactionId = 'BOOST-' . time() . '-' . rand(1000, 9999);
+            // Use the transaction ID from the payment that was just created
+            $transactionId = $_SESSION['last_payment_transaction_id'] ?? ('BOOST-' . time() . '-' . rand(1000, 9999));
+            
+            error_log("createBoost - Using transaction ID: $transactionId");
             
             // Insert boost record
             $insertQuery = "
@@ -228,7 +262,7 @@ class PublisherPayment extends Controller {
                  :amount, :payment_method, :transaction_id, 'completed', 'active', 1)
             ";
             
-            $this->query($insertQuery, [
+            $result = $this->query($insertQuery, [
                 'event_id' => $eventId,
                 'publisher_id' => $publisherId,
                 'start_date' => $startDate->format('Y-m-d H:i:s'),
@@ -238,6 +272,8 @@ class PublisherPayment extends Controller {
                 'payment_method' => 'card',
                 'transaction_id' => $transactionId
             ]);
+            
+            error_log("createBoost - Boost record inserted successfully");
             
             // Update event boost status
             $updateEventQuery = "
@@ -253,6 +289,8 @@ class PublisherPayment extends Controller {
                 'expires_at' => $endDate->format('Y-m-d H:i:s')
             ]);
             
+            error_log("createBoost - Event status updated successfully. Event ID: $eventId is now boosted!");
+            
             return [
                 'success' => true,
                 'message' => 'Event boosted successfully!',
@@ -261,6 +299,7 @@ class PublisherPayment extends Controller {
             
         } catch (Exception $e) {
             error_log("Error creating boost: " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
             return ['success' => false, 'error' => 'Failed to create boost: ' . $e->getMessage()];
         }
     }

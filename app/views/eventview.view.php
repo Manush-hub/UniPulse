@@ -321,10 +321,17 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-label">Total Amount:</span>
                                             <span class="total-value" id="ticketPrice">LKR 0.00</span>
                                         </div>
+                                        <?php if ($config['purchaseTicketFunction']): ?>
                                         <button class="btn-buy-tickets-modern" onclick="buyTickets()">
                                             <i class="fas fa-shopping-cart"></i>
                                             Proceed to Payment
                                         </button>
+                                        <?php else: ?>
+                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>Note:</strong> Only university and public users can purchase tickets.
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -354,10 +361,17 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-label">Total Amount:</span>
                                             <span class="total-value" id="mixedTicketPrice">LKR 0.00</span>
                                         </div>
+                                        <?php if ($config['purchaseTicketFunction']): ?>
                                         <button class="btn-buy-tickets-modern" onclick="buyTickets()">
                                             <i class="fas fa-shopping-cart"></i>
                                             Buy Tickets Now
                                         </button>
+                                        <?php else: ?>
+                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                            <i class="fas fa-info-circle"></i>
+                                            <strong>Note:</strong> Only university and public users can purchase tickets.
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -760,6 +774,10 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                 // Redirect to payment page
                 window.location.href = `/unipulse/public/payment/ticket?event_id=${eventId}`;
             }
+            
+            // Redirect to payment page (PayHere)
+            window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
+        }
         <?php endif; ?>
 
         <?php if ($config['visitProfileFunction']): ?>

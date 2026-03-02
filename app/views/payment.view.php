@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Gateway | UniPulse</title>
+    <title>Payment | UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/payment-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -14,221 +14,117 @@
     <!-- Main Container -->
     <div class="payment-container">
         <div class="payment-header">
-            <h1><i class="fas fa-credit-card"></i> Secure Payment</h1>
-            <p>Complete your payment securely</p>
+            <h1><i class="fas fa-lock"></i> Secure Payment</h1>
+            <p>Complete your payment securely via PayHere</p>
         </div>
 
-        <form method="POST" action="" id="payment-form">
-            <div class="payment-content">
-                <!-- Left Column: Payment Details -->
-                <div class="payment-details">
-                    <div class="section">
-                        <h2>Payment Method</h2>
-                        <div class="payment-methods">
-                            <div class="method-card active">
-                                <i class="fas fa-credit-card"></i>
-                                <span>Credit/Debit Card</span>
-                            </div>
-                            <input type="hidden" name="payment_method" value="card">
-                        </div>
-                    </div>
+        <div class="payment-content">
 
-                    <!-- Card Payment Form -->
-                    <div class="section" id="card-payment-section">
-                        <h2>Card Details</h2>
-                        
-                        <div class="form-group">
-                            <label for="card_number">Card Number</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-credit-card"></i>
-                                <input type="text" 
-                                       id="card_number" 
-                                       name="card_number" 
-                                       placeholder="1234 5678 9012 3456"
-                                       maxlength="19"
-                                       value="<?= htmlspecialchars($form_data['card_number'] ?? '') ?>">
-                            </div>
-                            <?php if (!empty($errors['card_number'])): ?>
-                                <span class="error-message" style="color: #dc2626; font-size: 14px; margin-top: 5px; display: block;">
-                                    <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($errors['card_number']) ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="card_name">Cardholder Name</label>
-                            <div class="input-with-icon">
-                                <i class="fas fa-user"></i>
-                                <input type="text" 
-                                       id="card_name" 
-                                       name="card_name" 
-                                       placeholder="John Doe"
-                                       value="<?= htmlspecialchars($form_data['card_name'] ?? '') ?>">
-                            </div>
-                            <?php if (!empty($errors['card_name'])): ?>
-                                <span class="error-message" style="color: #dc2626; font-size: 14px; margin-top: 5px; display: block;">
-                                    <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($errors['card_name']) ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="expiry_date">Expiry Date</label>
-                                <div class="input-with-icon">
-                                    <i class="fas fa-calendar"></i>
-                                    <input type="text" 
-                                           id="expiry_date" 
-                                           name="expiry_date" 
-                                           placeholder="MM/YY"
-                                           maxlength="5"
-                                           value="<?= htmlspecialchars($form_data['expiry_date'] ?? '') ?>">
-                                </div>
-                                <?php if (!empty($errors['expiry_date'])): ?>
-                                    <span class="error-message" style="color: #dc2626; font-size: 14px; margin-top: 5px; display: block;">
-                                        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($errors['expiry_date']) ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="cvv">CVV</label>
-                                <div class="input-with-icon">
-                                    <i class="fas fa-lock"></i>
-                                    <input type="text" 
-                                           id="cvv" 
-                                           name="cvv" 
-                                           placeholder="123"
-                                           maxlength="3"
-                                           value="<?= htmlspecialchars($form_data['cvv'] ?? '') ?>">
-                                </div>
-                                <?php if (!empty($errors['cvv'])): ?>
-                                    <span class="error-message" style="color: #dc2626; font-size: 14px; margin-top: 5px; display: block;">
-                                        <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($errors['cvv']) ?>
-                                    </span>
-                                <?php endif; ?>
-                            </div>
+            <!-- Left Column: PayHere info -->
+            <div class="payment-details">
+                <div class="section">
+                    <h2>Payment Method</h2>
+                    <div class="payment-methods">
+                        <div class="method-card active" style="cursor:default;">
+                            <img src="https://www.payhere.lk/downloads/images/payhere_short_logo.png"
+                                 alt="PayHere"
+                                 style="height:24px;vertical-align:middle;margin-right:8px;"
+                                 onerror="this.style.display='none'">
+                            <span>PayHere</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Order Summary -->
-                <div class="order-summary">
-                    <h2>Order Summary</h2>
-                    
-                    <div class="summary-item">
-                        <span>Item</span>
-                        <span><?= htmlspecialchars($item_description ?? 'Event Ticket') ?></span>
-                    </div>
-                    
-                    <div class="summary-item">
-                        <span><?= ($payment_type ?? 'ticket') === 'ticket' ? 'Ticket Price' : 'Boost Amount' ?></span>
-                        <span class="amount">LKR <?= htmlspecialchars($amount ?? '0.00') ?></span>
-                    </div>
-                    
-                    <hr>
-                    
-                    <div class="summary-item total">
-                        <span>Total Amount</span>
-                        <span class="total-amount">LKR <?= htmlspecialchars($amount ?? '0.00') ?></span>
-                    </div>
-
-                    <input type="hidden" name="amount" value="<?= htmlspecialchars($amount ?? '') ?>">
-                            <button type="submit" class="pay-button">
-                        <i class="fas fa-lock"></i> Pay Now
-                    </button>
-
-                    <div class="security-badges">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Secured by 256-bit SSL encryption</span>
+                <div class="section">
+                    <h2>How it works</h2>
+                    <div style="color:#6b7280; font-size:14px; line-height:2;">
+                        <p style="margin:0;">
+                            <i class="fas fa-circle-dot" style="color:#00457C;margin-right:8px;font-size:11px;"></i>
+                            Click <strong>Pay Now</strong> to proceed
+                        </p>
+                        <p style="margin:0;">
+                            <i class="fas fa-circle-dot" style="color:#00457C;margin-right:8px;font-size:11px;"></i>
+                            You'll be redirected to PayHere's secure checkout
+                        </p>
+                        <p style="margin:0;">
+                            <i class="fas fa-circle-dot" style="color:#00457C;margin-right:8px;font-size:11px;"></i>
+                            Complete payment with your card, bank or e-wallet
+                        </p>
+                        <p style="margin:0;">
+                            <i class="fas fa-circle-dot" style="color:#00457C;margin-right:8px;font-size:11px;"></i>
+                            You'll be returned here with a confirmation
+                        </p>
                     </div>
 
-                    <div class="accepted-cards">
-                        <img src="/unipulse/public/assets/images/visa.png" alt="Visa" onerror="this.style.display='none'">
-                        <img src="/unipulse/public/assets/images/mastercard.png" alt="Mastercard" onerror="this.style.display='none'">
-                        <img src="/unipulse/public/assets/images/amex.png" alt="Amex" onerror="this.style.display='none'">
-                        <i class="fab fa-cc-visa fa-2x"></i>
-                        <i class="fab fa-cc-mastercard fa-2x"></i>
-                        <i class="fab fa-cc-amex fa-2x"></i>
+                    <div style="margin-top:20px; background:#f0f9ff; border:1px solid #bae6fd;
+                                border-radius:10px; padding:14px 16px; font-size:13px; color:#0369a1;">
+                        <p style="margin:0 0 6px 0;">
+                            <i class="fas fa-credit-card"></i>
+                            <strong>Accepted:</strong> Visa, Mastercard, Amex, Internet Banking &amp; more
+                        </p>
+                        <p style="margin:0; color:#6b7280;">
+                            <i class="fas fa-flask"></i>
+                            <strong>Sandbox test card:</strong> 4111 1111 1111 1111
+                            &nbsp;|&nbsp; OTP: 123456
+                        </p>
                     </div>
                 </div>
             </div>
-        </form>
+
+            <!-- Right Column: Order Summary + Pay Button -->
+            <div class="order-summary">
+                <h2>Order Summary</h2>
+
+                <div class="summary-item">
+                    <span>Item</span>
+                    <span><?= htmlspecialchars($item_description ?? 'Event Ticket') ?></span>
+                </div>
+
+                <div class="summary-item">
+                    <span><?= ($payment_type ?? 'ticket') === 'ticket' ? 'Ticket Price' : 'Boost Amount' ?></span>
+                    <span class="amount">LKR <?= number_format((float)($amount ?? 0), 2) ?></span>
+                </div>
+
+                <hr>
+
+                <div class="summary-item total">
+                    <span>Total Amount</span>
+                    <span class="total-amount">LKR <?= number_format((float)($amount ?? 0), 2) ?></span>
+                </div>
+
+                <?php if (!empty($errors['payment'])): ?>
+                    <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px;
+                                padding:12px; margin:14px 0; color:#dc2626; font-size:14px;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <?= htmlspecialchars($errors['payment']) ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" action="<?= ROOT ?>/payment/payhere">
+                    <input type="hidden" name="amount" value="<?= htmlspecialchars($amount ?? '') ?>">
+                    <button type="submit" class="pay-button"
+                            style="background:#00457C; border-color:#00457C; width:100%; margin-top:16px;">
+                        <i class="fas fa-wallet"></i>
+                        Pay Now &nbsp;&mdash;&nbsp; LKR <?= number_format((float)($amount ?? 0), 2) ?>
+                    </button>
+                </form>
+
+                <div class="security-badges" style="margin-top:16px;">
+                    <i class="fas fa-shield-alt" style="color:#00457C;"></i>
+                    <span>Secured by PayHere &amp; 256-bit SSL encryption</span>
+                </div>
+
+                <div class="accepted-cards" style="margin-top:12px;">
+                    <i class="fab fa-cc-visa fa-2x"></i>
+                    <i class="fab fa-cc-mastercard fa-2x"></i>
+                    <i class="fab fa-cc-amex fa-2x"></i>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- Footer -->
     <?php include 'footer.php'; ?>
-
-    <script>
-
-        // Card number formatting - only numbers allowed
-        const cardNumberInput = document.getElementById('card_number');
-        if (cardNumberInput) {
-            cardNumberInput.addEventListener('input', function(e) {
-                // Remove all non-digit characters
-                let value = e.target.value.replace(/\D/g, '');
-                // Format in groups of 4
-                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-                e.target.value = formattedValue;
-            });
-        }
-
-        // Cardholder name - only letters and spaces allowed
-        const cardNameInput = document.getElementById('card_name');
-        if (cardNameInput) {
-            cardNameInput.addEventListener('input', function(e) {
-                // Remove all numbers and special characters, keep only letters and spaces
-                let value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                e.target.value = value;
-            });
-        }
-
-        // Expiry date formatting - only numbers allowed
-        const expiryInput = document.getElementById('expiry_date');
-        if (expiryInput) {
-            expiryInput.addEventListener('input', function(e) {
-                // Remove all non-digit characters
-                let value = e.target.value.replace(/\D/g, '');
-                // Format as MM/YY
-                if (value.length >= 2) {
-                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
-                }
-                e.target.value = value;
-            });
-        }
-
-        // CVV - only numbers allowed
-        const cvvInput = document.getElementById('cvv');
-        if (cvvInput) {
-            cvvInput.addEventListener('input', function(e) {
-                // Remove all non-digit characters
-                let value = e.target.value.replace(/\D/g, '');
-                e.target.value = value;
-            });
-        }
-
-        // Form validation
-        const form = document.getElementById('payment-form');
-        form.addEventListener('submit', function(e) {
-            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-            
-            if (paymentMethod === 'card') {
-                const cardNumber = document.getElementById('card_number').value.replace(/\s/g, '');
-                const cvv = document.getElementById('cvv').value;
-                
-                if (cardNumber.length !== 16) {
-                    e.preventDefault();
-                    alert('Please enter a valid 16-digit card number');
-                    return false;
-                }
-                
-                if (cvv.length !== 3) {
-                    e.preventDefault();
-                    alert('Please enter a valid 3-digit CVV');
-                    return false;
-                }
-            }
-        });
-    </script>
 </body>
 </html>
