@@ -123,8 +123,9 @@ function displayEventDetails(event) {
     const eventStatusElement = document.getElementById('eventStatus');
     // Calculate event status dynamically based on event date
     const eventDate = event.event_date || event.date;
+    const eventTime = event.event_time || event.time;
     if (eventStatusElement) {
-        const calculatedStatus = getEventStatus(eventDate);
+        const calculatedStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
         eventStatusElement.textContent = capitalizeFirstLetter(calculatedStatus);
         // Update the class for proper styling
         eventStatusElement.className = `event-status ${calculatedStatus}`;
@@ -136,7 +137,6 @@ function displayEventDetails(event) {
     }
     
     // Event details grid
-    const eventTime = event.event_time || event.time;
     const locationType = event.location_type || 'inside-university';
     
     const eventDateTimeElement = document.getElementById('eventDateTime');
@@ -1536,20 +1536,36 @@ function formatDate(dateString) {
 }
 
 // Calculate event status based on event date
-function getEventStatus(eventDate) {
+function getEventStatus(eventDate, eventTime, eventEndTime) {
     if (!eventDate) return 'upcoming';
-    const eventDateObj = new Date(eventDate);
-    const today = new Date();
 
-    today.setHours(0, 0, 0, 0);
-    eventDateObj.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${mo}-${d}`;
+    const eventDateStr = String(eventDate).slice(0, 10);
 
-    if (eventDateObj < today) {
+    if (eventDateStr > todayStr) {
+        return 'upcoming';
+    } else if (eventDateStr < todayStr) {
         return 'completed';
-    } else if (eventDateObj.getTime() === today.getTime()) {
-        return 'ongoing';
+    } else {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const nowTimeStr = `${hh}:${mm}:${ss}`;
+        const startTime = eventTime ? String(eventTime).slice(0, 8) : '00:00:00';
+        const endTime = eventEndTime ? String(eventEndTime).slice(0, 8) : null;
+
+        if (startTime > nowTimeStr) {
+            return 'upcoming';
+        } else if (endTime && endTime <= nowTimeStr) {
+            return 'completed';
+        } else {
+            return 'ongoing';
+        }
     }
-    return 'upcoming';
 }
 
 // Buy Tickets - redirect to payment page

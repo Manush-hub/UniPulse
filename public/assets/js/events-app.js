@@ -256,8 +256,8 @@ function sortEventsByStatus(events) {
     const statusOrder = { 'ongoing': 1, 'upcoming': 2, 'completed': 3 };
     
     return [...events].sort((a, b) => {
-        const statusA = getEventStatus(a.event_date || a.date);
-        const statusB = getEventStatus(b.event_date || b.date);
+        const statusA = getEventStatus(a.event_date || a.date, a.event_time || a.time, a.event_end_time);
+        const statusB = getEventStatus(b.event_date || b.date, b.event_time || b.time, b.event_end_time);
         return (statusOrder[statusA] || 999) - (statusOrder[statusB] || 999);
     });
 }
@@ -270,7 +270,7 @@ function createEventCard(event) {
 
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
-    const eventStatus = getEventStatus(eventDate);
+    const eventStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
     
     // Handle multiple possible image field names and ensure valid path
     let imageUrl = event.featured_image || event.cover_image || event.image_url || '';
@@ -382,22 +382,37 @@ function getTicketPriceDisplay(event) {
     return event.price || 'Free';
 }
 
-// Calculate event status based on event date
-function getEventStatus(eventDate) {
+// Calculate event status based on event date, start time, and end time
+function getEventStatus(eventDate, eventTime, eventEndTime) {
     if (!eventDate) return 'upcoming';
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const event = new Date(eventDate);
-    event.setHours(0, 0, 0, 0);
-    
-    if (event < today) {
-        return 'completed';
-    } else if (event.getTime() === today.getTime()) {
-        return 'ongoing';
-    } else {
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${mo}-${d}`;
+    const eventDateStr = String(eventDate).slice(0, 10);
+
+    if (eventDateStr > todayStr) {
         return 'upcoming';
+    } else if (eventDateStr < todayStr) {
+        return 'completed';
+    } else {
+        // Same date: compare times
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const nowTimeStr = `${hh}:${mm}:${ss}`;
+        const startTime = eventTime ? String(eventTime).slice(0, 8) : '00:00:00';
+        const endTime = eventEndTime ? String(eventEndTime).slice(0, 8) : null;
+
+        if (startTime > nowTimeStr) {
+            return 'upcoming';
+        } else if (endTime && endTime <= nowTimeStr) {
+            return 'completed';
+        } else {
+            return 'ongoing';
+        }
     }
 }
 

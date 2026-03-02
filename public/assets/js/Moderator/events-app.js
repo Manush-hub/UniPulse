@@ -312,8 +312,8 @@ function createEventCard(event) {
         console.log('Constructed image path:', imagePath); // Debug log
     }
 
-    // Calculate event status based on event date
-    const calculatedStatus = getEventStatus(eventDate);
+    // Calculate event status based on event date and time
+    const calculatedStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
 
     card.innerHTML = `
         <div class="event-image">
@@ -390,22 +390,35 @@ function createEventCard(event) {
 }
 
 // Calculate event status based on event date
-function getEventStatus(eventDate) {
+function getEventStatus(eventDate, eventTime, eventEndTime) {
     if (!eventDate) return 'upcoming';
 
-    const eventDateObj = new Date(eventDate);
-    const today = new Date();
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${mo}-${d}`;
+    const eventDateStr = String(eventDate).slice(0, 10);
 
-    // Reset time to compare dates only
-    today.setHours(0, 0, 0, 0);
-    eventDateObj.setHours(0, 0, 0, 0);
-
-    if (eventDateObj < today) {
-        return 'completed';
-    } else if (eventDateObj.getTime() === today.getTime()) {
-        return 'ongoing';
-    } else {
+    if (eventDateStr > todayStr) {
         return 'upcoming';
+    } else if (eventDateStr < todayStr) {
+        return 'completed';
+    } else {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const nowTimeStr = `${hh}:${mm}:${ss}`;
+        const startTime = eventTime ? String(eventTime).slice(0, 8) : '00:00:00';
+        const endTime = eventEndTime ? String(eventEndTime).slice(0, 8) : null;
+
+        if (startTime > nowTimeStr) {
+            return 'upcoming';
+        } else if (endTime && endTime <= nowTimeStr) {
+            return 'completed';
+        } else {
+            return 'ongoing';
+        }
     }
 }
 
@@ -430,7 +443,7 @@ function filterEvents() {
     if (activeFilters.status) {
         const selectedStatus = activeFilters.status.toLowerCase();
         const filtered = allEvents.filter(event => {
-            const calculatedStatus = getEventStatus(event.event_date || event.date);
+            const calculatedStatus = getEventStatus(event.event_date || event.date, event.event_time || event.time, event.event_end_time);
             return calculatedStatus === selectedStatus;
         });
         filteredEvents = filtered;
