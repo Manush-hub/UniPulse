@@ -206,7 +206,8 @@ function markNotificationAsRead(notification) {
         },
         body: JSON.stringify({
             event_id: Number(notification.id || 0),
-            created_at: notification.created_at || ''
+            created_at: notification.created_at || '',
+            source: notification.source || 'activity'
         }),
         keepalive: true
     }).catch(error => {

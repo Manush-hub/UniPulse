@@ -1,10 +1,12 @@
 <?php
 
-class Payment extends Controller {
-    
+class Payment extends Controller
+{
+
     use Database;
 
-    public function index($a = '', $b = '', $c = '') {
+    public function index($a = '', $b = '', $c = '')
+    {
         // Check if user is logged in
         if (!isset($_SESSION['user_id'])) {
             header('Location: ' . ROOT . '/signin');
@@ -12,15 +14,15 @@ class Payment extends Controller {
         }
 
         $data = [];
-        
+
         // Handle POST request for payment processing
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors = $this->validatePaymentData($_POST);
-            
+
             if (empty($errors)) {
                 // Process payment
                 $paymentResult = $this->processPayment($_POST);
-                
+
                 if ($paymentResult['success']) {
                     $_SESSION['payment_success'] = "Payment processed successfully! Transaction ID: " . $paymentResult['transaction_id'];
                     $_SESSION['payment_date'] = $paymentResult['payment_date'];
@@ -43,16 +45,16 @@ class Payment extends Controller {
                 exit();
             }
         }
-        
+
         // Retrieve errors and form data from session (for POST/Redirect/GET pattern)
         $data['errors'] = $_SESSION['payment_errors'] ?? [];
         $data['form_data'] = $_SESSION['form_data'] ?? [];
         $data['success'] = '';
-        
+
         // Clear session data after retrieving
         unset($_SESSION['payment_errors']);
         unset($_SESSION['form_data']);
-        
+
         // Get payment details from GET params (initial visit) or session (returning after error)
         $data['amount']       = $_GET['amount']       ?? $_SESSION['payment_amount']       ?? '';
         $data['payment_type'] = $_GET['type']         ?? $_SESSION['payment_type']         ?? 'ticket';
@@ -73,36 +75,49 @@ class Payment extends Controller {
         if ($data['event_id'] !== '')     $_SESSION['payment_event_id']    = $data['event_id'];
         if ($data['publisher_id'] !== '') $_SESSION['payment_publisher_id'] = $data['publisher_id'];
         $_SESSION['payment_description'] = $data['item_description'];
-        
+
         // Calculate commission for ticket sales only (5%)
         $data['commission_amount'] = 0;
         $data['organizer_amount'] = $data['amount'];
-        
+
         if ($data['payment_type'] === 'ticket' && $data['amount'] > 0) {
             $data['commission_amount'] = round($data['amount'] * 0.05, 2); // 5% commission
             $data['organizer_amount'] = round($data['amount'] - $data['commission_amount'], 2);
         }
-        
+
         $this->view('payment', $data);
     }
-    
-    public function success($a = '', $b = '', $c = '') {
+
+    public function success($a = '', $b = '', $c = '')
+    {
         if (!isset($_SESSION['user_id'])) {
             header('Location: ' . ROOT . '/signin');
             exit();
         }
-        
+
         $data = [];
         $data['success_message'] = $_SESSION['payment_success'] ?? 'Payment completed successfully!';
         $data['payment_date'] = $_SESSION['payment_date'] ?? date('F j, Y');
         $data['payment_time'] = $_SESSION['payment_time'] ?? date('g:i A');
         $data['event_id'] = $_SESSION['payment_completed_event_id'] ?? null;
-        
+
+        $currentUserType = $_SESSION['user_type'] ?? null;
+        if (!empty($data['event_id']) && in_array($currentUserType, ['public', 'university'], true)) {
+            $this->ensurePaidEventRegistrationFromPayment(
+                (int)$_SESSION['user_id'],
+                $currentUserType,
+                (int)$data['event_id'],
+                null,
+                null,
+                'Auto-registered after successful payment redirect'
+            );
+        }
+
         unset($_SESSION['payment_success']);
         unset($_SESSION['payment_date']);
         unset($_SESSION['payment_time']);
         unset($_SESSION['payment_completed_event_id']);
-        
+
         $this->view('payment_success', $data);
     }
     
@@ -114,7 +129,8 @@ class Payment extends Controller {
      * Step 1 – Build the signed PayHere checkout form and auto-submit it.
      * Triggered by the "Pay with PayHere" button (POST /payment/payhere).
      */
-    public function payhere($a = '', $b = '', $c = '') {
+    public function payhere($a = '', $b = '', $c = '')
+    {
         if (!isset($_SESSION['user_id'])) {
             header('Location: ' . ROOT . '/signin');
             exit();
@@ -178,7 +194,8 @@ class Payment extends Controller {
      * We verify the signature and save the payment to the database.
      * URL: /payment/payherenotify  (must be publicly accessible in live mode)
      */
-    public function payherenotify($a = '', $b = '', $c = '') {
+    public function payherenotify($a = '', $b = '', $c = '')
+    {
         // PayHere POSTs to this URL server-to-server (no session)
         $payhere = new PayHereService();
 
@@ -258,6 +275,18 @@ class Payment extends Controller {
                     'now'          => date('Y-m-d H:i:s'),
                 ]
             );
+
+            if ($paymentType === 'ticket') {
+                $resolvedUserType = $this->resolveRegistrationUserType($userId, 'public');
+                $this->ensurePaidEventRegistrationFromPayment(
+                    (int)$userId,
+                    $resolvedUserType,
+                    (int)($_POST['custom_1'] ?? 0),
+                    $amount,
+                    $paymentId,
+                    'Auto-registered after successful PayHere notify callback'
+                );
+            }
         }
 
         echo 'OK';
@@ -270,7 +299,8 @@ class Payment extends Controller {
      * Note: For sandbox on localhost, payherenotify may not reach your server,
      * so we also save the record here as a fallback.
      */
-    public function payherereturn($a = '', $b = '', $c = '') {
+    public function payherereturn($a = '', $b = '', $c = '')
+    {
         if (!isset($_SESSION['user_id'])) {
             header('Location: ' . ROOT . '/signin');
             exit();
@@ -360,7 +390,7 @@ class Payment extends Controller {
         if ($paymentType === 'boost') {
             error_log("PayHere Return - Detected boost payment, calling createBoostAfterPayment");
             error_log("PayHere Return - Session data: boost_event_id=" . ($_SESSION['boost_event_id'] ?? 'NULL') . ", boost_duration=" . ($_SESSION['boost_duration'] ?? 'NULL'));
-            
+
             $boostCreated = $this->createBoostAfterPayment(
                 $_SESSION['boost_event_id'] ?? $_SESSION['payment_event_id'],
                 $_SESSION['boost_duration'],
@@ -368,12 +398,21 @@ class Payment extends Controller {
                 $_SESSION['boost_publisher_id'] ?? $_SESSION['payment_publisher_id'],
                 $transId
             );
-            
+
             if ($boostCreated) {
                 error_log("PayHere Return - Boost created successfully!");
             } else {
                 error_log("PayHere Return - Boost creation FAILED!");
             }
+        } else {
+            $this->ensurePaidEventRegistrationFromPayment(
+                (int)$_SESSION['user_id'],
+                $_SESSION['user_type'] ?? null,
+                (int)($completedEventId ?? 0),
+                $lkrAmount,
+                $transId,
+                'Auto-registered after successful PayHere return'
+            );
         }
 
         $this->clearPaymentSession();
@@ -395,14 +434,16 @@ class Payment extends Controller {
      * Step 3 (cancel path) – User clicked "Cancel" on PayHere's page.
      * URL: /payment/payherecancel
      */
-    public function payherecancel($a = '', $b = '', $c = '') {
+    public function payherecancel($a = '', $b = '', $c = '')
+    {
         unset($_SESSION['payhere_order_id'], $_SESSION['payhere_amount'], $_SESSION['payhere_event_id']);
         $this->view('payhere_cancel', []);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
 
-    private function clearPaymentSession() {
+    private function clearPaymentSession()
+    {
         unset(
             $_SESSION['payment_amount'],
             $_SESSION['payment_type'],
@@ -413,54 +454,56 @@ class Payment extends Controller {
         );
     }
 
-    private function validatePaymentData($data) {
+    private function validatePaymentData($data)
+    {
         $errors = [];
-        
+
         // Validate payment method
         if (empty($data['payment_method'])) {
             $errors['payment_method'] = 'Please select a payment method';
         }
-        
+
         // Validate amount
         if (empty($data['amount']) || !is_numeric($data['amount']) || $data['amount'] <= 0) {
             $errors['amount'] = 'Please enter a valid amount';
         }
-        
+
         // If card payment, validate card details
         if (isset($data['payment_method']) && $data['payment_method'] === 'card') {
             if (empty($data['card_number']) || !preg_match('/^\d{16}$/', str_replace(' ', '', $data['card_number']))) {
                 $errors['card_number'] = 'Please enter a valid 16-digit card number';
             }
-            
+
             if (empty($data['card_name'])) {
                 $errors['card_name'] = 'Please enter the cardholder name';
             }
-            
+
             if (empty($data['expiry_date']) || !preg_match('/^\d{2}\/\d{2}$/', $data['expiry_date'])) {
                 $errors['expiry_date'] = 'Please enter expiry date in MM/YY format';
             }
-            
+
             if (empty($data['cvv']) || !preg_match('/^\d{3,4}$/', $data['cvv'])) {
                 $errors['cvv'] = 'Please enter a valid CVV (3-4 digits)';
             }
         }
-        
+
         return $errors;
     }
-    
-    private function processPayment($data) {
+
+    private function processPayment($data)
+    {
         // In a real application, this would integrate with a payment gateway API
         // like Stripe, PayPal, PayHere, or a local payment processor
-        
+
         // Simulate payment processing
         $transactionId = 'TXN' . time() . rand(1000, 9999);
-        
+
         // Calculate commission for tickets (5%), boost is 100% to UniPulse
         $paymentType = $_SESSION['payment_type'] ?? 'ticket';
         $amount = $data['amount'];
         $commissionAmount = 0;
         $organizerAmount = 0;
-        
+
         if ($paymentType === 'ticket') {
             $commissionAmount = round($amount * 0.05, 2); // 5% commission
             $organizerAmount = round($amount - $commissionAmount, 2);
@@ -469,7 +512,7 @@ class Payment extends Controller {
             $commissionAmount = $amount;
             $organizerAmount = 0;
         }
-        
+
         // Log payment to database
         $quantity = isset($data['quantity']) ? (int)$data['quantity'] : ($_SESSION['payment_quantity'] ?? 1);
 
@@ -483,7 +526,7 @@ class Payment extends Controller {
                 :transaction_id, :status, :event_id, :publisher_id,
                 :commission_amount, :organizer_amount, :description, :created_at
             )";
-            
+
             $params = [
                 'user_id' => $_SESSION['user_id'],
                 'user_type' => $_SESSION['user_type'] ?? 'user',
@@ -500,9 +543,20 @@ class Payment extends Controller {
                 'description' => $paymentType === 'boost' ? 'Event Boost' : 'Event Ticket',
                 'created_at' => date('Y-m-d H:i:s')
             ];
-            
+
             $this->query($query, $params);
-            
+
+            if ($paymentType === 'ticket' && !empty($_SESSION['payment_event_id'])) {
+                $this->ensurePaidEventRegistrationFromPayment(
+                    (int)$_SESSION['user_id'],
+                    $_SESSION['user_type'] ?? null,
+                    (int)$_SESSION['payment_event_id'],
+                    (float)$amount,
+                    $transactionId,
+                    'Auto-registered after successful direct payment'
+                );
+            }
+
             // Clear payment session data
             unset($_SESSION['payment_amount']);
             unset($_SESSION['payment_type']);
@@ -510,7 +564,7 @@ class Payment extends Controller {
             unset($_SESSION['payment_publisher_id']);
             unset($_SESSION['payment_description']);
             unset($_SESSION['payment_quantity']);
-            
+
             return [
                 'success' => true,
                 'transaction_id' => $transactionId,
@@ -521,32 +575,111 @@ class Payment extends Controller {
         } catch (Exception $e) {
             // Log error
             error_log("Payment processing error: " . $e->getMessage());
-            
+
             return [
                 'success' => false,
                 'message' => 'Payment processing failed. Please try again.'
             ];
         }
     }
-    
+
+    private function ensurePaidEventRegistrationFromPayment($userId, $userType, $eventId, $amount = null, $paymentReference = null, $notes = '')
+    {
+        try {
+            $userId = (int)$userId;
+            $eventId = (int)$eventId;
+
+            if ($userId <= 0 || $eventId <= 0) {
+                return false;
+            }
+
+            $normalizedUserType = $this->resolveRegistrationUserType($userId, $userType);
+
+            $eventModel = new Event();
+            $event = $eventModel->getEventById($eventId);
+            if (!$event) {
+                return false;
+            }
+
+            $registrationModel = new EventRegistration();
+            $wasRegistered = $registrationModel->isUserRegistered($eventId, $userId, $normalizedUserType);
+
+            $registrationResult = $registrationModel->ensurePaidRegistration([
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $normalizedUserType,
+                'registration_type' => 'paid',
+                'amount_paid' => $amount !== null ? (float)$amount : 0.00,
+                'payment_id' => $paymentReference,
+                'notes' => $notes
+            ]);
+
+            if (!$registrationResult) {
+                return false;
+            }
+
+            if (!$wasRegistered) {
+                $eventModel->incrementParticipants($eventId);
+            }
+
+            return true;
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to ensure paid event registration: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function resolveRegistrationUserType($userId, $preferredType = null)
+    {
+        $preferred = strtolower(trim((string)$preferredType));
+
+        if ($preferred === 'user' || $preferred === 'public_user' || $preferred === 'publicuser') {
+            $preferred = 'public';
+        }
+        if ($preferred === 'student' || $preferred === 'university_user' || $preferred === 'universityuser') {
+            $preferred = 'university';
+        }
+
+        if (in_array($preferred, ['public', 'university', 'publisher', 'sponsor'], true)) {
+            return $preferred;
+        }
+
+        try {
+            $isUniversity = $this->query("SELECT id FROM university_users WHERE id = :id LIMIT 1", ['id' => $userId]);
+            if ($isUniversity) {
+                return 'university';
+            }
+
+            $isPublic = $this->query("SELECT id FROM public_users WHERE id = :id LIMIT 1", ['id' => $userId]);
+            if ($isPublic) {
+                return 'public';
+            }
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to resolve registration user type: ' . $e->getMessage());
+        }
+
+        return 'public';
+    }
+
     /**
      * Create boost record after successful PayHere payment
      */
-    private function createBoostAfterPayment($eventId, $durationDays, $amount, $publisherId, $transactionId) {
+    private function createBoostAfterPayment($eventId, $durationDays, $amount, $publisherId, $transactionId)
+    {
         try {
             error_log("createBoostAfterPayment called - eventId: $eventId, duration: $durationDays, amount: $amount, publisherId: $publisherId, transactionId: $transactionId");
-            
+
             if (!$eventId || !$durationDays || !$amount || !$publisherId) {
                 error_log("Boost creation failed: Missing parameters - eventId=$eventId, duration=$durationDays, amount=$amount, publisherId=$publisherId");
                 return false;
             }
-            
+
             // Verify event exists
             $eventQuery = "SELECT * FROM events WHERE id = :event_id AND is_deleted = 0";
             $events = $this->query($eventQuery, ['event_id' => $eventId]);
-            
+
             error_log("createBoostAfterPayment - Event verification returned " . count($events) . " events");
-            
+
             if (empty($events)) {
                 error_log("Boost creation failed: Event not found - eventId=$eventId");
                 return false;
@@ -556,7 +689,7 @@ class Payment extends Controller {
             $startDate = new DateTime();
             $endDate = clone $startDate;
             $endDate->modify("+{$durationDays} days");
-            
+
             // Insert boost record
             $insertQuery = "
                 INSERT INTO event_boosts 
@@ -566,7 +699,7 @@ class Payment extends Controller {
                 (:event_id, :publisher_id, :start_date, :end_date, :duration_days,
                  :amount, :payment_method, :transaction_id, 'completed', 'active', 1)
             ";
-            
+
             $this->query($insertQuery, [
                 'event_id' => $eventId,
                 'publisher_id' => $publisherId,
@@ -577,9 +710,9 @@ class Payment extends Controller {
                 'payment_method' => 'payhere',
                 'transaction_id' => $transactionId
             ]);
-            
+
             error_log("createBoostAfterPayment - Boost record inserted successfully with transaction ID: $transactionId");
-            
+
             // Update event boost status
             $updateEventQuery = "
                 UPDATE events 
@@ -588,15 +721,14 @@ class Payment extends Controller {
                     boost_priority = 1
                 WHERE id = :event_id
             ";
-            
+
             $this->query($updateEventQuery, [
                 'event_id' => $eventId,
                 'expires_at' => $endDate->format('Y-m-d H:i:s')
             ]);
-            
+
             error_log("createBoostAfterPayment - Event {$eventId} is now boosted! Expires at: " . $endDate->format('Y-m-d H:i:s'));
             return true;
-            
         } catch (Exception $e) {
             error_log("Error creating boost: " . $e->getMessage());
             return false;
