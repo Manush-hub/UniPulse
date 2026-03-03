@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
     loadUpcomingEvents();
     loadRecentActivity();
+    loadMyComments();
 });
 
 let volunteeringRefreshTimer = null;
@@ -385,4 +386,91 @@ function scrollCarousel(direction) {
     } else {
         carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
+}
+
+// ── Your Comments ─────────────────────────────────────────
+function loadMyComments() {
+    const list = document.getElementById('myCommentsList');
+    if (!list) return;
+
+    list.innerHTML = '<div class="loading">Loading your comments…</div>';
+
+    fetch('/unipulse/public/user/dashboard/getMyComments')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                list.innerHTML = '<div class="my-comments-empty"><i class="fas fa-comment-slash"></i><p>Could not load comments.</p></div>';
+                return;
+            }
+            if (!data.comments || data.comments.length === 0) {
+                list.innerHTML = '<div class="my-comments-empty"><i class="fas fa-comments"></i><p>You haven\'t commented on any events yet.</p></div>';
+                return;
+            }
+            list.innerHTML = data.comments.map(c => buildCommentCard(c)).join('');
+        })
+        .catch(() => {
+            list.innerHTML = '<div class="my-comments-empty"><i class="fas fa-exclamation-circle"></i><p>Failed to load comments.</p></div>';
+        });
+}
+
+function buildCommentCard(c) {
+    const stars = c.rating
+        ? ('★'.repeat(c.rating) + '☆'.repeat(5 - c.rating))
+        : '';
+    const editedTag = c.is_edited ? ' <span style="font-size:.75rem;color:#9ca3af;">(edited)</span>' : '';
+
+    const textContent = c.is_hidden
+        ? `<span style="opacity:.5; font-style:italic;">${escapeHtmlDash(c.comment_text)}</span>`
+        : escapeHtmlDash(c.comment_text);
+
+    const hiddenBadge = c.is_hidden
+        ? `<span class="mc-hidden-badge" onclick="showHiddenReason(${c.id})" title="Click to see reason">
+               <i class="fas fa-eye-slash"></i> Hidden by moderator
+           </span>`
+        : '';
+
+    return `
+        <div class="my-comment-card ${c.is_hidden ? 'is-hidden' : ''}" data-comment-id="${c.id}"
+             data-hidden-reason="${escapeAttr(c.hidden_reason || '')}"
+             data-hidden-by="${escapeAttr(c.hidden_by_name || 'Moderator')}">
+            <div class="mc-top">
+                <span class="mc-event">
+                    <i class="fas fa-calendar-alt" style="margin-right:.3rem;"></i>${escapeHtmlDash(c.event_title)}
+                </span>
+                <span class="mc-meta">
+                    ${stars ? `<span class="mc-rating">${stars}</span>` : ''}
+                    <span>${c.formatted_date}</span>
+                </span>
+            </div>
+            <div class="mc-text">${textContent}${editedTag}</div>
+            ${hiddenBadge}
+        </div>`;
+}
+
+function showHiddenReason(commentId) {
+    const card = document.querySelector(`[data-comment-id="${commentId}"]`);
+    if (!card) return;
+    const reason   = card.dataset.hiddenReason || 'No reason provided.';
+    const hiddenBy = card.dataset.hiddenBy     || 'Moderator';
+    document.getElementById('hiddenReasonText').textContent = reason;
+    document.getElementById('hiddenByLine').textContent     = 'Hidden by: ' + hiddenBy;
+    const modal = document.getElementById('hiddenReasonModal');
+    modal.style.display = 'flex';
+}
+
+// close hidden reason modal on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('hiddenReasonModal');
+    if (modal && e.target === modal) modal.style.display = 'none';
+});
+
+function escapeHtmlDash(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+function escapeAttr(text) {
+    return (text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }

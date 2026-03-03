@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Dashboard</title>
     <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
@@ -149,6 +150,34 @@
                 </div>
             </div>
         </section>
+
+        <!-- Your Comments History -->
+        <section class="your-comments-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Your Comments</h2>
+                </div>
+                <div id="myCommentsList" class="my-comments-list">
+                    <div class="loading">Loading your comments&hellip;</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hidden Comment Reason Modal -->
+        <div id="hiddenReasonModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; padding:2rem; max-width:480px; width:92%; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.25);">
+                <button onclick="document.getElementById('hiddenReasonModal').style.display='none'" style="position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.4rem; cursor:pointer; color:#6b7280;">&times;</button>
+                <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:1rem;">
+                    <span style="background:#fee2e2; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i class="fas fa-eye-slash" style="color:#dc2626;"></i>
+                    </span>
+                    <h3 style="margin:0; color:#111827; font-size:1.1rem;">Comment Hidden by Moderator</h3>
+                </div>
+                <p style="color:#374151; font-size:.925rem; margin-bottom:.75rem;">Your comment was hidden for the following reason:</p>
+                <blockquote id="hiddenReasonText" style="margin:0; padding:.75rem 1rem; background:#f9fafb; border-left:4px solid #e74c3c; border-radius:0 8px 8px 0; color:#4b5563; font-size:.9rem; line-height:1.6;"></blockquote>
+                <p id="hiddenByLine" style="margin-top:.75rem; font-size:.8rem; color:#9ca3af;"></p>
+            </div>
+        </div>
 
         <!-- Monthly Evolution Button -->
         <section class="monthly-evolution-btn-section">

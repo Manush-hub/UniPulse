@@ -400,67 +400,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Recent Activity -->
-        <section class="recent-activity">
-            <div class="container">
-                <div class="activity-layout">
-                    <div class="activity-feed">
-                        <h2>Recent Activity</h2>
-                        <div class="activity-list" id="activityList">
-                            <!-- Activity items will be loaded here -->
-                        </div>
-                    </div>
-                    <div class="sidebar">
-                        <div class="sidebar-widget">
-                            <h3>Quick Reports</h3>
-                            <div class="reports-list">
-                                <div class="report-item" onclick="generateReport('performance')">
-                                    <div class="report-icon">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M3 3v18h18"></path>
-                                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="report-info">
-                                        <span class="report-name">Event Performance</span>
-                                        <span class="report-desc">Attendance & engagement</span>
-                                    </div>
-                                </div>
-                                <div class="report-item" onclick="generateReport('financial')">
-                                    <div class="report-icon">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
-                                            <path d="M12 18V6"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="report-info">
-                                        <span class="report-name">Financial Summary</span>
-                                        <span class="report-desc">Revenue & expenses</span>
-                                    </div>
-                                </div>
-                                <div class="report-item" onclick="generateReport('demographics')">
-                                    <div class="report-icon">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                            <circle cx="12" cy="7" r="4"></circle>
-                                        </svg>
-                                    </div>
-                                    <div class="report-info">
-                                        <span class="report-name">Demographics</span>
-                                        <span class="report-desc">Audience breakdown</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <!-- Footer -->

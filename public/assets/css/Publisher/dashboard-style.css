@@ -1464,6 +1464,32 @@ body {
     min-height: 200px;
 }
 
+/* Dashboard recent comments: show ~3 cards then scroll */
+#recentCommentsContainer .comments-list {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+#recentCommentsContainer .comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#recentCommentsContainer .comments-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#recentCommentsContainer .comments-list::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+}
+
+#recentCommentsContainer .comments-list::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
 .loading-comments {
     display: flex;
     flex-direction: column;

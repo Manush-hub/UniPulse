@@ -66,42 +66,6 @@
             </div>
         </section>
 
-        <!-- Quick Actions -->
-        <section class="quick-actions">
-            <div class="container">
-                <h2>Quick Actions</h2>
-                <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/contentmoderation'">
-                        <div class="action-icon">
-                            <i class="fas fa-clipboard-check"></i>
-                        </div>
-                        <h3>Content Moderation</h3>
-                        <p>Review and approve events</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/userreports'">
-                        <div class="action-icon">
-                            <i class="fas fa-flag"></i>
-                        </div>
-                        <h3>User Reports</h3>
-                        <p>Handle user-reported content</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='/unipulse/public/moderator/comments'">
-                        <div class="action-icon">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <h3>Comments Moderation</h3>
-                        <p>Review user comments and manage feedback</p>
-                    </div>
-                    <div class="action-card" onclick="scrollToPublisherApprovals()">
-                        <div class="action-icon">
-                            <i class="fas fa-user-check"></i>
-                        </div>
-                        <h3>Publisher Approvals</h3>
-                        <p>Scroll to publisher approval section</p>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- Moderation Stats and Guidelines Section -->
         <section class="moderation-overview">
@@ -717,7 +681,6 @@
             }, 5000);
         }
     </script>
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>

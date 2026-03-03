@@ -200,7 +200,7 @@ function createEventCard(event) {
     }
 
     // Calculate event status
-    const status = getEventStatus(eventDate);
+    const status = getEventStatus(eventDate, eventTime, event.event_end_time);
 
     card.innerHTML = `
         <div class="event-image">
@@ -348,14 +348,34 @@ function truncateText(text, maxLength) {
     return text.substring(0, maxLength) + '...';
 }
 
-function getEventStatus(eventDate) {
+function getEventStatus(eventDate, eventTime, eventEndTime) {
     if (!eventDate) return 'upcoming';
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const event = new Date(eventDate);
-    event.setHours(0, 0, 0, 0);
-    
-    if (event < today) return 'completed';
-    if (event.getTime() === today.getTime()) return 'ongoing';
-    return 'upcoming';
+
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${mo}-${d}`;
+    const eventDateStr = String(eventDate).slice(0, 10);
+
+    if (eventDateStr > todayStr) {
+        return 'upcoming';
+    } else if (eventDateStr < todayStr) {
+        return 'completed';
+    } else {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const nowTimeStr = `${hh}:${mm}:${ss}`;
+        const startTime = eventTime ? String(eventTime).slice(0, 8) : '00:00:00';
+        const endTime = eventEndTime ? String(eventEndTime).slice(0, 8) : null;
+
+        if (startTime > nowTimeStr) {
+            return 'upcoming';
+        } else if (endTime && endTime <= nowTimeStr) {
+            return 'completed';
+        } else {
+            return 'ongoing';
+        }
+    }
 }

@@ -142,8 +142,9 @@ function displayEventDetails(event) {
 
     const eventStatusElement = document.getElementById('eventStatus');
     const eventDate = event.event_date || event.date;
+    const eventTimeRaw = event.event_time || event.time;
     const rawStatus = (event.status || '').toString().trim().toLowerCase();
-    const calculatedStatus = getEventStatus(eventDate);
+    const calculatedStatus = getEventStatus(eventDate, eventTimeRaw, event.event_end_time);
     const normalizedStatus = (rawStatus === 'cancelled' || rawStatus === 'completed')
         ? rawStatus
         : calculatedStatus;
@@ -316,27 +317,40 @@ function displayEventDetails(event) {
         }
     }
 
-    // Volunteer information - hide card if not accepting volunteers or no slots left
-    if (event.needs_volunteers && event.needs_volunteers == 1) {
-        const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
-            ? parseInt(event.volunteers_needed, 10)
-            : null;
+    const eventStatus = getEventStatus(event.event_date || event.date, event.event_time || event.time, event.event_end_time);
+    if (eventStatus !== 'upcoming') {
+        const volunteerCard = document.getElementById('volunteerCard');
+        const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+        if (volunteerCard) {
+            volunteerCard.style.display = 'none';
+        }
+        if (volunteerInvolvementCard) {
+            volunteerInvolvementCard.style.display = 'none';
+        }
+    } else {
 
-        if (volunteersNeeded === null || volunteersNeeded > 0) {
-            displayVolunteerInfo(event);
+        // Volunteer information - hide card if not accepting volunteers or no slots left
+        if (event.needs_volunteers && event.needs_volunteers == 1) {
+            const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+                ? parseInt(event.volunteers_needed, 10)
+                : null;
+
+            if (volunteersNeeded === null || volunteersNeeded > 0) {
+                displayVolunteerInfo(event);
+            } else {
+                if (document.getElementById('volunteerCard')) {
+                    document.getElementById('volunteerCard').style.display = 'none';
+                }
+            }
         } else {
             if (document.getElementById('volunteerCard')) {
                 document.getElementById('volunteerCard').style.display = 'none';
             }
         }
-    } else {
-        if (document.getElementById('volunteerCard')) {
-            document.getElementById('volunteerCard').style.display = 'none';
-        }
     }
 
     // Donation information - hide card if not accepting donations
-    if (event.accepts_donations && event.accepts_donations == 1) {
+    if (eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1) {
         if (document.getElementById('donationCard')) {
             document.getElementById('donationCard').style.display = 'block';
         }
@@ -344,6 +358,20 @@ function displayEventDetails(event) {
         if (document.getElementById('donationCard')) {
             document.getElementById('donationCard').style.display = 'none';
         }
+    }
+
+    // Show volunteer/donation section wrapper if either card is available
+    const volunteerDonationHeader = document.getElementById('volunteerDonationHeader');
+    const volunteerDonationGrid = document.getElementById('volunteerDonationGrid');
+    const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1;
+    const hasDonation = eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1;
+
+    if (hasVolunteer || hasDonation) {
+        if (volunteerDonationHeader) volunteerDonationHeader.style.display = 'block';
+        if (volunteerDonationGrid) volunteerDonationGrid.style.display = 'grid';
+    } else {
+        if (volunteerDonationHeader) volunteerDonationHeader.style.display = 'none';
+        if (volunteerDonationGrid) volunteerDonationGrid.style.display = 'none';
     }
 
     // Organizer info - use organizer_name from publisher profile for live updates
@@ -1101,7 +1129,30 @@ function displayTicketDetails(event) {
     }
 }
 
+function toggleRegistrationSectionVisibility(event) {
+    const registrationHeader = document.getElementById('registrationSectionHeader');
+    const ticketingWrapper = document.getElementById('ticketingSectionWrapper');
+
+    if (!registrationHeader || !ticketingWrapper) {
+        return true;
+    }
+
+    const eventDate = event.event_date || event.date;
+    const eventTime = event.event_time || event.time;
+    const eventStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
+    const shouldHide = eventStatus !== 'upcoming';
+
+    registrationHeader.style.display = shouldHide ? 'none' : '';
+    ticketingWrapper.style.display = shouldHide ? 'none' : '';
+
+    return !shouldHide;
+}
+
 function renderFreeRegistration(event) {
+    if (!toggleRegistrationSectionVisibility(event)) {
+        return;
+    }
+
     const freeSection = document.getElementById('freeRegistrationSection');
     if (!freeSection) {
         console.error('freeRegistrationSection element not found');
@@ -1115,6 +1166,10 @@ function renderFreeRegistration(event) {
 }
 
 function renderPaidTickets(event) {
+    if (!toggleRegistrationSectionVisibility(event)) {
+        return;
+    }
+
     const paidSection = document.getElementById('paidTicketingSection');
     if (!paidSection) return;
 
@@ -1173,6 +1228,10 @@ function renderPaidTickets(event) {
 }
 
 function renderMixedTickets(event) {
+    if (!toggleRegistrationSectionVisibility(event)) {
+        return;
+    }
+
     const mixedSection = document.getElementById('mixedTicketingSection');
     if (!mixedSection) return;
 
@@ -1334,10 +1393,10 @@ function buyTickets() {
 
     sessionStorage.setItem('paymentData', JSON.stringify(paymentData));
     console.log('Payment data saved to sessionStorage');
-    
+
     // Redirect to user payment gateway (PayHere only)
     const paymentUrl = `/unipulse/public/user/paymentgateway?event_id=${currentEvent.id}`;
-    
+
     console.log('Redirecting to:', paymentUrl);
     window.location.href = paymentUrl;
 }
@@ -1705,14 +1764,9 @@ async function checkUserCommentStatus() {
         }
 
         if (data.can_comment) {
-            // User can comment
+            // User can comment (including users who have already commented)
             console.log('User can comment - showing add button');
             if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-        } else if (data.has_commented) {
-            // User already commented
-            console.log('User already commented - hiding both');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'none';
         } else {
             // User not logged in or can't comment
@@ -2183,20 +2237,36 @@ function escapeHtml(text) {
 }
 
 // Calculate event status based on event date
-function getEventStatus(eventDate) {
+function getEventStatus(eventDate, eventTime, eventEndTime) {
     if (!eventDate) return 'upcoming';
-    const eventDateObj = new Date(eventDate);
-    const today = new Date();
 
-    today.setHours(0, 0, 0, 0);
-    eventDateObj.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const todayStr = `${y}-${mo}-${d}`;
+    const eventDateStr = String(eventDate).slice(0, 10);
 
-    if (eventDateObj < today) {
+    if (eventDateStr > todayStr) {
+        return 'upcoming';
+    } else if (eventDateStr < todayStr) {
         return 'completed';
-    } else if (eventDateObj.getTime() === today.getTime()) {
-        return 'ongoing';
+    } else {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const nowTimeStr = `${hh}:${mm}:${ss}`;
+        const startTime = eventTime ? String(eventTime).slice(0, 8) : '00:00:00';
+        const endTime = eventEndTime ? String(eventEndTime).slice(0, 8) : null;
+
+        if (startTime > nowTimeStr) {
+            return 'upcoming';
+        } else if (endTime && endTime <= nowTimeStr) {
+            return 'completed';
+        } else {
+            return 'ongoing';
+        }
     }
-    return 'upcoming';
 }
 
 function visitPublisherProfile() {

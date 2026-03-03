@@ -591,6 +591,16 @@
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
+
+                            <div class="form-group">
+                                <label for="event_end_time" class="form-label">End Time</label>
+                                <div class="input-group">
+                                    <input type="time" class="form-input" disabled
+                                           value="<?= htmlspecialchars($data['event']->event_end_time ?? '') ?>"
+                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
                         </div>
                     </div>
                 </section>

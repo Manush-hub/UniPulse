@@ -95,6 +95,17 @@ class Moderator_create extends Controller{
         $result = $moderatorModel->create($moderatorData);
         
         if ($result['success']) {
+            // Log admin activity
+            AdminActivity::log(
+                $data['user']['id'],
+                $data['user']['name'],
+                'moderator_created',
+                'moderator',
+                null,
+                $moderatorData['full_name'],
+                'Added new moderator ' . $moderatorData['full_name'] . ' for ' . $moderatorData['university_name'],
+                'user-shield'
+            );
             // Redirect to moderators list with success message
             $_SESSION['success_message'] = 'Moderator created successfully';
             header('Location: /unipulse/public/admin/moderators_list');

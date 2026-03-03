@@ -15,6 +15,11 @@ $roleConfig = [
         'jsFile' => '/unipulse/public/assets/js/Sponsor/eventview-app.js',
         'purchaseTicketFunction' => false,
         'visitProfileFunction' => true
+    ],
+    'Moderator' => [
+        'jsFile' => '/unipulse/public/assets/js/Moderator/eventview-app.js',
+        'purchaseTicketFunction' => false,
+        'visitProfileFunction' => false
     ]
 ];
 
@@ -241,7 +246,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         </div>
                     </div>
 
-                    <div class="section-header">
+                    <div class="section-header" id="registrationSectionHeader">
                         <h2 class="section-title">Registration & Ticketing</h2>
                         <p class="section-subtitle">Get your tickets or register for this event</p>
                     </div>
@@ -322,15 +327,15 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-value" id="ticketPrice">LKR 0.00</span>
                                         </div>
                                         <?php if ($config['purchaseTicketFunction']): ?>
-                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
-                                            <i class="fas fa-shopping-cart"></i>
-                                            Proceed to Payment
-                                        </button>
+                                            <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                Proceed to Payment
+                                            </button>
                                         <?php else: ?>
-                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
-                                            <i class="fas fa-info-circle"></i>
-                                            <strong>Note:</strong> Only university and public users can purchase tickets.
-                                        </div>
+                                            <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Note:</strong> Only university and public users can purchase tickets.
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -362,15 +367,15 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                             <span class="total-value" id="mixedTicketPrice">LKR 0.00</span>
                                         </div>
                                         <?php if ($config['purchaseTicketFunction']): ?>
-                                        <button class="btn-buy-tickets-modern" onclick="buyTickets()">
-                                            <i class="fas fa-shopping-cart"></i>
-                                            Buy Tickets Now
-                                        </button>
+                                            <button class="btn-buy-tickets-modern" onclick="buyTickets()">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                Buy Tickets Now
+                                            </button>
                                         <?php else: ?>
-                                        <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
-                                            <i class="fas fa-info-circle"></i>
-                                            <strong>Note:</strong> Only university and public users can purchase tickets.
-                                        </div>
+                                            <div style="padding: 15px; background: #f0f9ff; border-radius: 8px; color: #0369a1; text-align: center;">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Note:</strong> Only university and public users can purchase tickets.
+                                            </div>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -378,17 +383,31 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         </div>
                     </div>
 
-                    <div class="content-card" id="volunteerCard" style="display: none;">
-                        <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
-                        <div id="volunteerInfo"></div>
+                    <div class="section-header" id="volunteerDonationHeader" style="display: none;">
+                        <h2 class="section-title">Volunteer & Donations</h2>
                     </div>
 
-                    <?php if ($currentRole !== 'User'): ?>
-                        <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
-                            <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
-                            <div id="volunteerInvolvementInfo"></div>
+                    <div class="details-grid" id="volunteerDonationGrid" style="display: none;">
+                        <div class="content-card" id="volunteerCard" style="display: none;">
+                            <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
+                            <div id="volunteerInfo"></div>
                         </div>
-                    <?php endif; ?>
+
+                        <div class="content-card" id="donationCard" style="display: none;">
+                            <h3><i class="fas fa-hand-holding-heart"></i> Support This Event</h3>
+                            <p>Contribute to this event with a donation.</p>
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="openDonationModal()">Donate Now</button>
+                            </div>
+                        </div>
+
+                        <?php if ($currentRole !== 'User'): ?>
+                            <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                                <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                                <div id="volunteerInvolvementInfo"></div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -597,10 +616,10 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="modal-body">
                 <p>Support this event with a donation:</p>
                 <div class="donation-amounts">
-                    <button class="donation-btn" data-amount="500">LKR 500</button>
-                    <button class="donation-btn" data-amount="1000">LKR 1,000</button>
-                    <button class="donation-btn" data-amount="2000">LKR 2,000</button>
-                    <input type="number" id="customAmount" placeholder="Custom amount" class="custom-amount-input">
+                    <button class="donation-btn donation-amount" data-amount="500">LKR 500</button>
+                    <button class="donation-btn donation-amount" data-amount="1000">LKR 1,000</button>
+                    <button class="donation-btn donation-amount" data-amount="2000">LKR 2,000</button>
+                    <input type="number" id="customDonationAmount" placeholder="Custom amount" class="custom-amount-input">
                 </div>
             </div>
             <div class="modal-footer">
@@ -774,10 +793,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                 // Redirect to payment page
                 window.location.href = `/unipulse/public/payment/ticket?event_id=${eventId}`;
             }
-            
-            // Redirect to payment page (PayHere)
-            window.location.href = `/unipulse/public/user/paymentgateway?event_id=${eventId}`;
-        }
         <?php endif; ?>
 
         <?php if ($config['visitProfileFunction']): ?>
@@ -794,6 +809,70 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     </script>
 
     <script src="<?php echo $config['jsFile']; ?>"></script>
+
+    <?php if ($currentRole === 'Publisher'): ?>
+    <!-- Report Comment Modal (Publisher only) -->
+    <div id="reportCommentModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width:500px; width:92%;">
+            <div class="modal-header">
+                <h3><i class="fas fa-flag" style="color:#e74c3c; margin-right:8px;"></i>Report Comment</h3>
+                <button class="close-btn" onclick="closeReportCommentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:16px; color:#555;">Select a moderator from your university and describe the issue. A message will be sent directly to them.</p>
+                <form id="reportCommentForm">
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label for="reportModeratorSelect" style="display:block; font-weight:600; margin-bottom:6px;">Moderator <span style="color:red;">*</span></label>
+                        <select id="reportModeratorSelect" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;">
+                            <option value="">— Loading moderators… —</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label for="reportReason" style="display:block; font-weight:600; margin-bottom:6px;">Reason <span style="color:red;">*</span></label>
+                        <textarea id="reportReason" class="form-control" rows="4"
+                            placeholder="Briefly explain why you are reporting this comment…"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:vertical;"></textarea>
+                    </div>
+                    <div id="reportCommentError" style="display:none; color:#e74c3c; font-size:0.875rem; margin-bottom:10px;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReportCommentModal()">Cancel</button>
+                <button id="reportSubmitBtn" class="btn btn-danger" onclick="submitCommentReport()">
+                    <i class="fas fa-flag"></i> Submit Report
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($currentRole === 'Moderator'): ?>
+    <!-- Hide Comment Modal (Moderator only) -->
+    <div id="hideCommentModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width:500px; width:92%;">
+            <div class="modal-header">
+                <h3><i class="fas fa-eye-slash" style="color:#e67e22; margin-right:8px;"></i>Hide Comment</h3>
+                <button class="close-btn" onclick="closeHideCommentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:16px; color:#555;">Provide a reason for hiding this comment. The user will be notified with this reason.</p>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="hideCommentReason" style="display:block; font-weight:600; margin-bottom:6px;">Reason <span style="color:red;">*</span></label>
+                    <textarea id="hideCommentReason" class="form-control" rows="4"
+                        placeholder="Explain why this comment is being hidden (min. 10 characters)…"
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:vertical;"></textarea>
+                </div>
+                <div id="hideCommentError" style="display:none; color:#e74c3c; font-size:0.875rem; margin-bottom:10px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeHideCommentModal()">Cancel</button>
+                <button id="hideCommentSubmitBtn" class="btn btn-warning" onclick="confirmHideComment()">
+                    <i class="fas fa-eye-slash"></i> Hide Comment
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </body>
 
 </html>

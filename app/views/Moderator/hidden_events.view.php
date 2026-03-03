@@ -122,6 +122,5 @@
     </script>
 
     <script src="/unipulse/public/assets/js/Moderator/hidden-events-app.js"></script>
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 </html>

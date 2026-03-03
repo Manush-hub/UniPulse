@@ -180,6 +180,9 @@ function createCommentCard(comment) {
     const userInitials = comment.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
     const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : 'No rating';
     const editedBadge = comment.is_edited ? '<span class="edited-badge">Edited</span>' : '';
+    const hideBadge = comment.is_hidden
+        ? `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:#fef3c7;color:#b45309;" title="${comment.hidden_reason ? comment.hidden_reason.replace(/"/g,'&quot;') : 'Hidden by moderator'}"><i class="fas fa-eye-slash"></i> Hidden</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:#dcfce7;color:#15803d;"><i class="fas fa-eye"></i> Visible</span>`;
     
     return `
         <div class="comment-card" data-comment-id="${comment.id}">
@@ -200,6 +203,7 @@ function createCommentCard(comment) {
                         </div>
                     ` : ''}
                     <p>${comment.formatted_date}</p>
+                    ${hideBadge}
                 </div>
             </div>
             
@@ -246,6 +250,9 @@ function viewCommentDetails(commentId) {
     
     const userInitials = comment.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
     const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : 'No rating provided';
+    const hideStatusBadge = comment.is_hidden
+        ? `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;padding:.2rem .65rem;border-radius:20px;background:#fef3c7;color:#b45309;" title="${comment.hidden_reason ? comment.hidden_reason.replace(/"/g,'&quot;') : 'Hidden by moderator'}"><i class="fas fa-eye-slash"></i> Hidden by Moderator</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.8rem;font-weight:600;padding:.2rem .65rem;border-radius:20px;background:#dcfce7;color:#15803d;"><i class="fas fa-eye"></i> Visible</span>`;
     
     modalBody.innerHTML = `
         <div class="comment-details">
@@ -284,6 +291,12 @@ function viewCommentDetails(commentId) {
             <div class="comment-timestamps">
                 <p><strong>Posted:</strong> ${formatDateTime(comment.created_at)}</p>
                 ${comment.is_edited ? `<p><strong>Last edited:</strong> ${formatDateTime(comment.updated_at)}</p>` : ''}
+            </div>
+            
+            <div style="margin-top:.75rem;">
+                <strong style="font-size:.85rem;color:#374151;">Visibility Status:</strong>
+                <div style="margin-top:.35rem;">${hideStatusBadge}</div>
+                ${comment.is_hidden && comment.hidden_reason ? `<p style="margin:.4rem 0 0;font-size:.83rem;color:#92400e;"><strong>Reason:</strong> ${escapeHtml(comment.hidden_reason)}</p>` : ''}
             </div>
         </div>
         

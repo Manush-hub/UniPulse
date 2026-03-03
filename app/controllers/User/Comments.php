@@ -392,9 +392,10 @@ class UserComments extends Controller
 
             error_log("Has commented: " . ($hasCommented ? 'YES' : 'NO'));
 
+            // Users can comment multiple times — always allow if event is completed
             echo json_encode([
                 'has_commented' => $hasCommented,
-                'can_comment' => !$hasCommented,
+                'can_comment' => true,
                 'debug' => 'success',
                 'user_id' => $currentUser['id'],
                 'user_type' => $currentUser['type']
@@ -474,7 +475,28 @@ class UserComments extends Controller
             $eventDate = new DateTime($event->event_date);
             $eventDate->setTime(0, 0, 0);
             $today = new DateTime('today');
-            return $eventDate < $today;
+
+            // Strictly past date
+            if ($eventDate < $today) {
+                return true;
+            }
+
+            // Same date: check if end time has passed (or start time has passed if no end time)
+            if ($eventDate == $today) {
+                $now = new DateTime();
+                $endTimeStr   = !empty($event->event_end_time) ? $event->event_end_time : null;
+                $startTimeStr = !empty($event->event_time)     ? $event->event_time     : null;
+
+                if ($endTimeStr) {
+                    $endDt = new DateTime($event->event_date . ' ' . $endTimeStr);
+                    return $now >= $endDt;
+                } elseif ($startTimeStr) {
+                    $startDt = new DateTime($event->event_date . ' ' . $startTimeStr);
+                    return $now >= $startDt;
+                }
+            }
+
+            return false;
         } catch (Exception $e) {
             error_log("Error parsing event date in isCompletedEvent: " . $e->getMessage());
             return false;

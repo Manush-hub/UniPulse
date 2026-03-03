@@ -18,6 +18,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 <a href="/unipulse/public/moderator/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
                 <a href="/unipulse/public/moderator/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">Events</a>
                 <a href="/unipulse/public/moderator/events/hiddenEvents" class="<?= $activeNav === 'hidden-events' ? 'active' : '' ?>">Hidden Events</a>
+                <a href="/unipulse/public/moderator/comments" class="<?= $activeNav === 'comments' ? 'active' : '' ?>">Comments</a>
                 <a href="/unipulse/public/moderator/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
             </nav>
             <div class="header-actions">
@@ -60,3 +61,4 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             </div>
         </div>
     </header>
+<script src="/unipulse/public/assets/js/Moderator/header.js"></script>

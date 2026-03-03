@@ -152,7 +152,6 @@
         </section>
     </div>
 
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
     <script src="/unipulse/public/assets/js/Moderator/messages-app.js"></script>
 </body>
 

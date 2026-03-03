@@ -66,6 +66,12 @@ class Event
     {
         $whereClause = ['e.is_deleted = 0']; // Exclude soft-deleted events
         $params = [];
+        $computedStatusSql = "CASE
+                    WHEN TIMESTAMP(e.event_date, e.event_time) > NOW() THEN 'upcoming'
+                    WHEN e.event_end_time IS NOT NULL AND TIMESTAMP(e.event_date, e.event_end_time) <= NOW() THEN 'completed'
+                    WHEN e.event_end_time IS NULL AND e.event_date < CURDATE() THEN 'completed'
+                    ELSE 'ongoing'
+                END";
 
         // Apply visibility filtering based on current user
         $visibilityClause = $this->buildVisibilityFilter($currentUser);
@@ -86,17 +92,8 @@ class Event
         }
 
         if (!empty($filters['status'])) {
-            $whereClause[] = 'e.status = :status';
-            $params['status'] = $filters['status'];
-
-            // Filter by actual date/time to ensure accuracy
-            if ($filters['status'] === 'upcoming') {
-                // Upcoming: event hasn't started yet
-                $whereClause[] = "(e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()))";
-            } elseif ($filters['status'] === 'ongoing') {
-                // Ongoing: event has started but not ended yet (or has no end time)
-                $whereClause[] = "(e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()))";
-            }
+            $whereClause[] = "({$computedStatusSql}) = :status_filter";
+            $params['status_filter'] = $filters['status'];
         }
 
         if (!empty($filters['search'])) {
@@ -104,7 +101,7 @@ class Event
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
-        $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo,
+        $sql = "SELECT e.*, ({$computedStatusSql}) as status, p.society_name as organizer_name, pp.logo_url as organizer_photo,
                 CASE 
                     WHEN e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()) THEN 1
                     WHEN e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()) THEN 2
@@ -333,6 +330,12 @@ class Event
     public function getEventsByRole($userRole = 'user', $filters = [], $currentUser = null)
     {
         $allowCompletedEvents = in_array($userRole, ['admin', 'moderator']);
+        $computedStatusSql = "CASE
+                    WHEN TIMESTAMP(e.event_date, e.event_time) > NOW() THEN 'upcoming'
+                    WHEN e.event_end_time IS NOT NULL AND TIMESTAMP(e.event_date, e.event_end_time) <= NOW() THEN 'completed'
+                    WHEN e.event_end_time IS NULL AND e.event_date < CURDATE() THEN 'completed'
+                    ELSE 'ongoing'
+                END";
 
         // For publishers and sponsors, exclude completed events by default unless specifically filtered
         if ($userRole === 'publisher' && !isset($filters['status'])) {
@@ -375,17 +378,13 @@ class Event
 
             // Exclude completed events
             if (isset($filters['status_exclude'])) {
-                $whereClause[] = "e.status != :status_exclude";
+                $whereClause[] = "({$computedStatusSql}) != :status_exclude";
                 $params['status_exclude'] = $filters['status_exclude'];
             } else {
-                $whereClause[] = "e.status != 'completed'";
+                $whereClause[] = "({$computedStatusSql}) != 'completed'";
             }
 
-            // Also exclude events that have already ended (based on actual date/time)
-            // Show events that haven't ended yet: future dates OR (today but end_time hasn't passed or is NULL)
-            $whereClause[] = "(e.event_date > CURDATE() OR (e.event_date = CURDATE() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME())))";
-
-            $sql = "SELECT e.*, p.society_name as organizer_name, pp.logo_url as organizer_photo FROM {$this->table} e
+            $sql = "SELECT e.*, ({$computedStatusSql}) as status, p.society_name as organizer_name, pp.logo_url as organizer_photo FROM {$this->table} e
                     LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                     LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id";
 
@@ -1246,6 +1245,7 @@ class Event
                     e.category,
                     e.event_date,
                     e.event_time,
+                    e.event_end_time,
                     e.location,
                     e.location_type,
                     e.university_name,
@@ -1262,9 +1262,8 @@ class Event
                 FROM events e
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 WHERE e.is_deleted = 0
-                    AND e.status = 'upcoming'
-                    AND CONCAT(e.event_date, ' ', e.event_time) >= NOW()
-                    AND CONCAT(e.event_date, ' ', e.event_time) <= DATE_ADD(NOW(), INTERVAL 24 HOUR)
+                    AND TIMESTAMP(e.event_date, e.event_time) > NOW()
+                    AND TIMESTAMP(e.event_date, e.event_time) <= DATE_ADD(NOW(), INTERVAL 24 HOUR)
             ";
 
             $visibilityClause = $this->buildVisibilityFilter($currentUser);
@@ -1314,6 +1313,7 @@ class Event
                     e.category,
                     e.event_date,
                     e.event_time,
+                    e.event_end_time,
                     e.location,
                     e.location_type,
                     e.university_name,
@@ -1330,8 +1330,7 @@ class Event
                 FROM events e
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 WHERE e.is_deleted = 0
-                    AND e.status = 'upcoming'
-                    AND CONCAT(e.event_date, ' ', e.event_time) >= NOW()
+                    AND TIMESTAMP(e.event_date, e.event_time) > NOW()
             ";
 
             $visibilityClause = $this->buildVisibilityFilter($currentUser);
