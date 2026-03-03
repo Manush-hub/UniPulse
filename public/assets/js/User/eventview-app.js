@@ -809,16 +809,28 @@ function registerForEvent() {
         return;
     }
 
-    // Check if event requires registration
-    const requiresReg = currentEvent.requires_registration == 1 || currentEvent.requires_registration === '1';
+    const formData = new FormData();
+    formData.append('id', currentEvent.id);
 
-    if (!requiresReg) {
-        alert('This is an open event. No registration is required - just show up!');
-        return;
-    }
+    fetch(joinEndpoint, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success || data.alreadyRegistered) {
+                isUserRegistered = true;
+                window.location.href = '/unipulse/public/user/dashboard?event_registered=1';
+                return;
+            }
 
-    // Show join modal for registration
-    openJoinModal();
+            console.warn('Event registration did not complete:', data);
+            window.location.href = '/unipulse/public/user/dashboard';
+        })
+        .catch(error => {
+            console.error('Error registering for event:', error);
+            window.location.href = '/unipulse/public/user/dashboard';
+        });
 }
 
 // Buy tickets for paid event

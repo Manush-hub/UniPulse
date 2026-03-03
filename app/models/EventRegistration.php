@@ -5,6 +5,9 @@ class EventRegistration
 
     use Model;
 
+    private $tableColumnsCache = null;
+    private $tableIntegrityChecked = false;
+
     protected $table = 'event_registrations';
     protected $allowedColumns = [
         'event_id',
@@ -24,12 +27,21 @@ class EventRegistration
      */
     public function isUserRegistered($eventId, $userId, $userType)
     {
+        $userType = $this->normalizeUserType($userType);
+
+        $columns = $this->getExistingColumns();
+        $hasStatusColumn = in_array('status', $columns, true);
+
         $sql = "SELECT id FROM {$this->table} 
                 WHERE event_id = :event_id 
                 AND user_id = :user_id 
-                AND user_type = :user_type 
-                AND status != 'cancelled'
-                LIMIT 1";
+                AND user_type = :user_type";
+
+        if ($hasStatusColumn) {
+            $sql .= " AND status != 'cancelled'";
+        }
+
+        $sql .= " LIMIT 1";
 
         $result = $this->query($sql, [
             'event_id' => $eventId,
@@ -45,17 +57,82 @@ class EventRegistration
      */
     public function registerUser($data)
     {
-        // Check if already registered
-        if ($this->isUserRegistered($data['event_id'], $data['user_id'], $data['user_type'])) {
-            return false; // Already registered
+        $data['user_type'] = $this->normalizeUserType($data['user_type'] ?? null);
+
+        $columns = $this->getExistingColumns();
+
+        // Handle existing registration row first (important because of unique key)
+        $existingRegistration = $this->getAnyRegistration($data['event_id'], $data['user_id'], $data['user_type']);
+        if ($existingRegistration) {
+            $existingStatus = isset($existingRegistration->status) ? strtolower((string)$existingRegistration->status) : 'registered';
+
+            // Already active registration
+            if ($existingStatus !== 'cancelled') {
+                return false;
+            }
+
+            // Reactivate cancelled registration instead of inserting a new row
+            $reactivateData = [];
+            if (in_array('status', $columns, true)) {
+                $reactivateData['status'] = 'registered';
+            }
+            if (in_array('cancelled_at', $columns, true)) {
+                $reactivateData['cancelled_at'] = null;
+            }
+            if (in_array('registration_type', $columns, true)) {
+                $reactivateData['registration_type'] = $data['registration_type'] ?? 'free';
+            }
+            if (in_array('amount_paid', $columns, true)) {
+                $reactivateData['amount_paid'] = $data['amount_paid'] ?? 0.00;
+            }
+            if (in_array('notes', $columns, true) && array_key_exists('notes', $data)) {
+                $reactivateData['notes'] = $data['notes'];
+            }
+
+            if (!empty($reactivateData)) {
+                $updated = $this->update($existingRegistration->id, $reactivateData);
+                if ($updated) {
+                    $this->logRegistrationActivity($data);
+                    return $existingRegistration->id;
+                }
+            }
+
+            return false;
         }
 
         // Set defaults
-        $data['registration_type'] = $data['registration_type'] ?? 'free';
-        $data['status'] = 'registered';
-        $data['amount_paid'] = $data['amount_paid'] ?? 0.00;
+        if (in_array('registration_type', $columns, true)) {
+            $data['registration_type'] = $data['registration_type'] ?? 'free';
+        }
+        if (in_array('status', $columns, true)) {
+            $data['status'] = 'registered';
+        }
+        if (in_array('amount_paid', $columns, true)) {
+            $data['amount_paid'] = $data['amount_paid'] ?? 0.00;
+        }
 
-        $result = $this->insert($data);
+        // Keep only columns that actually exist in database
+        $insertData = [];
+        foreach ($data as $key => $value) {
+            if (in_array($key, $columns, true)) {
+                $insertData[$key] = $value;
+            }
+        }
+
+        // Required minimal payload
+        foreach (['event_id', 'user_id', 'user_type'] as $requiredKey) {
+            if (!array_key_exists($requiredKey, $insertData)) {
+                return false;
+            }
+        }
+
+        $keys = array_keys($insertData);
+        $sql = "INSERT INTO {$this->table} (" . implode(',', $keys) . ") VALUES (:" . implode(',:', $keys) . ")";
+
+        $conn = $this->connect();
+        $stm = $conn->prepare($sql);
+        $executeResult = $stm->execute($insertData);
+        $result = $executeResult ? $conn->lastInsertId() : false;
 
         // Log activity if registration was successful
         if ($result) {
@@ -63,6 +140,78 @@ class EventRegistration
         }
 
         return $result;
+    }
+
+    /**
+     * Ensure user has an active paid registration for an event.
+     * If registration exists, it updates payment-related fields.
+     */
+    public function ensurePaidRegistration($data)
+    {
+        $data['user_type'] = $this->normalizeUserType($data['user_type'] ?? null);
+        $data['registration_type'] = 'paid';
+        $data['status'] = 'registered';
+        $data['amount_paid'] = isset($data['amount_paid']) ? (float)$data['amount_paid'] : 0.00;
+
+        $columns = $this->getExistingColumns();
+        $existingRegistration = $this->getAnyRegistration($data['event_id'], $data['user_id'], $data['user_type']);
+
+        if (!$existingRegistration) {
+            return $this->registerUser($data);
+        }
+
+        $updateData = [];
+
+        if (in_array('registration_type', $columns, true)) {
+            $updateData['registration_type'] = 'paid';
+        }
+
+        if (in_array('status', $columns, true)) {
+            $updateData['status'] = 'registered';
+        }
+
+        if (in_array('cancelled_at', $columns, true)) {
+            $updateData['cancelled_at'] = null;
+        }
+
+        if (in_array('amount_paid', $columns, true)) {
+            $updateData['amount_paid'] = $data['amount_paid'];
+        }
+
+        if (in_array('payment_id', $columns, true) && !empty($data['payment_id'])) {
+            $updateData['payment_id'] = $data['payment_id'];
+        }
+
+        if (in_array('notes', $columns, true) && array_key_exists('notes', $data)) {
+            $updateData['notes'] = $data['notes'];
+        }
+
+        if (empty($updateData)) {
+            return $existingRegistration->id;
+        }
+
+        $updated = $this->update($existingRegistration->id, $updateData);
+        return $updated ? $existingRegistration->id : false;
+    }
+
+    /**
+     * Find registration regardless of status
+     */
+    private function getAnyRegistration($eventId, $userId, $userType)
+    {
+        $sql = "SELECT * FROM {$this->table}
+                WHERE event_id = :event_id
+                AND user_id = :user_id
+                AND user_type = :user_type
+                LIMIT 1";
+
+        $result = $this->query($sql, [
+            'event_id' => $eventId,
+            'user_id' => $userId,
+            'user_type' => $userType
+        ]);
+
+        return $result ? $result[0] : null;
     }
 
     /**
@@ -134,9 +283,33 @@ class EventRegistration
      */
     public function cancelRegistration($eventId, $userId, $userType)
     {
+        $userType = $this->normalizeUserType($userType);
+
+        $columns = $this->getExistingColumns();
+
+        // If status column doesn't exist, remove the registration record directly
+        if (!in_array('status', $columns, true)) {
+            $sql = "DELETE FROM {$this->table}
+                    WHERE event_id = :event_id
+                    AND user_id = :user_id
+                    AND user_type = :user_type";
+
+            return $this->query($sql, [
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+        }
+
+        $hasCancelledAt = in_array('cancelled_at', $columns, true);
         $sql = "UPDATE {$this->table} 
-                SET status = 'cancelled', 
-                    cancelled_at = NOW() 
+                SET status = 'cancelled'";
+
+        if ($hasCancelledAt) {
+            $sql .= ", cancelled_at = NOW()";
+        }
+
+        $sql .= "
                 WHERE event_id = :event_id 
                 AND user_id = :user_id 
                 AND user_type = :user_type 
@@ -204,6 +377,8 @@ class EventRegistration
      */
     public function getUserRegistration($eventId, $userId, $userType)
     {
+        $userType = $this->normalizeUserType($userType);
+
         $sql = "SELECT * FROM {$this->table} 
                 WHERE event_id = :event_id 
                 AND user_id = :user_id 
@@ -261,7 +436,26 @@ class EventRegistration
      */
     public function getUserRegisteredEvents($userId, $userType, $status = 'registered')
     {
-        $sql = "SELECT e.*, er.registered_at, er.status as registration_status 
+        $userType = $this->normalizeUserType($userType);
+
+        $columns = $this->getExistingColumns();
+        $hasRegisteredAt = in_array('registered_at', $columns, true);
+        $hasStatus = in_array('status', $columns, true);
+
+        $sql = "SELECT e.*";
+        if ($hasRegisteredAt) {
+            $sql .= ", er.registered_at";
+        } else {
+            $sql .= ", NULL as registered_at";
+        }
+
+        if ($hasStatus) {
+            $sql .= ", er.status as registration_status";
+        } else {
+            $sql .= ", 'registered' as registration_status";
+        }
+
+        $sql .= "
                 FROM {$this->table} er
                 INNER JOIN events e ON er.event_id = e.id
                 WHERE er.user_id = :user_id 
@@ -272,7 +466,7 @@ class EventRegistration
             'user_type' => $userType
         ];
 
-        if ($status) {
+        if ($status && $hasStatus) {
             $sql .= " AND er.status = :status";
             $params['status'] = $status;
         }
@@ -283,10 +477,170 @@ class EventRegistration
     }
 
     /**
+     * Get existing columns for event_registrations table
+     */
+    private function getExistingColumns()
+    {
+        if (is_array($this->tableColumnsCache)) {
+            return $this->tableColumnsCache;
+        }
+
+        try {
+            $this->ensureTableIntegrity();
+
+            $result = $this->query("SHOW COLUMNS FROM {$this->table}");
+            if (!$result) {
+                $this->createTableIfMissing();
+                $this->ensureTableIntegrity();
+                $result = $this->query("SHOW COLUMNS FROM {$this->table}");
+            }
+
+            if (!$result) {
+                $this->tableColumnsCache = [];
+                return $this->tableColumnsCache;
+            }
+
+            $columns = [];
+            foreach ($result as $column) {
+                if (isset($column->Field)) {
+                    $columns[] = $column->Field;
+                }
+            }
+
+            $this->tableColumnsCache = $columns;
+            return $this->tableColumnsCache;
+        } catch (Throwable $e) {
+            try {
+                $this->createTableIfMissing();
+                $this->ensureTableIntegrity();
+                $result = $this->query("SHOW COLUMNS FROM {$this->table}");
+
+                if ($result) {
+                    $columns = [];
+                    foreach ($result as $column) {
+                        if (isset($column->Field)) {
+                            $columns[] = $column->Field;
+                        }
+                    }
+
+                    $this->tableColumnsCache = $columns;
+                    return $this->tableColumnsCache;
+                }
+            } catch (Throwable $innerError) {
+                error_log("EventRegistration table recovery failed: " . $innerError->getMessage());
+            }
+
+            error_log("EventRegistration column introspection failed: " . $e->getMessage());
+            $this->tableColumnsCache = [];
+            return $this->tableColumnsCache;
+        }
+    }
+
+    /**
+     * Create registrations table if it does not exist
+     */
+    private function createTableIfMissing()
+    {
+        $sql = "CREATE TABLE IF NOT EXISTS {$this->table} (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            event_id INT NOT NULL,
+            user_id INT NOT NULL,
+            user_type ENUM('university', 'public', 'publisher', 'sponsor') NOT NULL,
+            registration_type ENUM('free', 'paid') DEFAULT 'free',
+            status ENUM('registered', 'cancelled', 'attended') DEFAULT 'registered',
+            notes TEXT NULL,
+            payment_id VARCHAR(255) NULL,
+            amount_paid DECIMAL(10, 2) NULL DEFAULT 0.00,
+            registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            cancelled_at TIMESTAMP NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_event_id (event_id),
+            INDEX idx_user_id (user_id),
+            INDEX idx_user_type (user_type),
+            INDEX idx_status (status),
+            UNIQUE KEY unique_registration (event_id, user_id, user_type),
+            FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        $conn = $this->connect();
+        $stm = $conn->prepare($sql);
+        $stm->execute();
+    }
+
+    /**
+     * Ensure critical schema constraints exist for reliable inserts
+     */
+    private function ensureTableIntegrity()
+    {
+        if ($this->tableIntegrityChecked) {
+            return;
+        }
+
+        $this->tableIntegrityChecked = true;
+
+        try {
+            $dbName = DBNAME;
+
+            $hasPrimaryKeyQuery = "SELECT COUNT(*) as count
+                                   FROM information_schema.TABLE_CONSTRAINTS
+                                   WHERE TABLE_SCHEMA = :schema
+                                   AND TABLE_NAME = :table
+                                   AND CONSTRAINT_TYPE = 'PRIMARY KEY'";
+            $hasPrimaryKeyResult = $this->query($hasPrimaryKeyQuery, [
+                'schema' => $dbName,
+                'table' => $this->table
+            ]);
+            $hasPrimaryKey = ($hasPrimaryKeyResult && (int)$hasPrimaryKeyResult[0]->count > 0);
+
+            $idMetaQuery = "SELECT EXTRA
+                            FROM information_schema.COLUMNS
+                            WHERE TABLE_SCHEMA = :schema
+                            AND TABLE_NAME = :table
+                            AND COLUMN_NAME = 'id'
+                            LIMIT 1";
+            $idMetaResult = $this->query($idMetaQuery, [
+                'schema' => $dbName,
+                'table' => $this->table
+            ]);
+            $idExtra = $idMetaResult[0]->EXTRA ?? '';
+            $isAutoIncrement = stripos((string)$idExtra, 'auto_increment') !== false;
+
+            $hasUniqueQuery = "SELECT COUNT(*) as count
+                               FROM information_schema.STATISTICS
+                               WHERE TABLE_SCHEMA = :schema
+                               AND TABLE_NAME = :table
+                               AND INDEX_NAME = 'unique_registration'";
+            $hasUniqueResult = $this->query($hasUniqueQuery, [
+                'schema' => $dbName,
+                'table' => $this->table
+            ]);
+            $hasUniqueRegistration = ($hasUniqueResult && (int)$hasUniqueResult[0]->count > 0);
+
+            $conn = $this->connect();
+
+            if (!$hasPrimaryKey) {
+                $conn->exec("ALTER TABLE {$this->table} ADD PRIMARY KEY (id)");
+            }
+
+            if (!$isAutoIncrement) {
+                $conn->exec("ALTER TABLE {$this->table} MODIFY COLUMN id INT NOT NULL AUTO_INCREMENT");
+            }
+
+            if (!$hasUniqueRegistration) {
+                $conn->exec("ALTER TABLE {$this->table} ADD UNIQUE KEY unique_registration (event_id, user_id, user_type)");
+            }
+        } catch (Throwable $e) {
+            error_log("EventRegistration integrity check warning: " . $e->getMessage());
+        }
+    }
+
+    /**
      * Mark registration as attended
      */
     public function markAsAttended($eventId, $userId, $userType)
     {
+        $userType = $this->normalizeUserType($userType);
+
         $sql = "UPDATE {$this->table} 
                 SET status = 'attended' 
                 WHERE event_id = :event_id 
@@ -310,6 +664,8 @@ class EventRegistration
      */
     public function getUserMonthlyParticipation($userId, $userType, $month)
     {
+        $userType = $this->normalizeUserType($userType);
+
         $sql = "SELECT er.*, e.title, e.event_date, e.event_time, e.location,
                        e.ticket_type, e.image_url, e.university_name, e.category,
                        er.amount_paid
@@ -333,6 +689,8 @@ class EventRegistration
      */
     public function getUserMonthlyEventSpending($userId, $userType, $month)
     {
+        $userType = $this->normalizeUserType($userType);
+
         $sql = "SELECT COALESCE(SUM(er.amount_paid), 0) as total
                 FROM {$this->table} er
                 LEFT JOIN events e ON er.event_id = e.id
@@ -348,5 +706,24 @@ class EventRegistration
         ]);
 
         return $result[0]->total ?? 0;
+    }
+
+    /**
+     * Normalize user type values used across the app to DB enum values
+     */
+    private function normalizeUserType($userType)
+    {
+        $normalized = strtolower(trim((string)$userType));
+
+        $map = [
+            'user' => 'public',
+            'public_user' => 'public',
+            'publicuser' => 'public',
+            'student' => 'university',
+            'university_user' => 'university',
+            'universityuser' => 'university'
+        ];
+
+        return $map[$normalized] ?? $normalized;
     }
 }

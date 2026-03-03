@@ -72,7 +72,7 @@ class UserDashboard extends Controller
 
     /**
      * API endpoint to get header notifications for users
-     * Notification source: newly published visible upcoming events
+     * Notification source: personal user activities (registrations, etc.)
      */
     public function getNotifications()
     {
@@ -90,6 +90,7 @@ class UserDashboard extends Controller
         }
 
         try {
+            $activityModel = new Activity();
             $eventModel = new Event();
 
             $userId = (int)($currentUser['id'] ?? 0);
@@ -106,14 +107,111 @@ class UserDashboard extends Controller
             $lastReadAt = $_SESSION[$sessionKey];
             $readItems = $_SESSION[$readItemsKey];
 
-            // Use the same visibility rules as user event listings.
+            $activities = $activityModel->getRecentActivities($userId, $currentUser['type'], 50);
+
+            // Keep only activity types relevant to personal notifications
+            $allowedTypes = ['event_registration', 'event_cancellation', 'volunteer_registration'];
+            $activities = array_values(array_filter($activities ?: [], function ($activity) use ($allowedTypes) {
+                return in_array($activity->activity_type ?? '', $allowedTypes, true);
+            }));
+
+            $notifications = [];
+
+            // 1) Personal activity notifications
+            foreach ($activities as $activity) {
+                $notificationTime = $activity->created_at ?? date('Y-m-d H:i:s');
+                $eventId = (int)($activity->event_id ?? 0);
+                if ($eventId <= 0) {
+                    continue;
+                }
+
+                $notificationKey = $eventId . '|' . $notificationTime;
+
+                $activityType = $activity->activity_type ?? 'event_registration';
+                $eventTitle = $activity->event_title ?? 'this event';
+
+                $title = 'Event Update';
+                $message = 'There is an update related to your events.';
+
+                if ($activityType === 'event_registration') {
+                    $activityData = [];
+                    if (!empty($activity->activity_data)) {
+                        if (is_string($activity->activity_data)) {
+                            $decoded = json_decode($activity->activity_data, true);
+                            if (is_array($decoded)) {
+                                $activityData = $decoded;
+                            }
+                        } elseif (is_array($activity->activity_data)) {
+                            $activityData = $activity->activity_data;
+                        }
+                    }
+
+                    $registrationType = strtolower((string)($activityData['registration_type'] ?? 'free'));
+                    $amountPaid = (float)($activityData['amount_paid'] ?? 0);
+                    $isPaidRegistration = ($registrationType === 'paid' || $amountPaid > 0);
+
+                    if ($isPaidRegistration) {
+                        $title = 'Payment & Registration Confirmed';
+                        $message = 'Your payment was successful and you are registered for "' . $eventTitle . '".';
+                    } else {
+                        $title = 'Registration Confirmed';
+                        $message = 'You registered for "' . $eventTitle . '".';
+                    }
+                } elseif ($activityType === 'event_cancellation') {
+                    $title = 'Registration Cancelled';
+                    $message = 'You cancelled registration for "' . $eventTitle . '".';
+                } elseif ($activityType === 'volunteer_registration') {
+                    $title = 'Volunteer Application Sent';
+                    $message = 'You applied as a volunteer for "' . $eventTitle . '".';
+                }
+
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => $title,
+                    'message' => $message,
+                    'time' => $this->formatRelativeTime($notificationTime),
+                    'read' => false,
+                    'created_at' => $notificationTime,
+                    'notification_key' => 'activity|' . $notificationKey,
+                    'source' => 'activity'
+                ];
+            }
+
+            // 2) New publisher event notifications (true publish events only)
+            // IMPORTANT: use created_at, not updated_at, so registrations do not trigger this.
             $events = $eventModel->getAllEvents([
                 'status' => 'upcoming',
                 'limit' => 100,
                 'offset' => 0
             ], $currentUser);
 
-            if (!$events) {
+            foreach ($events ?: [] as $event) {
+                $eventId = (int)($event->id ?? 0);
+                if ($eventId <= 0) {
+                    continue;
+                }
+
+                // Only publisher-created events should be treated as publish notifications
+                if (($event->created_by_type ?? '') !== 'publisher') {
+                    continue;
+                }
+
+                $notificationTime = $event->created_at ?? date('Y-m-d H:i:s');
+                $notificationKey = 'publish|' . $eventId . '|' . $notificationTime;
+
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => 'New Event Published',
+                    'message' => ($event->title ?? 'A new event') . ' is now available in All Events.',
+                    'time' => $this->formatRelativeTime($notificationTime),
+                    'read' => false,
+                    'created_at' => $notificationTime,
+                    'notification_key' => $notificationKey,
+                    'source' => 'publish'
+                ];
+            }
+
+            if (empty($notifications)) {
                 echo json_encode([
                     'success' => true,
                     'notifications' => [],
@@ -122,41 +220,28 @@ class UserDashboard extends Controller
                 return;
             }
 
-            // Sort by latest publish-related time (newest first).
-            // Using updated_at helps detect events that become visible later
-            // (e.g. pending -> upcoming approval flow).
-            usort($events, function ($a, $b) {
-                $aTime = strtotime($a->updated_at ?? $a->created_at ?? '1970-01-01 00:00:00');
-                $bTime = strtotime($b->updated_at ?? $b->created_at ?? '1970-01-01 00:00:00');
+            // Sort newest first, then evaluate read state using time and per-item key
+            usort($notifications, function ($a, $b) {
+                $aTime = strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
+                $bTime = strtotime($b['created_at'] ?? '1970-01-01 00:00:00');
                 return $bTime <=> $aTime;
             });
 
-            $notifications = [];
             $unreadCount = 0;
-
-            foreach ($events as $event) {
-                $notificationTime = $event->updated_at ?? $event->created_at ?? date('Y-m-d H:i:s');
-                $eventId = (int)($event->id ?? 0);
-                $notificationKey = $eventId . '|' . $notificationTime;
+            foreach ($notifications as &$notification) {
+                $notificationTime = $notification['created_at'] ?? '1970-01-01 00:00:00';
+                $notificationKey = $notification['notification_key'] ?? '';
 
                 $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
                 $isMarkedIndividually = in_array($notificationKey, $readItems, true);
                 $isUnread = !($isMarkedByTime || $isMarkedIndividually);
 
+                $notification['read'] = !$isUnread;
                 if ($isUnread) {
                     $unreadCount++;
                 }
-
-                $notifications[] = [
-                    'id' => $eventId,
-                    'title' => 'New Event Published',
-                    'message' => ($event->title ?? 'A new event') . ' is now available in All Events.',
-                    'time' => $this->formatRelativeTime($notificationTime),
-                    'read' => !$isUnread,
-                    'created_at' => $notificationTime,
-                    'notification_key' => $notificationKey
-                ];
             }
+            unset($notification);
 
             echo json_encode([
                 'success' => true,
@@ -206,7 +291,12 @@ class UserDashboard extends Controller
             $_SESSION[$readItemsKey] = [];
         }
 
-        $notificationKey = $eventId . '|' . $createdAt;
+        $source = trim((string)($payload['source'] ?? 'activity'));
+        if (!in_array($source, ['activity', 'publish'], true)) {
+            $source = 'activity';
+        }
+
+        $notificationKey = $source . '|' . $eventId . '|' . $createdAt;
         if (!in_array($notificationKey, $_SESSION[$readItemsKey], true)) {
             $_SESSION[$readItemsKey][] = $notificationKey;
         }
@@ -281,26 +371,36 @@ class UserDashboard extends Controller
 
             // Filter for upcoming events only (event_date >= today)
             $upcomingEvents = [];
+            $allRegisteredEvents = [];
             if ($registeredEvents) {
                 foreach ($registeredEvents as $event) {
+                    $mappedEvent = [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'description' => isset($event->description) ? substr($event->description, 0, 100) . '...' : '',
+                        'date' => $event->event_date,
+                        'time' => $event->event_time,
+                        'location' => $event->location,
+                        'category' => $event->category,
+                        'university' => $event->university_name,
+                        'image_url' => $event->image_url,
+                        'organizer' => $event->organizer,
+                        'max_participants' => $event->max_participants,
+                        'current_participants' => $event->current_participants ?? 0
+                    ];
+
+                    $allRegisteredEvents[] = $mappedEvent;
+
                     $eventDate = strtotime($event->event_date);
                     if ($eventDate >= strtotime('today')) {
-                        $upcomingEvents[] = [
-                            'id' => $event->id,
-                            'title' => $event->title,
-                            'description' => isset($event->description) ? substr($event->description, 0, 100) . '...' : '',
-                            'date' => $event->event_date,
-                            'time' => $event->event_time,
-                            'location' => $event->location,
-                            'category' => $event->category,
-                            'university' => $event->university_name,
-                            'image_url' => $event->image_url,
-                            'organizer' => $event->organizer,
-                            'max_participants' => $event->max_participants,
-                            'current_participants' => $event->current_participants ?? 0
-                        ];
+                        $upcomingEvents[] = $mappedEvent;
                     }
                 }
+            }
+
+            // Fallback: if strict upcoming filter has no results, show registered events
+            if (empty($upcomingEvents) && !empty($allRegisteredEvents)) {
+                $upcomingEvents = $allRegisteredEvents;
             }
 
             // Sort by event date (earliest first)

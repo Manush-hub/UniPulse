@@ -165,7 +165,12 @@ function loadUpcomingEvents() {
 
     carousel.innerHTML = '<div class="loading">Loading events...</div>';
 
-    fetch('/unipulse/public/user/dashboard/getUpcomingEvents')
+    fetch('/unipulse/public/user/dashboard/getUpcomingEvents', {
+        cache: 'no-store',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+    })
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch upcoming events');
@@ -209,9 +214,11 @@ function createUpcomingEventCard(event) {
     card.className = 'event-card-mini';
     card.onclick = () => viewEventDetails(event.id);
 
+    const coverImageUrl = resolveEventImageUrl(event.image_url);
+
     card.innerHTML = `
         <div class="event-image-mini">
-            ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}">` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            ${coverImageUrl ? `<img src="${coverImageUrl}" alt="${event.title}" loading="lazy" onerror="this.remove()">` : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
                 <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -233,6 +240,39 @@ function createUpcomingEventCard(event) {
     `;
 
     return card;
+}
+
+function resolveEventImageUrl(imageUrl) {
+    if (!imageUrl) return null;
+
+    const url = String(imageUrl).trim();
+    if (!url) return null;
+
+    if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
+        return url;
+    }
+
+    if (url.startsWith('/unipulse/public/')) {
+        return url;
+    }
+
+    if (url.startsWith('/uploads/')) {
+        return `/unipulse/public${url}`;
+    }
+
+    if (url.startsWith('/public/')) {
+        return `/unipulse${url}`;
+    }
+
+    if (url.startsWith('uploads/')) {
+        return `/unipulse/public/${url}`;
+    }
+
+    if (url.startsWith('public/')) {
+        return `/unipulse/${url}`;
+    }
+
+    return `/unipulse/public/${url.replace(/^\/+/, '')}`;
 }
 
 
@@ -328,18 +368,7 @@ function viewEventDetails(eventId) {
 
 // Update date and time
 function updateDateTime() {
-    const now = new Date();
-    const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    };
-
-    // You can add a date/time display element if needed
-    console.log('Current time:', now.toLocaleDateString('en-US', options));
+    // Reserved for optional date/time UI rendering
 }
 
 // Format date
@@ -450,16 +479,16 @@ function buildCommentCard(c) {
 function showHiddenReason(commentId) {
     const card = document.querySelector(`[data-comment-id="${commentId}"]`);
     if (!card) return;
-    const reason   = card.dataset.hiddenReason || 'No reason provided.';
-    const hiddenBy = card.dataset.hiddenBy     || 'Moderator';
+    const reason = card.dataset.hiddenReason || 'No reason provided.';
+    const hiddenBy = card.dataset.hiddenBy || 'Moderator';
     document.getElementById('hiddenReasonText').textContent = reason;
-    document.getElementById('hiddenByLine').textContent     = 'Hidden by: ' + hiddenBy;
+    document.getElementById('hiddenByLine').textContent = 'Hidden by: ' + hiddenBy;
     const modal = document.getElementById('hiddenReasonModal');
     modal.style.display = 'flex';
 }
 
 // close hidden reason modal on backdrop click
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const modal = document.getElementById('hiddenReasonModal');
     if (modal && e.target === modal) modal.style.display = 'none';
 });

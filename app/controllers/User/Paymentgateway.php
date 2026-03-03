@@ -1,24 +1,27 @@
 <?php
 
-class UserPaymentgateway extends Controller {
-    
+class UserPaymentgateway extends Controller
+{
+
     use Database;
-    
+
     private $eventModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         // Initialize event model
         $this->eventModel = new Event();
     }
-    
-    public function index() {
+
+    public function index()
+    {
         // Check if user is logged in
         if (!isset($_SESSION['user_id'])) {
             // Redirect to login if not authenticated
             header('Location: /unipulse/public/signin');
             exit;
         }
-        
+
         // Only allow regular users (university/public) to purchase tickets
         // Publishers and sponsors cannot buy tickets
         $userType = $_SESSION['user_type'] ?? 'user';
@@ -32,18 +35,18 @@ class UserPaymentgateway extends Controller {
             }
             exit;
         }
-        
+
         // Get event ID from URL parameter
         $eventId = isset($_GET['event_id']) ? $_GET['event_id'] : null;
-        
+
         $data = [];
-        
+
         if (!$eventId) {
             $data['error'] = 'No event specified';
         } else {
             // Validate event exists and has paid tickets
             $event = $this->eventModel->getEventById($eventId);
-            
+
             if (!$event) {
                 $data['error'] = 'Event not found';
             } else if ($event->ticket_type === 'free-all' || $event->ticket_type === 'free-limited') {
@@ -56,43 +59,44 @@ class UserPaymentgateway extends Controller {
                 $data['event_id'] = $eventId;
             }
         }
-        
+
         // Load payment gateway view
         $this->view('User/paymentgateway', $data);
     }
-    
-    public function processPayment() {
+
+    public function processPayment()
+    {
         // This method will handle the actual payment processing
         // It should be called via AJAX from the payment form
-        
+
         error_log('ProcessPayment called - Method: ' . $_SERVER['REQUEST_METHOD']);
         error_log('POST data: ' . print_r($_POST, true));
         error_log('Session user_id: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
-        
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'error' => 'Method not allowed']);
             return;
         }
-        
+
         // Check if user is logged in
         if (!isset($_SESSION['user_id'])) {
             http_response_code(401);
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
             return;
         }
-        
+
         // Get POST data
         $eventId = $_POST['event_id'] ?? null;
         $paymentMethod = $_POST['payment_method'] ?? 'card';
         $amount = $_POST['amount'] ?? 0;
-        
+
         if (!$eventId) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Event ID is required']);
             return;
         }
-        
+
         // Validate event
         $event = $this->eventModel->getEventById($eventId);
         if (!$event) {
@@ -100,10 +104,10 @@ class UserPaymentgateway extends Controller {
             echo json_encode(['success' => false, 'error' => 'Event not found']);
             return;
         }
-        
+
         // TODO: Implement actual payment gateway integration
         // For now, we'll simulate a successful payment
-        
+
         try {
             // Here you would:
             // 1. Validate payment details
@@ -111,15 +115,15 @@ class UserPaymentgateway extends Controller {
             // 3. Store transaction record in database
             // 4. Register user for the event
             // 5. Send confirmation email
-            
+
             // Simulate successful payment
             $transactionId = 'TXN' . time() . rand(1000, 9999);
             $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
-            
+
             // Calculate commission (5% for ticket sales)
             $commissionAmount = round($amount * 0.05, 2);
             $organizerAmount = round($amount - $commissionAmount, 2);
-            
+
             // Store payment record in the database
             $query = "INSERT INTO payments (
                 user_id, user_type, amount, quantity, payment_method, payment_type,
@@ -130,7 +134,7 @@ class UserPaymentgateway extends Controller {
                 :transaction_id, 'completed', :event_id, :publisher_id,
                 :commission_amount, :organizer_amount, :description, :created_at
             )";
-            
+
             $params = [
                 'user_id'           => $_SESSION['user_id'],
                 'user_type'         => $_SESSION['user_type'] ?? 'user',
@@ -145,49 +149,62 @@ class UserPaymentgateway extends Controller {
                 'description'       => 'Event Ticket - ' . ($event->title ?? 'Event'),
                 'created_at'        => date('Y-m-d H:i:s'),
             ];
-            
+
             error_log('About to insert payment: ' . print_r($params, true));
-            
+
             // Try to insert the payment
             try {
                 $result = $this->query($query, $params);
                 error_log('Insert result: ' . ($result ? 'SUCCESS' : 'FAILED/EMPTY'));
-                
+
                 // Verify the insert by checking if we can find it
                 $checkQuery = "SELECT id FROM payments WHERE transaction_id = :tid LIMIT 1";
                 $checkResult = $this->query($checkQuery, ['tid' => $transactionId]);
-                
+
                 if (!$checkResult) {
                     throw new Exception('Payment record was not inserted into database');
                 }
-                
+
                 error_log('Payment verified in database! Transaction ID: ' . $transactionId);
-                
             } catch (Exception $e) {
                 error_log('Database error during payment insert: ' . $e->getMessage());
                 throw $e;
             }
-            
+
             // Register user for event after successful payment
             try {
                 $registrationModel = new EventRegistration();
-                $registrationModel->registerUser(
+                $wasRegistered = $registrationModel->isUserRegistered(
                     $eventId,
                     $_SESSION['user_id'],
-                    $_SESSION['user_type']
+                    $_SESSION['user_type'] ?? 'public'
                 );
+
+                $registrationModel->ensurePaidRegistration([
+                    'event_id' => (int)$eventId,
+                    'user_id' => (int)$_SESSION['user_id'],
+                    'user_type' => $_SESSION['user_type'] ?? 'public',
+                    'registration_type' => 'paid',
+                    'amount_paid' => (float)$amount,
+                    'payment_id' => $transactionId,
+                    'notes' => 'Auto-registered after successful user payment gateway payment'
+                ]);
+
+                // Increment participants only when this is a new active registration
+                if (!$wasRegistered) {
+                    $this->eventModel->incrementParticipants($eventId);
+                }
                 error_log('User registered for event successfully');
             } catch (Exception $e) {
                 error_log('Event registration failed but payment recorded: ' . $e->getMessage());
                 // Don't throw - payment is already recorded
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Payment successful',
                 'transaction_id' => $transactionId
             ]);
-            
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode([
