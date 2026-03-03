@@ -337,6 +337,11 @@
     color: #dc2626;
 }
 
+.action-btn.report-btn:hover {
+    background: #fff4e6;
+    color: #d97706;
+}
+
 /* Empty State */
 .empty-comments {
     text-align: center;

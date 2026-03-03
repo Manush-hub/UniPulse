@@ -1,599 +1,327 @@
-// Moderator Comments Moderation JavaScript
+// Moderator Comments Moderation Page JavaScript
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeCommentsModeration();
+let allComments   = [];
+let hidingId      = null;
+
+document.addEventListener('DOMContentLoaded', function () {
+    loadUniversityComments();
+    setupFilters();
 });
 
-function initializeCommentsModeration() {
-    console.log('Comments Moderation initialized');
-    
-    // Initialize filters
-    setupFilters();
-    
-    // Load initial comments
-    loadUniversityComments();
-}
-
-function setupFilters() {
-    const filterElements = document.querySelectorAll('#statusFilter, #sentimentFilter, #eventFilter, #dateFilter');
-    
-    filterElements.forEach(element => {
-        element.addEventListener('change', filterComments);
-    });
-}
-
-/**
- * Load comments for the moderator's university
- */
+// ─── Load all comments ───────────────────────────────────────────
 function loadUniversityComments() {
-    showLoadingState();
-    
-    fetch('/unipulse/public/moderator/comments/getUniversityComments', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('API Response:', data);
-        hideLoadingState();
-        
-        if (data.success) {
-            console.log('Comments loaded:', data.comments.length);
-            displayComments(data.comments);
-            updateStats(data);
-        } else {
-            console.error('API Error:', data.error);
-            showError('Failed to load comments: ' + (data.error || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        hideLoadingState();
-        console.error('Error loading comments:', error);
-        showError('Failed to load comments. Please try again.');
+    const list = document.getElementById('commentsList');
+    if (list) {
+        list.innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading comments…</p>
+            </div>`;
+    }
+
+    fetch('/unipulse/public/moderator/comments/getUniversityComments')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                allComments = data.comments || [];
+                updateStats(data.stats || {});
+                populateEventFilter(allComments);
+                renderFilteredComments();
+            } else {
+                showListError('Failed to load comments: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Error loading comments:', err);
+            showListError('Error loading comments. Please try again.');
+        });
+}
+
+// ─── Stats ───────────────────────────────────────────────────────
+function updateStats(stats) {
+    const total   = stats.total_comments   || 0;
+    const visible = stats.visible_comments || 0;
+    const hidden  = stats.hidden_comments  || 0;
+    const today   = stats.moderated_today  || 0;
+
+    setCount('totalComments',    total);
+    setCount('visibleComments',  visible);
+    setCount('hiddenComments',   hidden);
+    setCount('moderatedToday',   today);
+}
+
+function setCount(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+// ─── Event filter population ─────────────────────────────────────
+function populateEventFilter(comments) {
+    const sel = document.getElementById('eventFilter');
+    if (!sel) return;
+    const seen = new Map();
+    comments.forEach(c => { if (!seen.has(c.event_id)) seen.set(c.event_id, c.event_title); });
+    sel.innerHTML = '<option value="">All Events</option>';
+    seen.forEach((title, id) => {
+        const opt = document.createElement('option');
+        opt.value       = id;
+        opt.textContent = title;
+        sel.appendChild(opt);
     });
 }
 
-/**
- * Display comments in the UI
- */
+// ─── Filter setup ─────────────────────────────────────────────────
+function setupFilters() {
+    const searchInput  = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const eventFilter  = document.getElementById('eventFilter');
+    const dateFilter   = document.getElementById('dateFilter');
+
+    if (searchInput)  searchInput.addEventListener('input',  debounce(renderFilteredComments, 300));
+    if (statusFilter) statusFilter.addEventListener('change', renderFilteredComments);
+    if (eventFilter)  eventFilter.addEventListener('change',  renderFilteredComments);
+    if (dateFilter)   dateFilter.addEventListener('change',   renderFilteredComments);
+}
+
+function clearFilters() {
+    ['searchInput', 'statusFilter', 'eventFilter', 'dateFilter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    renderFilteredComments();
+}
+
+function renderFilteredComments() {
+    const search  = (document.getElementById('searchInput')?.value  || '').toLowerCase();
+    const status  =  document.getElementById('statusFilter')?.value || '';
+    const eventId =  document.getElementById('eventFilter')?.value  || '';
+    const date    =  document.getElementById('dateFilter')?.value   || '';
+
+    const today = new Date();
+    const todayStr       = dateStr(today);
+    const weekAgo        = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+    const monthAgo       = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+
+    const filtered = allComments.filter(c => {
+        if (status === 'visible' && c.is_hidden)   return false;
+        if (status === 'hidden'  && !c.is_hidden)  return false;
+        if (eventId && String(c.event_id) !== eventId) return false;
+
+        if (date) {
+            const cDate = new Date(c.created_at);
+            if (date === 'today'   && dateStr(cDate) !== todayStr)  return false;
+            if (date === 'week'    && cDate < weekAgo)              return false;
+            if (date === 'month'   && cDate < monthAgo)             return false;
+        }
+
+        if (search) {
+            const haystack = [
+                c.comment_text, c.user_name, c.user_email, c.event_title
+            ].join(' ').toLowerCase();
+            if (!haystack.includes(search)) return false;
+        }
+
+        return true;
+    });
+
+    const countEl = document.getElementById('commentsCount');
+    if (countEl) countEl.textContent = filtered.length;
+
+    displayComments(filtered);
+}
+
+// ─── Render comment cards ─────────────────────────────────────────
 function displayComments(comments) {
-    const commentsList = document.getElementById('commentsList');
-    const commentsCount = document.getElementById('commentsCount');
-    
-    if (!comments || comments.length === 0) {
-        commentsList.innerHTML = `
-            <div class="no-comments">
-                <div class="no-comments-content">
-                    <i class="fas fa-comments"></i>
-                    <h3>No Comments Found</h3>
-                    <p>There are no comments to moderate at this time.</p>
-                </div>
-            </div>
-        `;
-        commentsCount.textContent = '0 comments';
+    const list = document.getElementById('commentsList');
+    if (!list) return;
+
+    if (!comments.length) {
+        list.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h3>No comments found</h3>
+                <p>Try adjusting your search or filters.</p>
+            </div>`;
         return;
     }
-    
-    commentsCount.textContent = `${comments.length} comment${comments.length !== 1 ? 's' : ''}`;
-    
-    commentsList.innerHTML = comments.map(comment => createCommentCard(comment)).join('');
+
+    list.innerHTML = comments.map(c => buildCard(c)).join('');
 }
 
-/**
- * Create HTML for a comment card
- */
-function createCommentCard(comment) {
-    const sentimentClass = getSentimentClass(comment.rating);
-    const sentimentIcon = getSentimentIcon(comment.rating);
-    const sentimentText = getSentimentText(comment.rating);
-    const isHidden = comment.is_hidden;
-    const hiddenClass = isHidden ? 'comment-hidden' : '';
-    
+function buildCard(c) {
+    const userName  = c.user_name || 'Anonymous';
+    const initials  = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const stars     = c.rating ? ('★'.repeat(c.rating) + '☆'.repeat(5 - c.rating)) : '';
+    const editBadge = c.is_edited ? '<span class="edited-badge">Edited</span>' : '';
+    const userLabel = c.user_type ? capitalizeFirst(c.user_type) + ' User' : 'User';
+
+    const statusBadge = c.is_hidden
+        ? '<span class="status-badge hidden-badge"><i class="fas fa-eye-slash"></i> Hidden</span>'
+        : '<span class="status-badge visible-badge"><i class="fas fa-eye"></i> Visible</span>';
+
+    const hiddenInfo = c.is_hidden ? `
+        <div class="hidden-banner">
+            <i class="fas fa-eye-slash"></i>
+            Hidden by <strong>${escapeHtml(c.hidden_by_name || 'Moderator')}</strong>
+            ${c.hidden_at ? ` on ${new Date(c.hidden_at).toLocaleDateString()}` : ''}
+            ${c.hidden_reason ? `<br><em>Reason: ${escapeHtml(c.hidden_reason)}</em>` : ''}
+        </div>` : '';
+
+    const viewEventLink = c.event_id
+        ? `<a href="/unipulse/public/moderator/eventview?id=${c.event_id}">${escapeHtml(c.event_title || 'Event')}</a>`
+        : escapeHtml(c.event_title || 'Event');
+
+    const actionBtn = c.is_hidden
+        ? `<button class="action-btn unhide-btn" onclick="unhideComment(${c.id})">
+               <i class="fas fa-eye"></i> Restore
+           </button>`
+        : `<button class="action-btn hide-btn" onclick="openHideModal(${c.id})">
+               <i class="fas fa-eye-slash"></i> Hide
+           </button>`;
+
     return `
-        <div class="comment-card ${hiddenClass}" data-comment-id="${comment.id}">
-            ${isHidden ? `
-                <div class="hidden-banner">
-                    <i class="fas fa-eye-slash"></i>
-                    <span>Hidden by ${escapeHtml(comment.hidden_by_name || 'Moderator')}</span>
-                    <span class="hidden-reason">Reason: ${escapeHtml(comment.hidden_reason)}</span>
-                </div>
-            ` : ''}
+        <div class="comment-card ${c.is_hidden ? 'is-hidden' : ''}" data-id="${c.id}">
+            <div class="comment-event-label">
+                <i class="fas fa-calendar-alt"></i> ${viewEventLink}
+                &nbsp;·&nbsp; ${escapeHtml(c.publisher_name || '')}
+                &nbsp;${statusBadge}
+            </div>
+            ${hiddenInfo}
             <div class="comment-header">
                 <div class="comment-user">
-                    <div class="user-avatar">${getInitials(comment.user_name)}</div>
+                    <div class="user-avatar">${initials}</div>
                     <div class="user-info">
-                        <h4>${escapeHtml(comment.user_name)}</h4>
-                        <div class="user-role">${capitalizeFirst(comment.user_type)}</div>
+                        <h4>${escapeHtml(userName)}</h4>
+                        <p>${userLabel} ${editBadge}</p>
+                        <small style="color:#94a3b8;">${escapeHtml(c.user_email || '')}</small>
                     </div>
                 </div>
                 <div class="comment-meta">
-                    <span><i class="fas fa-calendar"></i> ${comment.formatted_date}</span>
-                    ${comment.rating ? `<span class="${sentimentClass}"><i class="${sentimentIcon}"></i> ${sentimentText}</span>` : ''}
+                    ${c.rating ? `<div class="comment-rating"><span class="stars">${stars}</span><span class="rating-value">${c.rating}/5</span></div>` : ''}
+                    <p>${c.formatted_date || ''}</p>
                 </div>
             </div>
-
-            <div class="comment-content">
-                ${escapeHtml(comment.comment_text)}
-                ${comment.is_edited ? '<span class="edited-badge"><i class="fas fa-edit"></i> Edited</span>' : ''}
-            </div>
-
-            <div class="comment-event">
-                <strong>Event:</strong> ${escapeHtml(comment.event_title)}
-                <span class="event-status status-${comment.event_status}">${capitalizeFirst(comment.event_status)}</span>
-            </div>
-
-            <div class="comment-actions">
-                <input type="checkbox" class="comment-checkbox" value="${comment.id}">
-                ${isHidden ? `
-                    <button class="review-btn unhide" onclick="unhideComment(${comment.id})">
-                        <i class="fas fa-eye"></i>
-                        Unhide
-                    </button>
-                ` : `
-                    <button class="review-btn hide" onclick="hideComment(${comment.id})">
-                        <i class="fas fa-eye-slash"></i>
-                        Hide
-                    </button>
-                `}
-                <button class="review-btn view" onclick="viewCommentContext(${comment.id})">
-                    <i class="fas fa-eye"></i>
-                    View Context
-                </button>
-            </div>
-        </div>
-    `;
+            <div class="comment-content">${escapeHtml(c.comment_text)}</div>
+            <div class="comment-actions">${actionBtn}</div>
+        </div>`;
 }
 
-/**
- * Filter comments based on selected criteria
- */
-function filterComments() {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const sentimentFilter = document.getElementById('sentimentFilter').value;
-    const eventFilter = document.getElementById('eventFilter').value;
-    const dateFilter = document.getElementById('dateFilter').value;
-    
-    const commentCards = document.querySelectorAll('.comment-card');
-    let visibleCount = 0;
-    
-    commentCards.forEach(card => {
-        let shouldShow = true;
-        
-        // Apply filters here (for now, show all)
-        // You can implement specific filtering logic based on the filters
-        
-        if (shouldShow) {
-            card.style.display = 'block';
-            visibleCount++;
-        } else {
-            card.style.display = 'none';
-        }
-    });
-    
-    document.getElementById('commentsCount').textContent = `${visibleCount} comment${visibleCount !== 1 ? 's' : ''}`;
-}
-
-/**
- * Approve a comment
- */
-function approveComment(commentId) {
-    if (!confirm('Are you sure you want to approve this comment?')) {
-        return;
-    }
-    
-    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
-    const approveBtn = commentCard.querySelector('.approve');
-    
-    approveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
-    approveBtn.disabled = true;
-    
-    // Since there's no approval system in the current comments table,
-    // we'll just show a success message for now
-    setTimeout(() => {
-        showSuccess('Comment approved successfully');
-        commentCard.classList.add('approved');
-        approveBtn.innerHTML = '<i class="fas fa-check"></i> Approved';
-        approveBtn.classList.add('approved');
-    }, 1000);
-}
-
-/**
- * Reject a comment
- */
-function rejectComment(commentId) {
-    if (!confirm('Are you sure you want to reject this comment?')) {
-        return;
-    }
-    
-    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
-    const rejectBtn = commentCard.querySelector('.reject');
-    
-    rejectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rejecting...';
-    rejectBtn.disabled = true;
-    
-    // For now, just hide the comment as rejected
-    setTimeout(() => {
-        showSuccess('Comment rejected successfully');
-        commentCard.style.display = 'none';
-        
-        // Update count
-        const currentCount = document.getElementById('commentsCount');
-        const count = parseInt(currentCount.textContent.match(/\d+/)[0]) - 1;
-        currentCount.textContent = `${count} comment${count !== 1 ? 's' : ''}`;
-    }, 1000);
-}
-
-/**
- * View comment context (event details)
- */
-function viewCommentContext(commentId) {
-    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
-    const eventTitle = commentCard.querySelector('.comment-event').textContent.replace('Event:', '').trim();
-    
-    // For now, just show an alert. In a real implementation, you'd load the event details
-    alert(`Viewing context for: ${eventTitle}`);
-}
-
-/**
- * Bulk actions
- */
-function selectAllComments() {
-    const checkboxes = document.querySelectorAll('.comment-checkbox');
-    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = !allChecked;
-    });
-}
-
-function approveSelectedComments() {
-    const selectedComments = getSelectedComments();
-    
-    if (selectedComments.length === 0) {
-        showError('Please select comments to approve');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to approve ${selectedComments.length} comment(s)?`)) {
-        return;
-    }
-    
-    selectedComments.forEach(commentId => {
-        approveComment(commentId);
-    });
-}
-
-function rejectSelectedComments() {
-    const selectedComments = getSelectedComments();
-    
-    if (selectedComments.length === 0) {
-        showError('Please select comments to reject');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to reject ${selectedComments.length} comment(s)?`)) {
-        return;
-    }
-    
-    selectedComments.forEach(commentId => {
-        rejectComment(commentId);
-    });
-}
-
-function getSelectedComments() {
-    const checkboxes = document.querySelectorAll('.comment-checkbox:checked');
-    return Array.from(checkboxes).map(cb => parseInt(cb.value));
-}
-
-/**
- * Utility functions
- */
-function getSentimentClass(rating) {
-    if (!rating) return 'sentiment-neutral';
-    if (rating >= 4) return 'sentiment-positive';
-    if (rating <= 2) return 'sentiment-negative';
-    return 'sentiment-neutral';
-}
-
-function getSentimentIcon(rating) {
-    if (!rating) return 'fas fa-meh';
-    if (rating >= 4) return 'fas fa-smile';
-    if (rating <= 2) return 'fas fa-frown';
-    return 'fas fa-meh';
-}
-
-function getSentimentText(rating) {
-    if (!rating) return 'Neutral';
-    if (rating >= 4) return 'Positive';
-    if (rating <= 2) return 'Negative';
-    return 'Neutral';
-}
-
-function getInitials(name) {
-    if (!name) return '?';
-    return name.split(' ').map(word => word.charAt(0).toUpperCase()).slice(0, 2).join('');
-}
-
-function capitalizeFirst(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function showLoadingState() {
-    const commentsList = document.getElementById('commentsList');
-    commentsList.innerHTML = `
-        <div class="loading-state">
-            <i class="fas fa-spinner fa-spin"></i>
-            <p>Loading comments...</p>
-        </div>
-    `;
-}
-
-function hideLoadingState() {
-    // Loading state will be replaced by comments or error message
-}
-
-function showSuccess(message) {
-    showNotification(message, 'success');
-}
-
-function showError(message) {
-    showNotification(message, 'error');
-}
-
-function showNotification(message, type) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    // Add to page
-    document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-function updateStats(data) {
-    // Update stats if provided
-    if (data.stats) {
-        const pendingComments = document.getElementById('pendingComments');
-        const flaggedToday = document.getElementById('flaggedToday');
-        const moderatedToday = document.getElementById('moderatedToday');
-        
-        if (pendingComments) {
-            // Show visible comments (not hidden) as pending review
-            pendingComments.textContent = data.stats.visible_comments || 0;
-        }
-        
-        if (flaggedToday) {
-            // Show hidden comments as flagged
-            flaggedToday.textContent = data.stats.hidden_comments || 0;
-        }
-        
-        if (moderatedToday) {
-            // Show comments moderated (hidden) today
-            moderatedToday.textContent = data.stats.moderated_today || 0;
-        }
-    } else if (data.total !== undefined) {
-        // Fallback for backward compatibility
-        const pendingComments = document.getElementById('pendingComments');
-        if (pendingComments) {
-            pendingComments.textContent = data.total;
-        }
-    }
-}
-
-// Header dropdown functionality
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationDropdown');
-    dropdown.style.display = dropdown.style.display === 'none' || !dropdown.style.display ? 'block' : 'none';
-}
-
-function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    dropdown.style.display = dropdown.style.display === 'none' || !dropdown.style.display ? 'block' : 'none';
-}
-
-function markAllAsRead() {
-    const badge = document.getElementById('notificationBadge');
-    badge.style.display = 'none';
-    toggleNotifications();
-}
-
-// Export functions for global access
-window.filterComments = filterComments;
-window.approveComment = approveComment;
-window.rejectComment = rejectComment;
-window.viewCommentContext = viewCommentContext;
-window.selectAllComments = selectAllComments;
-window.approveSelectedComments = approveSelectedComments;
-window.rejectSelectedComments = rejectSelectedComments;
-window.toggleNotifications = toggleNotifications;
-window.toggleUserMenu = toggleUserMenu;
-window.markAllAsRead = markAllAsRead;
-window.hideComment = hideComment;
-window.unhideComment = unhideComment;
-
-/**
- * Hide a comment with reason
- */
-function hideComment(commentId) {
-    // Create modal for hide reason
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.id = 'hideCommentModal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>Hide Comment</h2>
-                <button class="modal-close" onclick="closeHideModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p class="warning-text">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    This comment will be hidden from public view. The user will be notified with your reason.
-                </p>
-                <div class="form-group">
-                    <label for="hideReason">Reason for hiding this comment: <span class="required">*</span></label>
-                    <textarea 
-                        id="hideReason" 
-                        rows="4" 
-                        maxlength="500"
-                        placeholder="E.g., Inappropriate language, spam, offensive content..."
-                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"
-                    ></textarea>
-                    <small style="color: #666; display: block; margin-top: 5px;">
-                        <span id="reasonCharCount">0</span> / 500 characters (minimum 10)
-                    </small>
-                </div>
-            </div>
-            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button class="btn btn-secondary" onclick="closeHideModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmHideComment(${commentId})">
-                    <i class="fas fa-eye-slash"></i> Hide Comment
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Setup character counter
+// ─── Hide modal ───────────────────────────────────────────────────
+function openHideModal(commentId) {
+    hidingId = commentId;
+    const modal = document.getElementById('hideModal');
+    if (!modal) return;
     const textarea = document.getElementById('hideReason');
-    const charCount = document.getElementById('reasonCharCount');
-    textarea.addEventListener('input', function() {
-        charCount.textContent = this.value.length;
+    const errEl    = document.getElementById('hideError');
+    const btn      = document.getElementById('hideSubmitBtn');
+    if (textarea) textarea.value = '';
+    if (errEl)    errEl.style.display = 'none';
+    if (btn)      { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
+    modal.classList.add('active');
+}
+
+function closeHideModal() {
+    hidingId = null;
+    const modal = document.getElementById('hideModal');
+    if (modal) modal.classList.remove('active');
+}
+
+function confirmHideComment() {
+    if (!hidingId) return;
+    const reason = (document.getElementById('hideReason')?.value || '').trim();
+    const errEl  = document.getElementById('hideError');
+    const btn    = document.getElementById('hideSubmitBtn');
+
+    if (!reason || reason.length < 10) {
+        if (errEl) { errEl.textContent = 'Please provide a reason (at least 10 characters).'; errEl.style.display = 'block'; }
+        return;
+    }
+
+    if (btn)  { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding…'; }
+    if (errEl)  errEl.style.display = 'none';
+
+    fetch('/unipulse/public/moderator/comments/hideComment', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ comment_id: hidingId, reason })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            closeHideModal();
+            showToast('Comment hidden successfully.', 'success');
+            loadUniversityComments();
+        } else {
+            if (errEl) { errEl.textContent = data.error || 'Failed to hide comment.'; errEl.style.display = 'block'; }
+            if (btn)   { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
+        }
+    })
+    .catch(err => {
+        console.error('Error hiding comment:', err);
+        if (errEl) { errEl.textContent = 'An error occurred. Please try again.'; errEl.style.display = 'block'; }
+        if (btn)   { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
     });
 }
 
-/**
- * Close hide comment modal
- */
-function closeHideModal() {
-    const modal = document.getElementById('hideCommentModal');
-    if (modal) {
-        modal.remove();
-    }
-}
+// ─── Unhide ───────────────────────────────────────────────────────
+function unhideComment(commentId) {
+    if (!confirm('Restore this comment so users can see it again?')) return;
 
-/**
- * Confirm hide comment action
- */
-async function confirmHideComment(commentId) {
-    const reason = document.getElementById('hideReason').value.trim();
-    
-    if (!reason) {
-        showError('Please provide a reason for hiding this comment');
-        return;
-    }
-    
-    if (reason.length < 10) {
-        showError('Reason must be at least 10 characters long');
-        return;
-    }
-    
-    const confirmBtn = document.querySelector('.modal-footer .btn-danger');
-    confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Hiding...';
-    
-    try {
-        const response = await fetch('/unipulse/public/moderator/comments/hideComment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                comment_id: commentId,
-                reason: reason
-            })
-        });
-        
-        const data = await response.json();
-        
+    fetch('/unipulse/public/moderator/comments/unhideComment', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ comment_id: commentId })
+    })
+    .then(r => r.json())
+    .then(data => {
         if (data.success) {
-            showSuccess('Comment hidden successfully. User has been notified.');
-            closeHideModal();
-            // Reload comments
+            showToast('Comment restored.', 'success');
             loadUniversityComments();
         } else {
-            showError(data.error || 'Failed to hide comment');
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment';
+            showToast(data.error || 'Failed to restore comment.', 'error');
         }
-    } catch (error) {
-        console.error('Error hiding comment:', error);
-        showError('An error occurred while hiding the comment');
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment';
-    }
+    })
+    .catch(err => {
+        console.error('Error unhiding:', err);
+        showToast('An error occurred.', 'error');
+    });
 }
 
-/**
- * Unhide a comment
- */
-async function unhideComment(commentId) {
-    if (!confirm('Are you sure you want to unhide this comment? It will become visible to everyone again.')) {
-        return;
-    }
-    
-    const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
-    const unhideBtn = commentCard.querySelector('.unhide');
-    
-    unhideBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Unhiding...';
-    unhideBtn.disabled = true;
-    
-    try {
-        const response = await fetch('/unipulse/public/moderator/comments/unhideComment', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                comment_id: commentId
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showSuccess('Comment unhidden successfully. User has been notified.');
-            // Reload comments
-            loadUniversityComments();
-        } else {
-            showError(data.error || 'Failed to unhide comment');
-            unhideBtn.innerHTML = '<i class="fas fa-eye"></i> Unhide';
-            unhideBtn.disabled = false;
-        }
-    } catch (error) {
-        console.error('Error unhiding comment:', error);
-        showError('An error occurred while unhiding the comment');
-        unhideBtn.innerHTML = '<i class="fas fa-eye"></i> Unhide';
-        unhideBtn.disabled = false;
-    }
+// ─── Utility ─────────────────────────────────────────────────────
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
-
-window.closeHideModal = closeHideModal;
-window.confirmHideComment = confirmHideComment;
+function capitalizeFirst(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+}
+function dateStr(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function debounce(fn, wait) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
+}
+function showListError(msg) {
+    const list = document.getElementById('commentsList');
+    if (list) list.innerHTML = `<div class="error-banner"><i class="fas fa-exclamation-circle"></i> ${escapeHtml(msg)}</div>`;
+}
+function showToast(message, type = 'info') {
+    const div = document.createElement('div');
+    div.style.cssText = `
+        position:fixed;top:20px;right:20px;
+        background:${type === 'success' ? '#22c55e' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color:#fff;padding:14px 20px;border-radius:8px;
+        box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:10000;
+        font-size:.9rem;opacity:0;transform:translateX(100%);
+        transition:all .3s ease;`;
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(() => { div.style.opacity = '1'; div.style.transform = 'translateX(0)'; }, 50);
+    setTimeout(() => {
+        div.style.opacity = '0'; div.style.transform = 'translateX(100%)';
+        setTimeout(() => div.parentNode?.removeChild(div), 300);
+    }, 3500);
+}

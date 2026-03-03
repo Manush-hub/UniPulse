@@ -127,16 +127,26 @@ class Comment
 
         $eventDate = !empty($event->event_date) ? new DateTime($event->event_date) : null;
         $today = new DateTime('today');
+        $now   = new DateTime();
         $status = strtolower(trim((string)($event->status ?? '')));
+
         $isCompleted = ($status === 'completed') || ($eventDate && $eventDate < $today);
+
+        // Also treat as completed if event date is today and end time (or start time) has passed
+        if (!$isCompleted && $eventDate && $eventDate == $today) {
+            $endTimeStr   = !empty($event->event_end_time) ? $event->event_end_time : null;
+            $startTimeStr = !empty($event->event_time)     ? $event->event_time     : null;
+            if ($endTimeStr) {
+                $endDt = new DateTime($event->event_date . ' ' . $endTimeStr);
+                $isCompleted = $now >= $endDt;
+            } elseif ($startTimeStr) {
+                $startDt = new DateTime($event->event_date . ' ' . $startTimeStr);
+                $isCompleted = $now >= $startDt;
+            }
+        }
 
         if (!$isCompleted) {
             return ['success' => false, 'errors' => ['Comments are allowed only for completed events']];
-        }
-
-        // Prevent duplicate comment submissions for the same user and event
-        if ($this->hasUserCommented($data['event_id'], $data['user_id'], $data['user_type'])) {
-            return ['success' => false, 'errors' => ['You have already commented on this event']];
         }
 
         // Set user table based on user type
@@ -273,7 +283,7 @@ class Comment
     private function getEventForComment($eventId)
     {
         $query = "
-            SELECT id, title, status, event_date, created_by, created_by_type 
+            SELECT id, title, status, event_date, event_time, event_end_time, created_by, created_by_type 
             FROM events 
             WHERE id = :event_id
         ";
@@ -507,8 +517,81 @@ class Comment
     }
 
     /**
+     * Get all comments posted by a specific user (for their own dashboard)
+     */
+    public function getCommentsByUser($userId, $userType)
+    {
+        $query = "
+            SELECT
+                c.id,
+                c.event_id,
+                c.comment_text,
+                c.rating,
+                c.is_edited,
+                c.is_hidden,
+                c.hidden_reason,
+                c.hidden_at,
+                c.created_at,
+                c.updated_at,
+                e.title  AS event_title,
+                e.event_date,
+                m.full_name AS hidden_by_name
+            FROM event_comments c
+            JOIN events e ON c.event_id = e.id
+            LEFT JOIN moderators m ON c.hidden_by = m.id
+            WHERE c.user_id   = :user_id
+              AND c.user_type = :user_type
+              AND c.is_deleted = 0
+            ORDER BY c.created_at DESC
+            LIMIT 100
+        ";
+
+        return $this->query($query, [
+            'user_id'   => $userId,
+            'user_type' => $userType,
+        ]);
+    }
+
+    /**
      * Get all comments for moderation (includes hidden ones)
      */
+    /**
+     * Get all comments for a specific event (moderator view - includes hidden comments)
+     */
+    public function getEventCommentsForModerator($eventId)
+    {
+        $query = "
+            SELECT 
+                c.*,
+                CASE 
+                    WHEN c.user_type = 'university' THEN uu.full_name
+                    WHEN c.user_type = 'public' THEN pu.full_name
+                    WHEN c.user_type = 'publisher' THEN p.society_name
+                    WHEN c.user_type = 'sponsor' THEN s.company_name
+                END as user_name,
+                CASE 
+                    WHEN c.user_type = 'university' THEN uu.email
+                    WHEN c.user_type = 'public' THEN pu.email
+                    WHEN c.user_type = 'publisher' THEN p.email
+                    WHEN c.user_type = 'sponsor' THEN s.email
+                END as user_email,
+                m.full_name as hidden_by_name
+            FROM event_comments c
+            LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
+            LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
+            LEFT JOIN publishers p ON c.user_type = 'publisher' AND c.user_id = p.id
+            LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
+            LEFT JOIN moderators m ON c.hidden_by = m.id
+            WHERE c.event_id = :event_id 
+            AND c.is_deleted = 0
+            ORDER BY c.created_at DESC
+        ";
+
+        $stmt = $this->connect()->prepare($query);
+        $stmt->execute(['event_id' => $eventId]);
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
     public function getAllCommentsForModeration($university = null)
     {
         $query = "
@@ -546,7 +629,9 @@ class Comment
         $params = [];
 
         if ($university) {
-            $query .= " AND e.university = :university";
+            // Filter by the publisher's university (events are owned by publishers;
+            // e.university may differ from the publisher's own university slug)
+            $query .= " AND p.university = :university";
             $params['university'] = $university;
         }
 

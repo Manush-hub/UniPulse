@@ -2221,12 +2221,26 @@ let currentRating = 0;
 let editingCommentId = null;
 let editingRating = 0;
 
+// Escape HTML to prevent XSS in comment display
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Initialize comment functionality when event is displayed
 function initializeComments() {
     if (!currentEvent) return;
 
-    // Show comments section for completed events
-    if (currentEvent.status === 'completed') {
+    // Show comments section for completed events (use computed status based on date+time)
+    const eventDate = currentEvent.event_date || currentEvent.date;
+    const eventTime = currentEvent.event_time || currentEvent.time;
+    const computedStatus = getEventStatus(eventDate, eventTime, currentEvent.event_end_time);
+    if (computedStatus === 'completed') {
         const commentsSection = document.getElementById('commentsSection');
         if (commentsSection) {
             commentsSection.style.display = 'block';
@@ -2393,18 +2407,19 @@ function loadComments() {
         </div>
     `;
 
-    fetch(`/unipulse/public/publisher/comments/getComments?event_id=${currentEvent.id}`)
+    fetch(`/unipulse/public/publisher/comments/getEventComments?event_id=${currentEvent.id}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                displayComments(data.comments, data.statistics);
+                // Normalise stats field names from getEventComments response
+                const stats = data.stats || {};
+                const statistics = {
+                    total: stats.total_comments || 0,
+                    averageRating: stats.average_rating || null
+                };
+                displayComments(data.comments, statistics);
 
-                // Show add comment button if user is logged in and event is completed
-                if (data.canComment && currentEvent.status === 'completed') {
-                    document.getElementById('addCommentTrigger').style.display = 'block';
-                } else if (!data.canComment) {
-                    document.getElementById('loginPrompt').style.display = 'block';
-                }
+                // Publishers view their own events' comments — no comment form needed for publishers
             } else {
                 commentsList.innerHTML = `
                     <div class="error-message">
@@ -2435,59 +2450,168 @@ function displayComments(comments, statistics) {
         totalCommentsCount.textContent = statistics.total || 0;
     }
 
-    if (statistics.averageRating && statistics.averageRating > 0) {
-        averageRatingDisplay.style.display = 'inline-block';
+    if (statistics.averageRating && statistics.averageRating > 0 && averageRatingDisplay && averageRatingValue) {
+        averageRatingDisplay.style.display = 'inline-flex';
         averageRatingValue.textContent = statistics.averageRating.toFixed(1);
+    } else if (averageRatingDisplay) {
+        averageRatingDisplay.style.display = 'none';
     }
 
-    if (comments.length === 0) {
+    if (!comments || comments.length === 0) {
         commentsList.innerHTML = `
-            <div class="no-comments">
+            <div class="empty-comments">
                 <i class="fas fa-comments"></i>
                 <h4>No comments yet</h4>
-                <p>Be the first to share your experience with this event!</p>
+                <p>No one has commented on this event yet.</p>
             </div>
         `;
         return;
     }
 
-    let commentsHTML = '';
+    const commentsHTML = comments.map(comment => {
+        const userName = comment.user_name || 'Anonymous';
+        const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        const ratingStars = comment.rating
+            ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating)
+            : '';
+        const editedBadge = comment.is_edited ? '<span class="edited-badge">Edited</span>' : '';
+        const userTypeLabel = comment.user_type
+            ? comment.user_type.charAt(0).toUpperCase() + comment.user_type.slice(1) + ' User'
+            : 'User';
 
-    comments.forEach(comment => {
-        const userAvatar = comment.user_name ? comment.user_name.charAt(0).toUpperCase() : 'U';
-        const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : '';
-
-        commentsHTML += `
-            <div class="comment-item" data-comment-id="${comment.id}">
+        return `
+            <div class="comment-card" data-comment-id="${comment.id}">
                 <div class="comment-header">
-                    <div class="user-info">
-                        <div class="user-avatar">${userAvatar}</div>
-                        <div class="user-details">
-                            <span class="user-name">${comment.user_name || 'Anonymous'}</span>
-                            <span class="user-type">${comment.user_type || 'user'}</span>
-                            <span class="comment-date">${formatCommentDate(comment.created_at)}</span>
+                    <div class="comment-user">
+                        <div class="user-avatar">${userInitials}</div>
+                        <div class="user-info">
+                            <h4>${escapeHtml(userName)}</h4>
+                            <p>${userTypeLabel} ${editedBadge}</p>
                         </div>
                     </div>
-                    ${comment.rating ? `<div class="comment-rating">${ratingStars}</div>` : ''}
+                    <div class="comment-meta">
+                        ${comment.rating ? `
+                            <div class="comment-rating">
+                                <span class="stars">${ratingStars}</span>
+                                <span class="rating-value">${comment.rating}/5</span>
+                            </div>
+                        ` : ''}
+                        <p>${comment.formatted_date || ''}</p>
+                    </div>
                 </div>
                 <div class="comment-content">
-                    <p>${comment.comment}</p>
+                    ${escapeHtml(comment.comment_text)}
                 </div>
-                ${comment.canEdit ? `
-                    <div class="comment-actions">
-                        <button class="action-btn edit-btn" onclick="editComment(${comment.id})">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <button class="action-btn delete-btn" onclick="deleteComment(${comment.id})">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                ` : ''}
+                <div class="comment-actions">
+                    <button class="action-btn report-btn" onclick="openReportCommentModal(${comment.id})" title="Report this comment to your university moderator">
+                        <i class="fas fa-flag"></i> Report
+                    </button>
+                </div>
             </div>
         `;
-    });
+    }).join('');
 
     commentsList.innerHTML = commentsHTML;
+}
+
+// ── Report Comment ──────────────────────────────────────────────
+let reportingCommentId = null;
+
+function openReportCommentModal(commentId) {
+    reportingCommentId = commentId;
+    const modal = document.getElementById('reportCommentModal');
+    if (!modal) return;
+
+    document.getElementById('reportCommentForm').reset();
+    document.getElementById('reportCommentError').style.display = 'none';
+
+    // Load moderators
+    const sel = document.getElementById('reportModeratorSelect');
+    sel.innerHTML = '<option value="">— Loading… —</option>';
+    sel.disabled = true;
+
+    fetch('/unipulse/public/publisher/comments/getModerators')
+        .then(r => r.json())
+        .then(data => {
+            sel.disabled = false;
+            if (data.success && data.moderators && data.moderators.length) {
+                sel.innerHTML = '<option value="">— Select a moderator —</option>';
+                data.moderators.forEach(mod => {
+                    const opt = document.createElement('option');
+                    opt.value = mod.id;
+                    opt.textContent = mod.name;
+                    sel.appendChild(opt);
+                });
+            } else {
+                sel.innerHTML = '<option value="">No moderators found for your university</option>';
+            }
+        })
+        .catch(() => {
+            sel.disabled = false;
+            sel.innerHTML = '<option value="">Failed to load moderators</option>';
+        });
+
+    modal.style.display = 'flex';
+}
+
+function closeReportCommentModal() {
+    reportingCommentId = null;
+    const modal = document.getElementById('reportCommentModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function submitCommentReport() {
+    if (!reportingCommentId) return;
+
+    const moderatorId = document.getElementById('reportModeratorSelect').value;
+    const reason      = document.getElementById('reportReason').value.trim();
+    const errorEl     = document.getElementById('reportCommentError');
+    const submitBtn   = document.getElementById('reportSubmitBtn');
+
+    if (!moderatorId) {
+        errorEl.textContent = 'Please select a moderator.';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (!reason) {
+        errorEl.textContent = 'Please provide a reason.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…';
+    errorEl.style.display = 'none';
+
+    fetch('/unipulse/public/publisher/comments/reportComment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            comment_id:   reportingCommentId,
+            moderator_id: moderatorId,
+            reason:       reason
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+        if (data.success) {
+            closeReportCommentModal();
+            // Redirect to messages with the moderator chat pre-opened
+            window.location.href =
+                '/unipulse/public/publisher/messages?open_contact=' + data.moderator_id + '&contact_type=moderator';
+        } else {
+            errorEl.textContent = data.error || 'Failed to submit report.';
+            errorEl.style.display = 'block';
+        }
+    })
+    .catch(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+        errorEl.textContent = 'Network error. Please try again.';
+        errorEl.style.display = 'block';
+    });
 }
 
 // Format comment date

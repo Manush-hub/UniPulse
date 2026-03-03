@@ -421,6 +421,66 @@ class UserDashboard extends Controller
     }
 
     /**
+     * API endpoint to get current user's comment history
+     */
+    public function getMyComments()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || !in_array($currentUser['type'], ['public', 'university'])) {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                return;
+            }
+
+            $commentModel = new Comment();
+            $comments = $commentModel->getCommentsByUser($currentUser['id'], $currentUser['type']);
+
+            $formatted = [];
+            foreach ($comments ?: [] as $c) {
+                $date = new DateTime($c->created_at);
+                $now  = new DateTime();
+                $diff = $now->diff($date);
+                if ($diff->days == 0) {
+                    $fmtDate = $diff->h == 0 ? ($diff->i . ' min ago') : ($diff->h . 'h ago');
+                } elseif ($diff->days == 1) {
+                    $fmtDate = 'Yesterday';
+                } elseif ($diff->days < 7) {
+                    $fmtDate = $diff->days . ' days ago';
+                } else {
+                    $fmtDate = $date->format('M j, Y');
+                }
+
+                $formatted[] = [
+                    'id'             => $c->id,
+                    'event_id'       => $c->event_id,
+                    'event_title'    => $c->event_title,
+                    'event_date'     => $c->event_date,
+                    'comment_text'   => $c->comment_text,
+                    'rating'         => $c->rating,
+                    'is_edited'      => (bool)$c->is_edited,
+                    'is_hidden'      => (bool)$c->is_hidden,
+                    'hidden_reason'  => $c->hidden_reason,
+                    'hidden_by_name' => $c->hidden_by_name,
+                    'hidden_at'      => $c->hidden_at,
+                    'formatted_date' => $fmtDate,
+                ];
+            }
+
+            echo json_encode(['success' => true, 'comments' => $formatted]);
+        } catch (Exception $e) {
+            error_log('getMyComments error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load comments']);
+        }
+    }
+
+    /**
      * API endpoint to get latest volunteering status
      */
     public function getVolunteeringStatus()

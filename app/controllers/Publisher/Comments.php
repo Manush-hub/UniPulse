@@ -54,8 +54,7 @@ class PublisherComments extends Controller
                     c.*,
                     e.title as event_title,
                     e.status as event_status,
-                    e.start_date,
-                    e.end_date,
+                    e.event_date,
                     CASE 
                         WHEN c.user_type = 'university' THEN uu.full_name
                         WHEN c.user_type = 'public' THEN pu.full_name
@@ -92,8 +91,7 @@ class PublisherComments extends Controller
                     'event_id' => $comment->event_id,
                     'event_title' => $comment->event_title,
                     'event_status' => $comment->event_status,
-                    'start_date' => $comment->start_date,
-                    'end_date' => $comment->end_date,
+                    'event_date' => $comment->event_date,
                     'user_name' => $comment->user_name,
                     'user_email' => $comment->user_email,
                     'user_type' => $comment->user_type,
@@ -521,6 +519,174 @@ class PublisherComments extends Controller
         } catch (Exception $e) {
             error_log("Error updating comment: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update comment']);
+        }
+    }
+
+    /**
+     * Return the list of active moderators for the publisher's university (JSON)
+     */
+    public function getModerators()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            $university   = $currentUser['university'] ?? '';
+
+            if (empty($university)) {
+                echo json_encode(['success' => false, 'error' => 'Your account is not linked to a university']);
+                return;
+            }
+
+            $moderatorModel = new Moderator();
+            $moderators     = $moderatorModel->getByUniversity($university);
+
+            $list = [];
+            foreach ($moderators as $mod) {
+                $list[] = [
+                    'id'       => $mod->id,
+                    'name'     => $mod->full_name,
+                    'email'    => $mod->email,
+                ];
+            }
+
+            echo json_encode(['success' => true, 'moderators' => $list]);
+        } catch (Exception $e) {
+            error_log("Error fetching moderators: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load moderators']);
+        }
+    }
+
+    /**
+     * Report a comment to a selected university moderator and open a chat message
+     */
+    public function reportComment($commentId = null)
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) {
+            $input = $_POST;
+        }
+
+        if (!$commentId && isset($input['comment_id'])) {
+            $commentId = $input['comment_id'];
+        }
+
+        if (!$commentId || !is_numeric($commentId)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid comment ID']);
+            return;
+        }
+
+        $moderatorId = intval($input['moderator_id'] ?? 0);
+        $reason      = trim($input['reason'] ?? '');
+
+        if (!$moderatorId) {
+            echo json_encode(['success' => false, 'error' => 'Please select a moderator']);
+            return;
+        }
+        if (empty($reason)) {
+            echo json_encode(['success' => false, 'error' => 'Please provide a reason']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            // Verify the comment belongs to an event owned by this publisher
+            $verifyQuery = "
+                SELECT c.id, c.comment_text, e.title as event_title
+                FROM event_comments c
+                JOIN events e ON c.event_id = e.id
+                WHERE c.id = :comment_id
+                AND e.created_by_type = 'publisher'
+                AND e.created_by = :publisher_id
+                AND c.is_deleted = 0
+                LIMIT 1
+            ";
+            $verifyStmt = $this->connect()->prepare($verifyQuery);
+            $verifyStmt->execute([
+                'comment_id'   => $commentId,
+                'publisher_id' => $currentUser['id']
+            ]);
+            $commentRow = $verifyStmt->fetch(PDO::FETCH_OBJ);
+
+            if (!$commentRow) {
+                echo json_encode(['success' => false, 'error' => 'Comment not found on your events']);
+                return;
+            }
+
+            $university = $currentUser['university'] ?? '';
+            if (empty($university)) {
+                echo json_encode(['success' => false, 'error' => 'Your account is not linked to a university']);
+                return;
+            }
+
+            // Verify moderator belongs to the same university
+            $moderatorModel = new Moderator();
+            $moderator = $moderatorModel->findById($moderatorId);
+            if (!$moderator || $moderator->university !== $university || !$moderator->is_active) {
+                echo json_encode(['success' => false, 'error' => 'Selected moderator is not valid for your university']);
+                return;
+            }
+
+            // Insert the report
+            $insertQuery = "
+                INSERT INTO reports
+                    (reporter_id, reported_content_type, reported_content_id,
+                     report_type, description, university, status, priority, assigned_moderator_id)
+                VALUES
+                    (:reporter_id, 'comment', :comment_id,
+                     'other', :description, :university, 'pending', 'medium', :moderator_id)
+            ";
+            $insertStmt = $this->connect()->prepare($insertQuery);
+            $insertStmt->execute([
+                'reporter_id'  => $currentUser['id'],
+                'comment_id'   => $commentId,
+                'description'  => $reason,
+                'university'   => $university,
+                'moderator_id' => $moderatorId,
+            ]);
+            $reportId = $this->connect()->lastInsertId();
+
+            // Send a message to the moderator
+            $snippet  = mb_strlen($commentRow->comment_text) > 120
+                      ? mb_substr($commentRow->comment_text, 0, 120) . '…'
+                      : $commentRow->comment_text;
+            $msgText  = "Comment Report (Report #{$reportId})\n\n"
+                      . "Event: {$commentRow->event_title}\n"
+                      . "Comment: \"{$snippet}\"\n\n"
+                      . "Reason: {$reason}";
+
+            $messageModel = new Message();
+            $messageModel->sendMessage([
+                'from_user_id'   => $currentUser['id'],
+                'from_user_type' => 'publisher',
+                'to_user_id'     => $moderatorId,
+                'to_user_type'   => 'moderator',
+                'subject'        => 'Comment Report - ' . $commentRow->event_title,
+                'message'        => $msgText,
+            ]);
+
+            echo json_encode([
+                'success'      => true,
+                'message'      => 'Report submitted and message sent to moderator',
+                'moderator_id' => $moderatorId,
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Error reporting comment: " . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to submit report']);
         }
     }
 

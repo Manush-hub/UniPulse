@@ -1074,3 +1074,103 @@ body {
         font-size: 2rem;
     }
 }
+
+/* ── Your Comments Section ─────────────────────────────────── */
+.your-comments-section {
+    padding: 4rem 0;
+    background: #f8fafc;
+}
+
+.my-comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.my-comment-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    border-left: 4px solid #1E3A8A;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.my-comment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+
+.my-comment-card.is-hidden {
+    border-left-color: #dc2626;
+    background: #fffbfb;
+}
+
+.my-comment-card .mc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: .6rem;
+}
+
+.my-comment-card .mc-event {
+    font-size: .875rem;
+    font-weight: 600;
+    color: #1E3A8A;
+}
+
+.my-comment-card .mc-meta {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    font-size: .78rem;
+    color: #9ca3af;
+    flex-shrink: 0;
+}
+
+.my-comment-card .mc-text {
+    font-size: .9rem;
+    color: #374151;
+    line-height: 1.6;
+    margin-bottom: .6rem;
+}
+
+.my-comment-card .mc-rating {
+    color: #f59e0b;
+    font-size: .85rem;
+}
+
+.mc-hidden-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .25rem .65rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.mc-hidden-badge:hover {
+    background: #fecaca;
+}
+
+.my-comments-empty {
+    text-align: center;
+    padding: 3rem;
+    color: #9ca3af;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+.my-comments-empty i {
+    font-size: 2.5rem;
+    margin-bottom: .75rem;
+    display: block;
+}

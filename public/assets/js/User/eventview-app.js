@@ -1764,14 +1764,9 @@ async function checkUserCommentStatus() {
         }
 
         if (data.can_comment) {
-            // User can comment
+            // User can comment (including users who have already commented)
             console.log('User can comment - showing add button');
             if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-        } else if (data.has_commented) {
-            // User already commented
-            console.log('User already commented - hiding both');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'none';
         } else {
             // User not logged in or can't comment

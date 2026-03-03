@@ -171,7 +171,12 @@ class ModeratorComments extends Controller {
                 echo json_encode(['success' => false, 'error' => 'Moderator access required']);
                 return;
             }
-            
+
+            // Accept event_id from query string when not passed as URL path segment
+            if (!$eventId) {
+                $eventId = $_GET['event_id'] ?? $_GET['id'] ?? null;
+            }
+
             if (!$eventId || !is_numeric($eventId)) {
                 echo json_encode(['success' => false, 'error' => 'Invalid event ID']);
                 return;
@@ -198,8 +203,8 @@ class ModeratorComments extends Controller {
                 return;
             }
             
-            // Get comments for the event
-            $comments = $this->commentModel->getEventComments($eventId);
+            // Get comments for the event (all, including hidden — moderator view)
+            $comments = $this->commentModel->getEventCommentsForModerator($eventId);
             $stats = $this->commentModel->getEventCommentStats($eventId);
             
             $formattedComments = [];
@@ -212,6 +217,10 @@ class ModeratorComments extends Controller {
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
                     'is_edited' => (bool)$comment->is_edited,
+                    'is_hidden' => (bool)$comment->is_hidden,
+                    'hidden_by_name' => $comment->hidden_by_name ?? null,
+                    'hidden_at' => $comment->hidden_at ?? null,
+                    'hidden_reason' => $comment->hidden_reason ?? null,
                     'created_at' => $comment->created_at,
                     'updated_at' => $comment->updated_at,
                     'formatted_date' => $this->formatDate($comment->created_at)
@@ -309,13 +318,18 @@ class ModeratorComments extends Controller {
             $modStmt->execute(['mod_id' => $currentUser['id']]);
             $moderator = $modStmt->fetch(PDO::FETCH_OBJ);
             
-            // Get event details
-            $eventQuery = "SELECT * FROM events WHERE id = :event_id";
+            // Get event details and verify the publisher belongs to moderator's university
+            $eventQuery = "
+                SELECT e.*, p.university AS publisher_university
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by_type = 'publisher' AND e.created_by = p.id
+                WHERE e.id = :event_id
+            ";
             $eventStmt = $this->connect()->prepare($eventQuery);
             $eventStmt->execute(['event_id' => $comment->event_id]);
             $event = $eventStmt->fetch(PDO::FETCH_OBJ);
-            
-            if (!$event || $event->university !== $moderator->university) {
+
+            if (!$event || $event->publisher_university !== $moderator->university) {
                 echo json_encode(['success' => false, 'error' => 'You can only moderate comments from your university']);
                 return;
             }
@@ -372,13 +386,18 @@ class ModeratorComments extends Controller {
             $modStmt->execute(['mod_id' => $currentUser['id']]);
             $moderator = $modStmt->fetch(PDO::FETCH_OBJ);
             
-            // Get event details
-            $eventQuery = "SELECT * FROM events WHERE id = :event_id";
+            // Get event details and verify the publisher belongs to moderator's university
+            $eventQuery = "
+                SELECT e.*, p.university AS publisher_university
+                FROM events e
+                LEFT JOIN publishers p ON e.created_by_type = 'publisher' AND e.created_by = p.id
+                WHERE e.id = :event_id
+            ";
             $eventStmt = $this->connect()->prepare($eventQuery);
             $eventStmt->execute(['event_id' => $comment->event_id]);
             $event = $eventStmt->fetch(PDO::FETCH_OBJ);
-            
-            if (!$event || $event->university !== $moderator->university) {
+
+            if (!$event || $event->publisher_university !== $moderator->university) {
                 echo json_encode(['success' => false, 'error' => 'You can only moderate comments from your university']);
                 return;
             }

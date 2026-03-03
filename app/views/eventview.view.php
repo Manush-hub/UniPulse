@@ -15,6 +15,11 @@ $roleConfig = [
         'jsFile' => '/unipulse/public/assets/js/Sponsor/eventview-app.js',
         'purchaseTicketFunction' => false,
         'visitProfileFunction' => true
+    ],
+    'Moderator' => [
+        'jsFile' => '/unipulse/public/assets/js/Moderator/eventview-app.js',
+        'purchaseTicketFunction' => false,
+        'visitProfileFunction' => false
     ]
 ];
 
@@ -804,6 +809,70 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     </script>
 
     <script src="<?php echo $config['jsFile']; ?>"></script>
+
+    <?php if ($currentRole === 'Publisher'): ?>
+    <!-- Report Comment Modal (Publisher only) -->
+    <div id="reportCommentModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width:500px; width:92%;">
+            <div class="modal-header">
+                <h3><i class="fas fa-flag" style="color:#e74c3c; margin-right:8px;"></i>Report Comment</h3>
+                <button class="close-btn" onclick="closeReportCommentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:16px; color:#555;">Select a moderator from your university and describe the issue. A message will be sent directly to them.</p>
+                <form id="reportCommentForm">
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label for="reportModeratorSelect" style="display:block; font-weight:600; margin-bottom:6px;">Moderator <span style="color:red;">*</span></label>
+                        <select id="reportModeratorSelect" class="form-control" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px;">
+                            <option value="">— Loading moderators… —</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label for="reportReason" style="display:block; font-weight:600; margin-bottom:6px;">Reason <span style="color:red;">*</span></label>
+                        <textarea id="reportReason" class="form-control" rows="4"
+                            placeholder="Briefly explain why you are reporting this comment…"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:vertical;"></textarea>
+                    </div>
+                    <div id="reportCommentError" style="display:none; color:#e74c3c; font-size:0.875rem; margin-bottom:10px;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeReportCommentModal()">Cancel</button>
+                <button id="reportSubmitBtn" class="btn btn-danger" onclick="submitCommentReport()">
+                    <i class="fas fa-flag"></i> Submit Report
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($currentRole === 'Moderator'): ?>
+    <!-- Hide Comment Modal (Moderator only) -->
+    <div id="hideCommentModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+        <div class="modal-content" style="max-width:500px; width:92%;">
+            <div class="modal-header">
+                <h3><i class="fas fa-eye-slash" style="color:#e67e22; margin-right:8px;"></i>Hide Comment</h3>
+                <button class="close-btn" onclick="closeHideCommentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:16px; color:#555;">Provide a reason for hiding this comment. The user will be notified with this reason.</p>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="hideCommentReason" style="display:block; font-weight:600; margin-bottom:6px;">Reason <span style="color:red;">*</span></label>
+                    <textarea id="hideCommentReason" class="form-control" rows="4"
+                        placeholder="Explain why this comment is being hidden (min. 10 characters)…"
+                        style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:vertical;"></textarea>
+                </div>
+                <div id="hideCommentError" style="display:none; color:#e74c3c; font-size:0.875rem; margin-bottom:10px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeHideCommentModal()">Cancel</button>
+                <button id="hideCommentSubmitBtn" class="btn btn-warning" onclick="confirmHideComment()">
+                    <i class="fas fa-eye-slash"></i> Hide Comment
+                </button>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 </body>
 
 </html>

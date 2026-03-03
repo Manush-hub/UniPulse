@@ -6,7 +6,35 @@ let currentContactName = null;
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Publisher Messages Chatbox App initialized');
-    
+
+    // Check URL params to auto-open a specific conversation (e.g. after a report redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    const openContactId   = urlParams.get('open_contact');
+    const openContactType = urlParams.get('contact_type');
+
+    if (openContactId && openContactType) {
+        // Try to click an existing conversation item first
+        const existing = document.querySelector(
+            `.conversation-item[data-contact-id="${openContactId}"][data-contact-type="${openContactType}"]`
+        );
+        if (existing) {
+            selectConversation(existing);
+        } else {
+            // No existing conversation yet — start a new one
+            // Try to derive a name from the sidebar list or fall back to a label
+            const nameEl = document.querySelector(
+                `[data-moderator-id="${openContactId}"] .contact-name, [data-contact-id="${openContactId}"] .conversation-name`
+            );
+            const contactName = nameEl ? nameEl.textContent.trim() : 'Moderator';
+            startConversation(openContactId, openContactType, contactName);
+        }
+
+        // Clean URL without reloading
+        const cleanUrl = window.location.pathname;
+        history.replaceState(null, '', cleanUrl);
+        return;
+    }
+
     // Load first conversation if exists
     const firstConversation = document.querySelector('.conversation-item.active');
     if (firstConversation) {

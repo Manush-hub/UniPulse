@@ -109,7 +109,6 @@
         </section>
     </div>
 
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>

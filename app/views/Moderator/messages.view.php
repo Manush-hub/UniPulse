@@ -463,8 +463,6 @@
         }
     </script>
     
-    <!-- Load header JavaScript for dropdown functionality -->
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 </body>
 
 </html>
