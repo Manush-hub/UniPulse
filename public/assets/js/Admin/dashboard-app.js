@@ -107,23 +107,25 @@ function displayRecentActivity(activities) {
     
     activityList.innerHTML = '';
     
-    if (activities.length === 0) {
+    if (!activities || activities.length === 0) {
         activityList.innerHTML = '<div class="no-data">No recent activities</div>';
         return;
     }
     
+    // Colour map per activity type
+    const iconColorMap = {
+        registration: '#4a90e2',   // blue – user signups
+        admin_action: '#e67e22',   // orange – admin management
+    };
+
     activities.forEach((activity, index) => {
         const activityItem = document.createElement('div');
         activityItem.className = 'activity-item';
         
-        // Hide items after the first 2
-        if (index >= 2) {
-            activityItem.classList.add('hidden-item');
-            activityItem.style.display = 'none';
-        }
-        
+        const iconColor = iconColorMap[activity.type] || '#6c757d';
+
         activityItem.innerHTML = `
-            <div class="activity-icon">
+            <div class="activity-icon" style="color:${iconColor};">
                 <i class="fas fa-${activity.icon}"></i>
             </div>
             <div class="activity-content">

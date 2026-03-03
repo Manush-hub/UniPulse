@@ -199,10 +199,6 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Recent Activity</h2>
-                    <button onclick="toggleActivityLog()" class="view-all expand-btn" id="activityLogBtn">
-                        <span class="btn-text">View Full Log</span>
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </button>
                 </div>
                 <div class="activity-list" id="activityList">
                     <!-- Initial 2 activity items will be loaded here -->

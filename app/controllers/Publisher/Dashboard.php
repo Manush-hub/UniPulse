@@ -282,6 +282,8 @@ class PublisherDashboard extends Controller
                     'user_type' => $comment->user_type,
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
+                    'is_hidden' => (bool)$comment->is_hidden,
+                    'hidden_reason' => $comment->hidden_reason,
                     'created_at' => $comment->created_at,
                     'formatted_date' => $this->formatDate($comment->created_at)
                 ];

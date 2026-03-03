@@ -79,6 +79,17 @@ class Admin_create extends Controller{
         $result = $adminModel->create($adminData);
         
         if ($result['success']) {
+            // Log admin activity
+            AdminActivity::log(
+                $data['user']['id'],
+                $data['user']['name'],
+                'admin_created',
+                'admin',
+                null,
+                $adminData['full_name'],
+                'Added new admin ' . $adminData['full_name'],
+                'user-tie'
+            );
             // Redirect to admins list with success message
             $_SESSION['success_message'] = 'Admin created successfully';
             header('Location: /unipulse/public/admin/admins_list');

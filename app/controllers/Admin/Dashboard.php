@@ -193,58 +193,125 @@ class AdminDashboard extends Controller {
     
     /**
      * API endpoint to get recent activity
+     * Combines: user/publisher/sponsor registrations + admin management actions
      */
     public function getRecentActivity() {
         header('Content-Type: application/json');
-        
-        // Temporarily disable authentication for testing
-        // if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
-        //     http_response_code(403);
-        //     echo json_encode(['error' => 'Access denied']);
-        //     return;
-        // }
-        
-        // Get recent registrations, events, etc.
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['error' => 'Access denied']);
+            return;
+        }
+
         $activities = [];
-        
-        // Get recent user registrations
-        $recentUsers = $this->query("SELECT first_name, last_name, type, created_at FROM users ORDER BY created_at DESC LIMIT 3");
-        if ($recentUsers) {
-            foreach ($recentUsers as $user) {
-                $timeAgo = $this->timeAgo($user->created_at);
+
+        // --- University user registrations ---
+        $uniUsers = $this->query(
+            "SELECT full_name, created_at FROM university_users ORDER BY created_at DESC LIMIT 10"
+        );
+        if ($uniUsers) {
+            foreach ($uniUsers as $row) {
                 $activities[] = [
-                    'id' => count($activities) + 1,
-                    'type' => 'user',
-                    'title' => 'New user registration',
-                    'description' => ucfirst($user->first_name) . ' ' . ucfirst($user->last_name) . ' registered as ' . ucfirst($user->type),
-                    'time' => $timeAgo,
-                    'icon' => 'user-plus'
+                    'raw_time' => strtotime($row->created_at),
+                    'type'        => 'registration',
+                    'title'       => 'New University User Registration',
+                    'description' => $row->full_name . ' registered as a University User',
+                    'time'        => $this->timeAgo($row->created_at),
+                    'icon'        => 'user-graduate',
                 ];
             }
         }
-        
-        // Get recent events
-        $recentEvents = $this->query("SELECT title, created_at FROM events ORDER BY created_at DESC LIMIT 2");
-        if ($recentEvents) {
-            foreach ($recentEvents as $event) {
-                $timeAgo = $this->timeAgo($event->created_at);
+
+        // --- Public user registrations ---
+        $pubUsers = $this->query(
+            "SELECT full_name, created_at FROM public_users ORDER BY created_at DESC LIMIT 10"
+        );
+        if ($pubUsers) {
+            foreach ($pubUsers as $row) {
                 $activities[] = [
-                    'id' => count($activities) + 1,
-                    'type' => 'event',
-                    'title' => 'Event published',
-                    'description' => $event->title . ' was published',
-                    'time' => $timeAgo,
-                    'icon' => 'calendar'
+                    'raw_time' => strtotime($row->created_at),
+                    'type'        => 'registration',
+                    'title'       => 'New Public User Registration',
+                    'description' => $row->full_name . ' registered as a Public User',
+                    'time'        => $this->timeAgo($row->created_at),
+                    'icon'        => 'user-plus',
                 ];
             }
         }
-        
-        // Sort by most recent
-        usort($activities, function($a, $b) {
-            return strcmp($b['time'], $a['time']);
+
+        // --- Publisher registrations ---
+        $publishers = $this->query(
+            "SELECT society_name, created_at FROM publishers ORDER BY created_at DESC LIMIT 10"
+        );
+        if ($publishers) {
+            foreach ($publishers as $row) {
+                $activities[] = [
+                    'raw_time' => strtotime($row->created_at),
+                    'type'        => 'registration',
+                    'title'       => 'New Publisher Registration',
+                    'description' => $row->society_name . ' registered as a Publisher',
+                    'time'        => $this->timeAgo($row->created_at),
+                    'icon'        => 'building',
+                ];
+            }
+        }
+
+        // --- Sponsor registrations ---
+        $sponsors = $this->query(
+            "SELECT company_name, created_at FROM sponsors ORDER BY created_at DESC LIMIT 10"
+        );
+        if ($sponsors) {
+            foreach ($sponsors as $row) {
+                $activities[] = [
+                    'raw_time' => strtotime($row->created_at),
+                    'type'        => 'registration',
+                    'title'       => 'New Sponsor Registration',
+                    'description' => $row->company_name . ' registered as a Sponsor',
+                    'time'        => $this->timeAgo($row->created_at),
+                    'icon'        => 'handshake',
+                ];
+            }
+        }
+
+        // --- Admin management actions (moderator/admin CRUD) ---
+        $adminActions = $this->query(
+            "SELECT action_type, admin_name, target_name, description, icon, created_at
+             FROM admin_activities ORDER BY created_at DESC LIMIT 20"
+        );
+        if ($adminActions) {
+            foreach ($adminActions as $row) {
+                $titleMap = [
+                    'moderator_created'   => 'Moderator Added',
+                    'moderator_edited'    => 'Moderator Updated',
+                    'moderator_deleted'   => 'Moderator Deleted',
+                    'moderator_activated' => 'Moderator Reactivated',
+                    'admin_created'       => 'New Admin Added',
+                ];
+                $title = $titleMap[$row->action_type] ?? ucwords(str_replace('_', ' ', $row->action_type));
+                $activities[] = [
+                    'raw_time' => strtotime($row->created_at),
+                    'type'        => 'admin_action',
+                    'title'       => $title,
+                    'description' => $row->description . ' (by ' . $row->admin_name . ')',
+                    'time'        => $this->timeAgo($row->created_at),
+                    'icon'        => $row->icon,
+                ];
+            }
+        }
+
+        // Sort all by newest first
+        usort($activities, function ($a, $b) {
+            return $b['raw_time'] - $a['raw_time'];
         });
-        
-        echo json_encode(array_slice($activities, 0, 5));
+
+        // Strip raw_time before sending to client
+        $activities = array_map(function ($item) {
+            unset($item['raw_time']);
+            return $item;
+        }, $activities);
+
+        echo json_encode(array_values(array_slice($activities, 0, 20)));
     }
     
     /**

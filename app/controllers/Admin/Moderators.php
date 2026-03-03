@@ -59,6 +59,17 @@ class Moderators extends Controller{
             $result = $moderatorModel->updateModerator($id, $_POST);
             
             if ($result['success']) {
+                // Log admin activity
+                AdminActivity::log(
+                    $data['user']['id'],
+                    $data['user']['name'],
+                    'moderator_edited',
+                    'moderator',
+                    (int)$id,
+                    $moderator->full_name,
+                    'Updated moderator ' . $moderator->full_name,
+                    'user-pen'
+                );
                 header('Location: /unipulse/public/admin/moderators?success=' . urlencode($result['message']));
                 exit();
             } else {
@@ -82,7 +93,21 @@ class Moderators extends Controller{
         }
         
         $moderatorModel = new Moderator();
+        $modForLog = $moderatorModel->find($id);
         if ($moderatorModel->activate($id)) {
+            if ($modForLog) {
+                $adminUser = AuthService::getCurrentUser();
+                AdminActivity::log(
+                    $adminUser['id'],
+                    $adminUser['name'],
+                    'moderator_activated',
+                    'moderator',
+                    (int)$id,
+                    $modForLog->full_name,
+                    'Reactivated moderator ' . $modForLog->full_name,
+                    'user-check'
+                );
+            }
             header('Location: /unipulse/public/admin/moderators?success=Moderator activated successfully');
         } else {
             header('Location: /unipulse/public/admin/moderators?error=Failed to activate moderator');
@@ -117,8 +142,23 @@ class Moderators extends Controller{
             exit();
         }
         
+        // Fetch moderator info before deletion for activity log
+        $modToDelete = $moderatorModel->find($id);
         // If no pending approvals, proceed with deletion
         if ($moderatorModel->deleteModerator($id)) {
+            if ($modToDelete) {
+                $adminUser = AuthService::getCurrentUser();
+                AdminActivity::log(
+                    $adminUser['id'],
+                    $adminUser['name'],
+                    'moderator_deleted',
+                    'moderator',
+                    (int)$id,
+                    $modToDelete->full_name,
+                    'Deleted moderator ' . $modToDelete->full_name,
+                    'user-xmark'
+                );
+            }
             header('Location: /unipulse/public/admin/moderators?success=Moderator deleted successfully');
         } else {
             header('Location: /unipulse/public/admin/moderators?error=Failed to delete moderator');

@@ -145,7 +145,7 @@ try {
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             description TEXT NOT NULL,
-            category ENUM('academic', 'sports', 'cultural', 'technology', 'social', 'workshop') NOT NULL,
+            category ENUM('academic', 'sports', 'cultural', 'technology', 'social', 'workshop', 'business', 'music', 'other') NOT NULL,
             university VARCHAR(100) NOT NULL,
             university_name VARCHAR(255) NOT NULL,
             status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
