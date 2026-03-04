@@ -25,7 +25,7 @@
             <div class="container">
                 <div class="hero-content">
                     <h1><i class="fas fa-comments"></i> Messages</h1>
-                    <p>Chat with publishers in your university</p>
+                    <p>Chat with admins and publishers in your university</p>
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
@@ -100,7 +100,31 @@
                         <div class="conversations-header" style="margin-top: 1rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
                             <h3><i class="fas fa-users"></i> Available Contacts</h3>
                         </div>
-                        
+
+                        <!-- ── Pinned: Admins ── -->
+                        <?php if (!empty($available_admins)): ?>
+                            <div class="contacts-section" data-type="admin" style="background:#eff6ff; border-bottom:2px solid #bfdbfe;">
+                                <h4 class="contacts-section-title" style="color:#1E3A8A;">
+                                    <i class="fas fa-shield-alt"></i> UniPulse Admin
+                                    <span style="margin-left:auto;font-size:0.7rem;background:#1E3A8A;color:#fff;padding:2px 8px;border-radius:10px;font-weight:600;">PINNED</span>
+                                </h4>
+                                <div class="contacts-list">
+                                    <?php foreach ($available_admins as $admin): ?>
+                                        <div class="contact-item" style="border-left:3px solid #1E3A8A;"
+                                             onclick="startConversation(<?= $admin->id ?>, 'admin', '<?= htmlspecialchars($admin->full_name) ?>')">
+                                            <div class="contact-avatar" style="background:linear-gradient(135deg,#1E3A8A,#3b82f6);">
+                                                <?= strtoupper(substr($admin->full_name, 0, 2)) ?>
+                                            </div>
+                                            <div class="contact-info">
+                                                <h5 class="contact-name"><?= htmlspecialchars($admin->full_name) ?></h5>
+                                                <p class="contact-type" style="color:#1E3A8A;"><i class="fas fa-shield-alt" style="font-size:0.7rem;"></i> Platform Admin</p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
                         <!-- Publishers -->
                         <?php if (!empty($available_publishers)): ?>
                             <div class="contacts-section" data-type="publisher">

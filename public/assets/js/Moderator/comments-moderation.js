@@ -1,153 +1,245 @@
-// Moderator Comments Moderation Page JavaScript
+// Moderator Comments Moderation – 3-panel chat-style layout
+// Flow: Publishers list → Events list → Comments panel
 
-let allComments   = [];
-let hidingId      = null;
+let allComments       = [];
+let selectedPublisher = null;   // publisher_name string
+let selectedEventId   = null;   // event_id number/string
+let hidingId          = null;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     loadUniversityComments();
-    setupFilters();
+    document.getElementById('statusFilter')?.addEventListener('change', renderComments);
 });
 
-// ─── Load all comments ───────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────────────
 function loadUniversityComments() {
-    const list = document.getElementById('commentsList');
-    if (list) {
-        list.innerHTML = `
-            <div class="loading-spinner">
-                <i class="fas fa-spinner fa-spin"></i>
-                <p>Loading comments…</p>
-            </div>`;
-    }
-
     fetch('/unipulse/public/moderator/comments/getUniversityComments')
         .then(r => r.json())
         .then(data => {
             if (data.success) {
                 allComments = data.comments || [];
                 updateStats(data.stats || {});
-                populateEventFilter(allComments);
-                renderFilteredComments();
+                renderPublisherList();
             } else {
-                showListError('Failed to load comments: ' + (data.error || 'Unknown error'));
+                showPanelError('publisherList', 'Failed to load: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(err => {
-            console.error('Error loading comments:', err);
-            showListError('Error loading comments. Please try again.');
+            console.error(err);
+            showPanelError('publisherList', 'Error loading data. Please refresh.');
         });
 }
 
-// ─── Stats ───────────────────────────────────────────────────────
+// ─── Stats ────────────────────────────────────────────────────────────────────
 function updateStats(stats) {
-    const total   = stats.total_comments   || 0;
-    const visible = stats.visible_comments || 0;
-    const hidden  = stats.hidden_comments  || 0;
-    const today   = stats.moderated_today  || 0;
-
-    setCount('totalComments',    total);
-    setCount('visibleComments',  visible);
-    setCount('hiddenComments',   hidden);
-    setCount('moderatedToday',   today);
+    setEl('totalComments',   stats.total_comments   || 0);
+    setEl('visibleComments', stats.visible_comments || 0);
+    setEl('hiddenComments',  stats.hidden_comments  || 0);
+    setEl('moderatedToday',  stats.moderated_today  || 0);
 }
-
-function setCount(id, val) {
+function setEl(id, val) {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
 }
 
-// ─── Event filter population ─────────────────────────────────────
-function populateEventFilter(comments) {
-    const sel = document.getElementById('eventFilter');
-    if (!sel) return;
-    const seen = new Map();
-    comments.forEach(c => { if (!seen.has(c.event_id)) seen.set(c.event_id, c.event_title); });
-    sel.innerHTML = '<option value="">All Events</option>';
-    seen.forEach((title, id) => {
-        const opt = document.createElement('option');
-        opt.value       = id;
-        opt.textContent = title;
-        sel.appendChild(opt);
+// ─── Panel 1 · Publishers ─────────────────────────────────────────────────────
+function renderPublisherList(query = '') {
+    const list = document.getElementById('publisherList');
+    if (!list) return;
+
+    // Build unique publishers with comment/event counts
+    const pubMap = {};
+    allComments.forEach(c => {
+        const pub = c.publisher_name || 'Unknown Publisher';
+        if (!pubMap[pub]) pubMap[pub] = { events: new Set(), total: 0, hidden: 0 };
+        pubMap[pub].events.add(c.event_id);
+        pubMap[pub].total++;
+        if (c.is_hidden) pubMap[pub].hidden++;
     });
+
+    const publishers = Object.entries(pubMap).sort((a, b) => a[0].localeCompare(b[0]));
+    const lq = query.toLowerCase();
+    const filtered = lq ? publishers.filter(([name]) => name.toLowerCase().includes(lq)) : publishers;
+
+    setEl('publisherCount', filtered.length);
+
+    if (!filtered.length) {
+        list.innerHTML = `<div class="panel-empty"><i class="fas fa-building"></i><p>No publishers found</p></div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(([name, meta]) => {
+        const initials  = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        const isActive  = name === selectedPublisher;
+        const hiddenChip = meta.hidden > 0
+            ? `<span class="item-chip chip-hidden">${meta.hidden} hidden</span>` : '';
+        return `
+        <div class="panel-item ${isActive ? 'panel-item--active' : ''}" data-pub="${escapeHtml(name)}" onclick="selectPublisher(this.dataset.pub)">
+            <div class="item-avatar item-avatar--pub">${initials}</div>
+            <div class="item-body">
+                <div class="item-name">${escapeHtml(name)}</div>
+                <div class="item-meta">
+                    <span class="item-chip">${meta.events.size} event${meta.events.size !== 1 ? 's' : ''}</span>
+                    <span class="item-chip">${meta.total} comment${meta.total !== 1 ? 's' : ''}</span>
+                    ${hiddenChip}
+                </div>
+            </div>
+            <i class="fas fa-chevron-right item-arrow"></i>
+        </div>`;
+    }).join('');
 }
 
-// ─── Filter setup ─────────────────────────────────────────────────
-function setupFilters() {
-    const searchInput  = document.getElementById('searchInput');
-    const statusFilter = document.getElementById('statusFilter');
-    const eventFilter  = document.getElementById('eventFilter');
-    const dateFilter   = document.getElementById('dateFilter');
-
-    if (searchInput)  searchInput.addEventListener('input',  debounce(renderFilteredComments, 300));
-    if (statusFilter) statusFilter.addEventListener('change', renderFilteredComments);
-    if (eventFilter)  eventFilter.addEventListener('change',  renderFilteredComments);
-    if (dateFilter)   dateFilter.addEventListener('change',   renderFilteredComments);
+function filterPublisherList(query) {
+    renderPublisherList(query);
 }
 
-function clearFilters() {
-    ['searchInput', 'statusFilter', 'eventFilter', 'dateFilter'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
-    });
-    renderFilteredComments();
+function selectPublisher(name) {
+    selectedPublisher = name;
+    selectedEventId   = null;
+
+    renderPublisherList(document.getElementById('publisherSearch')?.value || '');
+
+    const label = document.getElementById('selectedPublisherLabel');
+    if (label) label.textContent = name;
+
+    const es = document.getElementById('eventSearch');
+    if (es) es.value = '';
+
+    renderEventList();
+    resetCommentsPanel();
 }
 
-function renderFilteredComments() {
-    const search  = (document.getElementById('searchInput')?.value  || '').toLowerCase();
-    const status  =  document.getElementById('statusFilter')?.value || '';
-    const eventId =  document.getElementById('eventFilter')?.value  || '';
-    const date    =  document.getElementById('dateFilter')?.value   || '';
+// ─── Panel 2 · Events ─────────────────────────────────────────────────────────
+function renderEventList(query = '') {
+    const list = document.getElementById('eventList');
+    if (!list) return;
 
-    const today = new Date();
-    const todayStr       = dateStr(today);
-    const weekAgo        = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
-    const monthAgo       = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+    if (!selectedPublisher) {
+        list.innerHTML = `<div class="panel-placeholder"><i class="fas fa-arrow-left"></i><p>Pick a publisher first</p></div>`;
+        setEl('eventCount', '–');
+        return;
+    }
+
+    const evMap = {};
+    allComments
+        .filter(c => c.publisher_name === selectedPublisher)
+        .forEach(c => {
+            const eid = String(c.event_id ?? 'unknown');
+            if (!evMap[eid]) evMap[eid] = { id: c.event_id, title: c.event_title || 'Untitled Event', total: 0, hidden: 0 };
+            evMap[eid].total++;
+            if (c.is_hidden) evMap[eid].hidden++;
+        });
+
+    const events = Object.values(evMap).sort((a, b) => a.title.localeCompare(b.title));
+    const lq = query.toLowerCase();
+    const filtered = lq ? events.filter(e => e.title.toLowerCase().includes(lq)) : events;
+
+    setEl('eventCount', filtered.length);
+
+    if (!filtered.length) {
+        list.innerHTML = `<div class="panel-empty"><i class="fas fa-calendar-alt"></i><p>No events found</p></div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(ev => {
+        const isActive   = String(ev.id) === String(selectedEventId);
+        const hiddenChip = ev.hidden > 0
+            ? `<span class="item-chip chip-hidden">${ev.hidden} hidden</span>` : '';
+        return `
+        <div class="panel-item ${isActive ? 'panel-item--active' : ''}" data-eid="${escapeHtml(String(ev.id))}" onclick="selectEvent(this.dataset.eid)">
+            <div class="item-avatar item-avatar--event"><i class="fas fa-calendar-alt"></i></div>
+            <div class="item-body">
+                <div class="item-name">${escapeHtml(ev.title)}</div>
+                <div class="item-meta">
+                    <span class="item-chip">${ev.total} comment${ev.total !== 1 ? 's' : ''}</span>
+                    ${hiddenChip}
+                </div>
+            </div>
+            <i class="fas fa-chevron-right item-arrow"></i>
+        </div>`;
+    }).join('');
+}
+
+function filterEventList(query) {
+    renderEventList(query);
+}
+
+function selectEvent(eventId) {
+    selectedEventId = eventId;
+
+    renderEventList(document.getElementById('eventSearch')?.value || '');
+
+    const ev    = allComments.find(c => String(c.event_id) === String(eventId) && c.publisher_name === selectedPublisher);
+    const title = ev?.event_title || 'Event';
+
+    const titleEl = document.getElementById('commentsEventTitle');
+    if (titleEl) titleEl.innerHTML = `<i class="fas fa-comment-dots"></i><span>${escapeHtml(title)}</span>`;
+
+    const ctxLabel = document.getElementById('commentsContextLabel');
+    if (ctxLabel) ctxLabel.textContent = selectedPublisher || '';
+
+    const si = document.getElementById('searchInput');
+    const sf = document.getElementById('statusFilter');
+    if (si) si.value = '';
+    if (sf) sf.value = '';
+
+    renderComments();
+}
+
+function resetCommentsPanel() {
+    const titleEl = document.getElementById('commentsEventTitle');
+    if (titleEl) titleEl.innerHTML = `<i class="fas fa-comment-dots"></i><span>Comments</span>`;
+
+    const ctxLabel = document.getElementById('commentsContextLabel');
+    if (ctxLabel) ctxLabel.textContent = 'No event selected';
+
+    setEl('commentsCount', '–');
+
+    const cl = document.getElementById('commentsList');
+    if (cl) cl.innerHTML = `
+        <div class="panel-placeholder">
+            <i class="fas fa-calendar-alt"></i>
+            <p>Select an event to view comments</p>
+        </div>`;
+}
+
+// ─── Panel 3 · Comments ───────────────────────────────────────────────────────
+function renderComments() {
+    const cl = document.getElementById('commentsList');
+    if (!cl) return;
+
+    if (!selectedEventId) { resetCommentsPanel(); return; }
+
+    const search = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const status =  document.getElementById('statusFilter')?.value || '';
 
     const filtered = allComments.filter(c => {
-        if (status === 'visible' && c.is_hidden)   return false;
-        if (status === 'hidden'  && !c.is_hidden)  return false;
-        if (eventId && String(c.event_id) !== eventId) return false;
-
-        if (date) {
-            const cDate = new Date(c.created_at);
-            if (date === 'today'   && dateStr(cDate) !== todayStr)  return false;
-            if (date === 'week'    && cDate < weekAgo)              return false;
-            if (date === 'month'   && cDate < monthAgo)             return false;
-        }
-
+        if (String(c.event_id) !== String(selectedEventId)) return false;
+        if (c.publisher_name !== selectedPublisher)         return false;
+        if (status === 'visible' && c.is_hidden)            return false;
+        if (status === 'hidden'  && !c.is_hidden)           return false;
         if (search) {
-            const haystack = [
-                c.comment_text, c.user_name, c.user_email, c.event_title
-            ].join(' ').toLowerCase();
-            if (!haystack.includes(search)) return false;
+            const hay = [c.comment_text, c.user_name, c.user_email].join(' ').toLowerCase();
+            if (!hay.includes(search))                      return false;
         }
-
         return true;
     });
 
-    const countEl = document.getElementById('commentsCount');
-    if (countEl) countEl.textContent = filtered.length;
+    setEl('commentsCount', filtered.length);
 
-    displayComments(filtered);
-}
-
-// ─── Render comment cards ─────────────────────────────────────────
-function displayComments(comments) {
-    const list = document.getElementById('commentsList');
-    if (!list) return;
-
-    if (!comments.length) {
-        list.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-comments"></i>
-                <h3>No comments found</h3>
-                <p>Try adjusting your search or filters.</p>
+    if (!filtered.length) {
+        cl.innerHTML = `
+            <div class="panel-empty">
+                <i class="fas fa-comment-slash"></i>
+                <p>No comments match your filters</p>
             </div>`;
         return;
     }
 
-    list.innerHTML = comments.map(c => buildCard(c)).join('');
+    cl.innerHTML = filtered.map(c => buildCard(c)).join('');
 }
 
+// ─── Comment card ─────────────────────────────────────────────────────────────
 function buildCard(c) {
     const userName  = c.user_name || 'Anonymous';
     const initials  = userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -167,10 +259,6 @@ function buildCard(c) {
             ${c.hidden_reason ? `<br><em>Reason: ${escapeHtml(c.hidden_reason)}</em>` : ''}
         </div>` : '';
 
-    const viewEventLink = c.event_id
-        ? `<a href="/unipulse/public/moderator/eventview?id=${c.event_id}">${escapeHtml(c.event_title || 'Event')}</a>`
-        : escapeHtml(c.event_title || 'Event');
-
     const actionBtn = c.is_hidden
         ? `<button class="action-btn unhide-btn" onclick="unhideComment(${c.id})">
                <i class="fas fa-eye"></i> Restore
@@ -180,50 +268,44 @@ function buildCard(c) {
            </button>`;
 
     return `
-        <div class="comment-card ${c.is_hidden ? 'is-hidden' : ''}" data-id="${c.id}">
-            <div class="comment-event-label">
-                <i class="fas fa-calendar-alt"></i> ${viewEventLink}
-                &nbsp;·&nbsp; ${escapeHtml(c.publisher_name || '')}
-                &nbsp;${statusBadge}
-            </div>
-            ${hiddenInfo}
-            <div class="comment-header">
-                <div class="comment-user">
-                    <div class="user-avatar">${initials}</div>
-                    <div class="user-info">
-                        <h4>${escapeHtml(userName)}</h4>
-                        <p>${userLabel} ${editBadge}</p>
-                        <small style="color:#94a3b8;">${escapeHtml(c.user_email || '')}</small>
-                    </div>
-                </div>
-                <div class="comment-meta">
-                    ${c.rating ? `<div class="comment-rating"><span class="stars">${stars}</span><span class="rating-value">${c.rating}/5</span></div>` : ''}
-                    <p>${c.formatted_date || ''}</p>
+    <div class="comment-card ${c.is_hidden ? 'is-hidden' : ''}" data-id="${c.id}">
+        <div class="comment-card-topbar">${statusBadge}</div>
+        ${hiddenInfo}
+        <div class="comment-header">
+            <div class="comment-user">
+                <div class="user-avatar">${initials}</div>
+                <div class="user-info">
+                    <h4>${escapeHtml(userName)}</h4>
+                    <p>${userLabel} ${editBadge}</p>
+                    <small style="color:#94a3b8;">${escapeHtml(c.user_email || '')}</small>
                 </div>
             </div>
-            <div class="comment-content">${escapeHtml(c.comment_text)}</div>
-            <div class="comment-actions">${actionBtn}</div>
-        </div>`;
+            <div class="comment-meta">
+                ${c.rating ? `<div class="comment-rating"><span class="stars">${stars}</span><span class="rating-value">${c.rating}/5</span></div>` : ''}
+                <p>${c.formatted_date || ''}</p>
+            </div>
+        </div>
+        <div class="comment-content">${escapeHtml(c.comment_text)}</div>
+        <div class="comment-actions">${actionBtn}</div>
+    </div>`;
 }
 
-// ─── Hide modal ───────────────────────────────────────────────────
+// ─── Hide modal ───────────────────────────────────────────────────────────────
 function openHideModal(commentId) {
     hidingId = commentId;
-    const modal = document.getElementById('hideModal');
-    if (!modal) return;
+    const modal    = document.getElementById('hideModal');
     const textarea = document.getElementById('hideReason');
     const errEl    = document.getElementById('hideError');
     const btn      = document.getElementById('hideSubmitBtn');
     if (textarea) textarea.value = '';
     if (errEl)    errEl.style.display = 'none';
     if (btn)      { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
-    modal.classList.add('active');
+    if (modal)    modal.classList.add('active');
 }
 
 function closeHideModal() {
     hidingId = null;
-    const modal = document.getElementById('hideModal');
-    if (modal) modal.classList.remove('active');
+    document.getElementById('hideModal')?.classList.remove('active');
 }
 
 function confirmHideComment() {
@@ -250,20 +332,19 @@ function confirmHideComment() {
         if (data.success) {
             closeHideModal();
             showToast('Comment hidden successfully.', 'success');
-            loadUniversityComments();
+            reloadAndRefresh();
         } else {
             if (errEl) { errEl.textContent = data.error || 'Failed to hide comment.'; errEl.style.display = 'block'; }
             if (btn)   { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
         }
     })
-    .catch(err => {
-        console.error('Error hiding comment:', err);
+    .catch(() => {
         if (errEl) { errEl.textContent = 'An error occurred. Please try again.'; errEl.style.display = 'block'; }
         if (btn)   { btn.disabled = false; btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Comment'; }
     });
 }
 
-// ─── Unhide ───────────────────────────────────────────────────────
+// ─── Unhide ───────────────────────────────────────────────────────────────────
 function unhideComment(commentId) {
     if (!confirm('Restore this comment so users can see it again?')) return;
 
@@ -276,37 +357,53 @@ function unhideComment(commentId) {
     .then(data => {
         if (data.success) {
             showToast('Comment restored.', 'success');
-            loadUniversityComments();
+            reloadAndRefresh();
         } else {
             showToast(data.error || 'Failed to restore comment.', 'error');
         }
     })
-    .catch(err => {
-        console.error('Error unhiding:', err);
-        showToast('An error occurred.', 'error');
-    });
+    .catch(() => showToast('An error occurred.', 'error'));
 }
 
-// ─── Utility ─────────────────────────────────────────────────────
+// ─── Reload & keep selection ──────────────────────────────────────────────────
+function reloadAndRefresh() {
+    const savedPub   = selectedPublisher;
+    const savedEvent = selectedEventId;
+
+    fetch('/unipulse/public/moderator/comments/getUniversityComments')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                allComments       = data.comments || [];
+                selectedPublisher = savedPub;
+                selectedEventId   = savedEvent;
+
+                updateStats(data.stats || {});
+                renderPublisherList(document.getElementById('publisherSearch')?.value || '');
+
+                if (savedPub) {
+                    const lb = document.getElementById('selectedPublisherLabel');
+                    if (lb) lb.textContent = savedPub;
+                    renderEventList(document.getElementById('eventSearch')?.value || '');
+                }
+
+                if (savedEvent) renderComments();
+            }
+        })
+        .catch(console.error);
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
 function escapeHtml(text) {
     if (!text) return '';
     return String(text)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
-function capitalizeFirst(str) {
-    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
-}
-function dateStr(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-function debounce(fn, wait) {
-    let t;
-    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); };
-}
-function showListError(msg) {
-    const list = document.getElementById('commentsList');
-    if (list) list.innerHTML = `<div class="error-banner"><i class="fas fa-exclamation-circle"></i> ${escapeHtml(msg)}</div>`;
+function capitalizeFirst(str) { return str ? str.charAt(0).toUpperCase() + str.slice(1) : ''; }
+function showPanelError(panelId, msg) {
+    const el = document.getElementById(panelId);
+    if (el) el.innerHTML = `<div class="panel-error"><i class="fas fa-exclamation-circle"></i> ${escapeHtml(msg)}</div>`;
 }
 function showToast(message, type = 'info') {
     const div = document.createElement('div');

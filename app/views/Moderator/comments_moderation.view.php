@@ -8,12 +8,6 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/Moderator/comments-moderation-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        /* Status badges */
-        .status-badge { display:inline-flex; align-items:center; gap:.3rem; font-size:.75rem; font-weight:600; padding:.15rem .55rem; border-radius:20px; vertical-align:middle; }
-        .visible-badge { background:#dcfce7; color:#15803d; }
-        .hidden-badge  { background:#fef3c7; color:#b45309; }
-    </style>
 </head>
 
 <body>
@@ -24,14 +18,13 @@
     include __DIR__ . '/components/header.php';
     ?>
 
-    <!-- Main Container -->
     <div class="main-container">
 
         <!-- Page Header -->
         <div class="page-header">
             <div class="container">
-                <h1><i class="fas fa-comments" style="margin-right:.5rem;"></i>Comments Moderation</h1>
-                <p>Review, hide, and restore user comments on events in your university.</p>
+                <h1><i class="fas fa-comments"></i> Comments Moderation</h1>
+                <p>Select a publisher, then an event to review its comments.</p>
             </div>
         </div>
 
@@ -52,7 +45,7 @@
                         <div class="stat-label">Visible</div>
                     </div>
                 </div>
-                <div class="stat-card hidden">
+                <div class="stat-card hidden-card">
                     <div class="stat-icon"><i class="fas fa-eye-slash"></i></div>
                     <div class="stat-info">
                         <div class="stat-number" id="hiddenComments">–</div>
@@ -69,65 +62,98 @@
             </div>
         </div>
 
-        <!-- Filter Section -->
-        <div class="filter-section">
-            <div class="container">
-                <div class="filter-controls">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" class="search-input"
-                               placeholder="Search comments, users, events…">
+        <?php if (isset($error)): ?>
+        <div class="global-error-banner">
+            <i class="fas fa-exclamation-circle"></i>
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- 3-Panel Chat Layout -->
+        <div class="chat-layout">
+
+            <!-- Panel 1 · Publishers -->
+            <div class="panel panel-publishers" id="panelPublishers">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-building"></i>
+                        <span>Publishers</span>
                     </div>
-                    <div class="filter-group">
-                        <select id="statusFilter" class="filter-select">
-                            <option value="">All Statuses</option>
+                    <span class="panel-pill" id="publisherCount">–</span>
+                </div>
+                <div class="panel-search">
+                    <i class="fas fa-search panel-search-icon"></i>
+                    <input type="text" id="publisherSearch" placeholder="Search publishers…"
+                           oninput="filterPublisherList(this.value)">
+                </div>
+                <div class="panel-list" id="publisherList">
+                    <div class="panel-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading…</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2 · Events -->
+            <div class="panel panel-events" id="panelEvents">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Events</span>
+                    </div>
+                    <span class="panel-pill" id="eventCount">–</span>
+                </div>
+                <div class="panel-context-bar" id="eventsContextBar">
+                    <span id="selectedPublisherLabel">No publisher selected</span>
+                </div>
+                <div class="panel-search">
+                    <i class="fas fa-search panel-search-icon"></i>
+                    <input type="text" id="eventSearch" placeholder="Search events…"
+                           oninput="filterEventList(this.value)">
+                </div>
+                <div class="panel-list" id="eventList">
+                    <div class="panel-placeholder">
+                        <i class="fas fa-arrow-left"></i>
+                        <p>Pick a publisher first</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3 · Comments -->
+            <div class="panel panel-comments" id="panelComments">
+                <div class="panel-header comments-panel-header">
+                    <div class="panel-header-left">
+                        <div class="panel-title" id="commentsEventTitle">
+                            <i class="fas fa-comment-dots"></i>
+                            <span>Comments</span>
+                        </div>
+                        <div class="panel-context-bar panel-context-bar--inline" id="commentsContextBar">
+                            <span id="commentsContextLabel">No event selected</span>
+                        </div>
+                    </div>
+                    <div class="comments-toolbar">
+                        <span class="panel-pill panel-pill--blue"><span id="commentsCount">–</span> comments</span>
+                        <select id="statusFilter" class="toolbar-select">
+                            <option value="">All statuses</option>
                             <option value="visible">Visible</option>
                             <option value="hidden">Hidden</option>
                         </select>
-                        <select id="eventFilter" class="filter-select">
-                            <option value="">All Events</option>
-                            <!-- populated by JS -->
-                        </select>
-                        <select id="dateFilter" class="filter-select">
-                            <option value="">All Time</option>
-                            <option value="today">Today</option>
-                            <option value="week">Last 7 Days</option>
-                            <option value="month">Last 30 Days</option>
-                        </select>
-                        <button class="filter-btn" onclick="clearFilters()">
-                            <i class="fas fa-times"></i> Clear
-                        </button>
+                        <div class="toolbar-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Search…"
+                                   oninput="renderComments()">
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-list comments-list" id="commentsList">
+                    <div class="panel-placeholder">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>Select an event to view comments</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Comments List -->
-        <div class="content-section">
-            <div class="container">
-
-                <?php if (isset($error)): ?>
-                <div class="error-banner" style="margin-bottom:1.5rem;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
-                <?php endif; ?>
-
-                <div class="section-header">
-                    <h2>University Comments</h2>
-                    <span class="comments-count-badge">
-                        <span id="commentsCount">–</span> comments
-                    </span>
-                </div>
-
-                <div id="commentsList">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading comments…</p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        </div><!-- /.chat-layout -->
 
     </div><!-- /.main-container -->
 

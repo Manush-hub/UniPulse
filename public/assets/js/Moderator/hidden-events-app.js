@@ -352,7 +352,7 @@ async function confirmRepost(eventId) {
 
 // View event details (redirect to event details page)
 function viewEventDetails(eventId) {
-    window.location.href = `/unipulse/public/event/details/${eventId}`;
+    window.location.href = `/unipulse/public/moderator/eventview/${eventId}`;
 }
 
 // Show message notification

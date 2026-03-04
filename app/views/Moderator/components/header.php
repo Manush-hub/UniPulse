@@ -19,7 +19,10 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                 <a href="/unipulse/public/moderator/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">Events</a>
                 <a href="/unipulse/public/moderator/events/hiddenEvents" class="<?= $activeNav === 'hidden-events' ? 'active' : '' ?>">Hidden Events</a>
                 <a href="/unipulse/public/moderator/comments" class="<?= $activeNav === 'comments' ? 'active' : '' ?>">Comments</a>
-                <a href="/unipulse/public/moderator/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
+                <a href="/unipulse/public/moderator/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>" style="position:relative;">
+                    Messages
+                    <span id="moderatorMsgBadge" style="display:none;position:absolute;top:-6px;right:-10px;background:#f59e0b;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;"></span>
+                </a>
             </nav>
             <div class="header-actions">
                 <div class="notifications">
@@ -41,10 +44,12 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                     <img src="/unipulse/public/assets/images/moderator.png" alt="Moderator" class="avatar">
                     <div class="user-info">
                         <span class="username" id="username"><?php 
-                            if (isset($moderator) && is_object($moderator) && property_exists($moderator, 'full_name')) {
+                            if (isset($moderator) && is_object($moderator) && !empty($moderator->full_name)) {
                                 echo htmlspecialchars($moderator->full_name);
-                            } elseif (isset($user) && is_array($user) && isset($user['full_name'])) {
+                            } elseif (isset($user) && is_array($user) && !empty($user['full_name'])) {
                                 echo htmlspecialchars($user['full_name']);
+                            } elseif (isset($user) && is_array($user) && !empty($user['name'])) {
+                                echo htmlspecialchars($user['name']);
                             } else {
                                 echo 'Moderator';
                             }
@@ -62,3 +67,24 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
         </div>
     </header>
 <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
+<script>
+(function () {
+    function updateModeratorMsgBadge() {
+        fetch('/unipulse/public/moderator/messages/unreadCount')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('moderatorMsgBadge');
+                if (!badge) return;
+                if (data.success && data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(() => {});
+    }
+    updateModeratorMsgBadge();
+    setInterval(updateModeratorMsgBadge, 30000);
+})();
+</script>

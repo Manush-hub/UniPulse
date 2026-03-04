@@ -62,12 +62,14 @@ class Message {
                              WHEN m.from_user_type = 'publisher' THEN p.society_name
                              WHEN m.from_user_type = 'sponsor' THEN s.company_name
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.full_name
+                             WHEN m.from_user_type = 'admin' THEN adm.full_name
                              ELSE m.from_user_type
                          END as sender_name,
                          CASE 
                              WHEN m.from_user_type = 'publisher' THEN p.email
                              WHEN m.from_user_type = 'sponsor' THEN s.email
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.email
+                             WHEN m.from_user_type = 'admin' THEN adm.email
                              ELSE NULL
                          END as sender_email,
                          -- Recipient info
@@ -75,21 +77,25 @@ class Message {
                              WHEN m.to_user_type = 'publisher' THEN p2.society_name
                              WHEN m.to_user_type = 'sponsor' THEN s2.company_name
                              WHEN m.to_user_type = 'moderator' THEN moderator2.full_name
+                             WHEN m.to_user_type = 'admin' THEN adm2.full_name
                              ELSE m.to_user_type
                          END as recipient_name,
                          CASE 
                              WHEN m.to_user_type = 'publisher' THEN p2.email
                              WHEN m.to_user_type = 'sponsor' THEN s2.email
                              WHEN m.to_user_type = 'moderator' THEN moderator2.email
+                             WHEN m.to_user_type = 'admin' THEN adm2.email
                              ELSE NULL
                          END as recipient_email
                   FROM messages m
                   LEFT JOIN publishers p ON (m.from_user_type = 'publisher' AND m.from_user_id = p.id)
                   LEFT JOIN sponsors s ON (m.from_user_type = 'sponsor' AND m.from_user_id = s.id)
                   LEFT JOIN moderators `moderator` ON (m.from_user_type = 'moderator' AND m.from_user_id = `moderator`.id)
+                  LEFT JOIN admins adm ON (m.from_user_type = 'admin' AND m.from_user_id = adm.id)
                   LEFT JOIN publishers p2 ON (m.to_user_type = 'publisher' AND m.to_user_id = p2.id)
                   LEFT JOIN sponsors s2 ON (m.to_user_type = 'sponsor' AND m.to_user_id = s2.id)
                   LEFT JOIN moderators moderator2 ON (m.to_user_type = 'moderator' AND m.to_user_id = moderator2.id)
+                  LEFT JOIN admins adm2 ON (m.to_user_type = 'admin' AND m.to_user_id = adm2.id)
                   $whereClause
                   ORDER BY m.created_at DESC";
         
@@ -107,12 +113,14 @@ class Message {
                              WHEN m.from_user_type = 'publisher' THEN p.society_name
                              WHEN m.from_user_type = 'sponsor' THEN s.company_name
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.full_name
+                             WHEN m.from_user_type = 'admin' THEN adm.full_name
                              ELSE m.from_user_type
                          END as sender_name,
                          CASE 
                              WHEN m.from_user_type = 'publisher' THEN p.email
                              WHEN m.from_user_type = 'sponsor' THEN s.email
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.email
+                             WHEN m.from_user_type = 'admin' THEN adm.email
                              ELSE NULL
                          END as sender_email,
                          -- Recipient info
@@ -120,21 +128,25 @@ class Message {
                              WHEN m.to_user_type = 'publisher' THEN p2.society_name
                              WHEN m.to_user_type = 'sponsor' THEN s2.company_name
                              WHEN m.to_user_type = 'moderator' THEN moderator2.full_name
+                             WHEN m.to_user_type = 'admin' THEN adm2.full_name
                              ELSE m.to_user_type
                          END as recipient_name,
                          CASE 
                              WHEN m.to_user_type = 'publisher' THEN p2.email
                              WHEN m.to_user_type = 'sponsor' THEN s2.email
                              WHEN m.to_user_type = 'moderator' THEN moderator2.email
+                             WHEN m.to_user_type = 'admin' THEN adm2.email
                              ELSE NULL
                          END as recipient_email
                   FROM messages m
                   LEFT JOIN publishers p ON (m.from_user_type = 'publisher' AND m.from_user_id = p.id)
                   LEFT JOIN sponsors s ON (m.from_user_type = 'sponsor' AND m.from_user_id = s.id)
                   LEFT JOIN moderators `moderator` ON (m.from_user_type = 'moderator' AND m.from_user_id = `moderator`.id)
+                  LEFT JOIN admins adm ON (m.from_user_type = 'admin' AND m.from_user_id = adm.id)
                   LEFT JOIN publishers p2 ON (m.to_user_type = 'publisher' AND m.to_user_id = p2.id)
                   LEFT JOIN sponsors s2 ON (m.to_user_type = 'sponsor' AND m.to_user_id = s2.id)
                   LEFT JOIN moderators moderator2 ON (m.to_user_type = 'moderator' AND m.to_user_id = moderator2.id)
+                  LEFT JOIN admins adm2 ON (m.to_user_type = 'admin' AND m.to_user_id = adm2.id)
                   WHERE m.id = :message_id";
         
         $params = ['message_id' => $messageId];
@@ -357,29 +369,24 @@ class Message {
                                 CASE 
                                     WHEN ? = 'publisher' THEN p.society_name
                                     WHEN ? = 'sponsor' THEN s.company_name
-                                    WHEN ? = 'moderator' THEN m.full_name
+                                    WHEN ? = 'moderator' THEN modr.full_name
+                                    WHEN ? = 'admin' THEN adm.full_name
                                 END as contact_name,
                                 CASE 
                                     WHEN ? = 'publisher' THEN p.email
                                     WHEN ? = 'sponsor' THEN s.email
-                                    WHEN ? = 'moderator' THEN m.email
-                                END as contact_email,
-                                CASE 
-                                    WHEN ? = 'publisher' THEN pp.logo_url
-                                    WHEN ? = 'sponsor' THEN sp.logo_url
-                                    ELSE NULL
-                                END as contact_photo
+                                    WHEN ? = 'moderator' THEN modr.email
+                                    WHEN ? = 'admin' THEN adm.email
+                                END as contact_email
                             FROM (SELECT 1) dummy
                             LEFT JOIN publishers p ON ? = 'publisher' AND p.id = ?
                             LEFT JOIN sponsors s ON ? = 'sponsor' AND s.id = ?
-                            LEFT JOIN moderators m ON ? = 'moderator' AND m.id = ?
-                            LEFT JOIN publisher_profiles pp ON ? = 'publisher' AND p.id = pp.publisher_id
-                            LEFT JOIN sponsor_profiles sp ON ? = 'sponsor' AND s.id = sp.sponsor_id";
+                            LEFT JOIN moderators modr ON ? = 'moderator' AND modr.id = ?
+                            LEFT JOIN admins adm ON ? = 'admin' AND adm.id = ?";
             
             $contactInfo = $this->getRow($contactQuery, [
-                $contactType, $contactType, $contactType,
-                $contactType, $contactType, $contactType,
-                $contactType, $contactType,
+                $contactType, $contactType, $contactType, $contactType,
+                $contactType, $contactType, $contactType, $contactType,
                 $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType, $contactId,
@@ -452,12 +459,14 @@ class Message {
                              WHEN m.from_user_type = 'publisher' THEN p.society_name
                              WHEN m.from_user_type = 'sponsor' THEN s.company_name
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.full_name
+                             WHEN m.from_user_type = 'admin' THEN adm.full_name
                              ELSE m.from_user_type
                          END as sender_name,
                          CASE 
                              WHEN m.from_user_type = 'publisher' THEN p.email
                              WHEN m.from_user_type = 'sponsor' THEN s.email
                              WHEN m.from_user_type = 'moderator' THEN `moderator`.email
+                             WHEN m.from_user_type = 'admin' THEN adm.email
                              ELSE NULL
                          END as sender_email,
                          -- Recipient info
@@ -465,12 +474,14 @@ class Message {
                              WHEN m.to_user_type = 'publisher' THEN p2.society_name
                              WHEN m.to_user_type = 'sponsor' THEN s2.company_name
                              WHEN m.to_user_type = 'moderator' THEN moderator2.full_name
+                             WHEN m.to_user_type = 'admin' THEN adm2.full_name
                              ELSE m.to_user_type
                          END as recipient_name,
                          CASE 
                              WHEN m.to_user_type = 'publisher' THEN p2.email
                              WHEN m.to_user_type = 'sponsor' THEN s2.email
                              WHEN m.to_user_type = 'moderator' THEN moderator2.email
+                             WHEN m.to_user_type = 'admin' THEN adm2.email
                              ELSE NULL
                          END as recipient_email,
                          -- Is this message sent by current user
@@ -479,9 +490,11 @@ class Message {
                   LEFT JOIN publishers p ON (m.from_user_type = 'publisher' AND m.from_user_id = p.id)
                   LEFT JOIN sponsors s ON (m.from_user_type = 'sponsor' AND m.from_user_id = s.id)
                   LEFT JOIN moderators `moderator` ON (m.from_user_type = 'moderator' AND m.from_user_id = `moderator`.id)
+                  LEFT JOIN admins adm ON (m.from_user_type = 'admin' AND m.from_user_id = adm.id)
                   LEFT JOIN publishers p2 ON (m.to_user_type = 'publisher' AND m.to_user_id = p2.id)
                   LEFT JOIN sponsors s2 ON (m.to_user_type = 'sponsor' AND m.to_user_id = s2.id)
                   LEFT JOIN moderators moderator2 ON (m.to_user_type = 'moderator' AND m.to_user_id = moderator2.id)
+                  LEFT JOIN admins adm2 ON (m.to_user_type = 'admin' AND m.to_user_id = adm2.id)
                   WHERE ((m.from_user_id = ? AND m.from_user_type = ? 
                           AND m.to_user_id = ? AND m.to_user_type = ?)
                          OR (m.from_user_id = ? AND m.from_user_type = ? 
