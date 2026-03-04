@@ -33,6 +33,14 @@
                                 <span class="stat-label">Total Users</span>
                             </div>
                             <div class="stat-item">
+                                <span class="stat-number"><?php echo isset($stats['total_publishers']) ? $stats['total_publishers'] : 0; ?></span>
+                                <span class="stat-label">Total Publishers</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number"><?php echo isset($stats['total_sponsors']) ? $stats['total_sponsors'] : 0; ?></span>
+                                <span class="stat-label">Total Sponsors</span>
+                            </div>
+                            <div class="stat-item">
                                 <span class="stat-number" id="totalModerators"><?php echo isset($stats['total_moderators']) ? $stats['total_moderators'] : 0; ?></span>
                                 <span class="stat-label">Total Moderators</span>
                             </div>
@@ -362,7 +370,7 @@
                                                     <button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>')">
                                                         <i class="fas fa-check-circle"></i>
                                                     </button>
-                                                <?php else: ?>
+                                                <?php elseif ($status !== 'Rejected'): ?>
                                                     <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>', '<?php echo htmlspecialchars($name); ?>')">
                                                         <i class="fas fa-ban"></i>
                                                     </button>
@@ -617,9 +625,10 @@
                                 `<button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${user.id}, '${user.userType.toLowerCase()}')">
                                     <i class="fas fa-check-circle"></i>
                                 </button>` : 
+                                user.status !== 'Rejected' ?
                                 `<button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${user.id}, '${user.userType.toLowerCase()}', '${user.name.replace(/'/g, "\\'")}')">
                                     <i class="fas fa-ban"></i>
-                                </button>`
+                                </button>` : ''
                             }
                         </div>
                     </td>
@@ -667,7 +676,7 @@
         function suspendAccount(userId, userType, userName) {
             pendingSuspension = { userId, userType };
             document.getElementById('suspendUserName').textContent = userName;
-            document.getElementById('suspensionModal').style.display = 'block';
+            document.getElementById('suspensionModal').style.display = 'flex';
         }
         
         function closeSuspensionModal() {
@@ -737,10 +746,16 @@
                         </button>`;
                 } else {
                     const userName = row.querySelector('.user-name')?.textContent || '';
+                    const statusBadge = row.querySelector('.status-badge');
+                    const rowStatus = statusBadge ? statusBadge.textContent.trim() : '';
+                    if (rowStatus !== 'Rejected') {
                     actionButtons.innerHTML = `
                         <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${userId}, '${userType}', '${userName.replace(/'/g, "\\'")}')">
                             <i class="fas fa-ban"></i>
                         </button>`;
+                    } else {
+                        actionButtons.innerHTML = '';
+                    }
                 }
             }
         }

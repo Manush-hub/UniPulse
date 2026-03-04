@@ -973,7 +973,7 @@ body {
 .modal {
     display: none;
     position: fixed;
-    z-index: 2000;
+    z-index: 9999;
     left: 0;
     top: 0;
     width: 100%;
@@ -985,6 +985,11 @@ body {
 
 .modal.show {
     display: flex;
+}
+
+/* Suspension modal must always sit above any other open modal */
+#suspensionModal {
+    z-index: 10001;
 }
 
 .modal-content {

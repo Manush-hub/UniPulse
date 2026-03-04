@@ -1,16 +1,20 @@
 // Role-specific configuration
 const roleConfig = {
     User: {
-        eventDetailsUrl: '/unipulse/public/user/events/details/',
+        eventDetailsUrl: '/unipulse/public/user/eventview/',
         eventsBaseUrl: '/unipulse/public/user/'
     },
     Publisher: {
-        eventDetailsUrl: '/unipulse/public/publisher/events/details/',
+        eventDetailsUrl: '/unipulse/public/publisher/eventview/',
         eventsBaseUrl: '/unipulse/public/publisher/'
     },
     Sponsor: {
-        eventDetailsUrl: '/unipulse/public/sponsor/events/details/',
+        eventDetailsUrl: '/unipulse/public/sponsor/eventview/',
         eventsBaseUrl: '/unipulse/public/sponsor/'
+    },
+    Admin: {
+        eventDetailsUrl: '/unipulse/public/admin/eventview/',
+        eventsBaseUrl: '/unipulse/public/admin/'
     }
 };
 

@@ -20,6 +20,11 @@ $roleConfig = [
         'jsFile' => '/unipulse/public/assets/js/Moderator/eventview-app.js',
         'purchaseTicketFunction' => false,
         'visitProfileFunction' => false
+    ],
+    'Admin' => [
+        'jsFile' => '/unipulse/public/assets/js/Admin/eventview-app.js',
+        'purchaseTicketFunction' => false,
+        'visitProfileFunction' => false
     ]
 ];
 
@@ -840,6 +845,34 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <button class="btn btn-secondary" onclick="closeReportCommentModal()">Cancel</button>
                     <button id="reportSubmitBtn" class="btn btn-danger" onclick="submitCommentReport()">
                         <i class="fas fa-flag"></i> Submit Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($currentRole === 'Admin'): ?>
+        <!-- Hide / Show Event Modal (Admin only) -->
+        <div id="hideEventModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+            <div class="modal-content" style="max-width:500px; width:92%;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-eye-slash" style="color:#e67e22; margin-right:8px;"></i>Hide Event</h3>
+                    <button class="close-btn" onclick="closeHideEventModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p style="margin-bottom:16px; color:#555;">Provide a reason for hiding this event. The publisher will be notified.</p>
+                    <div class="form-group" style="margin-bottom:14px;">
+                        <label for="hideEventReason" style="display:block; font-weight:600; margin-bottom:6px;">Reason <span style="color:red;">*</span></label>
+                        <textarea id="hideEventReason" class="form-control" rows="4"
+                            placeholder="Explain why this event is being hidden (min. 10 characters)&hellip;"
+                            style="width:100%; padding:8px; border:1px solid #ddd; border-radius:6px; resize:vertical;"></textarea>
+                    </div>
+                    <div id="hideEventError" style="display:none; color:#e74c3c; font-size:0.875rem; margin-bottom:10px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeHideEventModal()">Cancel</button>
+                    <button id="hideEventSubmitBtn" class="btn btn-warning" onclick="confirmHideEvent()">
+                        <i class="fas fa-eye-slash"></i> Hide Event
                     </button>
                 </div>
             </div>
