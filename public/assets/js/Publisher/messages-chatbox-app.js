@@ -94,7 +94,14 @@ function selectConversation(element) {
     // Update chat header
     document.getElementById('chatContactName').textContent = contactName;
     document.getElementById('chatContactType').textContent = contactType.charAt(0).toUpperCase() + contactType.slice(1);
-    document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
+    
+    const contactPhoto = element.dataset.contactPhoto;
+    const chatAvatar = document.getElementById('chatAvatar');
+    if (contactPhoto) {
+        chatAvatar.innerHTML = `<img src="${contactPhoto}" alt="${contactName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    } else {
+        chatAvatar.textContent = contactName.substring(0, 2).toUpperCase();
+    }
     
     // Update hidden form fields
     document.getElementById('recipientId').value = contactId;
@@ -105,7 +112,7 @@ function selectConversation(element) {
 }
 
 // Start a new conversation with a contact
-function startConversation(contactId, contactType, contactName) {
+function startConversation(contactId, contactType, contactName, contactPhoto = '') {
     // Remove active class from all conversations
     document.querySelectorAll('.conversation-item').forEach(item => {
         item.classList.remove('active');
@@ -186,7 +193,13 @@ function startConversation(contactId, contactType, contactName) {
         // Update chat header if interface already exists
         document.getElementById('chatContactName').textContent = contactName;
         document.getElementById('chatContactType').textContent = contactType.charAt(0).toUpperCase() + contactType.slice(1);
-        document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
+        
+        const chatAvatar = document.getElementById('chatAvatar');
+        if (contactPhoto) {
+            chatAvatar.innerHTML = `<img src="${contactPhoto}" alt="${contactName}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            chatAvatar.textContent = contactName.substring(0, 2).toUpperCase();
+        }
         
         // Update hidden form fields
         document.getElementById('recipientId').value = contactId;

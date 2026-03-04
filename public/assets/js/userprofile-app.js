@@ -80,26 +80,22 @@ class UniPulseProfile {
     }
 
     setupCoverPhotoUpload() {
-        const coverOverlay = document.querySelector('.cover-overlay');
-        const coverInput = document.getElementById('coverInput');
+        const avatarEditBtn = document.querySelector('.avatar-edit-btn');
+        const fileInput = document.getElementById('fileInput');
 
-        if (coverOverlay && coverInput) {
-            coverOverlay.addEventListener('click', () => {
-                coverInput.click();
-            });
+        // Create file input if it doesn't exist
+        if (!fileInput) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.id = 'fileInput';
+            input.accept = 'image/*';
+            input.style.display = 'none';
+            document.body.appendChild(input);
+        }
 
-            coverInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const coverImg = document.getElementById('coverPhoto');
-                        if (coverImg) {
-                            coverImg.src = e.target.result;
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
+        if (avatarEditBtn) {
+            avatarEditBtn.addEventListener('click', () => {
+                document.getElementById('fileInput').click();
             });
         }
     }
@@ -257,7 +253,7 @@ class UniPulseProfile {
             const d = json.data || {};
             console.log('Profile data loaded:', d); // Debug log
 
-            const map = ['firstname', 'lastname', 'email', 'phone', 'university', 'faculty', 'student_staff_id', 'academic_year', 'dob', 'currentCity', 'homeTown', 'headline', 'bio', 'nic'];
+            const map = ['full_name', 'email', 'phone', 'country_code', 'university', 'faculty', 'student_staff_id', 'academic_year', 'date_of_birth', 'current_city', 'home_town', 'headline', 'bio', 'nic'];
             map.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -267,21 +263,19 @@ class UniPulseProfile {
                 }
             });
 
-            // Gender buttons
-            if (d.gender && d.gender.trim()) {
-                document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
-                const btn = document.querySelector(`[data-gender="${d.gender.trim()}"]`);
-                if (btn) {
-                    btn.classList.add('active');
-                }
-                const hidden = document.getElementById('gender');
-                if (hidden) hidden.value = d.gender.trim();
-            } else {
-                // If no gender set, make sure hidden input is empty and buttons are not active
-                document.querySelectorAll('.gender-btn').forEach(btn => btn.classList.remove('active'));
-                const hidden = document.getElementById('gender');
-                if (hidden) hidden.value = '';
+            // Gender dropdown
+            if (d.gender) {
+                const genderSelect = document.getElementById('gender');
+                if (genderSelect) genderSelect.value = d.gender;
             }
+
+            // Academic year dropdown
+            if (d.academic_year) {
+                const academicYearSelect = document.getElementById('academic_year');
+                if (academicYearSelect) academicYearSelect.value = d.academic_year;
+            }
+
+
 
             // Role buttons (student/staff/public)
             if (d.role) {
@@ -294,7 +288,14 @@ class UniPulseProfile {
 
             // Update banner name if exists
             const profileName = document.getElementById('profileName');
-            if (profileName) profileName.textContent = `${d.firstname || ''} ${d.lastname || ''}`.trim();
+            if (profileName) profileName.textContent = d.full_name || '';
+
+            // Update display name and email in header
+            const displayName = document.getElementById('displayName');
+            if (displayName) displayName.textContent = d.full_name || '';
+            
+            const displayEmail = document.getElementById('displayEmail');
+            if (displayEmail) displayEmail.textContent = d.email || '';
 
             // Load profile photo if exists
             if (d.profile_photo) {
@@ -314,21 +315,54 @@ class UniPulseProfile {
                 }
             }
 
+            // Load event preferences (interests)
+            if (d.interests) {
+                let interestsArray = [];
+                if (typeof d.interests === 'string') {
+                    try {
+                        interestsArray = JSON.parse(d.interests);
+                    } catch (e) {
+                        console.error('Failed to parse interests:', e);
+                    }
+                } else if (Array.isArray(d.interests)) {
+                    interestsArray = d.interests;
+                }
+                
+                // Mark active preference buttons
+                document.querySelectorAll('.preference-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    const pref = btn.dataset.preference;
+                    if (interestsArray.includes(pref)) {
+                        btn.classList.add('active');
+                    }
+                });
+                
+                this.userInterests = interestsArray;
+                console.log('Loaded interests:', interestsArray);
+            } else {
+                this.userInterests = [];
+            }
+
             // Store in userData for cancel operation
             this.userData = {
-                firstName: d.firstname || '',
-                lastName: d.lastname || '',
+                full_name: d.full_name || '',
                 email: d.email || '',
                 phone: d.phone || '',
+                country_code: d.country_code || '+94',
                 university: d.university || '',
                 faculty: d.faculty || '',
                 student_staff_id: d.student_staff_id || '',
                 academic_year: d.academic_year || '',
                 gender: d.gender || '',
+                date_of_birth: d.date_of_birth || '',
+                current_city: d.current_city || '',
+                home_town: d.home_town || '',
+                headline: d.headline || '',
                 nic: d.nic || '',
                 bio: d.bio || '',
                 profile_photo: d.profile_photo || '',
-                cover_photo: d.cover_photo || ''
+                cover_photo: d.cover_photo || '',
+                interests: this.userInterests || []
             };
 
         } catch (e) {
@@ -365,10 +399,61 @@ class UniPulseProfile {
         if (connections) connections.textContent = totalConnections;
     }
 
-    togglePreference(button) {
+    async togglePreference(button) {
         button.classList.toggle('active');
         const preference = button.dataset.preference;
         const isActive = button.classList.contains('active');
+        
+        // Update local interests array
+        if (!this.userInterests) {
+            this.userInterests = [];
+        }
+        
+        if (isActive) {
+            // Add preference if not already in array
+            if (!this.userInterests.includes(preference)) {
+                this.userInterests.push(preference);
+            }
+        } else {
+            // Remove preference from array
+            const index = this.userInterests.indexOf(preference);
+            if (index > -1) {
+                this.userInterests.splice(index, 1);
+            }
+        }
+        
+        // Save to database
+        await this.saveInterests();
+    }
+    
+    async saveInterests() {
+        try {
+            const url = (window.profileApi && window.profileApi.update) || '/unipulse/public/user/profile/updateProfile';
+            const payload = {
+                interests: JSON.stringify(this.userInterests)
+            };
+            
+            console.log('Saving interests:', this.userInterests);
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            });
+            
+            const json = await res.json();
+            if (json.success) {
+                console.log('Interests saved successfully');
+                this.showNotification('Event preferences updated!', 'success');
+            } else {
+                console.error('Failed to save interests:', json);
+                this.showNotification('Failed to update preferences: ' + (json.error || 'Unknown error'), 'error');
+            }
+        } catch (e) {
+            console.error('Error saving interests:', e);
+            this.showNotification('Error updating preferences: ' + e.message, 'error');
+        }
     }
 
     selectRole(role) {
@@ -470,19 +555,29 @@ class UniPulseProfile {
 
     async savePersonalInfo() {
         // Collect field values
-        const firstname = document.getElementById('firstname')?.value?.trim() || '';
-        const lastname = document.getElementById('lastname')?.value?.trim() || '';
+        const full_name = document.getElementById('full_name')?.value?.trim() || '';
         const phone = document.getElementById('phone')?.value?.trim() || '';
+        const country_code = document.getElementById('country_code')?.value || '';
         const gender = document.getElementById('gender')?.value || '';
+        const date_of_birth = document.getElementById('date_of_birth')?.value || '';
+        const headline = document.getElementById('headline')?.value?.trim() || '';
+        const academic_year = document.getElementById('academic_year')?.value || '';
+        const current_city = document.getElementById('current_city')?.value?.trim() || '';
+        const home_town = document.getElementById('home_town')?.value?.trim() || '';
         const bio = document.getElementById('bio')?.value?.trim() || '';
 
         // Build payload - only include fields that have values
         const payload = {};
 
-        if (firstname) payload.firstname = firstname;
-        if (lastname) payload.lastname = lastname;
+        if (full_name) payload.full_name = full_name;
         if (phone) payload.phone = phone;
+        if (country_code) payload.country_code = country_code;
         if (gender) payload.gender = gender;
+        if (date_of_birth) payload.date_of_birth = date_of_birth;
+        if (headline) payload.headline = headline;
+        if (academic_year) payload.academic_year = academic_year;
+        if (current_city) payload.current_city = current_city;
+        if (home_town) payload.home_town = home_town;
         if (bio) payload.bio = bio;
 
         // If no fields to update, show error
@@ -502,21 +597,23 @@ class UniPulseProfile {
             const json = await res.json();
             if (json.success) {
                 // Update local userData to reflect saved changes
-                if (firstname) this.userData.firstName = firstname;
-                if (lastname) this.userData.lastName = lastname;
+                if (full_name) this.userData.full_name = full_name;
                 if (phone) this.userData.phone = phone;
+                if (country_code) this.userData.country_code = country_code;
                 if (gender) this.userData.gender = gender;
+                if (date_of_birth) this.userData.date_of_birth = date_of_birth;
+                if (headline) this.userData.headline = headline;
+                if (academic_year) this.userData.academic_year = academic_year;
+                if (current_city) this.userData.current_city = current_city;
+                if (home_town) this.userData.home_town = home_town;
                 if (bio) this.userData.bio = bio;
 
                 // Update profile name display if name was changed
-                if (firstname || lastname) {
-                    const fullName = `${firstname || this.userData.firstName || ''} ${lastname || this.userData.lastName || ''}`.trim();
+                if (full_name) {
                     const profileName = document.getElementById('profileName');
-                    if (profileName) profileName.textContent = fullName;
-
-                    // Update header username if present
-                    const headerUsername = document.getElementById('username');
-                    if (headerUsername && fullName) headerUsername.textContent = fullName;
+                    if (profileName) profileName.textContent = full_name;
+                    const displayName = document.getElementById('displayName');
+                    if (displayName) displayName.textContent = full_name;
                 }
 
                 // Show success message
@@ -542,9 +639,15 @@ class UniPulseProfile {
     cancelPersonalInfo() {
         // Only restore editable fields to their original values
         const editableFields = [
-            { id: 'firstname', key: 'firstName' },
-            { id: 'lastname', key: 'lastName' },
+            { id: 'full_name', key: 'full_name' },
             { id: 'phone', key: 'phone' },
+            { id: 'country_code', key: 'country_code' },
+            { id: 'gender', key: 'gender' },
+            { id: 'date_of_birth', key: 'date_of_birth' },
+            { id: 'headline', key: 'headline' },
+            { id: 'academic_year', key: 'academic_year' },
+            { id: 'current_city', key: 'current_city' },
+            { id: 'home_town', key: 'home_town' },
             { id: 'bio', key: 'bio' }
         ];
 
@@ -555,12 +658,12 @@ class UniPulseProfile {
             }
         });
 
-        // Restore gender selection
-        const defaultGender = this.userData.gender || 'male';
-        document.querySelectorAll('.gender-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.querySelector(`[data-gender="${defaultGender}"]`)?.classList.add('active');
+        // Restore gender and academic year dropdowns
+        const genderSelect = document.getElementById('gender');
+        if (genderSelect) genderSelect.value = this.userData.gender || '';
+
+        const academicYearSelect = document.getElementById('academic_year');
+        if (academicYearSelect) academicYearSelect.value = this.userData.academic_year || '';
         document.getElementById('gender').value = defaultGender;
 
         this.showNotification('Changes cancelled', 'info');
@@ -710,6 +813,11 @@ class UniPulseProfile {
         this.loadUserData();
         this.toggleEdit(formId);
     }
+    
+    showNotification(message, type = 'info') {
+        // Call the global showNotification function
+        showNotification(message, type);
+    }
 }
 
 function uploadImage() {
@@ -764,6 +872,70 @@ function uploadCover() {
     document.getElementById('coverInput').click();
 }
 
+function changeCover(event) {
+    const file = event.target.files[0];
+    console.log('changeCover called, file:', file);
+    
+    if (file && file.type.startsWith('image/')) {
+        // Show preview immediately
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const coverImg = document.getElementById('coverPhoto');
+            if (coverImg) {
+                coverImg.src = e.target.result;
+                console.log('Preview set');
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        const formData = new FormData();
+        formData.append('image', file);
+
+        console.log('Starting upload to /UniPulse/public/user/profile/uploadCoverPhoto');
+        
+        if (typeof clubProfile !== 'undefined') {
+            clubProfile.showNotification('Uploading cover photo...', 'info');
+        }
+
+        fetch('/UniPulse/public/user/profile/uploadCoverPhoto', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Response received:', response);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                if (typeof clubProfile !== 'undefined') {
+                    clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                }
+                // Update with server URL
+                const coverImg = document.getElementById('coverPhoto');
+                if (coverImg && data.imageUrl) {
+                    coverImg.src = data.imageUrl;
+                    console.log('Cover photo updated with URL:', data.imageUrl);
+                }
+            } else {
+                console.error('Upload failed:', data.message);
+                if (typeof clubProfile !== 'undefined') {
+                    clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
+                }
+                alert('Failed to upload: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading cover photo:', error);
+            if (typeof clubProfile !== 'undefined') {
+                clubProfile.showNotification('Error uploading cover photo', 'error');
+            }
+            alert('Error uploading cover photo: ' + error.message);
+        });
+    }
+}
+
 function showImageUploadStatus(message, type = 'info', duration = 3000) {
     let statusDiv = document.getElementById('imageUploadStatus');
     if (!statusDiv) {
@@ -805,35 +977,55 @@ function showImageUploadStatus(message, type = 'info', duration = 3000) {
 }
 
 function changeCoverImage(event) {
+    console.log('[changeCoverImage] Function called');
     const file = event.target.files[0];
-    if (!file) return;
+    console.log('[changeCoverImage] File selected:', file ? file.name : 'NO FILE');
+    
+    if (!file) {
+        console.log('[changeCoverImage] No file selected, returning');
+        return;
+    }
+
+    console.log('[changeCoverImage] File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type
+    });
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
+        console.error('[changeCoverImage] Invalid file type:', file.type);
         showImageUploadStatus('Please select a valid image file', 'error');
         return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
+        console.error('[changeCoverImage] File too large:', file.size);
         showImageUploadStatus('Image size must be less than 5MB', 'error');
         return;
     }
 
+    console.log('[changeCoverImage] File validated, reading...');
+    
     // Show preview immediately
     const reader = new FileReader();
     reader.onload = (e) => {
+        console.log('[changeCoverImage] File read successfully');
         const coverImg = document.getElementById('coverPhoto');
         if (coverImg) {
             coverImg.src = e.target.result;
             coverImg.style.display = 'block';
+            console.log('[changeCoverImage] Preview updated');
         }
         // Show saving status
         showImageUploadStatus('Saving cover photo...', 'info', 0);
+        console.log('[changeCoverImage] Calling saveCoverImageFormData...');
         // Save to database using FormData
         saveCoverImageFormData(file);
     };
     reader.onerror = () => {
+        console.error('[changeCoverImage] Error reading file');
         showImageUploadStatus('Error reading file', 'error');
     };
     reader.readAsDataURL(file);
@@ -880,8 +1072,11 @@ function changeProfileImage(event) {
 
 async function saveCoverImageFormData(file) {
     try {
+        console.log('[saveCoverImageFormData] Starting upload, file size:', file.size, 'bytes');
         const formData = new FormData();
         formData.append('cover_photo', file);
+        
+        console.log('[saveCoverImageFormData] FormData created, sending to server...');
 
         const response = await fetch('/unipulse/public/user/profile/updateProfile', {
             method: 'POST',
@@ -889,7 +1084,10 @@ async function saveCoverImageFormData(file) {
             body: formData
         });
 
+        console.log('[saveCoverImageFormData] Response status:', response.status);
         const result = await response.json();
+        console.log('[saveCoverImageFormData] Result:', result);
+        
         if (result.success) {
             showImageUploadStatus('Cover photo saved successfully!', 'success');
             console.log('Cover photo saved successfully');

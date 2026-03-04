@@ -390,7 +390,8 @@ class Message {
                 $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType, $contactId,
-                $contactType, $contactId
+                $contactType,
+                $contactType
             ]);
             
             // Get latest message and conversation stats
@@ -430,6 +431,7 @@ class Message {
                     'contact_type' => $contactType,
                     'contact_name' => $contactInfo->contact_name,
                     'contact_email' => $contactInfo->contact_email,
+                    'contact_photo' => $contactInfo->contact_photo ?? null,
                     'last_message_time' => $stats->last_message_time,
                     'last_message' => $stats->last_message,
                     'last_subject' => $stats->last_subject,

@@ -10,7 +10,12 @@ class UniversityUser
     protected $allowedColumns = [
         'full_name',
         'phone',
+        'country_code',
         'gender',
+        'date_of_birth',
+        'headline',
+        'current_city',
+        'home_town',
         'bio',
         'interests',
         'user_role',

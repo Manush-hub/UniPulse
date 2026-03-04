@@ -33,7 +33,11 @@ if (isset($_SESSION['user_name']) && !empty($_SESSION['user_name']) && $publishe
 
 // Get profile photo from session or use default
 $profilePhoto = '/unipulse/public/assets/images/organizer.jpg';
-if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_photo'])) {
+
+// First check if we have profile logo_url (when on profile page)
+if (isset($profile->logo_url) && !empty($profile->logo_url)) {
+    $profilePhoto = $profile->logo_url;
+} elseif (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_photo'])) {
     $profilePhoto = $_SESSION['user_profile_photo'];
 } elseif (isset($_SESSION['profile_photo']) && !empty($_SESSION['profile_photo'])) {
     $profilePhoto = $_SESSION['profile_photo'];

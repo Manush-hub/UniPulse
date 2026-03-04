@@ -1316,7 +1316,9 @@ function displayRecentComments(comments, stats) {
     }
 
     const commentsHtml = comments.map(comment => {
-        const userTypeIcon = getUserTypeIcon(comment.user_type);
+        const profilePhoto = comment.profile_photo 
+            ? `<img src="${comment.profile_photo}" alt="${comment.user_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` 
+            : getUserTypeIcon(comment.user_type);
         const ratingStars = comment.rating > 0 ? generateStarRating(comment.rating) : '';
         const hideBadge = comment.is_hidden
             ? `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:20px;background:#fef3c7;color:#b45309;vertical-align:middle;" title="${comment.hidden_reason ? comment.hidden_reason.replace(/"/g, '&quot;') : 'Hidden by moderator'}"><i class="fas fa-eye-slash"></i> Hidden</span>`
@@ -1327,7 +1329,7 @@ function displayRecentComments(comments, stats) {
                 <div class="comment-header">
                     <div class="comment-user">
                         <div class="user-avatar">
-                            ${userTypeIcon}
+                            ${profilePhoto}
                         </div>
                         <div class="user-info">
                             <span class="user-name">${comment.user_name}</span>

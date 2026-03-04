@@ -31,31 +31,20 @@
                         ?>
                         <h1>Welcome back, <span id="welcomeUsername"><?= htmlspecialchars($welcomeName) ?></span>! 👋</h1>
                         <p>Manage your sponsorships and discover new opportunities to support university events.</p>
-                        <div class="quick-stats">
-                            <div class="stat-item">
-                                <span class="stat-number" id="totalSponsorships">8</span>
-                                <span class="stat-label">Active Sponsorships</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="pendingRequests">5</span>
-                                <span class="stat-label">Pending Sponsorships</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="totalInvestment">LKR 4,200</span>
-                                <span class="stat-label">Total Investment</span>
-                            </div>
-                        </div>
                     </div>
-                    <div class="welcome-actions">
-                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/sponsor/events?view=sponsor'">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                            Find Events to Sponsor
-                        </button>
+                    <div class="quick-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalSponsorships">8</span>
+                            <span class="stat-label">Active Sponsorships</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="pendingRequests">5</span>
+                            <span class="stat-label">Pending Sponsorships</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalInvestment">LKR 4,200</span>
+                            <span class="stat-label">Total Investment</span>
+                        </div>
                     </div>
                 </div>
             </div>
