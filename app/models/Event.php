@@ -137,7 +137,7 @@ class Event
     /**
      * Build visibility filter based on current user
      */
-    public function buildVisibilityFilter($currentUser = null)
+    private function buildVisibilityFilter($currentUser = null)
     {
         $visibilityConditions = [];
         $params = [];
@@ -154,8 +154,8 @@ class Event
         $userUniversity = $currentUser['university'] ?? null;
         $userFaculty = $currentUser['faculty'] ?? null;
 
-        // Admins can see all events
-        if ($userType === 'admin') {
+        // Admins and publishers can see all events
+        if (in_array($userType, ['publisher', 'admin'])) {
             return ['clause' => '', 'params' => []];
         }
 
@@ -186,8 +186,8 @@ class Event
         // Public events - everyone can see
         $visibilityConditions[] = "e.visibility = 'public'";
 
-        // All universities events - university users and publishers can see
-        if (in_array($userType, ['university', 'university_user', 'publisher'])) {
+        // All universities events - all university users can see
+        if (in_array($userType, ['university', 'university_user'])) {
             $visibilityConditions[] = "e.visibility = 'all-universities'";
 
             // University-only events - only users from that university
@@ -284,9 +284,9 @@ class Event
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
                 WHERE e.id = :id";
-
+        
         $result = $this->query($sql, ['id' => $id]);
-
+        
         if ($result && count($result) > 0) {
             $event = $result[0];
             // Decode JSON fields
