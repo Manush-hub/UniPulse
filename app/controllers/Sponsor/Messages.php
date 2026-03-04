@@ -319,4 +319,22 @@ class SponsorMessages extends Controller {
         }
         exit();
     }
+
+    public function unreadCount($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            $message = new Message();
+            $count = $message->getUnreadCount($currentUser['id'], 'sponsor');
+            echo json_encode(['success' => true, 'count' => $count]);
+        } catch (Exception $e) {
+            error_log('Get unread count error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to get unread count']);
+        }
+        exit();
+    }
 }
