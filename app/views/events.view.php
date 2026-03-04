@@ -367,7 +367,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <script src="/unipulse/public/assets/js/User/events-app.js"></script>
     <?php elseif ($currentRole === 'Moderator'): ?>
     <script src="/unipulse/public/assets/js/Moderator/events-app.js"></script>
-    <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
     <?php elseif ($currentRole === 'Sponsor'): ?>
     <script src="/unipulse/public/assets/js/Sponsor/events-app.js"></script>
     <?php elseif ($currentRole === 'Admin'): ?>
