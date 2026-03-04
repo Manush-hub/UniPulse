@@ -87,7 +87,8 @@ function markNotificationAsRead(notification) {
         },
         body: JSON.stringify({
             event_id: Number(notification.id || 0),
-            created_at: notification.created_at || ''
+            created_at: notification.created_at || '',
+            notification_key: notification.notification_key || ''
         }),
         keepalive: true
     }).catch(error => {

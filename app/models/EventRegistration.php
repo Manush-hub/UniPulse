@@ -137,6 +137,7 @@ class EventRegistration
         // Log activity if registration was successful
         if ($result) {
             $this->logRegistrationActivity($data);
+            $this->logPublisherRegistrationNotification($data);
         }
 
         return $result;
@@ -276,6 +277,104 @@ class EventRegistration
             error_log("Activity logging exception: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
         }
+    }
+
+    /**
+     * Log publisher notification when a user registers for publisher's event
+     */
+    private function logPublisherRegistrationNotification($data)
+    {
+        try {
+            if (empty($data['event_id']) || empty($data['user_id']) || empty($data['user_type'])) {
+                return;
+            }
+
+            if (!class_exists('Activity')) {
+                require_once __DIR__ . '/Activity.php';
+            }
+            if (!class_exists('Event')) {
+                require_once __DIR__ . '/Event.php';
+            }
+
+            $eventModel = new Event();
+            $event = $eventModel->getEventById((int)$data['event_id']);
+
+            if (!$event) {
+                return;
+            }
+
+            $isPublisherEvent = isset($event->created_by_type) && $event->created_by_type === 'publisher' && !empty($event->created_by);
+            if (!$isPublisherEvent) {
+                return;
+            }
+
+            $publisherId = (int)$event->created_by;
+            if ($publisherId <= 0) {
+                return;
+            }
+
+            $registrantName = $this->resolveRegistrantDisplayName((int)$data['user_id'], (string)$data['user_type']);
+            $eventTitle = (string)($event->title ?? ('Event #' . (int)$data['event_id']));
+            $registrationType = strtolower((string)($data['registration_type'] ?? 'free'));
+            $amountPaid = isset($data['amount_paid']) ? (float)$data['amount_paid'] : 0.00;
+
+            $title = 'New Registration - ' . $eventTitle;
+            if ($registrationType === 'paid' || $amountPaid > 0) {
+                $description = $registrantName . ' purchased tickets for "' . $eventTitle . '".';
+            } else {
+                $description = $registrantName . ' registered for your event "' . $eventTitle . '".';
+            }
+
+            $activity = new Activity();
+            $activity->logActivity(
+                $publisherId,
+                'publisher',
+                'event_registration',
+                $title,
+                $description,
+                'plus',
+                (int)$data['event_id'],
+                $eventTitle,
+                [
+                    'registrant_user_id' => (int)$data['user_id'],
+                    'registrant_user_type' => (string)$data['user_type'],
+                    'registrant_name' => $registrantName,
+                    'registration_type' => $registrationType,
+                    'amount_paid' => $amountPaid
+                ]
+            );
+        } catch (Throwable $e) {
+            error_log('Publisher registration notification logging failed: ' . $e->getMessage());
+        }
+    }
+
+    private function resolveRegistrantDisplayName($userId, $userType)
+    {
+        $normalized = $this->normalizeUserType($userType);
+
+        $lookup = [
+            'university' => ['table' => 'university_users', 'name_col' => 'full_name'],
+            'public' => ['table' => 'public_users', 'name_col' => 'full_name'],
+            'publisher' => ['table' => 'publishers', 'name_col' => 'society_name'],
+            'sponsor' => ['table' => 'sponsors', 'name_col' => 'company_name']
+        ];
+
+        if (!isset($lookup[$normalized])) {
+            return 'A user';
+        }
+
+        try {
+            $cfg = $lookup[$normalized];
+            $sql = "SELECT {$cfg['name_col']} AS display_name FROM {$cfg['table']} WHERE id = :id LIMIT 1";
+            $result = $this->query($sql, ['id' => (int)$userId]);
+            if ($result && !empty($result[0]->display_name)) {
+                return (string)$result[0]->display_name;
+            }
+        } catch (Throwable $e) {
+            error_log('Failed to resolve registrant display name: ' . $e->getMessage());
+        }
+
+        return 'A user';
     }
 
     /**

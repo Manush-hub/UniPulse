@@ -5,6 +5,7 @@ class UserEventview extends Controller
 
     private $eventModel;
     private $registrationModel;
+    private $freeRegistrationModel;
     private $volunteerRegistrationModel;
 
     public function __construct()
@@ -12,6 +13,7 @@ class UserEventview extends Controller
         // Initialize models
         $this->eventModel = new Event();
         $this->registrationModel = new EventRegistration();
+        $this->freeRegistrationModel = new FreeEventRegistration();
         $this->volunteerRegistrationModel = new VolunteerRegistration();
     }
 
@@ -300,6 +302,32 @@ class UserEventview extends Controller
             ];
 
             if ($this->registrationModel->registerUser($registrationData)) {
+                $ticketType = strtolower((string)($event->ticket_type ?? 'free-all'));
+
+                if ($ticketType === 'free-all') {
+                    try {
+                        $currentUser = AuthService::getCurrentUser();
+                        $freeRegistrationData = [
+                            'event_id' => (int)$eventId,
+                            'publisher_id' => (isset($event->created_by_type) && $event->created_by_type === 'publisher' && isset($event->created_by)) ? (int)$event->created_by : null,
+                            'event_title_snapshot' => (string)($event->title ?? ''),
+                            'publisher_name_snapshot' => (string)($event->organizer_name ?? $event->organizer ?? ''),
+                            'registered_user_id' => (int)$userId,
+                            'registered_user_type' => (string)$userType,
+                            'registered_user_name_snapshot' => (string)($currentUser['name'] ?? ($_SESSION['user_name'] ?? '')),
+                            'registered_user_email_snapshot' => (string)($currentUser['email'] ?? ($_SESSION['user_email'] ?? '')),
+                            'registration_source' => 'web',
+                            'status' => 'registered',
+                            'registration_notes' => $notes,
+                            'registered_at' => date('Y-m-d H:i:s')
+                        ];
+
+                        $this->freeRegistrationModel->registerUser($freeRegistrationData);
+                    } catch (Throwable $freeRegError) {
+                        error_log("Free registration mirror warning in UserEventview::joinEvent: " . $freeRegError->getMessage());
+                    }
+                }
+
                 // Registration is the primary action. Participant counter updates are best effort.
                 $updatedEvent = $event;
 
