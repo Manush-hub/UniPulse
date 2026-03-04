@@ -58,9 +58,14 @@
                                          data-contact-id="<?= $conv->contact_id ?>"
                                          data-contact-type="<?= $conv->contact_type ?>"
                                          data-contact-name="<?= htmlspecialchars($conv->contact_name) ?>"
+                                         data-contact-photo="<?= htmlspecialchars($conv->contact_photo ?? '') ?>"
                                          onclick="selectConversation(this)">
                                         <div class="conversation-avatar">
-                                            <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
+                                            <?php if (!empty($conv->contact_photo)): ?>
+                                                <img src="<?= htmlspecialchars($conv->contact_photo) ?>" alt="<?= htmlspecialchars($conv->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                            <?php else: ?>
+                                                <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="conversation-info">
                                             <h4 class="conversation-name"><?= htmlspecialchars($conv->contact_name) ?></h4>
@@ -105,7 +110,11 @@
                             <div class="chat-header">
                                 <div class="chat-contact-info">
                                     <div class="chat-avatar" id="chatAvatar">
-                                        <?= strtoupper(substr($conversations[0]->contact_name, 0, 2)) ?>
+                                        <?php if (!empty($conversations[0]->contact_photo)): ?>
+                                            <img src="<?= htmlspecialchars($conversations[0]->contact_photo) ?>" alt="<?= htmlspecialchars($conversations[0]->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($conversations[0]->contact_name, 0, 2)) ?>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="chat-contact-details">
                                         <h3 id="chatContactName"><?= htmlspecialchars($conversations[0]->contact_name) ?></h3>

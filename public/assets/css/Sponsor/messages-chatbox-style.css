@@ -35,13 +35,13 @@ body {
 
 /* Page Header */
 .page-header {
-    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);    color: white;
-    padding: 2rem 0;
-    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+    color: white;
+    padding: 4rem 0;
 }
 
 .page-header .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
 }
@@ -55,7 +55,7 @@ body {
 }
 
 .header-text h1 {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
     display: flex;
@@ -64,7 +64,7 @@ body {
 }
 
 .header-text p {
-    font-size: 1rem;
+    font-size: 1.1rem;
     opacity: 0.9;
 }
 
@@ -79,6 +79,8 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 12px;
+    height: 100px;
+    width: 140px;
 }
 
 .stat-number {
@@ -100,7 +102,7 @@ body {
 
 /* Chatbox Section */
 .chatbox-section {
-    padding: 0 2rem 2rem;
+    padding: 4rem;
 }
 
 .chatbox-section .container {

@@ -236,13 +236,22 @@ class PublisherDashboard extends Controller
                         WHEN c.user_type = 'sponsor' THEN s.email
                         WHEN c.user_type = 'admin' THEN 'system@unipulse.com'
                         WHEN c.user_type = 'moderator' THEN m.email
-                    END as user_email
+                    END as user_email,
+                    CASE 
+                        WHEN c.user_type = 'university' THEN uu.profile_photo
+                        WHEN c.user_type = 'public' THEN pu.profile_photo
+                        WHEN c.user_type = 'publisher' THEN pp.logo_url
+                        WHEN c.user_type = 'sponsor' THEN sp.logo_url
+                        ELSE NULL
+                    END as profile_photo
                 FROM event_comments c
                 LEFT JOIN events e ON c.event_id = e.id
                 LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
                 LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
                 LEFT JOIN publishers pub ON c.user_type = 'publisher' AND c.user_id = pub.id
+                LEFT JOIN publisher_profiles pp ON c.user_type = 'publisher' AND pub.id = pp.publisher_id
                 LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
+                LEFT JOIN sponsor_profiles sp ON c.user_type = 'sponsor' AND s.id = sp.sponsor_id
                 LEFT JOIN moderators m ON c.user_type = 'moderator' AND c.user_id = m.id
                 WHERE c.is_deleted = 0
                 AND e.created_by_type = 'publisher'
@@ -280,6 +289,7 @@ class PublisherDashboard extends Controller
                     'event_status' => $comment->event_status,
                     'user_name' => $comment->user_name,
                     'user_type' => $comment->user_type,
+                    'profile_photo' => $comment->profile_photo ?? null,
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
                     'is_hidden' => (bool)$comment->is_hidden,

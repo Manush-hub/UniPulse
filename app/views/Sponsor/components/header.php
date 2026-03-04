@@ -46,7 +46,7 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
                 </div>
             </div>
             <div class="user-menu">
-                <img src="/unipulse/public/assets/images/default-avatar.png" alt="Sponsor Avatar" class="avatar">
+                <img src="<?= $_SESSION['user_logo'] ?? '/unipulse/public/assets/images/default-avatar.png' ?>" alt="Sponsor Avatar" class="avatar" id="headerAvatar">
                 <div class="user-info">
                     <span class="username" id="username"><?= htmlspecialchars($sponsorDisplayName) ?></span>
                     <span class="user-role" id="userRole">Sponsor</span>

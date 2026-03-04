@@ -7,8 +7,6 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #1E3A8A;
-    background: linear-gradient(90deg, rgba(30, 58, 138, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(249, 115, 22, 1) 100%);
     min-height: 100vh;
     color: #333;
     line-height: 1.6;
@@ -35,22 +33,17 @@ body {
 .cover-photo-section {
     position: relative;
     width: 100%;
-    height: 200px; /* Reduced height to match the design */
+    height: 250px; /* Reduced height to match the design */
     overflow: visible;
-    border-radius: 18px 18px 0 0;
+    border-radius: 25px 25px 25px;
 }
 
 .cover-photo {
     position: relative;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, 
-        #E8B5E8 0%, 
-        #8B7ED8 25%, 
-        #7ED8B5 50%, 
-        #FFB366 75%, 
-        #FFD93D 100%);
-    border-radius: 18px 18px 0 0;
+    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+    border-radius: 25px 25px 25px 25px;
     overflow: hidden;
 }
 
@@ -197,30 +190,29 @@ body {
 #organization-form .form-group.full-width:nth-child(16) { grid-column: 1 / -1; grid-row: 10; } /* Mission */
 #organization-form .form-actions { grid-column: 1 / -1; grid-row: 11; } /* Actions */
 
+
+.cover-photo-section {
+    position: relative;
+}
+
 .profile-avatar-overlap {
     position: absolute;
-    bottom: 100px; /* Increased from 60px to move avatar higher */
-    left: 30px; /* Position from left side */
-    z-index: 10;
-    width: 200px; /* Increased from 150px to make it bigger */
-    height: 200px; /* Increased from 150px to make it bigger */
+    bottom: 100px;
+    left: 100px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
-    border: 6px solid white; /* Increased border thickness */
     overflow: hidden;
-    background: linear-gradient(135deg, 
-        #E8B5E8 0%, 
-        #8B7ED8 25%, 
-        #7ED8B5 50%, 
-        #FFB366 75%, 
-        #FFD93D 100%);
-    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+    border: 1px solid white;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    background: white;
 }
 
 .profile-avatar-overlap img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 50%;
 }
 
 .avatar-overlay {
@@ -263,6 +255,12 @@ body {
     border-radius: 0 0 18px 18px;
 }
 
+.profile-info-section {
+    background: white;
+    padding: 30px 0 90px 400px;
+    border-radius: 0 0 20px 20px;
+}
+
 /* Reset profile info positioning */
 .profile-info-shifted {
     margin-left: 0; /* Remove the left margin */
@@ -275,11 +273,11 @@ body {
     }
     
     .profile-avatar-overlap {
-        width: 140px; /* Increased from 110px for mobile */
-        height: 140px; /* Increased from 110px for mobile */
-        bottom: 55px; /* Increased from 45px to move it higher on mobile */
-        left: 20px;
-        border: 4px solid white; /* Smaller border for mobile */
+        width: 250px;
+        height: 250px;
+        bottom: -150px;
+        left: 100px;
+        border: 1px solid white;
     }
     
     .avatar-overlay {
@@ -293,6 +291,18 @@ body {
     
     .profile-banner {
         padding: 20px; /* Normal padding for mobile */
+    }
+
+    .profile-info-section {
+        padding: 75px 0 20px 30px;
+    }
+    
+    .profile-name {
+        font-size: 1.625rem;
+    }
+    
+    .profile-email {
+        font-size: 0.9375rem;
     }
 }
 
@@ -329,10 +339,9 @@ body {
 }
 
 .profile-avatar img {
-    width: 180px;
-    height: 180px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
-    border: 4px solid rgba(255, 255, 255, 0.3);
     object-fit: cover;
     transition: all 0.3s ease;
 }
@@ -487,7 +496,6 @@ body {
 /* Forms */
 .form {
     padding: 30px;
-    display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 25px;
 }
@@ -589,10 +597,15 @@ body {
 .form-group {
     display: flex;
     flex-direction: column;
+    margin-bottom: 25px;
 }
 
 .form-group.full-width {
     grid-column: 1 / -1;
+}
+
+#password-form .form-group {
+    margin-bottom: 30px;
 }
 
 .form-group label {
@@ -694,6 +707,7 @@ body {
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 20px;
+    padding: 2rem;
 }
 
 .preference-btn {
@@ -745,10 +759,13 @@ body {
     cursor: not-allowed;
 }
 
-.form-group small {
-    margin-top: 8px;
-    color: #888;
-    font-size: 0.9em;
+.form-group small,
+.form-text {
+    display: block;
+    margin-top: 5px;
+    color: #6c757d;
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
 .form-actions {
@@ -765,7 +782,7 @@ body {
 .form-actions .btn {
     flex: 1;
     max-width: 200px;
-    min-width: 150px;
+    min-width: 250px;
 }
 
 /* Buttons */
@@ -1847,31 +1864,29 @@ input:checked + .slider:before {
 }
 
 @media (max-width: 480px) {
-    .profile-info h1 {
-        font-size: 1.8em;
+    .cover-photo-section {
+        height: 180px !important;
     }
-
-    .card-header {
-        padding: 20px 20px 10px;
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
+    
+    .profile-avatar-overlap {
+        width: 110px !important;
+        height: 110px !important;
+        bottom: -55px !important;
+        left: 20px !important;
+        border: 4px solid white !important;
     }
-
-    .form {
-        padding: 15px;
+    
+    .profile-banner,
+    .profile-info-section {
+        padding: 65px 0 18px 20px !important;
     }
-
-    .btn {
-        padding: 12px 20px;
-        font-size: 0.9em;
+    
+    .profile-name {
+        font-size: 1.5rem !important;
     }
-
-    .preference-item,
-    .danger-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    
+    .profile-email {
+        font-size: 0.875rem !important;
     }
 }
 

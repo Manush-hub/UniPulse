@@ -26,81 +26,6 @@ class ClubProfile {
             logo: ''
         };
         
-        this.events = [
-            {
-                id: 1,
-                title: 'AI Innovation Summit 2024',
-                date: '2024-12-15',
-                location: 'Berkeley Campus Center',
-                image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=250&fit=crop',
-                category: 'upcoming',
-                type: 'organized',
-                featured: true,
-                description: 'Annual summit featuring AI innovations and industry partnerships.',
-                attendees: 150
-            },
-            {
-                id: 2,
-                title: 'Startup Pitch Night',
-                date: '2024-11-20',
-                location: 'Student Innovation Lab',
-                image: 'https://images.unsplash.com/photo-1559223607-b4d0555ae227?w=400&h=250&fit=crop',
-                category: 'upcoming',
-                type: 'organized',
-                featured: false,
-                description: 'Monthly pitch competition for student entrepreneurs.',
-                attendees: 80
-            },
-            {
-                id: 3,
-                title: 'Tech Networking Mixer',
-                date: '2024-10-25',
-                location: 'Berkeley Engineering Building',
-                image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=400&h=250&fit=crop',
-                category: 'upcoming',
-                type: 'organized',
-                featured: true,
-                description: 'Connect with industry professionals and fellow students.',
-                attendees: 120
-            },
-            {
-                id: 4,
-                title: 'Hackathon 2024',
-                date: '2024-08-15',
-                location: 'Berkeley Computer Science Building',
-                image: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=250&fit=crop',
-                category: 'past',
-                type: 'organized',
-                featured: true,
-                description: '48-hour hackathon with $10,000 in prizes.',
-                attendees: 200
-            },
-            {
-                id: 5,
-                title: 'Web Development Workshop',
-                date: '2024-07-20',
-                location: 'Online & Berkeley Lab',
-                image: 'https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=400&h=250&fit=crop',
-                category: 'past',
-                type: 'organized',
-                featured: false,
-                description: 'Learn modern web development with React and Node.js.',
-                attendees: 60
-            },
-            {
-                id: 6,
-                title: 'Industry Career Fair',
-                date: '2024-06-10',
-                location: 'Berkeley Memorial Stadium',
-                image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=250&fit=crop',
-                category: 'past',
-                type: 'organized',
-                featured: true,
-                description: 'Meet with top tech companies for internships and jobs.',
-                attendees: 300
-            }
-        ];
-        
         this.focusAreas = ['Technology', 'Innovation', 'Entrepreneurship', 'Networking'];
         this.notifications = [];
         
@@ -109,12 +34,9 @@ class ClubProfile {
 
     init() {
         this.bindEvents();
-        this.loadEvents();
         this.loadUserData();
         this.setupAnimations();
-        this.categorizeEvents();
         this.setupImageUploads();
-        this.initializeEventsFilter();
     }
 
     setupImageUploads() {
@@ -192,15 +114,6 @@ class ClubProfile {
         }
     }
 
-    categorizeEvents() {
-        const currentDate = new Date('2024-08-28'); // Using the current date
-        
-        this.events.forEach(event => {
-            const eventDate = new Date(event.date);
-            event.category = eventDate > currentDate ? 'upcoming' : 'past';
-        });
-    }
-
     bindEvents() {
         // Tab navigation
         document.querySelectorAll('.nav-item').forEach(item => {
@@ -233,13 +146,6 @@ class ClubProfile {
             });
         });
 
-        // Event filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.filterEvents(e.target.dataset.filter);
-            });
-        });
-
         // Settings form
         const settingsForm = document.querySelector('#settings form');
         if (settingsForm) {
@@ -254,14 +160,6 @@ class ClubProfile {
         if (fileInput) {
             fileInput.addEventListener('change', (e) => {
                 this.handleImageUpload(e.target.files[0]);
-            });
-        }
-
-        // Event search
-        const eventSearch = document.getElementById('eventSearch');
-        if (eventSearch) {
-            eventSearch.addEventListener('input', (e) => {
-                this.searchEvents(e.target.value);
             });
         }
 
@@ -441,11 +339,6 @@ class ClubProfile {
         });
     }
 
-    initializeEventsFilter() {
-        // Set default filter to upcoming events
-        this.filterEvents('upcoming');
-    }
-
     togglePreference(button) {
         // Pure PHP implementation - no JS auto-save needed
         // This function is kept for backward compatibility with button-based UI
@@ -502,77 +395,6 @@ class ClubProfile {
             activeContent.style.opacity = '1';
             activeContent.style.transform = 'translateY(0)';
         }, 50);
-    }
-
-    loadEvents() {
-        const container = document.getElementById('eventsContainer');
-        if (!container) return;
-
-        container.innerHTML = '';
-        
-        // Sort events: upcoming first (by date), then past events
-        const sortedEvents = this.events.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            const currentDate = new Date('2024-08-25');
-            
-            // If both are upcoming or both are past, sort by date
-            if ((dateA > currentDate && dateB > currentDate) || (dateA <= currentDate && dateB <= currentDate)) {
-                return dateA - dateB;
-            }
-            // Upcoming events come first
-            return dateA > currentDate ? -1 : 1;
-        });
-        
-        sortedEvents.forEach(event => {
-            const eventCard = this.createEventCard(event);
-            container.appendChild(eventCard);
-        });
-    }
-
-    createEventCard(event) {
-        const card = document.createElement('div');
-        card.className = 'event-card';
-        card.dataset.category = event.category;
-        card.dataset.type = event.type;
-        card.dataset.title = event.title.toLowerCase();
-
-        const badgeClass = event.category === 'upcoming' ? 'upcoming' : 'past';
-        const badgeText = event.category === 'upcoming' ? 'Upcoming' : 'Past Event';
-
-        card.innerHTML = `
-            <div class="event-image">
-                <img src="${event.image}" alt="${event.title}" loading="lazy">
-                <span class="event-badge ${badgeClass}">${badgeText}</span>
-            </div>
-            <div class="event-info">
-                <h4>${event.title}</h4>
-                <p class="event-date">
-                    <i class="fas fa-calendar"></i> 
-                    ${this.formatDate(event.date)}
-                </p>
-                <p class="event-location">
-                    <i class="fas fa-map-marker-alt"></i> 
-                    ${event.location}
-                </p>
-                <p class="event-attendees">
-                    <i class="fas fa-users"></i> 
-                    ${event.attendees} attendees
-                </p>
-                <p class="event-description">${event.description}</p>
-                <div class="event-actions">
-                    <button class="btn btn-small btn-primary" onclick="clubProfile.viewEventDetails(${event.id})">
-                        View Details
-                    </button>
-                    ${event.category === 'upcoming' ? 
-                        '<button class="btn btn-small btn-secondary" onclick="clubProfile.manageEvent(' + event.id + ')">Manage Event</button>' : 
-                        '<button class="btn btn-small btn-secondary" onclick="clubProfile.viewReport(' + event.id + ')">View Report</button>'
-                    }
-                </div>
-            </div>
-        `;
-
-        return card;
     }
 
     formatDate(dateString) {
@@ -688,43 +510,6 @@ class ClubProfile {
         document.getElementById('confirmPassword').value = '';
         
         // this.showNotification('Changes cancelled', 'info');
-    }
-
-    filterEvents(filter) {
-        // Remove active class from all filter buttons
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        // Add active class to clicked button
-        document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
-
-        // Filter events - only show upcoming or past events
-        const eventCards = document.querySelectorAll('.event-card');
-        eventCards.forEach(card => {
-            const show = card.dataset.category === filter;
-            card.style.display = show ? 'block' : 'none';
-        });
-
-        const filterText = filter === 'upcoming' ? 'upcoming events' : 'past events';
-        // Removed notification popup
-    }
-
-    searchEvents(query) {
-        const eventCards = document.querySelectorAll('.event-card');
-        const searchTerm = query.toLowerCase();
-
-        eventCards.forEach(card => {
-            const title = card.dataset.title;
-            const description = card.querySelector('.event-description').textContent.toLowerCase();
-            const location = card.querySelector('.event-location').textContent.toLowerCase();
-            
-            const matches = title.includes(searchTerm) || 
-                          description.includes(searchTerm) || 
-                          location.includes(searchTerm);
-            
-            card.style.display = matches ? 'block' : 'none';
-        });
     }
 
     searchMembers(query) {
@@ -1206,12 +991,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load galleries on page load
     console.log('About to call loadGalleries()...');
     loadGalleries();
-    
-    // Load events on page load
-    loadEvents();
-    
-    // Add event filter listeners
-    setupEventFilters();
     
     // Add some extra interactivity
     document.addEventListener('keydown', (e) => {
@@ -1813,279 +1592,6 @@ document.addEventListener('keydown', function(event) {
         }
     }
 });
-
-// ==================== EVENT FUNCTIONS ====================
-
-let currentEventFilter = 'upcoming';
-
-// Load events based on filter
-async function loadEvents(filter = 'upcoming') {
-    try {
-        currentEventFilter = filter;
-        const endpoint = filter === 'upcoming' 
-            ? '/UniPulse/public/publisher/profile/getUpcomingEvents'
-            : '/UniPulse/public/publisher/profile/getPastEvents';
-        
-        console.log('Loading events:', filter);
-        const response = await fetch(endpoint);
-        const data = await response.json();
-        
-        if (data.success && data.data) {
-            console.log(`Loaded ${data.data.length} ${filter} events`);
-            displayEvents(data.data);
-        } else {
-            console.error('Failed to load events:', data.message);
-            displayEvents([]);
-        }
-    } catch (error) {
-        console.error('Error loading events:', error);
-        displayEvents([]);
-    }
-}
-
-// Display events in the grid
-function displayEvents(events) {
-    const container = document.getElementById('eventsContainer');
-    
-    if (!container) {
-        console.error('Events container not found');
-        return;
-    }
-    
-    if (!events || events.length === 0) {
-        container.innerHTML = `
-            <div class="no-events">
-                <i class="fas fa-calendar-times" style="font-size: 48px; color: #ccc; margin-bottom: 15px;"></i>
-                <p>No ${currentEventFilter} events found.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = '';
-    
-    events.forEach(event => {
-        const eventCard = createEventCard(event);
-        container.appendChild(eventCard);
-    });
-}
-
-// Create event card element
-function createEventCard(event) {
-    const card = document.createElement('div');
-    card.className = 'event-card';
-    
-    // Format date
-    const eventDate = new Date(event.event_date);
-    const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    };
-    
-    // Format time
-    const eventTime = event.event_time ? event.event_time.substring(0, 5) : '';
-    
-    // Capitalize first letter helper
-    const capitalizeFirstLetter = (str) => {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    };
-    
-    // Determine location display based on location_type
-    let locationDisplay = '';
-    let secondaryInfo = '';
-    
-    const locationType = event.location_type || 'inside-university';
-    const venueName = event.venue_name;
-    const city = event.city;
-    const exactLocation = event.exact_location;
-    const universityName = event.university_name;
-    const facultyDepartment = event.faculty_department;
-    
-    if (locationType === 'outside-university') {
-        // Outside university: show "Venue Name, City"
-        if (venueName && city) {
-            locationDisplay = `${venueName}, ${city}`;
-        } else if (venueName) {
-            locationDisplay = venueName;
-        } else if (city) {
-            locationDisplay = city;
-        } else {
-            locationDisplay = 'Location TBA';
-        }
-        secondaryInfo = '';
-    } else {
-        // Inside university: show "Exact Location, University"
-        if (exactLocation && universityName) {
-            locationDisplay = `${exactLocation}, ${universityName}`;
-        } else if (exactLocation) {
-            locationDisplay = exactLocation;
-        } else if (universityName) {
-            locationDisplay = universityName;
-        } else {
-            locationDisplay = 'Location TBA';
-        }
-        // Secondary info shows "Faculty, University"
-        if (facultyDepartment && universityName) {
-            secondaryInfo = `${facultyDepartment}, ${universityName}`;
-        } else if (facultyDepartment) {
-            secondaryInfo = facultyDepartment;
-        } else if (universityName) {
-            secondaryInfo = universityName;
-        }
-    }
-    
-    // Build correct image path
-    let imagePath = '';
-    const coverImage = event.image_url || event.cover_image;
-    if (coverImage) {
-        if (coverImage.startsWith('http')) {
-            imagePath = coverImage;
-        } else if (coverImage.startsWith('/')) {
-            imagePath = coverImage;
-        } else {
-            imagePath = `/UniPulse/public/${coverImage}`;
-        }
-    }
-    
-    // Ticket price display
-    const getTicketPriceDisplay = (event) => {
-        const ticketType = event.ticket_type;
-        if (ticketType === 'free-all') {
-            return '<div class="event-price free">Free</div>';
-        } else if (ticketType === 'paid-all') {
-            const price = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
-        } else if (ticketType === 'both') {
-            const freePrice = parseFloat(event.ticket_price_free) || 0;
-            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
-        }
-        return '<div class="event-price">TBA</div>';
-    };
-    
-    const currentParticipants = event.current_participants || 0;
-    const maxParticipants = event.max_participants;
-    
-    card.innerHTML = `
-        <div class="event-image">
-            ${imagePath ? 
-                `<img src="${imagePath}" alt="${event.title}">` : 
-                `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>`
-            }
-            <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
-            <div class="event-status ${event.status}">${event.status}</div>
-        </div>
-        <div class="event-content">
-            <h3 class="event-title">${event.title}</h3>
-            <p class="event-description">${event.description}</p>
-            <div class="event-meta">
-                <div class="meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span>${formatDate(eventDate)} at ${eventTime}</span>
-                </div>
-                <div class="meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span>${locationDisplay}</span>
-                </div>
-                ${secondaryInfo ? `
-                <div class="meta-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                    </svg>
-                    <span>${secondaryInfo}</span>
-                </div>
-                ` : ''}
-            </div>
-            <div class="event-footer">
-                <div class="event-organizer">
-                    Organized by ${event.organizer_name || event.organizer || 'You'}
-                </div>
-                <div class="event-footer-right">
-                    ${getTicketPriceDisplay(event)}
-                    ${maxParticipants !== null && maxParticipants !== undefined ? `
-                    <div class="event-participants">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="9" cy="7" r="4"></circle>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <span>${currentParticipants}/${maxParticipants}</span>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Make card clickable to view event details
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-        window.location.href = `/UniPulse/public/publisher/eventview/${event.id}`;
-    });
-    
-    return card;
-}
-
-// Setup event filter buttons
-function setupEventFilters() {
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Update active state
-            filterButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            
-            // Load events based on filter
-            const filter = this.getAttribute('data-filter');
-            loadEvents(filter);
-        });
-    });
-    
-    // Setup search functionality
-    const searchInput = document.getElementById('eventSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            filterEventsSearch(this.value);
-        });
-    }
-}
-
-// Filter events by search term
-function filterEventsSearch(searchTerm) {
-    const eventCards = document.querySelectorAll('.event-card');
-    const term = searchTerm.toLowerCase();
-    
-    eventCards.forEach(card => {
-        const title = card.querySelector('.event-title').textContent.toLowerCase();
-        const description = card.querySelector('.event-description').textContent.toLowerCase();
-        
-        if (title.includes(term) || description.includes(term)) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
 
 // Add Admin Modal Functions
 function closeAddAdminModal() {

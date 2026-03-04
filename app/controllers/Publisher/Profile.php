@@ -29,6 +29,12 @@ class PublisherProfile extends Controller{
         // Get additional profile data
         $profileData = $this->publisherModel->getProfileData($publisherId);
         
+        // Load profile logo into session for header
+        if ($profileData && isset($profileData->logo_url)) {
+            $_SESSION['user_profile_photo'] = $profileData->logo_url;
+            $_SESSION['profile_photo'] = $profileData->logo_url;
+        }
+        
         // Merge publisher and profile data
         $data = [
             'publisher' => $publisherData,
@@ -600,82 +606,6 @@ class PublisherProfile extends Controller{
             } else {
                 return ['success' => false, 'message' => 'Failed to delete gallery'];
             }
-        });
-    }
-
-    // ==================== EVENT METHODS ====================
-    
-    /**
-     * Get upcoming events for the current publisher
-     */
-    public function getUpcomingEvents($a = '', $b = '', $c = '') {
-        $this->jsonResponse(function() {
-            $currentUser = AuthService::getCurrentUser();
-            
-            if (!$currentUser || $currentUser['type'] !== 'publisher') {
-                return ['success' => false, 'message' => 'Unauthorized'];
-            }
-
-            $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getUpcomingEvents($publisherId, $currentUser);
-            
-            // Format events with calculated status
-            $formattedEvents = [];
-            $currentDate = date('Y-m-d');
-            
-            foreach ($events as $event) {
-                $eventArray = (array) $event;
-                
-                // Calculate actual status based on event date
-                if ($eventArray['event_date'] < $currentDate) {
-                    $eventArray['status'] = 'past';
-                } elseif ($eventArray['event_date'] == $currentDate) {
-                    $eventArray['status'] = 'ongoing';
-                } elseif ($eventArray['event_date'] > $currentDate) {
-                    $eventArray['status'] = 'upcoming';
-                }
-                
-                $formattedEvents[] = $eventArray;
-            }
-            
-            return ['success' => true, 'data' => $formattedEvents];
-        });
-    }
-
-    /**
-     * Get past events for the current publisher
-     */
-    public function getPastEvents($a = '', $b = '', $c = '') {
-        $this->jsonResponse(function() {
-            $currentUser = AuthService::getCurrentUser();
-            
-            if (!$currentUser || $currentUser['type'] !== 'publisher') {
-                return ['success' => false, 'message' => 'Unauthorized'];
-            }
-
-            $publisherId = $currentUser['id'];
-            $events = $this->publisherModel->getPastEvents($publisherId, $currentUser);
-            
-            // Format events with calculated status
-            $formattedEvents = [];
-            $currentDate = date('Y-m-d');
-            
-            foreach ($events as $event) {
-                $eventArray = (array) $event;
-                
-                // Calculate actual status based on event date
-                if ($eventArray['event_date'] < $currentDate) {
-                    $eventArray['status'] = 'past';
-                } elseif ($eventArray['event_date'] == $currentDate) {
-                    $eventArray['status'] = 'ongoing';
-                } elseif ($eventArray['event_date'] > $currentDate) {
-                    $eventArray['status'] = 'upcoming';
-                }
-                
-                $formattedEvents[] = $eventArray;
-            }
-            
-            return ['success' => true, 'data' => $formattedEvents];
         });
     }
 

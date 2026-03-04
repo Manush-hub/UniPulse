@@ -52,9 +52,6 @@
             <button class="nav-item active" data-tab="about">
                 <i class="fas fa-info-circle"></i> Organization Information
             </button>
-            <button class="nav-item" data-tab="events">
-                <i class="fas fa-calendar"></i> Events
-            </button>
             <button class="nav-item" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
             </button>
@@ -288,23 +285,6 @@
                 </div>
             </div>
 
-            <!-- Events Tab -->
-            <div id="events" class="tab-content">
-                <div class="events-filter">
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-filter="upcoming">Upcoming Events</button>
-                        <button class="filter-btn" data-filter="past">Past Events</button>
-                    </div>
-                    <div class="search-box">
-                        <input type="text" placeholder="Search events..." id="eventSearch">
-                        <i class="fas fa-search"></i>
-                    </div>
-                </div>
-
-                <div class="events-grid" id="eventsContainer">
-                </div>
-            </div>
-
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
 
@@ -319,55 +299,6 @@
                                 <i class="fas fa-check-circle"></i>
                                 <span>Verified Organization</span>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Notification Settings -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Notification Settings</h3>
-                    </div>
-                    <div class="preferences-section">
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>New Member Notifications</h4>
-                                <p>Get notified when someone joins the organization</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Event Registration Notifications</h4>
-                                <p>Get notified about event registrations</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>System Updates</h4>
-                                <p>Receive notifications about platform updates</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Weekly Reports</h4>
-                                <p>Receive weekly analytics and activity reports</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox">
-                                <span class="slider"></span>
-                            </label>
                         </div>
                     </div>
                 </div>
@@ -427,20 +358,6 @@
                         <h3>Danger Zone</h3>
                     </div>
                     <div class="danger-actions">
-                        <div class="danger-item">
-                            <div>
-                                <h4>Deactivate Organization</h4>
-                                <p>Temporarily disable organization profile and events</p>
-                            </div>
-                            <button class="btn btn-danger" onclick="deactivateOrganization()">Deactivate</button>
-                        </div>
-                        <div class="danger-item">
-                            <div>
-                                <h4>Transfer Ownership</h4>
-                                <p>Transfer organization ownership to another member</p>
-                            </div>
-                            <button class="btn btn-danger" onclick="transferOwnership()">Transfer</button>
-                        </div>
                         <div class="danger-item">
                             <div>
                                 <h4>Delete Organization</h4>

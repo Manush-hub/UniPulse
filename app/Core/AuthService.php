@@ -160,6 +160,12 @@ class AuthService
                 break;
             case 'sponsor':
                 $_SESSION['user_name'] = $userData['user']->company_name;
+                // Load sponsor profile logo for header
+                $sponsorModel = new Sponsor();
+                $profileData = $sponsorModel->getProfileData($userData['user']->id);
+                if ($profileData && isset($profileData->logo_url)) {
+                    $_SESSION['user_logo'] = $profileData->logo_url;
+                }
                 break;
             case 'publisher':
                 $_SESSION['user_name'] = $userData['user']->society_name;
@@ -169,6 +175,13 @@ class AuthService
                 }
                 if (isset($userData['user']->faculty)) {
                     $_SESSION['user_faculty'] = $userData['user']->faculty;
+                }
+                // Load publisher profile logo for header
+                $publisherModel = new Publisher();
+                $profileData = $publisherModel->getProfileData($userData['user']->id);
+                if ($profileData && isset($profileData->logo_url)) {
+                    $_SESSION['user_profile_photo'] = $profileData->logo_url;
+                    $_SESSION['profile_photo'] = $profileData->logo_url;
                 }
                 break;
         }
