@@ -210,14 +210,32 @@
                                     class="form-control" 
                                     required>
                                 <option value="">Select University</option>
-                                <?php if (isset($universities)): ?>
-                                    <?php foreach ($universities as $key => $name): ?>
-                                        <option value="<?php echo htmlspecialchars($key); ?>" 
-                                                <?php echo (isset($old_data['university']) && $old_data['university'] === $key) ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($name); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
+                                <!-- State Universities -->
+                                <optgroup label="State Universities">
+                                    <option value="university-of-colombo" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-colombo') ? 'selected' : '' ?>>University of Colombo</option>
+                                    <option value="university-of-peradeniya" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-peradeniya') ? 'selected' : '' ?>>University of Peradeniya</option>
+                                    <option value="university-of-sri-jayewardenepura" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-sri-jayewardenepura') ? 'selected' : '' ?>>University of Sri Jayewardenepura</option>
+                                    <option value="university-of-kelaniya" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-kelaniya') ? 'selected' : '' ?>>University of Kelaniya</option>
+                                    <option value="university-of-moratuwa" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-moratuwa') ? 'selected' : '' ?>>University of Moratuwa</option>
+                                    <option value="university-of-jaffna" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-jaffna') ? 'selected' : '' ?>>University of Jaffna</option>
+                                    <option value="university-of-ruhuna" <?= (isset($old_data['university']) && $old_data['university'] === 'university-of-ruhuna') ? 'selected' : '' ?>>University of Ruhuna</option>
+                                    <option value="eastern-university" <?= (isset($old_data['university']) && $old_data['university'] === 'eastern-university') ? 'selected' : '' ?>>Eastern University, Sri Lanka</option>
+                                    <option value="south-eastern-university" <?= (isset($old_data['university']) && $old_data['university'] === 'south-eastern-university') ? 'selected' : '' ?>>South Eastern University of Sri Lanka</option>
+                                    <option value="rajarata-university" <?= (isset($old_data['university']) && $old_data['university'] === 'rajarata-university') ? 'selected' : '' ?>>Rajarata University of Sri Lanka</option>
+                                    <option value="sabaragamuwa-university" <?= (isset($old_data['university']) && $old_data['university'] === 'sabaragamuwa-university') ? 'selected' : '' ?>>Sabaragamuwa University of Sri Lanka</option>
+                                    <option value="wayamba-university" <?= (isset($old_data['university']) && $old_data['university'] === 'wayamba-university') ? 'selected' : '' ?>>Wayamba University of Sri Lanka</option>
+                                    <option value="uva-wellassa-university" <?= (isset($old_data['university']) && $old_data['university'] === 'uva-wellassa-university') ? 'selected' : '' ?>>Uva Wellassa University</option>
+                                    <option value="open-university" <?= (isset($old_data['university']) && $old_data['university'] === 'open-university') ? 'selected' : '' ?>>Open University of Sri Lanka</option>
+                                    <option value="buddhist-and-pali-university" <?= (isset($old_data['university']) && $old_data['university'] === 'buddhist-and-pali-university') ? 'selected' : '' ?>>Buddhist and Pali University of Sri Lanka</option>
+                                </optgroup>
+                                <!-- Private Universities -->
+                                <optgroup label="Private Universities">
+                                    <option value="sliit" <?= (isset($old_data['university']) && $old_data['university'] === 'sliit') ? 'selected' : '' ?>>Sri Lanka Institute of Information Technology (SLIIT)</option>
+                                    <option value="nsbm" <?= (isset($old_data['university']) && $old_data['university'] === 'nsbm') ? 'selected' : '' ?>>NSBM Green University</option>
+                                    <option value="cinec" <?= (isset($old_data['university']) && $old_data['university'] === 'cinec') ? 'selected' : '' ?>>CINEC Campus</option>
+                                    <option value="apiit" <?= (isset($old_data['university']) && $old_data['university'] === 'apiit') ? 'selected' : '' ?>>Asia Pacific Institute of Information Technology (APIIT)</option>
+                                    <option value="metropolitan-campus" <?= (isset($old_data['university']) && $old_data['university'] === 'metropolitan-campus') ? 'selected' : '' ?>>KIU (Kaatsu International University)</option>
+                                </optgroup>
                             </select>
                             <div class="validation-error" id="university_error"></div>
                             <?php if (isset($errors['university'])): ?>

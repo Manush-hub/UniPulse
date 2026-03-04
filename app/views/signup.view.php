@@ -50,7 +50,7 @@
                                 <path d="M42 16V24" stroke="#E87C2B" stroke-width="3" stroke-linecap="round" />
                             </svg>
                         </div>
-                        <h3 class="user-type-title">Organizers</h3>
+                        <h3 class="user-type-title">Publisher</h3>
                         <p class="user-type-desc">
                             University clubs and organizations that create, manage, and promote events to engage the student community.
                         </p>

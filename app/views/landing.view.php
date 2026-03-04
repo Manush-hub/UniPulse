@@ -30,6 +30,16 @@ $roleConfig = [
         'eventsLink' => '/unipulse/public/sponsor/events',
         'showSearchSection' => true,
         'showCategoriesSection' => true
+    ],
+    'Admin' => [
+        'pageTitle' => 'UniPulse - Admin Home',
+        'bannerHeading' => 'No Active Boosted Events',
+        'bannerDescription' => 'Publishers can boost their events to appear here in the spotlight.',
+        'bannerButtonText' => 'View All Events',
+        'bannerButtonLink' => '/unipulse/public/admin/allevents',
+        'eventsLink' => '/unipulse/public/admin/allevents',
+        'showSearchSection' => false,
+        'showCategoriesSection' => false
     ]
 ];
 

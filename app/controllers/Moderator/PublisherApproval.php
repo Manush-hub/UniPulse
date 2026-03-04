@@ -22,10 +22,27 @@ class PublisherApproval extends Controller {
         try {
             $moderatorData = AuthService::getCurrentUser();
             $publisherModel = new Publisher();
+
+            // Fetch publisher name for activity log
+            $conn = $publisherModel->connect();
+            $stmt = $conn->prepare("SELECT society_name FROM publishers WHERE id = ?");
+            $stmt->execute([$publisherId]);
+            $pubRow = $stmt->fetch(PDO::FETCH_OBJ);
+            $pubName = $pubRow ? $pubRow->society_name : 'Unknown';
             
             $result = $publisherModel->approve($publisherId, $moderatorData['id']);
             
             if ($result) {
+                AdminActivity::log(
+                    $moderatorData['id'],
+                    $moderatorData['name'],
+                    'mod_publisher_approved',
+                    'publisher',
+                    (int)$publisherId,
+                    $pubName,
+                    'Approved publisher account: ' . $pubName,
+                    'check-circle'
+                );
                 echo json_encode([
                     'success' => true, 
                     'message' => 'Publisher approved successfully'
@@ -67,9 +84,27 @@ class PublisherApproval extends Controller {
             $reason = $_POST['reason'] ?? 'No reason provided';
             
             $publisherModel = new Publisher();
+
+            // Fetch publisher name for activity log
+            $conn = $publisherModel->connect();
+            $stmt = $conn->prepare("SELECT society_name FROM publishers WHERE id = ?");
+            $stmt->execute([$publisherId]);
+            $pubRow = $stmt->fetch(PDO::FETCH_OBJ);
+            $pubName = $pubRow ? $pubRow->society_name : 'Unknown';
+
             $result = $publisherModel->reject($publisherId, $moderatorData['id'], $reason);
             
             if ($result) {
+                AdminActivity::log(
+                    $moderatorData['id'],
+                    $moderatorData['name'],
+                    'mod_publisher_rejected',
+                    'publisher',
+                    (int)$publisherId,
+                    $pubName,
+                    'Rejected publisher account: ' . $pubName . ' (Reason: ' . $reason . ')',
+                    'times-circle'
+                );
                 echo json_encode([
                     'success' => true, 
                     'message' => 'Publisher rejected successfully'

@@ -209,9 +209,10 @@
 
     <!-- Pass server data to JavaScript -->
     <script>
+        const userRole = 'Admin';
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
     </script>
 
-    <script src="/unipulse/public/assets/js/Admin/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/events-app.js"></script>
 </body>
 </html>

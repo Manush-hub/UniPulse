@@ -25,6 +25,12 @@ class AdminDashboard extends Controller {
             'total_admins' => count($activeAdmins)
         ];
         
+        // Count publishers and sponsors
+        $publisherCountResult = $this->query("SELECT COUNT(*) as cnt FROM publishers");
+        $sponsorCountResult   = $this->query("SELECT COUNT(*) as cnt FROM sponsors");
+        $data['stats']['total_publishers'] = $publisherCountResult ? (int)$publisherCountResult[0]->cnt : 0;
+        $data['stats']['total_sponsors']   = $sponsorCountResult   ? (int)$sponsorCountResult[0]->cnt   : 0;
+        
         // Get recent registrations from all user types
         $universityUser = new UniversityUser();
         $publicUser = new PublicUser();
@@ -282,16 +288,31 @@ class AdminDashboard extends Controller {
         if ($adminActions) {
             foreach ($adminActions as $row) {
                 $titleMap = [
-                    'moderator_created'   => 'Moderator Added',
-                    'moderator_edited'    => 'Moderator Updated',
-                    'moderator_deleted'   => 'Moderator Deleted',
-                    'moderator_activated' => 'Moderator Reactivated',
-                    'admin_created'       => 'New Admin Added',
+                    'moderator_created'    => 'Moderator Added',
+                    'moderator_edited'     => 'Moderator Updated',
+                    'moderator_deleted'    => 'Moderator Deleted',
+                    'moderator_activated'  => 'Moderator Reactivated',
+                    'admin_created'        => 'New Admin Added',
+                    'user_suspended'       => 'Account Suspended',
+                    'user_reactivated'     => 'Account Reactivated',
+                    'publisher_approved'   => 'Publisher Approved',
+                    'publisher_rejected'   => 'Publisher Rejected',
+                    'mod_publisher_approved' => 'Publisher Approved',
+                    'mod_publisher_rejected' => 'Publisher Rejected',
                 ];
+                $typeMap = [
+                    'user_suspended'         => 'suspension',
+                    'user_reactivated'       => 'reactivation',
+                    'publisher_approved'     => 'approval',
+                    'mod_publisher_approved' => 'approval',
+                    'publisher_rejected'     => 'rejection',
+                    'mod_publisher_rejected' => 'rejection',
+                ];
+                $actType = $typeMap[$row->action_type] ?? 'admin_action';
                 $title = $titleMap[$row->action_type] ?? ucwords(str_replace('_', ' ', $row->action_type));
                 $activities[] = [
                     'raw_time' => strtotime($row->created_at),
-                    'type'        => 'admin_action',
+                    'type'        => $actType,
                     'title'       => $title,
                     'description' => $row->description . ' (by ' . $row->admin_name . ')',
                     'time'        => $this->timeAgo($row->created_at),
@@ -484,6 +505,11 @@ class AdminDashboard extends Controller {
             exit();
         }
         
+        // Fetch user name for activity log
+        $nameField = in_array($userType, ['publisher']) ? 'society_name' : (in_array($userType, ['sponsor']) ? 'company_name' : 'full_name');
+        $userRow = $this->query("SELECT {$nameField} as display_name FROM {$tableName} WHERE id = ?", [$userId]);
+        $displayName = $userRow ? $userRow[0]->display_name : 'Unknown';
+
         try {
             $conn = $this->connect();
             $query = "UPDATE {$tableName} SET 
@@ -501,6 +527,16 @@ class AdminDashboard extends Controller {
             ]);
             
             if ($result) {
+                AdminActivity::log(
+                    $adminId,
+                    $adminUser['name'],
+                    'user_suspended',
+                    $userType,
+                    (int)$userId,
+                    $displayName,
+                    'Suspended ' . ucfirst($userType) . ' account: ' . $displayName . ' (Reason: ' . $reason . ')',
+                    'ban'
+                );
                 echo json_encode(['success' => true, 'message' => 'Account suspended successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to suspend account']);
@@ -538,7 +574,13 @@ class AdminDashboard extends Controller {
             echo json_encode(['success' => false, 'message' => 'Invalid user type']);
             exit();
         }
-        
+
+        // Fetch user name for activity log
+        $nameField = in_array($userType, ['publisher']) ? 'society_name' : (in_array($userType, ['sponsor']) ? 'company_name' : 'full_name');
+        $userRow = $this->query("SELECT {$nameField} as display_name FROM {$tableName} WHERE id = ?", [$userId]);
+        $displayName = $userRow ? $userRow[0]->display_name : 'Unknown';
+        $reactivatingAdmin = AuthService::getCurrentUser();
+
         try {
             $conn = $this->connect();
             $query = "UPDATE {$tableName} SET 
@@ -552,6 +594,16 @@ class AdminDashboard extends Controller {
             $result = $stmt->execute(['user_id' => $userId]);
             
             if ($result) {
+                AdminActivity::log(
+                    $reactivatingAdmin['id'],
+                    $reactivatingAdmin['name'],
+                    'user_reactivated',
+                    $userType,
+                    (int)$userId,
+                    $displayName,
+                    'Reactivated ' . ucfirst($userType) . ' account: ' . $displayName,
+                    'circle-check'
+                );
                 echo json_encode(['success' => true, 'message' => 'Account reactivated successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to reactivate account']);
@@ -599,10 +651,24 @@ class AdminDashboard extends Controller {
             
             $publisher = new Publisher();
             $admin = AuthService::getCurrentUser();
+
+            // Fetch publisher name for activity log
+            $pubRow = $this->query("SELECT society_name FROM publishers WHERE id = ?", [$publisherId]);
+            $pubName = $pubRow ? $pubRow[0]->society_name : 'Unknown';
             
             $result = $publisher->approve($publisherId, $admin['id']);
             
             if ($result) {
+                AdminActivity::log(
+                    $admin['id'],
+                    $admin['name'],
+                    'publisher_approved',
+                    'publisher',
+                    (int)$publisherId,
+                    $pubName,
+                    'Approved publisher account: ' . $pubName,
+                    'check-circle'
+                );
                 echo json_encode(['success' => true, 'message' => 'Publisher approved successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to approve publisher']);
@@ -642,10 +708,24 @@ class AdminDashboard extends Controller {
             
             $publisher = new Publisher();
             $admin = AuthService::getCurrentUser();
+
+            // Fetch publisher name for activity log
+            $pubRow = $this->query("SELECT society_name FROM publishers WHERE id = ?", [$publisherId]);
+            $pubName = $pubRow ? $pubRow[0]->society_name : 'Unknown';
             
             $result = $publisher->reject($publisherId, $admin['id'], $rejectionReason);
             
             if ($result) {
+                AdminActivity::log(
+                    $admin['id'],
+                    $admin['name'],
+                    'publisher_rejected',
+                    'publisher',
+                    (int)$publisherId,
+                    $pubName,
+                    'Rejected publisher account: ' . $pubName . ' (Reason: ' . $rejectionReason . ')',
+                    'times-circle'
+                );
                 echo json_encode(['success' => true, 'message' => 'Publisher rejected successfully']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to reject publisher']);
@@ -774,5 +854,79 @@ class AdminDashboard extends Controller {
             error_log("Error fetching all users: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to fetch users']);
         }
+    }
+
+    /**
+     * Return the logged-in admin's profile for the header
+     */
+    public function getUserProfile() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser || $currentUser['type'] !== 'admin') {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            $displayName = trim((string)($currentUser['name'] ?? 'Admin'));
+            if ($displayName !== '' && $displayName === strtolower($displayName)) {
+                $displayName = ucwords($displayName);
+            }
+
+            echo json_encode([
+                'success'     => true,
+                'username'    => $displayName,
+                'displayName' => $displayName,
+                'email'       => $currentUser['email'] ?? '',
+                'type'        => 'admin',
+            ]);
+        } catch (Exception $e) {
+            error_log('Admin getUserProfile error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Server error']);
+        }
+        exit;
+    }
+
+    /**
+     * Return notifications for the admin header
+     */
+    public function getNotifications() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser || $currentUser['type'] !== 'admin') {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            // Pending publisher approvals become notifications
+            $publisher = new Publisher();
+            $pending   = $publisher->getAllPending();
+            $notifications = [];
+
+            if (is_array($pending)) {
+                foreach (array_slice($pending, 0, 10) as $p) {
+                    $notifications[] = [
+                        'id'      => $p->id,
+                        'message' => ($p->society_name ?? 'A publisher') . ' is awaiting approval',
+                        'time'    => isset($p->created_at) ? $this->timeAgo($p->created_at) : '',
+                        'unread'  => true,
+                        'link'    => '/unipulse/public/admin/dashboard',
+                    ];
+                }
+            }
+
+            echo json_encode(['success' => true, 'notifications' => $notifications]);
+        } catch (Exception $e) {
+            error_log('Admin getNotifications error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Server error']);
+        }
+        exit;
     }
 }

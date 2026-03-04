@@ -114,8 +114,12 @@ function displayRecentActivity(activities) {
     
     // Colour map per activity type
     const iconColorMap = {
-        registration: '#4a90e2',   // blue – user signups
-        admin_action: '#e67e22',   // orange – admin management
+        registration:  '#4a90e2',   // blue  – user signups
+        admin_action:  '#e67e22',   // orange – admin management
+        suspension:    '#e53e3e',   // red   – suspensions
+        reactivation:  '#38a169',   // green – reactivations
+        approval:      '#6966e0',   // purple – publisher approved
+        rejection:     '#e53e3e',   // red   – publisher rejected
     };
 
     activities.forEach((activity, index) => {

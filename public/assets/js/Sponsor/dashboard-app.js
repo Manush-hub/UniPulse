@@ -120,7 +120,7 @@ function createSponsorshipCard(sponsorship) {
 
 // View event details
 function viewEventDetails(eventId) {
-    window.location.href = `/unipulse/public/sponsor/Events/event/${eventId}`;
+    window.location.href = `/unipulse/public/sponsor/eventview/${eventId}`;
 }
 
 // Contact organizer - redirect to messages

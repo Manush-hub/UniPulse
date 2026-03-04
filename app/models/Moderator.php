@@ -243,11 +243,28 @@ class Moderator {
      */
     public static function getAvailableUniversities() {
         return [
-            'university-of-moratuwa' => 'University of Moratuwa',
-            'university-of-peradeniya' => 'University of Peradeniya', 
-            'university-of-colombo' => 'University of Colombo',
-            'university-of-kelaniya' => 'University of Kelaniya',
-            'university-of-sri-jayewardenepura' => 'University of Sri Jayewardenepura'
+            // State Universities
+            'university-of-colombo'              => 'University of Colombo',
+            'university-of-peradeniya'           => 'University of Peradeniya',
+            'university-of-sri-jayewardenepura'  => 'University of Sri Jayewardenepura',
+            'university-of-kelaniya'             => 'University of Kelaniya',
+            'university-of-moratuwa'             => 'University of Moratuwa',
+            'university-of-jaffna'               => 'University of Jaffna',
+            'university-of-ruhuna'               => 'University of Ruhuna',
+            'eastern-university'                 => 'Eastern University, Sri Lanka',
+            'south-eastern-university'           => 'South Eastern University of Sri Lanka',
+            'rajarata-university'                => 'Rajarata University of Sri Lanka',
+            'sabaragamuwa-university'            => 'Sabaragamuwa University of Sri Lanka',
+            'wayamba-university'                 => 'Wayamba University of Sri Lanka',
+            'uva-wellassa-university'            => 'Uva Wellassa University',
+            'open-university'                    => 'Open University of Sri Lanka',
+            'buddhist-and-pali-university'       => 'Buddhist and Pali University of Sri Lanka',
+            // Private Universities
+            'sliit'                              => 'Sri Lanka Institute of Information Technology (SLIIT)',
+            'nsbm'                               => 'NSBM Green University',
+            'cinec'                              => 'CINEC Campus',
+            'apiit'                              => 'Asia Pacific Institute of Information Technology (APIIT)',
+            'metropolitan-campus'                => 'KIU (Kaatsu International University)',
         ];
     }
     
