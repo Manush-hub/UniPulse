@@ -10,62 +10,67 @@ class ModeratorMessages extends Controller {
             header('Location: /unipulse/public/signin');
             exit();
         }
-        
+
+        // --- Step 1: fetch moderator profile (always needed for header) ---
+        $moderatorData = null;
         try {
-            $message = new Message();
-            
-            // Get all conversations for this moderator
-            $conversations = $message->getConversations($currentUser['id'], 'moderator');
-            
-            // Get unread count
-            $unreadCount = $message->getUnreadCount($currentUser['id'], 'moderator');
-            
-            // Get moderator details to get their university
             $moderatorModel = new Moderator();
-            $moderatorData = $moderatorModel->findById($currentUser['id']);
-            
-            // Get available publishers from moderator's university
-            $publisherModel = new Publisher();
-            $availablePublishers = [];
-            if ($moderatorData && !empty($moderatorData->university)) {
-                error_log("ModeratorMessages: Moderator university = " . $moderatorData->university);
-                $availablePublishers = $publisherModel->getApprovedByUniversity($moderatorData->university);
-                error_log("ModeratorMessages: Found " . (is_array($availablePublishers) ? count($availablePublishers) : 0) . " publishers");
-                if (is_array($availablePublishers) && count($availablePublishers) > 0) {
-                    error_log("ModeratorMessages: Publishers = " . json_encode(array_map(function($p) { 
-                        return ['id' => $p->id, 'name' => $p->society_name, 'approval' => $p->approval_status ?? 'unknown']; 
-                    }, $availablePublishers)));
-                }
-            } else {
-                error_log("ModeratorMessages: No moderator data or university not set");
-            }
-            
-            $data = [
-                'user' => $currentUser,
-                'moderator' => $moderatorData,
-                'conversations' => $conversations,
-                'unread_count' => $unreadCount,
-                'available_publishers' => $availablePublishers,
-                'page_title' => 'Messages'
-            ];
-            
-            parent::view('Moderator/messages', $data);
-            
+            $moderatorData  = $moderatorModel->findById($currentUser['id']);
         } catch (Exception $e) {
-            error_log("Error in ModeratorMessages::index: " . $e->getMessage());
-            
-            $data = [
-                'user' => $currentUser,
-                'moderator' => $moderatorData ?? null,
-                'conversations' => [],
-                'unread_count' => 0,
-                'available_publishers' => [],
-                'page_title' => 'Messages',
-                'error' => 'Failed to load messages'
-            ];
-            
-            parent::view('Moderator/messages', $data);
+            error_log("ModeratorMessages: could not load moderator profile: " . $e->getMessage());
         }
+
+        // --- Step 2: fetch available publishers for this moderator's university ---
+        $availablePublishers = [];
+        try {
+            if ($moderatorData && !empty($moderatorData->university)) {
+                $publisherModel      = new Publisher();
+                $availablePublishers = $publisherModel->getApprovedByUniversity($moderatorData->university);
+                if (!$availablePublishers) {
+                    $availablePublishers = [];
+                }
+            }
+        } catch (Exception $e) {
+            error_log("ModeratorMessages: could not load publishers: " . $e->getMessage());
+        }
+
+        // --- Step 3: fetch all active admins (pinned for every moderator) ---
+        $availableAdmins = [];
+        try {
+            $adminModel      = new Admin();
+            $availableAdmins = $adminModel->getActiveAdmins();
+            if (!$availableAdmins) {
+                $availableAdmins = [];
+            }
+        } catch (Exception $e) {
+            error_log("ModeratorMessages: could not load admins: " . $e->getMessage());
+        }
+
+        // --- Step 4: fetch conversations and unread count ---
+        $conversations = [];
+        $unreadCount   = 0;
+        try {
+            $message       = new Message();
+            $conversations = $message->getConversations($currentUser['id'], 'moderator');
+            $unreadCount   = $message->getUnreadCount($currentUser['id'], 'moderator');
+            if (!$conversations) {
+                $conversations = [];
+            }
+        } catch (Exception $e) {
+            error_log("ModeratorMessages: could not load conversations: " . $e->getMessage());
+        }
+
+        $data = [
+            'user'                => $currentUser,
+            'moderator'           => $moderatorData,
+            'conversations'       => $conversations,
+            'unread_count'        => $unreadCount,
+            'available_publishers' => $availablePublishers,
+            'available_admins'    => $availableAdmins,
+            'page_title'          => 'Messages',
+        ];
+
+        parent::view('Moderator/messages', $data);
     }
     
     /**
