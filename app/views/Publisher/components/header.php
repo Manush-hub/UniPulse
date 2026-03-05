@@ -54,6 +54,7 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
         <nav class="nav">
             <a href="/unipulse/public/publisher/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/publisher/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
+            <a href="/unipulse/public/publisher/sponsors" class="<?= $activeNav === 'sponsors' ? 'active' : '' ?>">Browse Sponsors</a>
             <a href="/unipulse/public/publisher/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">Sponsorships</a>
             <a href="/unipulse/public/publisher/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>" style="position:relative;">
                 Messages

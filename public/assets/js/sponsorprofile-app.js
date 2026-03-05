@@ -476,13 +476,18 @@ class SponsorProfileApp {
         formData.append('image', file);
         formData.append('type', type);
 
+        console.log('Uploading image:', { fileName: file.name, fileType: file.type, uploadType: type });
+
         try {
             const response = await fetch('/UniPulse/public/sponsor/profile/uploadImage', {
                 method: 'POST',
                 body: formData
             });
 
+            console.log('Upload response status:', response.status);
+            
             const result = await response.json();
+            console.log('Upload result:', result);
             
             if (result.success) {
                 // Update header avatar if logo was uploaded
@@ -494,6 +499,7 @@ class SponsorProfileApp {
                 }
                 this.showNotification(`${type === 'logo' ? 'Logo' : 'Cover photo'} updated successfully!`, 'success');
             } else {
+                console.error('Upload failed:', result.message);
                 this.showNotification(result.message || 'Failed to upload image', 'error');
             }
         } catch (error) {

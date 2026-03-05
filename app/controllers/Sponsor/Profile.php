@@ -340,14 +340,19 @@ class SponsorProfile extends Controller {
     public function uploadImage($a = '', $b = '', $c = '') {
         header('Content-Type: application/json');
         
+        error_log("uploadImage called - FILES: " . print_r($_FILES, true));
+        error_log("uploadImage called - POST: " . print_r($_POST, true));
+        
         $currentUser = AuthService::getCurrentUser();
         
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+            error_log("uploadImage - Unauthorized: " . print_r($currentUser, true));
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         if (!isset($_FILES['image']) || !isset($_POST['type'])) {
+            error_log("uploadImage - Missing image or type");
             echo json_encode(['success' => false, 'message' => 'Missing image or type']);
             return;
         }
@@ -355,14 +360,18 @@ class SponsorProfile extends Controller {
         $file = $_FILES['image'];
         $type = $_POST['type']; // 'logo' or 'cover'
         
+        error_log("uploadImage - Processing file: " . $file['name'] . " Type: " . $type);
+        
         // Validate file
         $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!in_array($file['type'], $allowedTypes)) {
+            error_log("uploadImage - Invalid file type: " . $file['type']);
             echo json_encode(['success' => false, 'message' => 'Invalid file type. Only JPG and PNG are allowed']);
             return;
         }
 
         if ($file['size'] > 5 * 1024 * 1024) { // 5MB
+            error_log("uploadImage - File too large: " . $file['size']);
             echo json_encode(['success' => false, 'message' => 'File size must be less than 5MB']);
             return;
         }
@@ -371,15 +380,20 @@ class SponsorProfile extends Controller {
         $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/UniPulse/public/uploads/sponsors/';
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
+            error_log("uploadImage - Created directory: " . $uploadDir);
         }
 
         // Generate unique filename
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = 'sponsor_' . $currentUser['id'] . '_' . $type . '_' . time() . '.' . $extension;
         $uploadPath = $uploadDir . $filename;
+        
+        error_log("uploadImage - Upload path: " . $uploadPath);
 
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+            error_log("uploadImage - File uploaded successfully");
+            
             // Generate URL for the image
             $imageUrl = '/UniPulse/public/uploads/sponsors/' . $filename;
             
@@ -387,18 +401,25 @@ class SponsorProfile extends Controller {
             $sponsorId = $currentUser['id'];
             $updateData = $type === 'logo' ? ['logo_url' => $imageUrl] : ['cover_photo_url' => $imageUrl];
             
+            error_log("uploadImage - Updating database for sponsor ID: " . $sponsorId . " with data: " . print_r($updateData, true));
+            
             $result = $this->sponsorModel->updateProfileData($sponsorId, $updateData);
+            
+            error_log("uploadImage - Database update result: " . ($result ? 'success' : 'failed'));
             
             if ($result) {
                 // Update session with logo URL for header
                 if ($type === 'logo') {
                     $_SESSION['user_logo'] = $imageUrl;
+                    error_log("uploadImage - Updated session logo: " . $imageUrl);
                 }
                 echo json_encode(['success' => true, 'url' => $imageUrl, 'message' => 'Image uploaded successfully']);
             } else {
+                error_log("uploadImage - Failed to update database");
                 echo json_encode(['success' => false, 'message' => 'Failed to update database']);
             }
         } else {
+            error_log("uploadImage - Failed to move uploaded file from " . $file['tmp_name'] . " to " . $uploadPath);
             echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
         }
     }

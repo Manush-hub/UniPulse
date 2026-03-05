@@ -111,7 +111,12 @@
                                 <h4 class="contacts-section-title"><i class="fas fa-handshake"></i> Sponsors</h4>
                                 <div class="contacts-list">
                                     <?php foreach (array_slice($available_sponsors, 0, 5) as $sponsor): ?>
-                                        <div class="contact-item" onclick="startConversation(<?= $sponsor->id ?>, 'sponsor', '<?= htmlspecialchars($sponsor->company_name) ?>', '<?= htmlspecialchars($sponsor->logo_url ?? '') ?>')">
+                                        <div class="contact-item" 
+                                             data-contact-id="<?= $sponsor->id ?>"
+                                             data-contact-type="sponsor"
+                                             data-contact-name="<?= htmlspecialchars($sponsor->company_name) ?>"
+                                             data-contact-photo="<?= htmlspecialchars($sponsor->logo_url ?? '') ?>"
+                                             onclick="startConversation(<?= $sponsor->id ?>, 'sponsor', '<?= htmlspecialchars($sponsor->company_name) ?>', '<?= htmlspecialchars($sponsor->logo_url ?? '') ?>')">
                                             <div class="contact-avatar">
                                                 <?php if (!empty($sponsor->logo_url)): ?>
                                                     <img src="<?= htmlspecialchars($sponsor->logo_url) ?>" alt="<?= htmlspecialchars($sponsor->company_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
@@ -135,7 +140,11 @@
                                 <h4 class="contacts-section-title"><i class="fas fa-user-shield"></i> Moderators (Your University)</h4>
                                 <div class="contacts-list">
                                     <?php foreach ($available_moderators as $moderator): ?>
-                                        <div class="contact-item" onclick="startConversation(<?= $moderator->id ?>, 'moderator', '<?= htmlspecialchars($moderator->full_name) ?>')">
+                                        <div class="contact-item" 
+                                             data-contact-id="<?= $moderator->id ?>"
+                                             data-contact-type="moderator"
+                                             data-contact-name="<?= htmlspecialchars($moderator->full_name) ?>"
+                                             onclick="startConversation(<?= $moderator->id ?>, 'moderator', '<?= htmlspecialchars($moderator->full_name) ?>')">
                                             <div class="contact-avatar">
                                                 <?= strtoupper(substr($moderator->full_name, 0, 2)) ?>
                                             </div>

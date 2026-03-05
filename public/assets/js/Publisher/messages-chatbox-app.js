@@ -7,11 +7,50 @@ let currentContactName = null;
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Publisher Messages Chatbox App initialized');
 
-    // Check URL params to auto-open a specific conversation (e.g. after a report redirect)
+    // Check URL params to auto-open a specific conversation (e.g. after a report redirect or from sponsor card)
     const urlParams = new URLSearchParams(window.location.search);
-    const openContactId   = urlParams.get('open_contact');
+    const recipientId = urlParams.get('recipient_id');
+    const recipientType = urlParams.get('recipient_type');
+    const recipientName = urlParams.get('recipient_name');
+    const openContactId = urlParams.get('open_contact');
     const openContactType = urlParams.get('contact_type');
 
+    // Check for recipient params first (from sponsor card "Contact" button)
+    if (recipientId && recipientType && recipientName) {
+        // Try to click an existing conversation item first
+        const existing = document.querySelector(
+            `.conversation-item[data-contact-id="${recipientId}"][data-contact-type="${recipientType}"]`
+        );
+        if (existing) {
+            selectConversation(existing);
+        } else {
+            // Check if this contact exists in the available contacts list
+            const contactItem = document.querySelector(
+                `.contact-item[data-contact-id="${recipientId}"][data-contact-type="${recipientType}"]`
+            );
+            
+            if (contactItem) {
+                // Highlight the contact in Available Contacts section
+                document.querySelectorAll('.contact-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                contactItem.classList.add('selected');
+                
+                // Scroll the contact into view
+                contactItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            const contactPhoto = contactItem ? contactItem.dataset.contactPhoto : '';
+            
+            // Start new conversation with this contact
+            startConversation(recipientId, recipientType, recipientName, contactPhoto);
+        }
+
+        // Don't clean URL - keep params so selection persists on refresh
+        return;
+    }
+    
+    // Check for open_contact params (legacy support)
     if (openContactId && openContactType) {
         // Try to click an existing conversation item first
         const existing = document.querySelector(
@@ -72,6 +111,11 @@ function selectConversation(element) {
         item.classList.remove('active');
     });
     
+    // Remove selected class from all contact items
+    document.querySelectorAll('.contact-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
     // Add active class to selected conversation
     element.classList.add('active');
     
@@ -90,6 +134,18 @@ function selectConversation(element) {
     currentContactId = contactId;
     currentContactType = contactType;
     currentContactName = contactName;
+    
+    // Update URL to reflect current selection (without reloading)
+    const newUrl = `${window.location.pathname}?recipient_id=${contactId}&recipient_type=${contactType}&recipient_name=${encodeURIComponent(contactName)}`;
+    history.replaceState(null, '', newUrl);
+    
+    // Highlight corresponding contact in Available Contacts if it exists
+    const correspondingContact = document.querySelector(
+        `.contact-item[data-contact-id="${contactId}"][data-contact-type="${contactType}"]`
+    );
+    if (correspondingContact) {
+        correspondingContact.classList.add('selected');
+    }
     
     // Update chat header
     document.getElementById('chatContactName').textContent = contactName;
@@ -118,10 +174,27 @@ function startConversation(contactId, contactType, contactName, contactPhoto = '
         item.classList.remove('active');
     });
     
+    // Highlight the selected contact in Available Contacts section
+    document.querySelectorAll('.contact-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    const selectedContact = document.querySelector(
+        `.contact-item[data-contact-id="${contactId}"][data-contact-type="${contactType}"]`
+    );
+    if (selectedContact) {
+        selectedContact.classList.add('selected');
+        selectedContact.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
     // Set current contact info
     currentContactId = contactId;
     currentContactType = contactType;
     currentContactName = contactName;
+    
+    // Update URL to reflect current selection (without reloading)
+    const newUrl = `${window.location.pathname}?recipient_id=${contactId}&recipient_type=${contactType}&recipient_name=${encodeURIComponent(contactName)}`;
+    history.replaceState(null, '', newUrl);
     
     // Check if chat interface exists, if not create it
     if (!document.getElementById('chatContactName')) {

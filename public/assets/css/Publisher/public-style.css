@@ -276,6 +276,13 @@ body {
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.tag i {
+    font-size: 0.9rem;
 }
 
 /* Social Links */
