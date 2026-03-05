@@ -497,6 +497,24 @@ class PublisherMessages extends Controller {
         exit();
     }
 
+    public function unreadCount($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'publisher') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+                exit();
+            }
+            $message = new Message();
+            $count = $message->getUnreadCount($currentUser['id'], 'publisher');
+            echo json_encode(['success' => true, 'count' => $count]);
+        } catch (Exception $e) {
+            error_log('Get unread count error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to get unread count']);
+        }
+        exit();
+    }
+
     private function sendJsonResponse($success, $message) {
         $response = ['success' => $success, 'message' => $message];
         echo json_encode($response);

@@ -194,6 +194,57 @@ class UserPaymentgateway extends Controller
                 if (!$wasRegistered) {
                     $this->eventModel->incrementParticipants($eventId);
                 }
+
+                try {
+                    $paidRegistrationModel = new PaidEventRegistration();
+                    $userType = $_SESSION['user_type'] ?? 'public';
+                    $normalizedUserType = strtolower(trim((string)$userType));
+                    if ($normalizedUserType === 'user' || $normalizedUserType === 'public_user' || $normalizedUserType === 'publicuser') {
+                        $normalizedUserType = 'public';
+                    }
+                    if ($normalizedUserType === 'student' || $normalizedUserType === 'university_user' || $normalizedUserType === 'universityuser') {
+                        $normalizedUserType = 'university';
+                    }
+
+                    $ticketQuantity = max(1, (int)$quantity);
+                    $totalAmount = (float)$amount;
+                    $unitPrice = round($totalAmount / $ticketQuantity, 2);
+
+                    $paidRegistrationModel->upsertByPaymentReference([
+                        'event_id' => (int)$eventId,
+                        'publisher_id' => (isset($event->created_by_type) && $event->created_by_type === 'publisher' && isset($event->created_by)) ? (int)$event->created_by : null,
+                        'event_title_snapshot' => (string)($event->title ?? ''),
+                        'publisher_name_snapshot' => (string)($event->organizer_name ?? $event->organizer ?? ''),
+                        'registered_user_id' => (int)$_SESSION['user_id'],
+                        'registered_user_type' => $normalizedUserType,
+                        'registered_user_name_snapshot' => (string)($_SESSION['user_name'] ?? ''),
+                        'registered_user_email_snapshot' => (string)($_SESSION['user_email'] ?? ''),
+                        'order_number' => substr('ORD-' . $eventId . '-' . $_SESSION['user_id'] . '-' . substr(md5($transactionId), 0, 8), 0, 40),
+                        'ticket_tier_name' => 'General',
+                        'ticket_quantity' => $ticketQuantity,
+                        'unit_price' => $unitPrice,
+                        'currency_code' => 'LKR',
+                        'subtotal_amount' => $totalAmount,
+                        'discount_amount' => 0.00,
+                        'service_fee_amount' => 0.00,
+                        'tax_amount' => 0.00,
+                        'total_amount' => $totalAmount,
+                        'payment_status' => 'paid',
+                        'payment_method' => $paymentMethod,
+                        'payment_transaction_id' => substr((string)$transactionId, 0, 100),
+                        'payment_gateway' => $paymentMethod === 'payhere' ? 'payhere' : null,
+                        'paid_at' => date('Y-m-d H:i:s'),
+                        'registration_status' => 'confirmed',
+                        'registration_source' => 'web',
+                        'metadata' => [
+                            'source' => 'user_paymentgateway_process_payment',
+                            'payment_type' => 'ticket'
+                        ]
+                    ]);
+                } catch (Throwable $paidSyncError) {
+                    error_log('Paid registration sync failed in UserPaymentgateway::processPayment: ' . $paidSyncError->getMessage());
+                }
+
                 error_log('User registered for event successfully');
             } catch (Exception $e) {
                 error_log('Event registration failed but payment recorded: ' . $e->getMessage());

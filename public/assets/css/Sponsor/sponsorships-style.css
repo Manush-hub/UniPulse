@@ -51,12 +51,11 @@ textarea {
 .page-header {
     background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
     color: white;
-    padding: 2rem 0;
-    margin-bottom: 2rem;
+    padding: 4rem 0;
 }
 
 .header-content {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
@@ -84,6 +83,8 @@ textarea {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 12px;
+    height: 100px;
+    width: 140px;
 }
 
 .stat-number {
@@ -100,12 +101,13 @@ textarea {
 }
 
 .sponsorships-section {
-    padding: 0 2rem 2rem;
+    padding: 4rem;
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 2rem;
 }
 
 /* Error Message */

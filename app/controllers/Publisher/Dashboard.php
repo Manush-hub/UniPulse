@@ -39,7 +39,12 @@ class PublisherDashboard extends Controller
         }
 
         try {
+            if (!class_exists('Activity')) {
+                require_once __DIR__ . '/../../models/Activity.php';
+            }
+
             $eventModel = new Event();
+            $activityModel = new Activity();
 
             $publisherId = (int)($currentUser['id'] ?? 0);
             $sessionKey = 'publisher_event_notifications_last_read_at_' . $publisherId;
@@ -53,6 +58,39 @@ class PublisherDashboard extends Controller
             $lastReadAt = $_SESSION[$sessionKey];
             $readItems = $_SESSION[$readItemsKey];
 
+            $notifications = [];
+            $unreadCount = 0;
+
+            // 1) Personal publisher notifications for new registrations
+            $activities = $activityModel->getRecentActivities($publisherId, 'publisher', 30);
+            $registrationActivities = array_filter($activities, function ($activity) {
+                return ($activity->activity_type ?? '') === 'event_registration';
+            });
+
+            foreach ($registrationActivities as $activity) {
+                $notificationTime = $activity->created_at ?? date('Y-m-d H:i:s');
+                $eventId = (int)($activity->event_id ?? 0);
+                $notificationKey = 'activity|' . ($activity->id ?? 0) . '|' . $notificationTime;
+
+                $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
+                $isMarkedIndividually = in_array($notificationKey, $readItems, true);
+                $isUnread = !($isMarkedByTime || $isMarkedIndividually);
+
+                if ($isUnread) {
+                    $unreadCount++;
+                }
+
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => $activity->title ?? 'New Event Registration',
+                    'message' => $activity->description ?? 'A user registered for your event.',
+                    'time' => $this->formatRelativeTime($notificationTime),
+                    'read' => !$isUnread,
+                    'created_at' => $notificationTime,
+                    'notification_key' => $notificationKey
+                ];
+            }
+
             // Match visibility used by Publisher All Events page.
             $events = $eventModel->getAllEvents([
                 'status' => 'upcoming',
@@ -61,10 +99,14 @@ class PublisherDashboard extends Controller
             ], $currentUser);
 
             if (!$events) {
+                usort($notifications, function ($a, $b) {
+                    return strtotime($b['created_at'] ?? '1970-01-01 00:00:00') <=> strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
+                });
+
                 echo json_encode([
                     'success' => true,
-                    'notifications' => [],
-                    'unread_count' => 0
+                    'notifications' => array_slice($notifications, 0, 10),
+                    'unread_count' => $unreadCount
                 ]);
                 return;
             }
@@ -81,10 +123,14 @@ class PublisherDashboard extends Controller
             }
 
             if (empty($otherPublisherEvents)) {
+                usort($notifications, function ($a, $b) {
+                    return strtotime($b['created_at'] ?? '1970-01-01 00:00:00') <=> strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
+                });
+
                 echo json_encode([
                     'success' => true,
-                    'notifications' => [],
-                    'unread_count' => 0
+                    'notifications' => array_slice($notifications, 0, 10),
+                    'unread_count' => $unreadCount
                 ]);
                 return;
             }
@@ -95,13 +141,10 @@ class PublisherDashboard extends Controller
                 return $bTime <=> $aTime;
             });
 
-            $notifications = [];
-            $unreadCount = 0;
-
             foreach ($otherPublisherEvents as $event) {
                 $notificationTime = $event->updated_at ?? $event->created_at ?? date('Y-m-d H:i:s');
                 $eventId = (int)($event->id ?? 0);
-                $notificationKey = $eventId . '|' . $notificationTime;
+                $notificationKey = 'event|' . $eventId . '|' . $notificationTime;
 
                 $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
                 $isMarkedIndividually = in_array($notificationKey, $readItems, true);
@@ -121,6 +164,10 @@ class PublisherDashboard extends Controller
                     'notification_key' => $notificationKey
                 ];
             }
+
+            usort($notifications, function ($a, $b) {
+                return strtotime($b['created_at'] ?? '1970-01-01 00:00:00') <=> strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
+            });
 
             echo json_encode([
                 'success' => true,
@@ -166,6 +213,9 @@ class PublisherDashboard extends Controller
         }
 
         $notificationKey = $eventId . '|' . $createdAt;
+        if (!empty($payload['notification_key'])) {
+            $notificationKey = trim((string)$payload['notification_key']);
+        }
         if (!in_array($notificationKey, $_SESSION[$readItemsKey], true)) {
             $_SESSION[$readItemsKey][] = $notificationKey;
         }
@@ -236,13 +286,22 @@ class PublisherDashboard extends Controller
                         WHEN c.user_type = 'sponsor' THEN s.email
                         WHEN c.user_type = 'admin' THEN 'system@unipulse.com'
                         WHEN c.user_type = 'moderator' THEN m.email
-                    END as user_email
+                    END as user_email,
+                    CASE 
+                        WHEN c.user_type = 'university' THEN uu.profile_photo
+                        WHEN c.user_type = 'public' THEN pu.profile_photo
+                        WHEN c.user_type = 'publisher' THEN pp.logo_url
+                        WHEN c.user_type = 'sponsor' THEN sp.logo_url
+                        ELSE NULL
+                    END as profile_photo
                 FROM event_comments c
                 LEFT JOIN events e ON c.event_id = e.id
                 LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
                 LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
                 LEFT JOIN publishers pub ON c.user_type = 'publisher' AND c.user_id = pub.id
+                LEFT JOIN publisher_profiles pp ON c.user_type = 'publisher' AND pub.id = pp.publisher_id
                 LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
+                LEFT JOIN sponsor_profiles sp ON c.user_type = 'sponsor' AND s.id = sp.sponsor_id
                 LEFT JOIN moderators m ON c.user_type = 'moderator' AND c.user_id = m.id
                 WHERE c.is_deleted = 0
                 AND e.created_by_type = 'publisher'
@@ -280,6 +339,7 @@ class PublisherDashboard extends Controller
                     'event_status' => $comment->event_status,
                     'user_name' => $comment->user_name,
                     'user_type' => $comment->user_type,
+                    'profile_photo' => $comment->profile_photo ?? null,
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
                     'is_hidden' => (bool)$comment->is_hidden,
@@ -432,6 +492,160 @@ class PublisherDashboard extends Controller
         } catch (Exception $e) {
             error_log("Error getting publisher events: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load events']);
+        }
+    }
+
+    /**
+     * Get registration & ticketing data grouped by publisher events.
+     */
+    public function getRegistrationTicketing()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $params = [];
+            $whereClause = '';
+
+            if (($currentUser['type'] ?? '') === 'publisher') {
+                $whereClause = "WHERE e.created_by_type = 'publisher' AND e.created_by = :publisher_id";
+                $params['publisher_id'] = (int)$currentUser['id'];
+            }
+
+            $upcomingCondition = "e.event_date >= CURDATE() AND e.is_deleted = 0 AND (e.status IS NULL OR e.status NOT IN ('completed', 'cancelled'))";
+
+            if (trim($whereClause) === '') {
+                $eventsWhere = "WHERE {$upcomingCondition}";
+            } else {
+                $eventsWhere = $whereClause . " AND {$upcomingCondition}";
+            }
+
+            $eventsQuery = "
+                SELECT e.id, e.title, e.ticket_type, e.event_date
+                FROM events e
+                {$eventsWhere}
+                ORDER BY e.event_date ASC, e.id DESC
+                LIMIT 100
+            ";
+
+            $eventStmt = $this->connect()->prepare($eventsQuery);
+            $eventStmt->execute($params);
+            $events = $eventStmt->fetchAll(PDO::FETCH_OBJ);
+
+            $result = [];
+
+            foreach ($events as $event) {
+                $eventRows = [];
+                $eventId = (int)$event->id;
+
+                try {
+                    $freeQuery = "
+                        SELECT
+                            COALESCE(fr.registered_user_name_snapshot, CONCAT('User #', fr.registered_user_id)) AS user_name,
+                            'free' AS ticket_type,
+                            1 AS ticket_quantity,
+                            0.00 AS amount,
+                            fr.registered_at AS registered_at
+                        FROM free_event_registrations fr
+                        WHERE fr.event_id = :event_id
+                          AND fr.status IN ('registered', 'checked_in')
+                    ";
+
+                    $freeStmt = $this->connect()->prepare($freeQuery);
+                    $freeStmt->execute(['event_id' => $eventId]);
+                    $freeRows = $freeStmt->fetchAll(PDO::FETCH_ASSOC);
+                    if (!empty($freeRows)) {
+                        $eventRows = array_merge($eventRows, $freeRows);
+                    }
+                } catch (Throwable $freeTableError) {
+                    error_log('Registration ticketing free table query warning: ' . $freeTableError->getMessage());
+                }
+
+                try {
+                    $paidQuery = "
+                        SELECT
+                            COALESCE(pr.registered_user_name_snapshot, CONCAT('User #', pr.registered_user_id)) AS user_name,
+                            'paid' AS ticket_type,
+                            COALESCE(pr.ticket_quantity, 1) AS ticket_quantity,
+                            COALESCE(pr.total_amount, 0.00) AS amount,
+                            pr.paid_at AS registered_at
+                        FROM paid_event_registrations pr
+                        WHERE pr.event_id = :event_id
+                          AND pr.registration_status IN ('confirmed', 'checked_in')
+                          AND pr.payment_status IN ('paid', 'partially_refunded', 'refunded', 'completed')
+                    ";
+
+                    $paidStmt = $this->connect()->prepare($paidQuery);
+                    $paidStmt->execute(['event_id' => $eventId]);
+                    $paidRows = $paidStmt->fetchAll(PDO::FETCH_ASSOC);
+                    if (!empty($paidRows)) {
+                        $eventRows = array_merge($eventRows, $paidRows);
+                    }
+                } catch (Throwable $paidTableError) {
+                    error_log('Registration ticketing paid table query warning: ' . $paidTableError->getMessage());
+                }
+
+                usort($eventRows, function ($a, $b) {
+                    $aTime = strtotime($a['registered_at'] ?? '1970-01-01 00:00:00');
+                    $bTime = strtotime($b['registered_at'] ?? '1970-01-01 00:00:00');
+                    return $bTime <=> $aTime;
+                });
+
+                $result[] = [
+                    'event_id' => $eventId,
+                    'event_title' => $event->title,
+                    'ticket_type' => $event->ticket_type,
+                    'event_date' => $event->event_date,
+                    'registrations' => array_map(function ($row) {
+                        return [
+                            'user_name' => (string)($row['user_name'] ?? 'Unknown User'),
+                            'ticket_type' => (string)($row['ticket_type'] ?? 'free'),
+                            'ticket_quantity' => (int)($row['ticket_quantity'] ?? 1),
+                            'amount' => (float)($row['amount'] ?? 0),
+                            'registered_at' => $row['registered_at'] ?? null
+                        ];
+                    }, $eventRows)
+                ];
+            }
+
+            echo json_encode([
+                'success' => true,
+                'events' => $result
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::getRegistrationTicketing: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load registration and ticketing data'
+            ]);
+        }
+    }
+
+    private function tableExists($tableName)
+    {
+        try {
+            $result = $this->query(
+                "SELECT COUNT(*) AS table_count
+                 FROM information_schema.TABLES
+                 WHERE TABLE_SCHEMA = :schema_name
+                   AND TABLE_NAME = :table_name",
+                [
+                    'schema_name' => DBNAME,
+                    'table_name' => $tableName
+                ]
+            );
+
+            return !empty($result) && (int)($result[0]->table_count ?? 0) > 0;
+        } catch (Throwable $e) {
+            error_log('Table existence check failed for ' . $tableName . ': ' . $e->getMessage());
+            return false;
         }
     }
 

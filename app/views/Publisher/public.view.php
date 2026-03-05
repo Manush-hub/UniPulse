@@ -35,6 +35,11 @@ $isVerified = ($publisher->approval_status ?? '') === 'approved';
 // Contact number
 $contactNumber = !empty($phone) ? ($countryCode ? $countryCode . ' ' . $phone : $phone) : '';
 
+// Determine event view URL based on current user type
+$currentUser = AuthService::getCurrentUser();
+$userType = $currentUser ? strtolower($currentUser['type']) : 'user';
+$eventViewBaseUrl = '/unipulse/public/' . $userType . '/eventview';
+
 // Prepare social links array
 $socialLinks = [];
 if (!empty($website)) $socialLinks['website'] = $website;
@@ -64,6 +69,20 @@ function safeOutput($value, $default = '') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="/UniPulse/public/assets/js/publisher/public-profile.js" defer></script>
     <style>
+        /* Remove gap between header and content */
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .navigation-bar {
+            margin-top: 0;
+        }
+        
+        .container {
+            margin-top: 0;
+        }
+        
         /* Gallery Carousel Styles */
         .gallery-carousel-container {
             position: relative;
@@ -504,7 +523,7 @@ function safeOutput($value, $default = '') {
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn primary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                            <button class="feed-action-btn primary" onclick="window.location.href='<?= $eventViewBaseUrl ?>?id=<?= $event->id ?>'">
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>
@@ -583,7 +602,7 @@ function safeOutput($value, $default = '') {
                                         
                                         <!-- Event Actions -->
                                         <div class="feed-event-actions">
-                                            <button class="feed-action-btn secondary" onclick="window.location.href='/unipulse/public/event/view?id=<?= $event->id ?>'">
+                                            <button class="feed-action-btn secondary" onclick="window.location.href='<?= $eventViewBaseUrl ?>?id=<?= $event->id ?>'">
                                                 <i class="fas fa-eye"></i>
                                                 View Event
                                             </button>

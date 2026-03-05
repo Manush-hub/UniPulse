@@ -824,12 +824,17 @@ function registerForEvent() {
                 return;
             }
 
-            console.warn('Event registration did not complete:', data);
-            window.location.href = '/unipulse/public/user/dashboard';
+            if (data.error && data.error.toLowerCase().includes('logged in')) {
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = `/unipulse/public/signin?redirect=${returnUrl}`;
+                return;
+            }
+
+            alert(data.error || 'Failed to register for this event. Please try again.');
         })
         .catch(error => {
             console.error('Error registering for event:', error);
-            window.location.href = '/unipulse/public/user/dashboard';
+            alert('Failed to register for this event. Please try again.');
         });
 }
 

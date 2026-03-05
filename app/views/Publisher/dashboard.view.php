@@ -52,7 +52,7 @@
                             </svg>
                             Create Event
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/sponsors'">
+                        <!-- <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/sponsors'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -60,7 +60,7 @@
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                             </svg>
                             View Sponsors
-                        </button>
+                        </button> -->
                     </div>
                 </div>
             </div>
@@ -189,7 +189,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="boost-action-panel">
                         <div class="boost-form-container">
                             <h3>Select Event to Boost</h3>
@@ -214,7 +214,7 @@
                                         <option value="">Loading events...</option>
                                     </select>
                                 </div>
-                                
+
                                 <div class="form-group">
                                     <label class="boost-label">
                                         <i class="fas fa-clock"></i>
@@ -262,7 +262,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="boost-summary">
                                     <div class="summary-item">
                                         <span>Selected Duration:</span>
@@ -273,10 +273,10 @@
                                         <strong id="totalAmount">LKR 0</strong>
                                     </div>
                                 </div>
-                                
+
                                 <input type="hidden" id="boostDuration" name="duration_days" required>
                                 <input type="hidden" id="boostPrice" name="amount" required>
-                                
+
                                 <button type="submit" class="btn btn-boost" id="boostSubmitBtn" disabled>
                                     <i class="fas fa-rocket"></i>
                                     Proceed to Payment
@@ -293,57 +293,11 @@
             <div class="container">
                 <div class="sales-layout">
                     <div class="sales-summary">
-                        <h2>Sales & Ticketing</h2>
-                        <div class="revenue-cards">
-                            <div class="revenue-card">
-                                <h3>$25,600</h3>
-                                <p>Total Revenue</p>
-                                <div class="revenue-change positive">+12% this month</div>
-                            </div>
-                            <div class="revenue-card">
-                                <h3>1,280</h3>
-                                <p>Tickets Sold</p>
-                                <div class="revenue-change positive">+8% this week</div>
-                            </div>
-                        </div>
-                        <div class="progress-section">
-                            <div class="progress-header">
-                                <span>Revenue Goal Progress</span>
-                                <span class="progress-percentage">75%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" data-width="75%"></div>
-                            </div>
-                            <p class="progress-text">$18,750 of $25,000 goal reached</p>
-                        </div>
-                    </div>
-                    <div class="sidebar">
-                        <div class="sidebar-widget">
-                            <h3>Sponsorship Progress</h3>
-                            <div class="sponsorship-stats">
-                                <div class="sponsor-item">
-                                    <span class="sponsor-name">Confirmed Sponsors</span>
-                                    <span class="sponsor-count">12</span>
-                                </div>
-                                <div class="donation-progress">
-                                    <div class="progress-header">
-                                        <span>Donation Goal</span>
-                                        <span>33%</span>
-                                    </div>
-                                    <div class="donation-bar">
-                                        <div class="donation-fill" data-width="33%"></div>
-                                    </div>
-                                    <p class="progress-text">$25,000 of $75,000</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="sidebar-widget">
-                            <h3>Sponsor Logos</h3>
-                            <div class="sponsor-grid">
-                                <div class="sponsor-logo">Microsoft</div>
-                                <div class="sponsor-logo">Google</div>
-                                <div class="sponsor-logo">Adobe</div>
-                                <div class="sponsor-logo">AWS</div>
+                        <h2>Registration & Ticketing</h2>
+                        <div id="registrationTicketingContainer" class="registration-ticketing-container">
+                            <div class="loading-events">
+                                <div class="spinner"></div>
+                                <p>Loading registration data...</p>
                             </div>
                         </div>
                     </div>
@@ -438,7 +392,7 @@
                     <strong id="paymentAmount">-</strong>
                 </div>
             </div>
-            
+
             <form id="paymentForm" class="payment-form">
                 <div class="form-group">
                     <label>Payment Method</label>
@@ -466,7 +420,7 @@
                         </div> -->
                     </div>
                 </div>
-                
+
                 <div id="cardPaymentFields" class="payment-fields">
                     <div class="form-group">
                         <label for="cardName">Cardholder Name</label>
@@ -487,7 +441,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div id="bankPaymentFields" class="payment-fields" style="display: none;">
                     <div class="bank-instructions">
                         <h4>Bank Transfer Details</h4>
@@ -501,7 +455,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- <div id="mobilePaymentFields" class="payment-fields" style="display: none;">
                     <div class="form-group">
                         <label for="mobileNumber">Mobile Number</label>
@@ -518,7 +472,7 @@
                         </select>
                     </div>
                 </div> -->
-                
+
                 <div class="modal-buttons">
                     <button type="submit" class="btn btn-primary btn-pay">
                         <i class="fas fa-lock"></i> Pay Now

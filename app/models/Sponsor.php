@@ -16,7 +16,14 @@ class Sponsor {
         if ($result !== false) {
             // Get the connection to retrieve last insert ID
             $conn = $this->connect();
-            return $conn->lastInsertId();
+            $sponsorId = $conn->lastInsertId();
+            
+            // Automatically create sponsor_profiles entry
+            if ($sponsorId) {
+                $this->createEmptyProfile($sponsorId);
+            }
+            
+            return $sponsorId;
         }
         return false;
     }
@@ -115,6 +122,8 @@ class Sponsor {
             s.country_code,
             s.created_at,
             u.last_login,
+            sp.logo_url,
+            sp.cover_photo_url,
             CASE 
                 WHEN u.last_login IS NULL THEN 'Never'
                 WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'Active'
@@ -123,6 +132,7 @@ class Sponsor {
             END as activity_status
         FROM sponsors s
         LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'
+        LEFT JOIN sponsor_profiles sp ON s.id = sp.sponsor_id
         ORDER BY s.created_at DESC";
         
         return $this->query($query);
@@ -154,5 +164,156 @@ class Sponsor {
         LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'";
         
         return $this->getRow($query);
+    }
+
+    /**
+     * Find sponsor by ID
+     */
+    public function findById($id) {
+        $query = "SELECT * FROM sponsors WHERE id = :id LIMIT 1";
+        return $this->getRow($query, ['id' => $id]);
+    }
+
+    /**
+     * Get profile data for sponsor
+     */
+    public function getProfileData($sponsorId) {
+        // First check if profile exists
+        $query = "SELECT * FROM sponsor_profiles WHERE sponsor_id = :sponsor_id LIMIT 1";
+        $profile = $this->getRow($query, ['sponsor_id' => $sponsorId]);
+
+        if (!$profile) {
+            // Create empty profile if doesn't exist
+            $this->createEmptyProfile($sponsorId);
+            $profile = $this->getRow($query, ['sponsor_id' => $sponsorId]);
+        }
+
+        return $profile;
+    }
+
+    /**
+     * Create empty profile for sponsor
+     * Made public so it can be called during registration
+     */
+    public function createEmptyProfile($sponsorId) {
+        try {
+            $query = "INSERT INTO sponsor_profiles (sponsor_id) VALUES (:sponsor_id)";
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['sponsor_id' => $sponsorId]);
+        } catch (Exception $e) {
+            error_log("Error creating empty sponsor profile: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update basic sponsor info (in sponsors table)
+     */
+    public function updateBasicInfo($sponsorId, $data) {
+        $updates = [];
+        $params = ['sponsor_id' => $sponsorId];
+        
+        foreach ($data as $key => $value) {
+            $updates[] = "$key = :$key";
+            $params[$key] = $value;
+        }
+        
+        if (empty($updates)) {
+            return true;
+        }
+        
+        $query = "UPDATE sponsors SET " . implode(', ', $updates) . " WHERE id = :sponsor_id";
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute($params);
+        } catch (Exception $e) {
+            error_log("Error updating sponsor basic info: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update profile data (in sponsor_profiles table)
+     */
+    public function updateProfileData($sponsorId, $data) {
+        error_log("Sponsor::updateProfileData called - Sponsor ID: $sponsorId, Data: " . print_r($data, true));
+        
+        // Check if profile exists
+        $existingProfile = $this->getRow(
+            "SELECT id FROM sponsor_profiles WHERE sponsor_id = :sponsor_id",
+            ['sponsor_id' => $sponsorId]
+        );
+
+        error_log("Sponsor::updateProfileData - Existing profile: " . print_r($existingProfile, true));
+
+        if (!$existingProfile) {
+            // Create profile first
+            error_log("Sponsor::updateProfileData - Creating empty profile first");
+            $this->createEmptyProfile($sponsorId);
+        }
+
+        $updates = [];
+        $params = ['sponsor_id' => $sponsorId];
+        
+        foreach ($data as $key => $value) {
+            $updates[] = "$key = :$key";
+            $params[$key] = $value;
+        }
+        
+        if (empty($updates)) {
+            error_log("Sponsor::updateProfileData - No updates to perform");
+            return true;
+        }
+        
+        $query = "UPDATE sponsor_profiles SET " . implode(', ', $updates) . " WHERE sponsor_id = :sponsor_id";
+        
+        error_log("Sponsor::updateProfileData - Query: $query");
+        error_log("Sponsor::updateProfileData - Params: " . print_r($params, true));
+        
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            $result = $stmt->execute($params);
+            error_log("Sponsor::updateProfileData - Result: " . ($result ? 'success' : 'failed'));
+            error_log("Sponsor::updateProfileData - Affected rows: " . $stmt->rowCount());
+            return $result;
+        } catch (Exception $e) {
+            error_log("Error updating sponsor profile data: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get sponsored events for a sponsor
+     */
+    public function getSponsoredEvents($sponsorId) {
+        $query = "SELECT 
+            e.*,
+            es.id as sponsorship_id,
+            es.amount as sponsored_amount,
+            es.status as sponsorship_status,
+            esp.package_name,
+            esp.package_type,
+            p.society_name as publisher_name,
+            pp.logo_url as publisher_logo
+        FROM event_sponsorships es
+        INNER JOIN events e ON es.event_id = e.id
+        INNER JOIN event_sponsorship_packages esp ON es.package_id = esp.id
+        LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+        LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
+        WHERE es.sponsor_id = :sponsor_id 
+        AND es.status IN ('approved', 'completed')
+        AND e.deleted_at IS NULL
+        ORDER BY e.event_date DESC";
+        
+        try {
+            return $this->query($query, ['sponsor_id' => $sponsorId]);
+        } catch (Exception $e) {
+            error_log("Error fetching sponsored events: " . $e->getMessage());
+            return [];
+        }
     }
 }

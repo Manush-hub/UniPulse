@@ -4,6 +4,7 @@ class Payment extends Controller
 {
 
     use Database;
+    private $paymentsColumnsCache = null;
 
     public function index($a = '', $b = '', $c = '')
     {
@@ -622,11 +623,231 @@ class Payment extends Controller
                 $eventModel->incrementParticipants($eventId);
             }
 
+            $syncResult = $this->syncPaidEventRegistrationRecord(
+                $userId,
+                $normalizedUserType,
+                $event,
+                $amount,
+                $paymentReference
+            );
+
+            if (!$syncResult) {
+                error_log('[Payment] paid_event_registrations sync skipped or failed for event_id=' . $eventId . ', user_id=' . $userId);
+            }
+
             return true;
         } catch (Throwable $e) {
             error_log('[Payment] Failed to ensure paid event registration: ' . $e->getMessage());
             return false;
         }
+    }
+
+    private function syncPaidEventRegistrationRecord($userId, $userType, $event, $amount = null, $paymentReference = null)
+    {
+        try {
+            $paidRegistrationModel = new PaidEventRegistration();
+
+            $eventId = (int)($event->id ?? 0);
+            if ($eventId <= 0) {
+                return false;
+            }
+
+            $resolvedAmount = $amount !== null ? (float)$amount : 0.00;
+            $paymentRecord = null;
+
+            if (!empty($paymentReference)) {
+                try {
+                    $paymentsColumns = $this->getPaymentsTableColumns();
+
+                    $selectColumns = ['id', 'amount', 'created_at'];
+                    foreach (['quantity', 'payment_method', 'status', 'transaction_id', 'payhere_order_id'] as $optionalColumn) {
+                        if (in_array($optionalColumn, $paymentsColumns, true)) {
+                            $selectColumns[] = $optionalColumn;
+                        }
+                    }
+
+                    $whereParts = [];
+                    if (in_array('transaction_id', $paymentsColumns, true)) {
+                        $whereParts[] = 'transaction_id = :ref';
+                    }
+                    if (in_array('payhere_payment_id', $paymentsColumns, true)) {
+                        $whereParts[] = 'payhere_payment_id = :ref';
+                    }
+                    if (in_array('payhere_order_id', $paymentsColumns, true)) {
+                        $whereParts[] = 'payhere_order_id = :ref';
+                    }
+
+                    if (!empty($whereParts)) {
+                        $paymentResult = $this->query(
+                            "SELECT " . implode(', ', $selectColumns) . "
+                             FROM payments
+                             WHERE " . implode(' OR ', $whereParts) . "
+                             ORDER BY id DESC
+                             LIMIT 1",
+                            ['ref' => $paymentReference]
+                        );
+
+                        if (!empty($paymentResult)) {
+                            $paymentRecord = $paymentResult[0];
+                            if (isset($paymentRecord->amount)) {
+                                $resolvedAmount = (float)$paymentRecord->amount;
+                            }
+                        }
+                    }
+                } catch (Throwable $paymentLookupError) {
+                    error_log('[Payment] payment lookup for paid_event_registrations failed: ' . $paymentLookupError->getMessage());
+                }
+            }
+
+            if ($resolvedAmount <= 0) {
+                $sessionAmount = $_SESSION['payment_amount'] ?? $_SESSION['payhere_amount'] ?? 0;
+                $resolvedAmount = (float)$sessionAmount;
+            }
+
+            if ($resolvedAmount <= 0) {
+                return false;
+            }
+
+            $ticketQuantity = isset($paymentRecord->quantity) ? max(1, (int)$paymentRecord->quantity) : (int)($_SESSION['payment_quantity'] ?? 1);
+            if ($ticketQuantity <= 0) {
+                $ticketQuantity = 1;
+            }
+            $unitPrice = $ticketQuantity > 0 ? round($resolvedAmount / $ticketQuantity, 2) : $resolvedAmount;
+
+            $userInfo = $this->getUserSnapshotForPaidRegistration($userId, $userType);
+
+            $paymentStatusRaw = strtolower((string)($paymentRecord->status ?? 'completed'));
+            $paidStatusMap = [
+                'completed' => 'paid',
+                'paid' => 'paid',
+                'pending' => 'pending',
+                'failed' => 'failed',
+                'refunded' => 'refunded'
+            ];
+            $paymentStatus = $paidStatusMap[$paymentStatusRaw] ?? 'paid';
+
+            $gateway = null;
+            $method = strtolower((string)($paymentRecord->payment_method ?? ''));
+            if ($method === 'payhere') {
+                $gateway = 'payhere';
+            }
+
+            $orderNumber = null;
+            if (!empty($paymentRecord->payhere_order_id)) {
+                $orderNumber = (string)$paymentRecord->payhere_order_id;
+            } elseif (!empty($paymentReference)) {
+                $orderNumber = 'ORD-' . $eventId . '-' . $userId . '-' . substr(md5((string)$paymentReference), 0, 8);
+            } else {
+                $orderNumber = 'ORD-' . $eventId . '-' . $userId . '-' . time();
+            }
+
+            $orderNumber = substr($orderNumber, 0, 40);
+
+            $paidAt = $paymentRecord->created_at ?? date('Y-m-d H:i:s');
+
+            $paymentTransactionId = $paymentReference ?: ($paymentRecord->transaction_id ?? null);
+            if (!empty($paymentTransactionId)) {
+                $paymentTransactionId = substr((string)$paymentTransactionId, 0, 100);
+            }
+
+            return $paidRegistrationModel->upsertByPaymentReference([
+                'event_id' => $eventId,
+                'publisher_id' => (isset($event->created_by_type) && $event->created_by_type === 'publisher' && isset($event->created_by)) ? (int)$event->created_by : null,
+                'payment_record_id' => isset($paymentRecord->id) ? (int)$paymentRecord->id : null,
+                'event_title_snapshot' => (string)($event->title ?? ''),
+                'publisher_name_snapshot' => (string)($event->organizer_name ?? $event->organizer ?? ''),
+                'registered_user_id' => (int)$userId,
+                'registered_user_type' => (string)$userType,
+                'registered_user_name_snapshot' => (string)($userInfo['name'] ?? ''),
+                'registered_user_email_snapshot' => (string)($userInfo['email'] ?? ''),
+                'registered_user_phone_snapshot' => (string)($userInfo['phone'] ?? ''),
+                'order_number' => (string)$orderNumber,
+                'ticket_tier_name' => 'General',
+                'ticket_quantity' => $ticketQuantity,
+                'unit_price' => $unitPrice,
+                'currency_code' => 'LKR',
+                'subtotal_amount' => $resolvedAmount,
+                'discount_amount' => 0.00,
+                'service_fee_amount' => 0.00,
+                'tax_amount' => 0.00,
+                'total_amount' => $resolvedAmount,
+                'payment_status' => $paymentStatus,
+                'payment_method' => $paymentRecord->payment_method ?? null,
+                'payment_transaction_id' => $paymentTransactionId,
+                'payment_gateway' => $gateway,
+                'paid_at' => $paidAt,
+                'registration_status' => 'confirmed',
+                'registration_source' => 'web',
+                'metadata' => [
+                    'source' => 'payment_success',
+                    'payment_reference' => $paymentReference,
+                    'payment_type' => 'ticket'
+                ]
+            ]);
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to sync paid_event_registrations: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function getPaymentsTableColumns()
+    {
+        if (is_array($this->paymentsColumnsCache)) {
+            return $this->paymentsColumnsCache;
+        }
+
+        $columns = [];
+        try {
+            $result = $this->query("SHOW COLUMNS FROM payments");
+            if (!empty($result)) {
+                foreach ($result as $row) {
+                    if (isset($row->Field)) {
+                        $columns[] = $row->Field;
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to read payments table columns: ' . $e->getMessage());
+        }
+
+        $this->paymentsColumnsCache = $columns;
+        return $this->paymentsColumnsCache;
+    }
+
+    private function getUserSnapshotForPaidRegistration($userId, $userType)
+    {
+        $normalized = strtolower(trim((string)$userType));
+        if ($normalized === 'user' || $normalized === 'public_user' || $normalized === 'publicuser') {
+            $normalized = 'public';
+        }
+        if ($normalized === 'student' || $normalized === 'university_user' || $normalized === 'universityuser') {
+            $normalized = 'university';
+        }
+
+        $table = $normalized === 'university' ? 'university_users' : 'public_users';
+
+        try {
+            $result = $this->query(
+                "SELECT full_name, email, phone FROM {$table} WHERE id = :id LIMIT 1",
+                ['id' => (int)$userId]
+            );
+
+            if (!empty($result)) {
+                return [
+                    'name' => $result[0]->full_name ?? '',
+                    'email' => $result[0]->email ?? '',
+                    'phone' => $result[0]->phone ?? ''
+                ];
+            }
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to fetch user snapshot: ' . $e->getMessage());
+        }
+
+        return [
+            'name' => $_SESSION['user_name'] ?? '',
+            'email' => $_SESSION['user_email'] ?? '',
+            'phone' => $_SESSION['user_phone'] ?? ''
+        ];
     }
 
     private function resolveRegistrationUserType($userId, $preferredType = null)

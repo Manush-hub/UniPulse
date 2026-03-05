@@ -22,7 +22,10 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
             <a href="/unipulse/public/sponsor/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/sponsor/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
             <a href="/unipulse/public/sponsor/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">My Sponsorships</a>
-            <a href="/unipulse/public/sponsor/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
+            <a href="/unipulse/public/sponsor/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>" style="position:relative;">
+                Messages
+                <span id="sponsorMsgBadge" style="display:none;position:absolute;top:-6px;right:-10px;background:#f59e0b;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;"></span>
+            </a>
             <a href="/unipulse/public/sponsor/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
         </nav>
         <div class="header-actions">
@@ -46,7 +49,7 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
                 </div>
             </div>
             <div class="user-menu">
-                <img src="/unipulse/public/assets/images/default-avatar.png" alt="Sponsor Avatar" class="avatar">
+                <img src="<?= $_SESSION['user_logo'] ?? '/unipulse/public/assets/images/default-avatar.png' ?>" alt="Sponsor Avatar" class="avatar" id="headerAvatar">
                 <div class="user-info">
                     <span class="username" id="username"><?= htmlspecialchars($sponsorDisplayName) ?></span>
                     <span class="user-role" id="userRole">Sponsor</span>
@@ -67,3 +70,24 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
     </div>
 </header>
 <script src="/unipulse/public/assets/js/sponsor/header-app.js"></script>
+<script>
+(function () {
+    function updateSponsorMsgBadge() {
+        fetch('/unipulse/public/sponsor/messages/unreadCount')
+            .then(r => r.json())
+            .then(data => {
+                const badge = document.getElementById('sponsorMsgBadge');
+                if (!badge) return;
+                if (data.success && data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(() => {});
+    }
+    updateSponsorMsgBadge();
+    setInterval(updateSponsorMsgBadge, 30000);
+})();
+</script>

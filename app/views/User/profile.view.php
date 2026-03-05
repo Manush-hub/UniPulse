@@ -19,32 +19,37 @@
 
     <div class="container">
         <!-- Profile Header -->
-        <header class="profile-header">
+        <div class="profile-header">
+            <!-- Cover Photo Section -->
             <div class="cover-photo-section">
-                <!-- Cover Photo -->
-                <div class="cover-photo" style="background-color: #f0f0f0; min-height: 300px; position: relative; overflow: hidden;">
-                    <img id="coverPhoto" src="" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                    <div class="cover-overlay" onclick="uploadCover()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
+                <div class="cover-photo">
+                    <img id="coverPhoto" src="https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=300&fit=crop" alt="Cover Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <div class="cover-overlay" onclick="uploadCover()">
                         <i class="fas fa-camera"></i>
                         Change Cover Photo
                     </div>
                 </div>
-                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
-                <!-- Profile Photo -->
-                <div class="profile-photo" style="width: 150px; height: 150px; border-radius: 50%; position: absolute; bottom: -75px; left: 30px; background-color: white; border: 4px solid white; overflow: hidden;">
-                    <img id="profilePhoto" src="" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
-                    <div class="profile-overlay" onclick="uploadProfileImage()" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background-color: rgba(0,0,0,0.3); cursor: pointer;">
-                        <i class="fas fa-camera" style="color: white;"></i>
-                        <span style="color: white; font-size: 11px; text-align: center;">Change Photo</span>
+                
+                <!-- Profile Avatar positioned to overlap -->
+                <div class="profile-avatar profile-avatar-overlap">
+                    <img id="profilePhoto" src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=150&h=150&fit=crop" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <div class="avatar-overlay" onclick="uploadProfileImage()">
+                        <i class="fas fa-camera"></i>
+                        Change Photo
                     </div>
                 </div>
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
+                <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
             </div>
-
-            <!-- Profile Banner -->
-            <div class="profile-banner">
+            
+            <!-- Profile Info Below Cover -->
+            <div class="profile-info-section">
+                <div class="profile-name-email">
+                    <h1 class="profile-name" id="displayName">User Name</h1>
+                    <p class="profile-email" id="displayEmail">user@email.com</p>
+                </div>
             </div>
-        </header>
+        </div>
 
         <!-- Navigation Tabs -->
         <nav class="profile-nav">
@@ -65,71 +70,71 @@
                         <h3>Basic Information</h3>
                     </div>
                     <form id="personal-form" class="form">
-                        <div class="form-group">
-                            <label for="firstname">First Name</label>
-                            <input type="text" id="firstname" placeholder="Enter your first name">
-                        </div>
-                        <div class="form-group">
-                            <label for="lastname">Last Name</label>
-                            <input type="text" id="lastname" placeholder="Enter your last name">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="university">University</label>
-                            <input type="text" id="university" placeholder="Enter your university name" disabled readonly>
-                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="faculty">Faculty</label>
-                            <input type="text" id="faculty" placeholder="Enter your faculty" disabled readonly>
-                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="student_staff_id">Student/Staff ID</label>
-                            <input type="text" id="student_staff_id" placeholder="Enter your student/staff id" disabled readonly>
-                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="academic_year">Academic Year</label>
-                            <input type="text" id="academic_year" placeholder="Enter your academic year">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="gender">Gender</label>
-                            <div class="gender-buttons">
-                                <button type="button" class="gender-btn" data-gender="male">Male</button>
-                                <button type="button" class="gender-btn" data-gender="female">Female</button>
-                            </div>
-                            <input type="hidden" id="gender">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" placeholder="Enter your email address" disabled readonly>
-                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" placeholder="Enter your phone number">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="nic">NIC</label>
-                            <input type="text" id="nic" placeholder="Enter your NIC" disabled readonly>
-                            <small class="form-text-muted">This field is auto-filled from your registration and cannot be changed</small>
-                        </div>
-
+                        <!-- Basic Information -->
                         <div class="form-group full-width">
-                            <label for="bio">Bio</label>
-                            <textarea id="bio" rows="4" placeholder="Tell us about yourself, your interests, and what you're passionate about"></textarea>
+                            <label for="full_name"><i class="fas fa-user"></i> Full Name</label>
+                            <input type="text" id="full_name" placeholder="Enter your full name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                            <input type="email" id="email" placeholder="Enter your email address" disabled readonly>
+                            <small class="form-text-muted">From registration - cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+                            <div class="phone-input-group">
+                                <select id="country_code" style="width: 120px; margin-right: 10px;">
+                                    <option value="+94">LK +94</option>
+                                </select>
+                                <input type="tel" id="phone" placeholder="Enter your phone number" style="flex: 1;">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="university"><i class="fas fa-university"></i> University</label>
+                            <input type="text" id="university" placeholder="Enter your university name" disabled readonly>
+                            <small class="form-text-muted">From registration - cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="faculty"><i class="fas fa-graduation-cap"></i> Faculty/Department</label>
+                            <input type="text" id="faculty" placeholder="Enter your faculty" disabled readonly>
+                            <small class="form-text-muted">From registration - cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_staff_id"><i class="fas fa-id-badge"></i> Student/Staff ID</label>
+                            <input type="text" id="student_staff_id" placeholder="Enter your student/staff id" disabled readonly>
+                            <small class="form-text-muted">From registration - cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="academic_year"><i class="fas fa-book"></i> Academic Year</label>
+                            <select id="academic_year">
+                                <option value="">Select your academic year</option>
+                                <option value="1st-year">1st Year</option>
+                                <option value="2nd-year">2nd Year</option>
+                                <option value="3rd-year">3rd Year</option>
+                                <option value="4th-year">4th Year</option>
+                                <option value="5th-year">5th Year</option>
+                                <option value="postgraduate">Postgraduate</option>
+                                <option value="phd">PhD</option>
+                                <option value="staff">Staff Member</option>
+                                <option value="faculty">Faculty Member</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="nic"><i class="fas fa-id-card"></i> NIC</label>
+                            <input type="text" id="nic" placeholder="Enter your NIC" disabled readonly>
+                            <small class="form-text-muted">From registration - cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_of_birth"><i class="fas fa-calendar"></i> Date of Birth</label>
+                            <input type="date" id="date_of_birth">
                         </div>
 
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="savePersonalInfo()">
                                 Save Changes
                             </button>
-                            <button type="button" class="btn btn-primary" onclick="cancelPersonalInfo()">
+                            <button type="button" class="btn btn-secondary" onclick="cancelPersonalInfo()">
                                 Cancel
                             </button>
                         </div>
@@ -156,74 +161,6 @@
 
             <!-- Settings Tab -->
             <div id="settings" class="tab-content">
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Privacy Settings</h3>
-                    </div>
-                    <div class="preferences-section">
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Public Profile</h4>
-                                <p>Allow others to view your profile</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="publicProfile">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Show Event History</h4>
-                                <p>Display your attended events on public profile</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="showEventHistory">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Email Notifications</h4>
-                                <p>Receive updates about events and activities</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="emailNotifications">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Event Reminders</h4>
-                                <p>Get reminded before upcoming events</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="eventReminders">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>New Event Suggestions</h4>
-                                <p>Receive personalized event recommendations</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="eventSuggestions">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="preference-item">
-                            <div class="preference-info">
-                                <h4>Marketing Communications</h4>
-                                <p>Updates about UniPulse features and news</p>
-                            </div>
-                            <label class="toggle">
-                                <input type="checkbox" id="marketingCommunications">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="card">
                     <div class="card-header">
                         <h3>Login & Recovery</h3>
@@ -261,13 +198,6 @@
                         <h3>Danger Zone</h3>
                     </div>
                     <div class="danger-actions">
-                        <div class="danger-item">
-                            <div>
-                                <h4>Deactivate Account</h4>
-                                <p>Temporarily disable your account</p>
-                            </div>
-                            <button class="btn btn-danger" onclick="deactivateAccount()">Deactivate</button>
-                        </div>
                         <div class="danger-item">
                             <div>
                                 <h4>Delete Account</h4>
@@ -308,6 +238,34 @@
             get: '/unipulse/public/user/profile/getProfile',
             update: '/unipulse/public/user/profile/updateProfile'
         };
+        
+        // Debug: Test if functions are available
+        console.log('Profile page loaded');
+        console.log('uploadCover function:', typeof uploadCover);
+        console.log('changeCoverImage function:', typeof changeCoverImage);
+        console.log('coverInput element:', document.getElementById('coverInput'));
+        
+        // Add event listener to verify file selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const coverInput = document.getElementById('coverInput');
+            if (coverInput) {
+                console.log('✓ coverInput found in DOM');
+                coverInput.addEventListener('change', function(e) {
+                    console.log('✓ File input changed event fired!');
+                    console.log('Selected file:', e.target.files[0]);
+                });
+            } else {
+                console.error('✗ coverInput NOT found in DOM');
+            }
+            
+            const coverOverlay = document.querySelector('.cover-overlay');
+            if (coverOverlay) {
+                console.log('✓ cover-overlay found');
+                coverOverlay.addEventListener('click', function() {
+                    console.log('✓ Cover overlay clicked!');
+                });
+            }
+        });
     </script>
     <script src="/UniPulse/public/assets/js/userprofile-app.js"></script>
 </body>
