@@ -75,7 +75,7 @@
             backdrop-filter: blur(10px);
             border-radius: 12px;
             height: 100px;
-            width: 140px;
+            width: 160px;
         }
 
         .stat-card:hover {
