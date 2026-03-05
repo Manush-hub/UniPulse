@@ -123,6 +123,7 @@ class Sponsor {
             s.created_at,
             u.last_login,
             sp.logo_url,
+            sp.cover_photo_url,
             CASE 
                 WHEN u.last_login IS NULL THEN 'Never'
                 WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'Active'
@@ -238,14 +239,19 @@ class Sponsor {
      * Update profile data (in sponsor_profiles table)
      */
     public function updateProfileData($sponsorId, $data) {
+        error_log("Sponsor::updateProfileData called - Sponsor ID: $sponsorId, Data: " . print_r($data, true));
+        
         // Check if profile exists
         $existingProfile = $this->getRow(
             "SELECT id FROM sponsor_profiles WHERE sponsor_id = :sponsor_id",
             ['sponsor_id' => $sponsorId]
         );
 
+        error_log("Sponsor::updateProfileData - Existing profile: " . print_r($existingProfile, true));
+
         if (!$existingProfile) {
             // Create profile first
+            error_log("Sponsor::updateProfileData - Creating empty profile first");
             $this->createEmptyProfile($sponsorId);
         }
 
@@ -258,19 +264,56 @@ class Sponsor {
         }
         
         if (empty($updates)) {
+            error_log("Sponsor::updateProfileData - No updates to perform");
             return true;
         }
         
         $query = "UPDATE sponsor_profiles SET " . implode(', ', $updates) . " WHERE sponsor_id = :sponsor_id";
         
+        error_log("Sponsor::updateProfileData - Query: $query");
+        error_log("Sponsor::updateProfileData - Params: " . print_r($params, true));
+        
         try {
             $conn = $this->connect();
             $stmt = $conn->prepare($query);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            error_log("Sponsor::updateProfileData - Result: " . ($result ? 'success' : 'failed'));
+            error_log("Sponsor::updateProfileData - Affected rows: " . $stmt->rowCount());
+            return $result;
         } catch (Exception $e) {
             error_log("Error updating sponsor profile data: " . $e->getMessage());
             return false;
         }
     }
-}
 
+    /**
+     * Get sponsored events for a sponsor
+     */
+    public function getSponsoredEvents($sponsorId) {
+        $query = "SELECT 
+            e.*,
+            es.id as sponsorship_id,
+            es.amount as sponsored_amount,
+            es.status as sponsorship_status,
+            esp.package_name,
+            esp.package_type,
+            p.society_name as publisher_name,
+            pp.logo_url as publisher_logo
+        FROM event_sponsorships es
+        INNER JOIN events e ON es.event_id = e.id
+        INNER JOIN event_sponsorship_packages esp ON es.package_id = esp.id
+        LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+        LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
+        WHERE es.sponsor_id = :sponsor_id 
+        AND es.status IN ('approved', 'completed')
+        AND e.deleted_at IS NULL
+        ORDER BY e.event_date DESC";
+        
+        try {
+            return $this->query($query, ['sponsor_id' => $sponsorId]);
+        } catch (Exception $e) {
+            error_log("Error fetching sponsored events: " . $e->getMessage());
+            return [];
+        }
+    }
+}
