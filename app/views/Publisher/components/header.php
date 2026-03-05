@@ -56,10 +56,7 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
             <a href="/unipulse/public/publisher/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
             <a href="/unipulse/public/publisher/sponsors" class="<?= $activeNav === 'sponsors' ? 'active' : '' ?>">Browse Sponsors</a>
             <a href="/unipulse/public/publisher/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">Sponsorships</a>
-            <a href="/unipulse/public/publisher/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>" style="position:relative;">
-                Messages
-                <span id="publisherMsgBadge" style="display:none;position:absolute;top:-6px;right:-10px;background:#f59e0b;color:#fff;font-size:0.65rem;font-weight:700;padding:2px 5px;border-radius:10px;min-width:16px;text-align:center;"></span>
-            </a>
+            <a href="/unipulse/public/publisher/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
             <a href="/unipulse/public/publisher/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
         </nav>
         <div class="header-actions">
@@ -106,24 +103,3 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
     </div>
 </header>
 <script src="/unipulse/public/assets/js/Publisher/header-app.js"></script>
-<script>
-(function () {
-    function updatePublisherMsgBadge() {
-        fetch('/unipulse/public/publisher/messages/unreadCount')
-            .then(r => r.json())
-            .then(data => {
-                const badge = document.getElementById('publisherMsgBadge');
-                if (!badge) return;
-                if (data.success && data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            })
-            .catch(() => {});
-    }
-    updatePublisherMsgBadge();
-    setInterval(updatePublisherMsgBadge, 30000);
-})();
-</script>

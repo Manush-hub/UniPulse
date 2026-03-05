@@ -6,6 +6,7 @@ const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
 const volunteerApplyEndpoint = window.serverData?.volunteerApplyEndpoint || '/unipulse/public/user/eventview/applyVolunteer';
+const donationSubmitEndpoint = window.serverData?.donationSubmitEndpoint || '/unipulse/public/user/eventview/submitDonation';
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
@@ -1482,6 +1483,50 @@ function displayVolunteerInfo(event) {
 
 // Modal functions
 function openDonationModal() {
+    if (!currentEvent) {
+        alert('Event details are not available right now. Please refresh and try again.');
+        return;
+    }
+
+    const bankName = currentEvent.donation_bank_name || 'N/A';
+    const accountName = currentEvent.donation_account_name || 'N/A';
+    const accountNumber = currentEvent.donation_account_number || 'N/A';
+    const branch = currentEvent.donation_branch || 'N/A';
+    const swiftCode = currentEvent.donation_swift_code || '';
+    const instructions = currentEvent.donation_instructions || '';
+
+    const bankNameEl = document.getElementById('donationBankName');
+    const accountNameEl = document.getElementById('donationAccountName');
+    const accountNumberEl = document.getElementById('donationAccountNumber');
+    const branchEl = document.getElementById('donationBranch');
+    const swiftWrapEl = document.getElementById('donationSwiftWrap');
+    const swiftEl = document.getElementById('donationSwiftCode');
+    const instructionsWrapEl = document.getElementById('donationInstructionsWrap');
+    const instructionsEl = document.getElementById('donationInstructions');
+
+    if (bankNameEl) bankNameEl.textContent = bankName;
+    if (accountNameEl) accountNameEl.textContent = accountName;
+    if (accountNumberEl) accountNumberEl.textContent = accountNumber;
+    if (branchEl) branchEl.textContent = branch;
+
+    if (swiftWrapEl && swiftEl) {
+        if (swiftCode) {
+            swiftEl.textContent = swiftCode;
+            swiftWrapEl.style.display = 'block';
+        } else {
+            swiftWrapEl.style.display = 'none';
+        }
+    }
+
+    if (instructionsWrapEl && instructionsEl) {
+        if (instructions) {
+            instructionsEl.textContent = instructions;
+            instructionsWrapEl.style.display = 'block';
+        } else {
+            instructionsWrapEl.style.display = 'none';
+        }
+    }
+
     document.getElementById('donationModal').style.display = 'flex';
 }
 
@@ -1489,20 +1534,94 @@ function closeDonationModal() {
     document.getElementById('donationModal').style.display = 'none';
 }
 
-function processDonation() {
+async function processDonation() {
     const selectedAmount = document.querySelector('.donation-amount.selected');
-    const customAmount = document.getElementById('customDonationAmount').value;
+    const customAmount = document.getElementById('customDonationAmount')?.value;
+    const slipFile = document.getElementById('donationSlip')?.files?.[0];
+    const reference = document.getElementById('donationReference')?.value?.trim() || '';
+    const message = document.getElementById('donationMessage')?.value?.trim() || '';
+    const submitBtn = document.getElementById('submitDonationBtn');
 
-    const amount = selectedAmount ? selectedAmount.dataset.amount : customAmount;
+    const amount = selectedAmount ? selectedAmount.dataset.amount : (customAmount || '').trim();
 
-    if (!amount || amount < 100) {
+    if (!amount || isNaN(amount) || parseFloat(amount) < 100) {
         alert('Please select or enter a valid donation amount (minimum LKR 100)');
         return;
     }
 
-    // Here you would integrate with payment gateway
-    alert(`Thank you for your donation of LKR ${amount}! Payment integration would be implemented here.`);
-    closeDonationModal();
+    if (!slipFile) {
+        alert('Please upload your payment slip.');
+        return;
+    }
+
+    if (slipFile.size > 5 * 1024 * 1024) {
+        alert('Payment slip must be less than 5MB.');
+        return;
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!allowedTypes.includes(slipFile.type)) {
+        alert('Invalid file type. Only JPG, PNG, and PDF are allowed.');
+        return;
+    }
+
+    if (!currentEvent || !currentEvent.id) {
+        alert('Event details are missing. Please refresh and try again.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('event_id', currentEvent.id);
+    formData.append('amount', parseFloat(amount).toFixed(2));
+    formData.append('payment_slip', slipFile);
+
+    if (reference) {
+        formData.append('transaction_reference', reference);
+    }
+
+    if (message) {
+        formData.append('message', message);
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+    }
+
+    try {
+        const response = await fetch(donationSubmitEndpoint, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message || 'Donation submitted successfully.');
+            closeDonationModal();
+
+            document.querySelectorAll('.donation-amount').forEach(btn => btn.classList.remove('selected'));
+            const customAmountInput = document.getElementById('customDonationAmount');
+            const slipInput = document.getElementById('donationSlip');
+            const referenceInput = document.getElementById('donationReference');
+            const messageInput = document.getElementById('donationMessage');
+
+            if (customAmountInput) customAmountInput.value = '';
+            if (slipInput) slipInput.value = '';
+            if (referenceInput) referenceInput.value = '';
+            if (messageInput) messageInput.value = '';
+        } else {
+            alert(data.error || 'Failed to submit donation.');
+        }
+    } catch (error) {
+        console.error('Donation submission error:', error);
+        alert('Unable to submit donation right now. Please try again.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Donation';
+        }
+    }
 }
 
 // Make functions globally accessible
@@ -1524,6 +1643,15 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('customDonationAmount').value = '';
         });
     });
+
+    const customAmountInput = document.getElementById('customDonationAmount');
+    if (customAmountInput) {
+        customAmountInput.addEventListener('input', function () {
+            if (this.value && this.value.trim() !== '') {
+                donationAmounts.forEach(btn => btn.classList.remove('selected'));
+            }
+        });
+    }
 });
 
 // Comments System Variables

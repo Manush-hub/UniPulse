@@ -7,6 +7,7 @@ class UserEventview extends Controller
     private $registrationModel;
     private $freeRegistrationModel;
     private $volunteerRegistrationModel;
+    private $donationModel;
 
     public function __construct()
     {
@@ -15,6 +16,7 @@ class UserEventview extends Controller
         $this->registrationModel = new EventRegistration();
         $this->freeRegistrationModel = new FreeEventRegistration();
         $this->volunteerRegistrationModel = new VolunteerRegistration();
+        $this->donationModel = new Donation();
     }
 
     public function index($id = null)
@@ -80,7 +82,8 @@ class UserEventview extends Controller
                                 'isVolunteerApplied' => $isVolunteerApplied,
                                 'apiEndpoint' => '/unipulse/public/user/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/user/eventview/joinEvent',
-                                'volunteerApplyEndpoint' => '/unipulse/public/user/eventview/applyVolunteer'
+                                'volunteerApplyEndpoint' => '/unipulse/public/user/eventview/applyVolunteer',
+                                'donationSubmitEndpoint' => '/unipulse/public/user/eventview/submitDonation'
                             ]
                         ];
                     } else {
@@ -486,6 +489,161 @@ class UserEventview extends Controller
             echo json_encode([
                 'success' => false,
                 'error' => 'Unable to apply as volunteer. Please try again later.'
+            ]);
+        }
+
+        exit;
+    }
+
+    /**
+     * Submit donation with payment slip
+     */
+    public function submitDonation($id = null)
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'You must be logged in to donate'
+            ]);
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Method not allowed'
+            ]);
+            exit;
+        }
+
+        $eventId = $id ?: ($_POST['event_id'] ?? null);
+        $amount = $_POST['amount'] ?? null;
+
+        if (!$eventId || !is_numeric($eventId)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Invalid event ID'
+            ]);
+            exit;
+        }
+
+        if (!is_numeric($amount) || (float)$amount < 100) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Minimum donation amount is LKR 100'
+            ]);
+            exit;
+        }
+
+        try {
+            $event = $this->eventModel->getEventById($eventId);
+
+            if (!$event) {
+                throw new Exception('Event not found');
+            }
+
+            if (empty($event->accepts_donations) || (int)$event->accepts_donations !== 1) {
+                throw new Exception('This event is not accepting donations');
+            }
+
+            if (!isset($_FILES['payment_slip']) || $_FILES['payment_slip']['error'] !== UPLOAD_ERR_OK) {
+                throw new Exception('Payment slip is required');
+            }
+
+            $file = $_FILES['payment_slip'];
+            $maxSize = 5 * 1024 * 1024;
+            if ($file['size'] > $maxSize) {
+                throw new Exception('Payment slip must be less than 5MB');
+            }
+
+            $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $file['tmp_name']);
+            finfo_close($finfo);
+
+            if (!in_array($mimeType, $allowedMimes)) {
+                throw new Exception('Invalid file type. Only JPG, PNG, and PDF are allowed');
+            }
+
+            $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/unipulse/public/uploads/donation_slips/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'donation_slip_' . (int)$_SESSION['user_id'] . '_' . time() . '.' . $extension;
+            $uploadPath = $uploadDir . $filename;
+            $dbPath = '/unipulse/public/uploads/donation_slips/' . $filename;
+
+            if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+                throw new Exception('Failed to upload payment slip');
+            }
+
+            $currentUser = AuthService::getCurrentUser();
+
+            $donationData = [
+                'user_id' => (int)$_SESSION['user_id'],
+                'user_type' => (string)$_SESSION['user_type'],
+                'event_id' => (int)$eventId,
+                'amount' => round((float)$amount, 2),
+                'currency' => 'LKR',
+                'payment_method' => 'bank_transfer',
+                'payment_id' => $dbPath,
+                'transaction_reference' => !empty($_POST['transaction_reference']) ? trim($_POST['transaction_reference']) : null,
+                'status' => 'pending',
+                'donor_name' => $currentUser['name'] ?? $currentUser['full_name'] ?? null,
+                'donor_email' => $currentUser['email'] ?? null,
+                'donor_phone' => $currentUser['phone'] ?? null,
+                'is_anonymous' => 0,
+                'message' => !empty($_POST['message']) ? trim($_POST['message']) : null,
+                'receipt_sent' => 0
+            ];
+
+            $insertId = $this->donationModel->createDonation($donationData);
+
+            if (!$insertId) {
+                if (file_exists($uploadPath)) {
+                    unlink($uploadPath);
+                }
+                throw new Exception('Failed to save donation');
+            }
+
+            if (($event->created_by_type ?? '') === 'publisher' && !empty($event->created_by)) {
+                try {
+                    $activityModel = new Activity();
+                    $donorName = $currentUser['name'] ?? $currentUser['full_name'] ?? 'A user';
+                    $activityModel->logActivity(
+                        (int)$event->created_by,
+                        'publisher',
+                        'event_registration',
+                        'New Donation Submitted',
+                        $donorName . ' submitted a donation for "' . ($event->title ?? 'your event') . '".',
+                        'bell',
+                        (int)$eventId,
+                        (string)($event->title ?? ''),
+                        [
+                            'notification_category' => 'donation_submitted',
+                            'donation_id' => (int)$insertId,
+                            'amount' => round((float)$amount, 2),
+                            'currency' => 'LKR'
+                        ]
+                    );
+                } catch (Throwable $activityError) {
+                    error_log('UserEventview::submitDonation activity log warning: ' . $activityError->getMessage());
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Donation submitted successfully. It will be reviewed by the publisher.'
+            ]);
+        } catch (Exception $e) {
+            error_log('UserEventview::submitDonation error: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => $e->getMessage()
             ]);
         }
 

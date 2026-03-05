@@ -58,39 +58,6 @@ class PublisherDashboard extends Controller
             $lastReadAt = $_SESSION[$sessionKey];
             $readItems = $_SESSION[$readItemsKey];
 
-            $notifications = [];
-            $unreadCount = 0;
-
-            // 1) Personal publisher notifications for new registrations
-            $activities = $activityModel->getRecentActivities($publisherId, 'publisher', 30);
-            $registrationActivities = array_filter($activities, function ($activity) {
-                return ($activity->activity_type ?? '') === 'event_registration';
-            });
-
-            foreach ($registrationActivities as $activity) {
-                $notificationTime = $activity->created_at ?? date('Y-m-d H:i:s');
-                $eventId = (int)($activity->event_id ?? 0);
-                $notificationKey = 'activity|' . ($activity->id ?? 0) . '|' . $notificationTime;
-
-                $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
-                $isMarkedIndividually = in_array($notificationKey, $readItems, true);
-                $isUnread = !($isMarkedByTime || $isMarkedIndividually);
-
-                if ($isUnread) {
-                    $unreadCount++;
-                }
-
-                $notifications[] = [
-                    'id' => $eventId,
-                    'title' => $activity->title ?? 'New Event Registration',
-                    'message' => $activity->description ?? 'A user registered for your event.',
-                    'time' => $this->formatRelativeTime($notificationTime),
-                    'read' => !$isUnread,
-                    'created_at' => $notificationTime,
-                    'notification_key' => $notificationKey
-                ];
-            }
-
             // Match visibility used by Publisher All Events page.
             $events = $eventModel->getAllEvents([
                 'status' => 'upcoming',
@@ -161,7 +128,9 @@ class PublisherDashboard extends Controller
                     'time' => $this->formatRelativeTime($notificationTime),
                     'read' => !$isUnread,
                     'created_at' => $notificationTime,
-                    'notification_key' => $notificationKey
+                    'notification_key' => $notificationKey,
+                    'notification_category' => 'new_event_published',
+                    'redirect_url' => '/unipulse/public/publisher/eventview?id=' . $eventId
                 ];
             }
 

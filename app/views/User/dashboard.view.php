@@ -98,9 +98,14 @@
             <div class="container">
                 <div class="activity-layout">
                     <div class="activity-feed">
-                        <h2>Recent Activity</h2>
+                        <h2>Recent Activities</h2>
                         <div class="activity-list" id="activityList">
                             <!-- Activity items will be loaded here -->
+                        </div>
+
+                        <h2 style="margin-top: 2rem;">Your Donations</h2>
+                        <div class="donations-table-container" id="donationsTableContainer">
+                            <div class="loading">Loading donations...</div>
                         </div>
                     </div>
                     <!-- <div class="sidebar">
