@@ -60,6 +60,23 @@ function createNotificationItem(notification) {
             updateBadgeCountFromCurrentList();
             markNotificationAsRead(notification);
         }
+
+        const redirectUrl = typeof notification.redirect_url === 'string'
+            ? notification.redirect_url.trim()
+            : '';
+
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+            return;
+        }
+
+        const category = String(notification.notification_category || '').toLowerCase();
+        const title = String(notification.title || '').toLowerCase();
+        if (category === 'donation_submitted' || title.includes('donation submitted')) {
+            window.location.href = '/unipulse/public/publisher/donations';
+            return;
+        }
+
         const eventId = Number(notification.id || 0);
         if (eventId > 0) {
             window.location.href = `/unipulse/public/publisher/eventview?id=${eventId}`;

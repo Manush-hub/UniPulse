@@ -71,6 +71,20 @@ class PublisherDashboard extends Controller
                 $notificationTime = $activity->created_at ?? date('Y-m-d H:i:s');
                 $eventId = (int)($activity->event_id ?? 0);
                 $notificationKey = 'activity|' . ($activity->id ?? 0) . '|' . $notificationTime;
+                $activityData = [];
+                if (!empty($activity->activity_data)) {
+                    $decodedActivityData = json_decode((string)$activity->activity_data, true);
+                    if (is_array($decodedActivityData)) {
+                        $activityData = $decodedActivityData;
+                    }
+                }
+                $notificationCategory = (string)($activityData['notification_category'] ?? '');
+                $redirectUrl = '/unipulse/public/publisher/events';
+                if ($notificationCategory === 'donation_submitted') {
+                    $redirectUrl = '/unipulse/public/publisher/donations';
+                } elseif ($eventId > 0) {
+                    $redirectUrl = '/unipulse/public/publisher/eventview?id=' . $eventId;
+                }
 
                 $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
                 $isMarkedIndividually = in_array($notificationKey, $readItems, true);
@@ -87,7 +101,9 @@ class PublisherDashboard extends Controller
                     'time' => $this->formatRelativeTime($notificationTime),
                     'read' => !$isUnread,
                     'created_at' => $notificationTime,
-                    'notification_key' => $notificationKey
+                    'notification_key' => $notificationKey,
+                    'notification_category' => $notificationCategory,
+                    'redirect_url' => $redirectUrl
                 ];
             }
 
@@ -161,7 +177,9 @@ class PublisherDashboard extends Controller
                     'time' => $this->formatRelativeTime($notificationTime),
                     'read' => !$isUnread,
                     'created_at' => $notificationTime,
-                    'notification_key' => $notificationKey
+                    'notification_key' => $notificationKey,
+                    'notification_category' => 'new_event_published',
+                    'redirect_url' => '/unipulse/public/publisher/eventview?id=' . $eventId
                 ];
             }
 

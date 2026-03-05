@@ -21,7 +21,7 @@ try {
         payment_method VARCHAR(50),
         payment_id VARCHAR(100),
         transaction_reference VARCHAR(100),
-        status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+        status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
         donor_name VARCHAR(100),
         donor_email VARCHAR(100),
         donor_phone VARCHAR(20),

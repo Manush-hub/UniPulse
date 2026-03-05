@@ -52,7 +52,7 @@
                             </svg>
                             Create Event
                         </button>
-                        <!-- <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/sponsors'">
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/publisher/sponsors'">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -60,7 +60,7 @@
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                             </svg>
                             View Sponsors
-                        </button> -->
+                        </button>
                     </div>
                 </div>
             </div>
