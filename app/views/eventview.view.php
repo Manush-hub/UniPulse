@@ -490,6 +490,58 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
         </div>
     </div>
 
+    <!-- Donation Modal -->
+    <div id="donationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Make a Donation</h2>
+                <button class="close-btn" onclick="closeDonationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 12px;">Transfer your donation to the following account, then upload your payment slip.</p>
+
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 6px;"><strong>Bank Name:</strong> <span id="donationBankName">N/A</span></div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 6px;"><strong>Account Name:</strong> <span id="donationAccountName">N/A</span></div>
+                    <div style="font-size: 12px; color: #111827; margin-bottom: 6px;"><strong>Account Number:</strong> <span id="donationAccountNumber">N/A</span></div>
+                    <div style="font-size: 12px; color: #6b7280; margin-bottom: 6px;"><strong>Branch:</strong> <span id="donationBranch">N/A</span></div>
+                    <div style="font-size: 12px; color: #6b7280; display: none;" id="donationSwiftWrap"><strong>SWIFT:</strong> <span id="donationSwiftCode">N/A</span></div>
+                    <div style="font-size: 12px; color: #6b7280; margin-top: 8px; display: none;" id="donationInstructionsWrap">
+                        <strong>Instructions:</strong>
+                        <div id="donationInstructions" style="margin-top: 4px;"></div>
+                    </div>
+                </div>
+
+                <div class="donation-amounts" style="margin-bottom: 12px;">
+                    <button type="button" class="donation-btn donation-amount" data-amount="500">LKR 500</button>
+                    <button type="button" class="donation-btn donation-amount" data-amount="1000">LKR 1,000</button>
+                    <button type="button" class="donation-btn donation-amount" data-amount="2000">LKR 2,000</button>
+                    <input type="number" id="customDonationAmount" placeholder="Custom amount (min 100)" class="custom-amount-input" min="100" step="0.01">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="donationReference" style="display: block; margin-bottom: 6px;">Transaction Reference (Optional)</label>
+                    <input type="text" id="donationReference" class="form-input" placeholder="e.g., TXN123456" maxlength="100">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="donationMessage" style="display: block; margin-bottom: 6px;">Message to Publisher (Optional)</label>
+                    <textarea id="donationMessage" class="form-textarea" rows="3" placeholder="Any note for this donation..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="donationSlip" style="display: block; margin-bottom: 6px;">Upload Payment Slip <span style="color:#ef4444;">*</span></label>
+                    <input type="file" id="donationSlip" accept="image/*,application/pdf" class="form-input">
+                    <small style="display: block; margin-top: 6px; color: #6b7280;">Accepted: JPG, PNG, PDF (Max 5MB)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
+                <button class="btn btn-primary" id="submitDonationBtn" onclick="processDonation()">Submit Donation</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Comments Section -->
     <div class="comments-section" id="commentsSection" style="display: none;">
         <div class="container">
@@ -607,29 +659,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeDeleteCommentModal()">Cancel</button>
                 <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Donation Modal -->
-    <div id="donationModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Make a Donation</h2>
-                <button class="close-btn" onclick="closeDonationModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Support this event with a donation:</p>
-                <div class="donation-amounts">
-                    <button class="donation-btn donation-amount" data-amount="500">LKR 500</button>
-                    <button class="donation-btn donation-amount" data-amount="1000">LKR 1,000</button>
-                    <button class="donation-btn donation-amount" data-amount="2000">LKR 2,000</button>
-                    <input type="number" id="customDonationAmount" placeholder="Custom amount" class="custom-amount-input">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeDonationModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="processDonation()">Donate</button>
             </div>
         </div>
     </div>

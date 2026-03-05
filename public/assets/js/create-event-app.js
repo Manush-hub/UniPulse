@@ -111,24 +111,24 @@ function toggleLocationFields() {
     if (selectedType === 'inside-university') {
         insideUniversityLocation.classList.remove('hidden');
         outsideUniversityLocation.classList.add('hidden');
-        
+
         // Add required to inside university fields
         insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.setAttribute('required', 'required'));
         insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.setAttribute('required', 'required'));
         insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.setAttribute('required', 'required'));
-        
+
         // Remove required from outside university fields
         outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.removeAttribute('required'));
         outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.removeAttribute('required'));
     } else {
         insideUniversityLocation.classList.add('hidden');
         outsideUniversityLocation.classList.remove('hidden');
-        
+
         // Remove required from inside university fields
         insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.removeAttribute('required'));
         insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.removeAttribute('required'));
         insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.removeAttribute('required'));
-        
+
         // Add required to outside university fields
         outsideUniversityLocation.querySelectorAll('input[name="venue_name"]').forEach(el => el.setAttribute('required', 'required'));
         outsideUniversityLocation.querySelectorAll('input[name="city"]').forEach(el => el.setAttribute('required', 'required'));
@@ -314,7 +314,7 @@ function updateTicketOptions() {
     freeAllDetails.classList.add("hidden");
     paidAllDetails.classList.add("hidden");
     mixedDetails.classList.add("hidden");
-    
+
     // Remove required from all ticket fields
     document.querySelectorAll('input[name="sale_start_date"], input[name="sale_start_time"], input[name="sale_end_date"], input[name="sale_end_time"]').forEach(el => el.removeAttribute('required'));
     document.querySelectorAll('input[name="mixed_sale_start_date"], input[name="mixed_sale_start_time"], input[name="mixed_sale_end_date"], input[name="mixed_sale_end_time"]').forEach(el => el.removeAttribute('required'));
@@ -521,11 +521,38 @@ document.addEventListener('DOMContentLoaded', function () {
 const sponsorshipToggle = document.getElementById('sponsorshipToggle');
 const sponsorshipDetails = document.getElementById('sponsorshipDetails');
 
+// DONATION TOGGLE FUNCTIONALITY
+const donationToggle = document.getElementById('donationToggle');
+const donationDetails = document.getElementById('donationDetails');
+
+function toggleDonationDetails() {
+    if (donationToggle && donationDetails) {
+        const requiredFields = donationDetails.querySelectorAll('input[name="donation_bank_name"], input[name="donation_account_name"], input[name="donation_account_number"]');
+
+        if (donationToggle.checked) {
+            donationDetails.classList.remove('hidden');
+            requiredFields.forEach(field => {
+                field.setAttribute('required', 'required');
+            });
+        } else {
+            donationDetails.classList.add('hidden');
+            requiredFields.forEach(field => {
+                field.removeAttribute('required');
+            });
+        }
+    }
+}
+
+if (donationToggle) {
+    donationToggle.addEventListener('change', toggleDonationDetails);
+    toggleDonationDetails();
+}
+
 function toggleSponsorshipDetails() {
     if (sponsorshipToggle && sponsorshipDetails) {
         const requiredFields = sponsorshipDetails.querySelectorAll('input[name="sponsorship_bank_name"], input[name="sponsorship_account_name"], input[name="sponsorship_account_number"]');
         const proposalField = document.getElementById('sponsorship_proposal');
-        
+
         if (sponsorshipToggle.checked) {
             sponsorshipDetails.classList.remove('hidden');
             // Add required attribute to bank details fields
@@ -612,7 +639,7 @@ function addSponsorshipPackage() {
 
 function displaySponsorshipPackages() {
     const display = document.getElementById('sponsorshipPackagesDisplay');
-    
+
     if (sponsorshipPackages.length === 0) {
         display.innerHTML = `
             <p style="color: #999; font-style: italic; text-align: center; padding: 20px;">
@@ -698,12 +725,12 @@ function removeSponsorshipPackage(id) {
 }
 
 // Auto-fill package name based on type selection
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const packageTypeSelect = document.getElementById('packageType');
     const packageNameInput = document.getElementById('packageName');
-    
+
     if (packageTypeSelect && packageNameInput) {
-        packageTypeSelect.addEventListener('change', function() {
+        packageTypeSelect.addEventListener('change', function () {
             const typeLabels = {
                 bronze: 'Bronze Sponsor',
                 silver: 'Silver Sponsor',
@@ -711,11 +738,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 platinum: 'Platinum Sponsor',
                 custom: ''
             };
-            
+
             // Only auto-fill if the current value is empty or matches a default pattern
             const currentValue = packageNameInput.value.trim();
             const isDefaultValue = Object.values(typeLabels).includes(currentValue) || currentValue === '';
-            
+
             if (isDefaultValue) {
                 packageNameInput.value = typeLabels[this.value] || '';
             }

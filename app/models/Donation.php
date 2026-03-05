@@ -67,7 +67,7 @@ class Donation
                 LEFT JOIN events e ON d.event_id = e.id
                 WHERE d.user_id = :user_id 
                 AND d.user_type = :user_type
-                AND d.status = 'completed'
+                AND d.status IN ('accepted', 'completed')
                 AND DATE_FORMAT(d.created_at, '%Y-%m') = :month
                 ORDER BY d.created_at DESC";
 
@@ -87,7 +87,7 @@ class Donation
                 FROM {$this->table}
                 WHERE user_id = :user_id 
                 AND user_type = :user_type
-                AND status = 'completed'
+                AND status IN ('accepted', 'completed')
                 AND DATE_FORMAT(created_at, '%Y-%m') = :month";
 
         $result = $this->query($sql, [
@@ -109,7 +109,7 @@ class Donation
                 FROM {$this->table}
                 WHERE user_id = :user_id 
                 AND user_type = :user_type
-                AND status = 'completed'";
+                AND status IN ('accepted', 'completed')";
 
         $result = $this->query($sql, [
             'user_id' => $userId,

@@ -146,16 +146,31 @@ class UserDashboard extends Controller
                         }
                     }
 
-                    $registrationType = strtolower((string)($activityData['registration_type'] ?? 'free'));
-                    $amountPaid = (float)($activityData['amount_paid'] ?? 0);
-                    $isPaidRegistration = ($registrationType === 'paid' || $amountPaid > 0);
+                    $notificationCategory = strtolower((string)($activityData['notification_category'] ?? ''));
+                    if ($notificationCategory === 'donation_status') {
+                        $donationStatus = strtolower((string)($activityData['donation_status'] ?? 'pending'));
+                        $amountPaid = (float)($activityData['amount'] ?? 0);
+                        $currency = (string)($activityData['currency'] ?? 'LKR');
 
-                    if ($isPaidRegistration) {
-                        $title = 'Payment & Registration Confirmed';
-                        $message = 'Your payment was successful and you are registered for "' . $eventTitle . '".';
+                        if ($donationStatus === 'accepted' || $donationStatus === 'completed') {
+                            $title = 'Donation Approved';
+                            $message = 'Your donation of ' . $currency . ' ' . number_format($amountPaid, 2) . ' for "' . $eventTitle . '" was approved.';
+                        } else {
+                            $title = 'Donation Rejected';
+                            $message = 'Your donation for "' . $eventTitle . '" was rejected by the publisher.';
+                        }
                     } else {
-                        $title = 'Registration Confirmed';
-                        $message = 'You registered for "' . $eventTitle . '".';
+                        $registrationType = strtolower((string)($activityData['registration_type'] ?? 'free'));
+                        $amountPaid = (float)($activityData['amount_paid'] ?? 0);
+                        $isPaidRegistration = ($registrationType === 'paid' || $amountPaid > 0);
+
+                        if ($isPaidRegistration) {
+                            $title = 'Payment & Registration Confirmed';
+                            $message = 'Your payment was successful and you are registered for "' . $eventTitle . '".';
+                        } else {
+                            $title = 'Registration Confirmed';
+                            $message = 'You registered for "' . $eventTitle . '".';
+                        }
                     }
                 } elseif ($activityType === 'event_cancellation') {
                     $title = 'Registration Cancelled';
@@ -516,6 +531,63 @@ class UserDashboard extends Controller
                 'success' => false,
                 'error' => $e->getMessage(),
                 'trace' => DEBUG ? $e->getTraceAsString() : ''
+            ]);
+        }
+    }
+
+    /**
+     * API endpoint to get user's donations for dashboard table
+     */
+    public function getUserDonations()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+
+            if (!$currentUser || !in_array($currentUser['type'] ?? '', ['public', 'university'])) {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                return;
+            }
+
+            $donationModel = new Donation();
+            $donations = $donationModel->getUserDonations((int)$currentUser['id'], (string)$currentUser['type']) ?: [];
+
+            $formatted = array_map(function ($donation) {
+                $status = strtolower((string)($donation->status ?? 'pending'));
+
+                $statusLabel = 'Pending';
+                if ($status === 'accepted' || $status === 'completed') {
+                    $statusLabel = 'Approved';
+                } elseif ($status === 'rejected' || $status === 'failed' || $status === 'refunded') {
+                    $statusLabel = 'Rejected';
+                }
+
+                return [
+                    'event_name' => $donation->event_title ?? 'Event',
+                    'donated_date' => $donation->created_at ?? null,
+                    'amount' => (float)($donation->amount ?? 0),
+                    'currency' => $donation->currency ?? 'LKR',
+                    'status' => $status,
+                    'status_label' => $statusLabel
+                ];
+            }, $donations);
+
+            echo json_encode([
+                'success' => true,
+                'donations' => $formatted,
+                'count' => count($formatted)
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in getUserDonations: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load donations'
             ]);
         }
     }

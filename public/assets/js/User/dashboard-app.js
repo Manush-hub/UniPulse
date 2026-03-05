@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
     loadUpcomingEvents();
     loadRecentActivity();
+    loadUserDonations();
     loadMyComments();
 });
 
@@ -306,6 +307,100 @@ function loadRecentActivity() {
             console.error('Error loading recent activity:', error);
             activityList.innerHTML = '<div class="no-data">Failed to load activity</div>';
         });
+}
+
+function loadUserDonations() {
+    const container = document.getElementById('donationsTableContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading">Loading donations...</div>';
+
+    fetch('/unipulse/public/user/dashboard/getUserDonations', {
+        cache: 'no-store',
+        headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch donations');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && Array.isArray(data.donations)) {
+                renderDonationsTable(data.donations);
+            } else {
+                container.innerHTML = '<div class="no-data">No donations yet</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading donations:', error);
+            container.innerHTML = '<div class="no-data">Failed to load donations</div>';
+        });
+}
+
+function renderDonationsTable(donations) {
+    const container = document.getElementById('donationsTableContainer');
+    if (!container) return;
+
+    if (!donations || donations.length === 0) {
+        container.innerHTML = '<div class="no-data">No donations yet</div>';
+        return;
+    }
+
+    const rows = donations.map(donation => {
+        const amount = Number(donation.amount || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        const donatedDate = donation.donated_date
+            ? new Date(donation.donated_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            })
+            : 'N/A';
+
+        let statusClass = 'pending';
+        if (donation.status === 'accepted' || donation.status === 'completed') {
+            statusClass = 'approved';
+        } else if (donation.status === 'rejected' || donation.status === 'failed' || donation.status === 'refunded') {
+            statusClass = 'rejected';
+        }
+
+        return `
+            <tr>
+                <td>${escapeHtmlDash(donation.event_name || 'Event')}</td>
+                <td>${donatedDate}</td>
+                <td>${escapeHtmlDash(donation.currency || 'LKR')} ${amount}</td>
+                <td>
+                    <span class="donation-status-badge ${statusClass}">
+                        ${escapeHtmlDash(donation.status_label || 'Pending')}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    container.innerHTML = `
+        <div class="donations-table-wrap">
+            <table class="donations-table">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Donated Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        </div>
+    `;
 }
 
 // Display recent activity
