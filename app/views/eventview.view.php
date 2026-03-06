@@ -398,6 +398,11 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                             <div id="volunteerInfo"></div>
                         </div>
 
+                        <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                            <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                            <div id="volunteerInvolvementInfo"></div>
+                        </div>
+
                         <div class="content-card" id="donationCard" style="display: none;">
                             <h3><i class="fas fa-hand-holding-heart"></i> Support This Event</h3>
                             <p>Contribute to this event with a donation.</p>
@@ -405,13 +410,6 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                 <button class="btn btn-primary" onclick="openDonationModal()">Donate Now</button>
                             </div>
                         </div>
-
-                        <?php if ($currentRole !== 'User'): ?>
-                            <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
-                                <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
-                                <div id="volunteerInvolvementInfo"></div>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -486,6 +484,74 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             <div class="modal-footer volunteer-consent-footer">
                 <button class="btn btn-secondary" onclick="closeVolunteerConsentModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="confirmVolunteerConsent()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volunteer Application Modal -->
+    <div id="volunteerApplicationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Volunteer Application</h2>
+                <button class="close-btn" onclick="closeVolunteerApplicationModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="volunteerPosition" style="display: block; margin-bottom: 6px;">Preferred Role <span style="color:#ef4444;">*</span></label>
+                    <select id="volunteerPosition" class="form-input" required>
+                        <option value="" selected disabled class="placeholder-option">Select preferred role</option>
+                        <option value="General Volunteer">General Volunteer</option>
+                        <option value="Registration Desk">Registration Desk</option>
+                        <option value="Logistics">Logistics</option>
+                        <option value="Technical Support">Technical Support</option>
+                        <option value="Media and Content">Media and Content</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="volunteerAvailability" style="display: block; margin-bottom: 6px;">Availability <span style="color:#ef4444;">*</span></label>
+                    <select id="volunteerAvailability" class="form-input" required>
+                        <option value="" selected disabled class="placeholder-option">Select availability</option>
+                        <option value="Flexible">Flexible</option>
+                        <option value="Full day">Full day</option>
+                        <option value="Morning shift">Morning shift</option>
+                        <option value="Afternoon shift">Afternoon shift</option>
+                        <option value="Evening shift">Evening shift</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="volunteerExperience" style="display: block; margin-bottom: 6px;">Experience <span style="color:#ef4444;">*</span></label>
+                    <textarea id="volunteerExperience" class="form-textarea" rows="3" placeholder="Describe any relevant volunteering or event experience..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="volunteerSkills" style="display: block; margin-bottom: 6px;">Skills <span style="color:#ef4444;">*</span></label>
+                    <textarea id="volunteerSkills" class="form-textarea" rows="2" placeholder="List useful skills (e.g., communication, photography, first aid)" required></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label for="volunteerMotivation" style="display: block; margin-bottom: 6px;">Motivation <span style="color:#ef4444;">*</span></label>
+                    <textarea id="volunteerMotivation" class="form-textarea" rows="3" placeholder="Why do you want to volunteer for this event?"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="volunteerReceiveUpdates" checked>
+                        <span>Send me updates about this volunteer application</span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="volunteerCommitment" checked>
+                        <span>I understand this is a commitment and I will inform the publisher if I cannot attend.</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeVolunteerApplicationModal()">Cancel</button>
+                <button class="btn btn-primary" id="submitVolunteerApplicationBtn" onclick="submitVolunteerApplication()">Submit Application</button>
             </div>
         </div>
     </div>

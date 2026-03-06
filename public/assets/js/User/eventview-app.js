@@ -2,6 +2,8 @@
 let currentEvent = window.serverData?.event || null;
 let similarEvents = window.serverData?.similarEvents || [];
 let isUserRegistered = window.serverData?.isRegistered || false;
+let isVolunteerApplied = window.serverData?.isVolunteerApplied || false;
+let volunteerApplication = window.serverData?.volunteerApplication || null;
 const hasError = window.serverData?.error || null;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eventview/getEvent';
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
@@ -68,6 +70,8 @@ function loadEventDetails() {
                 if (data.success) {
                     currentEvent = data.event;
                     similarEvents = data.similarEvents || [];
+                    isVolunteerApplied = data.isVolunteerApplied || false;
+                    volunteerApplication = data.volunteerApplication || null;
                     displayEventDetails(currentEvent);
                     loadSimilarEvents(similarEvents);
                     hideLoading();
@@ -346,6 +350,15 @@ function displayEventDetails(event) {
         } else {
             if (document.getElementById('volunteerCard')) {
                 document.getElementById('volunteerCard').style.display = 'none';
+            }
+        }
+
+        if (isVolunteerApplied) {
+            displayVolunteerInvolvement(event);
+        } else {
+            const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+            if (volunteerInvolvementCard) {
+                volunteerInvolvementCard.style.display = 'none';
             }
         }
     }
@@ -633,21 +646,72 @@ function closeVolunteerConsentModal() {
 }
 
 function confirmVolunteerConsent() {
+    closeVolunteerConsentModal();
+    openVolunteerApplicationModal();
+}
+
+function openVolunteerApplicationModal() {
+    const volunteerApplicationModal = document.getElementById('volunteerApplicationModal');
+    if (volunteerApplicationModal) {
+        volunteerApplicationModal.style.display = 'flex';
+    }
+}
+
+function closeVolunteerApplicationModal() {
+    const volunteerApplicationModal = document.getElementById('volunteerApplicationModal');
+    if (volunteerApplicationModal) {
+        volunteerApplicationModal.style.display = 'none';
+    }
+}
+
+function submitVolunteerApplication() {
     if (!currentEvent || !currentEvent.id) {
         alert('Event data not available');
         return;
     }
 
-    const confirmBtn = document.querySelector('#volunteerConsentModal .btn-primary');
-    const originalText = confirmBtn ? confirmBtn.innerHTML : 'Confirm';
+    const volunteerPosition = (document.getElementById('volunteerPosition')?.value || 'General Volunteer').trim();
+    const volunteerAvailability = (document.getElementById('volunteerAvailability')?.value || 'Flexible').trim();
+    const volunteerExperience = (document.getElementById('volunteerExperience')?.value || '').trim();
+    const volunteerSkills = (document.getElementById('volunteerSkills')?.value || '').trim();
+    const volunteerMotivation = (document.getElementById('volunteerMotivation')?.value || '').trim();
+    const hasTransportation = document.getElementById('volunteerTransportation')?.checked ? '1' : '0';
+    const receiveUpdates = document.getElementById('volunteerReceiveUpdates')?.checked ? '1' : '0';
+    const commitmentUnderstanding = document.getElementById('volunteerCommitment')?.checked ? '1' : '0';
 
-    if (confirmBtn) {
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-        confirmBtn.disabled = true;
+    if (!volunteerPosition || !volunteerAvailability) {
+        alert('Please select preferred role and availability before submitting.');
+        return;
+    }
+
+    if (!volunteerExperience || !volunteerSkills || !volunteerMotivation) {
+        alert('Please complete experience, skills, and motivation before submitting.');
+        return;
+    }
+
+    if (commitmentUnderstanding !== '1') {
+        alert('Please confirm your commitment to continue.');
+        return;
+    }
+
+    const submitBtn = document.getElementById('submitVolunteerApplicationBtn');
+    const originalText = submitBtn ? submitBtn.innerHTML : 'Submit Application';
+
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.disabled = true;
     }
 
     const formData = new FormData();
     formData.append('id', currentEvent.id);
+    formData.append('volunteer_position', volunteerPosition);
+    formData.append('availability', volunteerAvailability);
+    formData.append('experience', volunteerExperience);
+    formData.append('skills', volunteerSkills);
+    formData.append('motivation', volunteerMotivation);
+    formData.append('have_transportation', hasTransportation);
+    formData.append('receive_updates', receiveUpdates);
+    formData.append('commitment_understanding', commitmentUnderstanding);
 
     fetch(volunteerApplyEndpoint, {
         method: 'POST',
@@ -660,11 +724,15 @@ function confirmVolunteerConsent() {
                     currentEvent.volunteers_needed = parseInt(data.volunteers_needed, 10);
                 }
 
+                isVolunteerApplied = true;
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
                 displayVolunteerInfo(currentEvent);
-                closeVolunteerConsentModal();
+                displayVolunteerInvolvement(currentEvent);
+                closeVolunteerApplicationModal();
                 window.location.href = '/unipulse/public/user/dashboard?volunteer_applied=1';
             } else if (data.alreadyRegistered) {
-                closeVolunteerConsentModal();
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
+                closeVolunteerApplicationModal();
                 alert('You have already applied as a volunteer for this event.');
                 window.location.href = '/unipulse/public/user/dashboard';
             } else {
@@ -676,9 +744,9 @@ function confirmVolunteerConsent() {
             alert('Failed to submit volunteer application. Please try again.');
         })
         .finally(() => {
-            if (confirmBtn) {
-                confirmBtn.innerHTML = originalText;
-                confirmBtn.disabled = false;
+            if (submitBtn) {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             }
         });
 }
@@ -691,6 +759,9 @@ window.closeShareModal = closeShareModal;
 window.openVolunteerConsentModal = openVolunteerConsentModal;
 window.closeVolunteerConsentModal = closeVolunteerConsentModal;
 window.confirmVolunteerConsent = confirmVolunteerConsent;
+window.openVolunteerApplicationModal = openVolunteerApplicationModal;
+window.closeVolunteerApplicationModal = closeVolunteerApplicationModal;
+window.submitVolunteerApplication = submitVolunteerApplication;
 
 // Event actions
 function confirmJoinEvent() {
@@ -1472,13 +1543,99 @@ function displayVolunteerInfo(event) {
     }
 
     volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += `<button class="btn btn-primary" onclick="applyAsVolunteer()" ${hasVolunteerSlots ? '' : 'disabled style="opacity:0.6;cursor:not-allowed;"'}>${hasVolunteerSlots ? 'Apply as Volunteer' : 'Volunteer Positions Filled'}</button>`;
+    if (isVolunteerApplied) {
+        const statusText = getVolunteerStatusText(volunteerApplication?.status);
+        volunteerHTML += `<button class="btn btn-primary" disabled style="opacity:0.7;cursor:not-allowed;">${statusText}</button>`;
+    } else {
+        volunteerHTML += `<button class="btn btn-primary" onclick="applyAsVolunteer()" ${hasVolunteerSlots ? '' : 'disabled style="opacity:0.6;cursor:not-allowed;"'}>${hasVolunteerSlots ? 'Apply as Volunteer' : 'Volunteer Positions Filled'}</button>`;
+    }
     volunteerHTML += '</div>';
 
     volunteerHTML += '</div>';
 
     document.getElementById('volunteerCard').style.display = 'block';
     document.getElementById('volunteerInfo').innerHTML = volunteerHTML;
+}
+
+function displayVolunteerInvolvement(event) {
+    const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+    const volunteerInvolvementInfo = document.getElementById('volunteerInvolvementInfo');
+
+    if (!volunteerInvolvementCard || !volunteerInvolvementInfo) {
+        return;
+    }
+
+    const eventDate = formatDate(event.event_date || event.date);
+    const eventTime = event.event_time || event.time || 'TBA';
+    const applicationStatus = volunteerApplication?.status || 'pending';
+    const role = volunteerApplication?.volunteer_position || 'General Volunteer';
+    const availability = volunteerApplication?.availability || 'Flexible';
+    const appliedAt = formatVolunteerAppliedAt(volunteerApplication?.created_at);
+    const statusText = capitalizeFirstLetter(applicationStatus);
+    const statusClass = getVolunteerStatusBadgeClass(applicationStatus);
+
+    volunteerInvolvementInfo.innerHTML = `
+        <div class="volunteer-involvement-summary">
+            <div class="volunteer-involvement-status">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <strong>You have applied as a volunteer</strong>
+                    <p>Status: <span class="volunteer-app-status-badge ${statusClass}">${statusText}</span></p>
+                </div>
+            </div>
+            <div class="volunteer-involvement-meta">
+                <p><strong>Event:</strong> ${event.title}</p>
+                <p><strong>Date:</strong> ${eventDate} at ${eventTime}</p>
+                <p><strong>Role:</strong> ${role}</p>
+                <p><strong>Availability:</strong> ${availability}</p>
+                <p><strong>Applied On:</strong> ${appliedAt}</p>
+                <div style="margin-top: 12px;">
+                    <button class="btn btn-primary" onclick="viewMyVolunteerApplication()">View My Application</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    volunteerInvolvementCard.style.display = 'block';
+}
+
+function viewMyVolunteerApplication() {
+    window.location.href = '/unipulse/public/user/dashboard';
+}
+
+function getVolunteerStatusText(status) {
+    const normalized = String(status || 'pending').toLowerCase();
+    if (normalized === 'accepted') return 'Application Accepted';
+    if (normalized === 'rejected') return 'Application Rejected';
+    if (normalized === 'withdrawn') return 'Application Withdrawn';
+    return 'Application Submitted';
+}
+
+function getVolunteerStatusBadgeClass(status) {
+    const normalized = String(status || 'pending').toLowerCase();
+    if (normalized === 'accepted') return 'accepted';
+    if (normalized === 'rejected') return 'rejected';
+    if (normalized === 'withdrawn') return 'withdrawn';
+    return 'pending';
+}
+
+function formatVolunteerAppliedAt(value) {
+    if (!value) {
+        return 'N/A';
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return 'N/A';
+    }
+
+    return parsed.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
 }
 
 // Modal functions
@@ -1678,6 +1835,7 @@ window.openDonationModal = openDonationModal;
 window.closeDonationModal = closeDonationModal;
 window.processDonation = processDonation;
 window.applyAsVolunteer = applyAsVolunteer;
+window.viewMyVolunteerApplication = viewMyVolunteerApplication;
 
 const shareBtn = document.getElementById('shareBtn');
 if (shareBtn) {
@@ -2322,6 +2480,7 @@ window.addEventListener('click', function (event) {
     const joinModal = document.getElementById('joinModal');
     const shareModal = document.getElementById('shareModal');
     const volunteerConsentModal = document.getElementById('volunteerConsentModal');
+    const volunteerApplicationModal = document.getElementById('volunteerApplicationModal');
     const editCommentModal = document.getElementById('editCommentModal');
     const deleteCommentModal = document.getElementById('deleteCommentModal');
 
@@ -2333,6 +2492,9 @@ window.addEventListener('click', function (event) {
     }
     if (event.target === volunteerConsentModal) {
         closeVolunteerConsentModal();
+    }
+    if (event.target === volunteerApplicationModal) {
+        closeVolunteerApplicationModal();
     }
     if (event.target === editCommentModal) {
         closeEditCommentModal();

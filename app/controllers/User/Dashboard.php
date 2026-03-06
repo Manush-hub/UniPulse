@@ -653,7 +653,7 @@ class UserDashboard extends Controller
     }
 
     /**
-     * API endpoint to get latest volunteering status
+     * API endpoint to get user's volunteering applications and latest status
      */
     public function getVolunteeringStatus()
     {
@@ -677,15 +677,16 @@ class UserDashboard extends Controller
 
             $volunteerReg = new VolunteerRegistration();
 
-            $sql = "SELECT vr.status, vr.created_at, vr.event_id,
-                           e.title, e.event_date, e.event_time
+                        $sql = "SELECT vr.id, vr.status, vr.created_at, vr.event_id,
+                                                     vr.volunteer_position, vr.availability,
+                                                     e.title, e.event_date, e.event_time
                     FROM volunteer_registrations vr
                     LEFT JOIN events e ON e.id = vr.event_id
                     WHERE vr.user_id = :user_id
                       AND vr.user_type = :user_type
                       AND vr.status != 'withdrawn'
                     ORDER BY vr.created_at DESC
-                    LIMIT 1";
+                                        LIMIT 20";
 
             $result = $volunteerReg->query($sql, [
                 'user_id' => $userId,
@@ -696,24 +697,35 @@ class UserDashboard extends Controller
                 echo json_encode([
                     'success' => true,
                     'hasApplication' => false,
+                    'applications' => [],
                     'application' => null
                 ]);
                 return;
             }
 
-            $latest = $result[0];
+            $applications = [];
+            foreach ($result as $row) {
+                $applications[] = [
+                    'id' => (int)($row->id ?? 0),
+                    'event_id' => (int)($row->event_id ?? 0),
+                    'event_title' => $row->title ?? 'Volunteer Application',
+                    'event_date' => $row->event_date ?? null,
+                    'event_time' => $row->event_time ?? null,
+                    'status' => $row->status ?? 'pending',
+                    'volunteer_position' => $row->volunteer_position ?? 'General Volunteer',
+                    'availability' => $row->availability ?? 'Flexible',
+                    'applied_at' => $row->created_at ?? null
+                ];
+            }
+
+            $latest = $applications[0];
 
             echo json_encode([
                 'success' => true,
                 'hasApplication' => true,
-                'application' => [
-                    'event_id' => $latest->event_id,
-                    'event_title' => $latest->title,
-                    'event_date' => $latest->event_date,
-                    'event_time' => $latest->event_time,
-                    'status' => $latest->status,
-                    'applied_at' => $latest->created_at
-                ]
+                'applications' => $applications,
+                // Keep latest application field for backward compatibility.
+                'application' => $latest
             ]);
         } catch (Exception $e) {
             error_log("Error in getVolunteeringStatus: " . $e->getMessage());

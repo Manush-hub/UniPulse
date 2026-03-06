@@ -642,6 +642,9 @@ class PublisherDashboard extends Controller
                     vr.event_id,
                     vr.volunteer_position,
                     vr.availability,
+                    vr.experience,
+                    vr.skills,
+                    vr.motivation,
                     vr.status,
                     vr.created_at,
                     e.title as event_title,
@@ -678,8 +681,14 @@ class PublisherDashboard extends Controller
                 $applications[] = [
                     'id' => $row->id,
                     'name' => $name,
+                    'user_type' => $row->user_type,
                     'event_title' => $row->event_title,
+                    'event_date' => $row->event_date,
                     'role' => $row->volunteer_position ?: 'General Volunteer',
+                    'availability' => $row->availability ?: null,
+                    'experience' => $row->experience ?: null,
+                    'skills' => $row->skills ?: null,
+                    'motivation' => $row->motivation ?: null,
                     'status' => $row->status,
                     'applied_at' => $row->created_at
                 ];
@@ -688,7 +697,10 @@ class PublisherDashboard extends Controller
                     $shifts[] = [
                         'id' => $row->id,
                         'name' => $name,
+                        'user_type' => $row->user_type,
                         'event_title' => $row->event_title,
+                        'event_date' => $row->event_date,
+                        'role' => $row->volunteer_position ?: 'General Volunteer',
                         'shift' => $row->availability ?: 'Schedule pending',
                         'status' => $row->status
                     ];

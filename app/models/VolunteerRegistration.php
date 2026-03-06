@@ -105,12 +105,7 @@ class VolunteerRegistration
      */
     public function updateStatus($id, $status)
     {
-        $sql = "UPDATE {$this->table} 
-                SET status = :status 
-                WHERE id = :id";
-
-        return $this->query($sql, [
-            'id' => $id,
+        return $this->update($id, [
             'status' => $status
         ]);
     }

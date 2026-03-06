@@ -310,7 +310,6 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Volunteer Management</h2>
-                    <a href="#volunteerApplicationsList" class="view-all">View All</a>
                 </div>
                 <div class="volunteer-layout">
                     <div class="volunteer-applications">

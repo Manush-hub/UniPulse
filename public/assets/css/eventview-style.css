@@ -256,6 +256,31 @@ body {
 
 #volunteerInvolvementCard {
     margin-top: 1.5rem;
+    grid-column: 1 / 2;
+}
+
+#volunteerCard {
+    grid-column: 1 / 2;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#donationCard {
+    grid-column: 2 / 3;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    #volunteerCard,
+    #volunteerInvolvementCard,
+    #donationCard {
+        grid-column: auto;
+    }
 }
 
 .content-card h3 {
@@ -583,6 +608,38 @@ body {
     border-top: 1px solid #e2e8f0;
 }
 
+/* Volunteer application modal select text styling */
+#volunteerApplicationModal select.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #6b7280;
+}
+
+#volunteerApplicationModal select.form-input:invalid {
+    color: #6b7280;
+}
+
+#volunteerApplicationModal select.form-input:valid {
+    color: #111827;
+}
+
+#volunteerApplicationModal select.form-input option {
+    color: #111827;
+}
+
+#volunteerApplicationModal select.form-input option.placeholder-option {
+    color: #6b7280;
+}
+
+#volunteerApplicationModal select.form-input:focus {
+    outline: none;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
 /* Volunteer Consent Modal */
 .volunteer-consent-content {
     max-width: 560px;
@@ -656,6 +713,36 @@ body {
 .volunteer-involvement-status p {
     margin: 0.25rem 0 0;
     color: #14532d;
+}
+
+.volunteer-app-status-badge {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.volunteer-app-status-badge.pending {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.volunteer-app-status-badge.accepted {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.volunteer-app-status-badge.rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.volunteer-app-status-badge.withdrawn {
+    background: #e5e7eb;
+    color: #374151;
 }
 
 .volunteer-involvement-meta {
