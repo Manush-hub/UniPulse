@@ -33,6 +33,7 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
             <a href="/unipulse/public/user/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/user/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
             <a href="/unipulse/public/user/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+            <a href="/unipulse/public/user/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
         </nav>
         <div class="header-actions">
             <div class="notifications">

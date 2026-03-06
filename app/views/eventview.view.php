@@ -477,7 +477,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <p class="volunteer-consent-message">
-                    By applying as a volunteer, your private details including your phone number and email address will be shared with the publisher.
+                    When you apply as a volunteer, your contact details (name, contact number, and email address) will be shared with the publisher so they can review your details and contact you about volunteering.
                 </p>
                 <p class="volunteer-consent-question">Do you want to continue?</p>
             </div>

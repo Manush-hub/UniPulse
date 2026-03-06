@@ -371,27 +371,34 @@ class Message {
                                     WHEN ? = 'sponsor' THEN s.company_name
                                     WHEN ? = 'moderator' THEN modr.full_name
                                     WHEN ? = 'admin' THEN adm.full_name
+                                    WHEN ? = 'public' THEN pu.full_name
+                                    WHEN ? = 'university' THEN uu.full_name
                                 END as contact_name,
                                 CASE 
                                     WHEN ? = 'publisher' THEN p.email
                                     WHEN ? = 'sponsor' THEN s.email
                                     WHEN ? = 'moderator' THEN modr.email
                                     WHEN ? = 'admin' THEN adm.email
+                                    WHEN ? = 'public' THEN pu.email
+                                    WHEN ? = 'university' THEN uu.email
                                 END as contact_email
                             FROM (SELECT 1) dummy
                             LEFT JOIN publishers p ON ? = 'publisher' AND p.id = ?
                             LEFT JOIN sponsors s ON ? = 'sponsor' AND s.id = ?
                             LEFT JOIN moderators modr ON ? = 'moderator' AND modr.id = ?
-                            LEFT JOIN admins adm ON ? = 'admin' AND adm.id = ?";
+                            LEFT JOIN admins adm ON ? = 'admin' AND adm.id = ?
+                            LEFT JOIN public_users pu ON ? = 'public' AND pu.id = ?
+                            LEFT JOIN university_users uu ON ? = 'university' AND uu.id = ?";
             
             $contactInfo = $this->getRow($contactQuery, [
-                $contactType, $contactType, $contactType, $contactType,
-                $contactType, $contactType, $contactType, $contactType,
+                $contactType, $contactType, $contactType, $contactType, $contactType, $contactType,
+                $contactType, $contactType, $contactType, $contactType, $contactType, $contactType,
                 $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType, $contactId,
-                $contactType,
-                $contactType
+                $contactType, $contactId,
+                $contactType, $contactId,
+                $contactType, $contactId
             ]);
             
             // Get latest message and conversation stats
@@ -426,10 +433,11 @@ class Message {
             
             // Combine all data
             if ($contactInfo && $stats) {
+                $fallbackName = ucfirst((string)$contactType) . ' #' . (int)$contactId;
                 $conversations[] = (object)[
                     'contact_id' => $contactId,
                     'contact_type' => $contactType,
-                    'contact_name' => $contactInfo->contact_name,
+                    'contact_name' => $contactInfo->contact_name ?: $fallbackName,
                     'contact_email' => $contactInfo->contact_email,
                     'contact_photo' => $contactInfo->contact_photo ?? null,
                     'last_message_time' => $stats->last_message_time,

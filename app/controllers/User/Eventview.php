@@ -538,11 +538,6 @@ class UserEventview extends Controller
                 exit;
             }
 
-            if (!is_null($event->volunteers_needed) && (int)$event->volunteers_needed > 0) {
-                $remainingVolunteers = max(0, (int)$event->volunteers_needed - 1);
-                $this->eventModel->update($eventId, ['volunteers_needed' => $remainingVolunteers]);
-            }
-
             $updatedEvent = $this->eventModel->getEventById($eventId);
             $savedApplication = $this->volunteerRegistrationModel->getRegistration($eventId, $userId, $userType);
 

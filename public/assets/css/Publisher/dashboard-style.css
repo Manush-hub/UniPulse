@@ -1404,6 +1404,63 @@ body {
     color: #1f2937;
 }
 
+.volunteer-contact-section {
+    margin-top: 0.55rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    background: #f8fbff;
+}
+
+.volunteer-contact-section h5 {
+    margin: 0 0 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.volunteer-contact-note {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #64748b;
+}
+
+.volunteer-contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.volunteer-contact-btn {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 0.25rem 0.62rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.volunteer-contact-btn.call {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.volunteer-contact-btn.email {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.volunteer-contact-btn.message {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+    color: #5b21b6;
+}
+
 .volunteer-more-btn {
     border: 1px solid #bfdbfe;
     background: #eff6ff;

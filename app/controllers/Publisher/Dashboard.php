@@ -647,15 +647,27 @@ class PublisherDashboard extends Controller
                     vr.motivation,
                     vr.status,
                     vr.created_at,
-                    e.title as event_title,
-                    e.event_date,
                     CASE
                         WHEN vr.user_type = 'university' THEN uu.full_name
                         WHEN vr.user_type = 'public' THEN pu.full_name
                         WHEN vr.user_type = 'publisher' THEN p.society_name
                         WHEN vr.user_type = 'sponsor' THEN s.company_name
                         ELSE CONCAT('User #', vr.user_id)
-                    END as volunteer_name
+                    END as volunteer_name,
+                    CASE
+                        WHEN vr.user_type = 'university' THEN uu.phone
+                        WHEN vr.user_type = 'public' THEN pu.phone
+                        WHEN vr.user_type = 'publisher' THEN p.phone
+                        WHEN vr.user_type = 'sponsor' THEN s.phone
+                        ELSE NULL
+                    END as volunteer_phone,
+                    CASE
+                        WHEN vr.user_type = 'university' THEN uu.email
+                        WHEN vr.user_type = 'public' THEN pu.email
+                        WHEN vr.user_type = 'publisher' THEN p.email
+                        WHEN vr.user_type = 'sponsor' THEN s.email
+                        ELSE NULL
+                    END as volunteer_email
                 FROM volunteer_registrations vr
                 INNER JOIN events e ON e.id = vr.event_id
                 LEFT JOIN university_users uu ON vr.user_type = 'university' AND vr.user_id = uu.id
@@ -680,15 +692,11 @@ class PublisherDashboard extends Controller
                 $name = $row->volunteer_name ?: 'Volunteer';
                 $applications[] = [
                     'id' => $row->id,
+                    'user_id' => $row->user_id,
                     'name' => $name,
                     'user_type' => $row->user_type,
-                    'event_title' => $row->event_title,
-                    'event_date' => $row->event_date,
-                    'role' => $row->volunteer_position ?: 'General Volunteer',
-                    'availability' => $row->availability ?: null,
-                    'experience' => $row->experience ?: null,
-                    'skills' => $row->skills ?: null,
-                    'motivation' => $row->motivation ?: null,
+                    'contact_number' => $row->volunteer_phone ?: null,
+                    'email' => $row->volunteer_email ?: null,
                     'status' => $row->status,
                     'applied_at' => $row->created_at
                 ];
@@ -696,13 +704,13 @@ class PublisherDashboard extends Controller
                 if ($row->status === 'accepted') {
                     $shifts[] = [
                         'id' => $row->id,
+                        'user_id' => $row->user_id,
                         'name' => $name,
                         'user_type' => $row->user_type,
-                        'event_title' => $row->event_title,
-                        'event_date' => $row->event_date,
-                        'role' => $row->volunteer_position ?: 'General Volunteer',
-                        'shift' => $row->availability ?: 'Schedule pending',
-                        'status' => $row->status
+                        'contact_number' => $row->volunteer_phone ?: null,
+                        'email' => $row->volunteer_email ?: null,
+                        'status' => $row->status,
+                        'applied_at' => $row->created_at
                     ];
                 }
             }
@@ -744,7 +752,7 @@ class PublisherDashboard extends Controller
 
         try {
             $ownershipQuery = "
-                SELECT vr.id
+                SELECT vr.id, vr.status as current_status, vr.event_id, e.volunteers_needed
                 FROM volunteer_registrations vr
                 INNER JOIN events e ON e.id = vr.event_id
                 WHERE vr.id = :registration_id
@@ -771,6 +779,18 @@ class PublisherDashboard extends Controller
             if (!$updated) {
                 echo json_encode(['success' => false, 'error' => 'Failed to update status']);
                 return;
+            }
+
+            // Decrease remaining volunteer slots only when a request is accepted.
+            if (($owned->current_status ?? '') !== 'accepted' && $newStatus === 'accepted') {
+                $eventId = (int)($owned->event_id ?? 0);
+                $volunteersNeeded = $owned->volunteers_needed;
+
+                if ($eventId > 0 && !is_null($volunteersNeeded) && (int)$volunteersNeeded > 0) {
+                    $remainingVolunteers = max(0, (int)$volunteersNeeded - 1);
+                    $eventModel = new Event();
+                    $eventModel->update($eventId, ['volunteers_needed' => $remainingVolunteers]);
+                }
             }
 
             echo json_encode([

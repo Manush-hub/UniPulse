@@ -377,7 +377,11 @@ function displayEventDetails(event) {
     // Show volunteer/donation section wrapper if either card is available
     const volunteerDonationHeader = document.getElementById('volunteerDonationHeader');
     const volunteerDonationGrid = document.getElementById('volunteerDonationGrid');
-    const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1;
+    const wrapperVolunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+        ? parseInt(event.volunteers_needed, 10)
+        : null;
+    const hasVolunteerSlots = wrapperVolunteersNeeded === null || wrapperVolunteersNeeded > 0;
+    const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1 && (hasVolunteerSlots || isVolunteerApplied);
     const hasDonation = eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1;
 
     if (hasVolunteer || hasDonation) {
@@ -410,8 +414,9 @@ function displayEventDetails(event) {
         }
     }
 
-    // Store organizer email for contact function
+    // Store publisher contact details for contact actions
     currentEvent.organizerEmail = organizerEmail;
+    currentEvent.organizerPhone = event.organizer_phone || event.organizerPhone || null;
 
     // Statistics - only show if max_participants is set
     const eventStatsCardElement = document.getElementById('eventStatsCard');
@@ -647,7 +652,46 @@ function closeVolunteerConsentModal() {
 
 function confirmVolunteerConsent() {
     closeVolunteerConsentModal();
-    openVolunteerApplicationModal();
+    submitVolunteerApplicationQuick();
+}
+
+function submitVolunteerApplicationQuick() {
+    if (!currentEvent || !currentEvent.id) {
+        alert('Event data not available');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', currentEvent.id);
+
+    fetch(volunteerApplyEndpoint, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.volunteers_needed !== undefined && data.volunteers_needed !== null) {
+                    currentEvent.volunteers_needed = parseInt(data.volunteers_needed, 10);
+                }
+
+                isVolunteerApplied = true;
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
+                displayVolunteerInfo(currentEvent);
+                displayVolunteerInvolvement(currentEvent);
+                window.location.href = '/unipulse/public/user/dashboard?volunteer_applied=1';
+            } else if (data.alreadyRegistered) {
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
+                alert('You have already applied as a volunteer for this event.');
+                window.location.href = '/unipulse/public/user/dashboard';
+            } else {
+                alert(data.error || 'Failed to submit volunteer application. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying as volunteer:', error);
+            alert('Failed to submit volunteer application. Please try again.');
+        });
 }
 
 function openVolunteerApplicationModal() {
@@ -1573,6 +1617,13 @@ function displayVolunteerInvolvement(event) {
     const appliedAt = formatVolunteerAppliedAt(volunteerApplication?.created_at);
     const statusText = capitalizeFirstLetter(applicationStatus);
     const statusClass = getVolunteerStatusBadgeClass(applicationStatus);
+    const isAccepted = String(applicationStatus).toLowerCase() === 'accepted';
+    const contactSectionHTML = isAccepted ? `
+            <div class="volunteer-contact-publisher">
+                <h4><i class="fas fa-check-circle"></i> Request Accepted</h4>
+                <p>The publisher will contact you soon using your submitted details.</p>
+            </div>
+    ` : '';
 
     volunteerInvolvementInfo.innerHTML = `
         <div class="volunteer-involvement-summary">
@@ -1589,6 +1640,7 @@ function displayVolunteerInvolvement(event) {
                 <p><strong>Role:</strong> ${role}</p>
                 <p><strong>Availability:</strong> ${availability}</p>
                 <p><strong>Applied On:</strong> ${appliedAt}</p>
+                ${contactSectionHTML}
                 <div style="margin-top: 12px;">
                     <button class="btn btn-primary" onclick="viewMyVolunteerApplication()">View My Application</button>
                 </div>

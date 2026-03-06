@@ -323,7 +323,11 @@ function displayEventDetails(event) {
         }
 
         // Show volunteer/donation section if either is available
-        const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1;
+        const wrapperVolunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
+            ? parseInt(event.volunteers_needed, 10)
+            : null;
+        const hasVolunteerSlots = wrapperVolunteersNeeded === null || wrapperVolunteersNeeded > 0;
+        const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1 && (hasVolunteerSlots || isVolunteerApplied);
         const hasDonation = eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1;
         if (hasVolunteer || hasDonation) {
             const volunteerDonationHeader = document.getElementById('volunteerDonationHeader');
@@ -754,7 +758,47 @@ function closeVolunteerConsentModal() {
 
 function confirmVolunteerConsent() {
     closeVolunteerConsentModal();
-    openVolunteerApplicationModal();
+    submitVolunteerApplicationQuick();
+}
+
+function submitVolunteerApplicationQuick() {
+    if (!currentEvent || !currentEvent.id) {
+        alert('Event data not available');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', currentEvent.id);
+
+    fetch(volunteerApplyEndpoint, {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.volunteers_needed !== undefined && data.volunteers_needed !== null) {
+                    currentEvent.volunteers_needed = parseInt(data.volunteers_needed, 10);
+                }
+
+                isVolunteerApplied = true;
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
+
+                displayVolunteerInfo(currentEvent);
+                displayVolunteerInvolvement(currentEvent);
+                window.location.href = '/unipulse/public/publisher/dashboard?volunteer_applied=1';
+            } else if (data.alreadyRegistered) {
+                volunteerApplication = data.volunteerApplication || volunteerApplication;
+                alert('You have already applied as a volunteer for this event.');
+                window.location.href = '/unipulse/public/publisher/dashboard';
+            } else {
+                alert(data.error || 'Failed to submit volunteer application. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error applying as volunteer:', error);
+            alert('Failed to submit volunteer application. Please try again.');
+        });
 }
 
 function openVolunteerApplicationModal() {

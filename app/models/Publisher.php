@@ -976,4 +976,30 @@ class Publisher
         error_log("Publisher Model: Query result = " . ($result ? json_encode($result) : 'NULL'));
         return $result;
     }
+
+    /**
+     * Get publishers for messaging contact list
+     */
+    public function getAllForMessaging()
+    {
+        try {
+            $query = "SELECT p.id, p.society_name, pp.logo_url
+                      FROM publishers p
+                      LEFT JOIN publisher_profiles pp ON pp.publisher_id = p.id
+                      WHERE p.approval_status = 'approved'
+                      ORDER BY p.society_name ASC";
+
+            $result = $this->query($query);
+            return is_array($result) ? $result : [];
+        } catch (Throwable $e) {
+            // Fallback for older schemas where approval_status may not exist.
+            $fallbackQuery = "SELECT p.id, p.society_name, pp.logo_url
+                              FROM publishers p
+                              LEFT JOIN publisher_profiles pp ON pp.publisher_id = p.id
+                              ORDER BY p.society_name ASC";
+
+            $fallback = $this->query($fallbackQuery);
+            return is_array($fallback) ? $fallback : [];
+        }
+    }
 }

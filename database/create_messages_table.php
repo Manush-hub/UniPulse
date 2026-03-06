@@ -1,6 +1,6 @@
 <?php
 /**
- * Migration script to create messages table for publisher-sponsor communication
+ * Migration script to create messages table for platform messaging
  */
 
 require_once __DIR__ . '/../app/Core/config.php';
@@ -22,9 +22,9 @@ try {
         CREATE TABLE IF NOT EXISTS messages (
             id INT AUTO_INCREMENT PRIMARY KEY,
             from_user_id INT NOT NULL,
-            from_user_type ENUM('publisher', 'sponsor', 'admin', 'moderator') NOT NULL,
+            from_user_type ENUM('publisher', 'sponsor', 'admin', 'moderator', 'public', 'university') NOT NULL,
             to_user_id INT NOT NULL,
-            to_user_type ENUM('publisher', 'sponsor', 'admin', 'moderator') NOT NULL,
+            to_user_type ENUM('publisher', 'sponsor', 'admin', 'moderator', 'public', 'university') NOT NULL,
             subject VARCHAR(255) NOT NULL,
             message TEXT NOT NULL,
             is_read BOOLEAN DEFAULT FALSE,

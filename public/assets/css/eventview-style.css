@@ -757,6 +757,24 @@ body {
     color: #374151;
 }
 
+.volunteer-contact-publisher {
+    margin-top: 0.8rem;
+    padding: 0.9rem;
+    border: 1px solid #bfdbfe;
+    background: #f8fbff;
+    border-radius: 10px;
+}
+
+.volunteer-contact-publisher h4 {
+    margin: 0 0 0.45rem;
+    color: #1e3a8a;
+    font-size: 0.95rem;
+}
+
+.volunteer-contact-publisher p {
+    margin: 0.25rem 0;
+}
+
 /* Form Elements */
 .form-group {
     margin-bottom: 1.5rem;

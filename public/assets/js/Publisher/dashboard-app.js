@@ -713,27 +713,29 @@ function loadVolunteerData() {
                     applications.forEach(volunteer => {
                         const initials = getInitials(volunteer.name);
                         const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
-                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
-                        const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
                         const volunteerType = formatUserType(volunteer.user_type || 'user');
+                        const volunteerContact = formatVolunteerField(volunteer.contact_number);
+                        const volunteerEmail = formatVolunteerField(volunteer.email);
                         const appliedAt = formatDateTime(volunteer.applied_at);
                         const volunteerItem = document.createElement('div');
                         volunteerItem.className = 'activity-item volunteer-item';
                         const isPending = volunteer.status === 'pending';
+                        const isAccepted = volunteer.status === 'accepted';
+                        const contactSection = isAccepted
+                            ? buildVolunteerContactSection(volunteer.contact_number, volunteer.email, volunteer.user_id, volunteer.user_type, volunteer.name)
+                            : '';
                         volunteerItem.innerHTML = `
                             <div class="activity-icon volunteer-avatar">${initials}</div>
                             <div class="activity-content volunteer-info-content">
                                 <h4 class="volunteer-name">${volunteerName}</h4>
-                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
                                 <div class="volunteer-details">
                                     ${buildVolunteerDetailRow('Type', volunteerType)}
-                                    ${buildVolunteerDetailRow('Availability', volunteer.availability)}
-                                    ${buildVolunteerDetailRow('Experience', volunteer.experience, { maxLength: 140 })}
-                                    ${buildVolunteerDetailRow('Skills', volunteer.skills, { maxLength: 140 })}
-                                    ${buildVolunteerDetailRow('Motivation', volunteer.motivation, { maxLength: 140 })}
+                                    ${buildVolunteerDetailRow('Contact Number', volunteerContact)}
+                                    ${buildVolunteerDetailRow('Email', volunteerEmail)}
+                                    ${buildVolunteerDetailRow('Applied', appliedAt)}
+                                    ${buildVolunteerDetailRow('Status', capitalizeFirstLetter(volunteer.status))}
                                 </div>
-                                <span class="activity-time">Applied: ${appliedAt}</span>
-                                <span class="volunteer-status-line-text">Status: ${capitalizeFirstLetter(volunteer.status)}</span>
+                                ${contactSection}
                             </div>
                             <div class="volunteer-controls">
                                 <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
@@ -758,22 +760,25 @@ function loadVolunteerData() {
                     shifts.forEach(volunteer => {
                         const initials = getInitials(volunteer.name);
                         const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
-                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
-                        const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
-                        const shiftText = formatVolunteerField(volunteer.shift);
-                        const eventDate = formatDate(volunteer.event_date);
+                        const volunteerType = formatUserType(volunteer.user_type || 'user');
+                        const volunteerContact = formatVolunteerField(volunteer.contact_number);
+                        const volunteerEmail = formatVolunteerField(volunteer.email);
+                        const appliedAt = formatDateTime(volunteer.applied_at);
+                        const contactSection = buildVolunteerContactSection(volunteer.contact_number, volunteer.email, volunteer.user_id, volunteer.user_type, volunteer.name);
                         const volunteerItem = document.createElement('div');
                         volunteerItem.className = 'activity-item volunteer-item';
                         volunteerItem.innerHTML = `
                             <div class="activity-icon volunteer-avatar">${initials}</div>
                             <div class="activity-content volunteer-info-content">
                                 <h4 class="volunteer-name">${volunteerName}</h4>
-                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
                                 <div class="volunteer-details">
-                                    <span><strong>Shift:</strong> ${shiftText}</span>
-                                    <span><strong>Event Date:</strong> ${eventDate}</span>
+                                    ${buildVolunteerDetailRow('Type', volunteerType)}
+                                    ${buildVolunteerDetailRow('Contact Number', volunteerContact)}
+                                    ${buildVolunteerDetailRow('Email', volunteerEmail)}
+                                    ${buildVolunteerDetailRow('Applied', appliedAt)}
+                                    ${buildVolunteerDetailRow('Status', capitalizeFirstLetter(volunteer.status))}
                                 </div>
-                                <span class="activity-time">Shift assigned</span>
+                                ${contactSection}
                             </div>
                             <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
                         `;
@@ -836,6 +841,56 @@ function normalizeVolunteerField(value) {
 function formatVolunteerField(value) {
     const normalized = normalizeVolunteerField(value);
     return normalized ? escapeHtml(normalized) : 'Not provided';
+}
+
+function normalizeMessageUserType(userType) {
+    const normalized = normalizeVolunteerField(userType).toLowerCase();
+
+    if (normalized === 'public_user' || normalized === 'public-users') {
+        return 'public';
+    }
+
+    if (normalized === 'university_user' || normalized === 'university-users' || normalized === 'student') {
+        return 'university';
+    }
+
+    return normalized;
+}
+
+function buildVolunteerContactSection(contactNumber, email, userId, userType, contactName) {
+    const normalizedPhone = normalizeVolunteerField(contactNumber);
+    const normalizedEmail = normalizeVolunteerField(email);
+    const normalizedUserType = normalizeMessageUserType(userType);
+    const numericUserId = Number(userId);
+    const hasPhone = normalizedPhone.length > 0;
+    const hasEmail = normalizedEmail.length > 0;
+    const hasMessagingTarget = Number.isFinite(numericUserId) && numericUserId > 0 && normalizedUserType.length > 0;
+
+    if (!hasPhone && !hasEmail && !hasMessagingTarget) {
+        return `
+            <div class="volunteer-contact-section">
+                <h5><i class="fas fa-address-book"></i> Contact Volunteer</h5>
+                <p class="volunteer-contact-note">No contact details available.</p>
+            </div>
+        `;
+    }
+
+    const phoneHref = hasPhone ? normalizedPhone.replace(/\s+/g, '') : '';
+    const safeContactName = normalizeVolunteerField(contactName) || 'Volunteer';
+    const messageHref = hasMessagingTarget
+        ? `/unipulse/public/publisher/messages?recipient_id=${encodeURIComponent(String(numericUserId))}&recipient_type=${encodeURIComponent(normalizedUserType)}&recipient_name=${encodeURIComponent(safeContactName)}`
+        : '';
+
+    return `
+        <div class="volunteer-contact-section">
+            <h5><i class="fas fa-address-book"></i> Contact Volunteer</h5>
+            <div class="volunteer-contact-actions">
+                ${hasPhone ? `<a class="volunteer-contact-btn call" href="tel:${escapeHtml(phoneHref)}"><i class="fas fa-phone"></i> Call</a>` : ''}
+                ${hasEmail ? `<a class="volunteer-contact-btn email" href="mailto:${escapeHtml(normalizedEmail)}"><i class="fas fa-envelope"></i> Email</a>` : ''}
+                ${hasMessagingTarget ? `<a class="volunteer-contact-btn message" href="${messageHref}"><i class="fas fa-comments"></i> Message</a>` : ''}
+            </div>
+        </div>
+    `;
 }
 
 function toggleVolunteerText(button) {
