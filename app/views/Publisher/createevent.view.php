@@ -407,9 +407,9 @@
                                     <input type="time" name="event_time" class="form-input" required>
                                 </div>
                                 <div>
-                                    <label style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
+                                    <label class="required" style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">End
                                         Time</label>
-                                    <input type="time" name="event_end_time" class="form-input">
+                                    <input type="time" name="event_end_time" class="form-input" required>
                                 </div>
                             </div>
                         </div>
