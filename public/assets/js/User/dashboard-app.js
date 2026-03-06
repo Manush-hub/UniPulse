@@ -81,29 +81,66 @@ async function renderVolunteeringSection() {
         }
 
         const data = await response.json();
-        if (!data.success || !data.hasApplication || !data.application) {
+        if (!data.success || !data.hasApplication) {
             volunteeringSection.style.display = 'none';
             return;
         }
 
-        const application = data.application;
-        const eventDateText = formatFullDate(application.event_date);
-        const statusText = formatVolunteerStatus(application.status);
-        const eventDateTimeText = `${eventDateText}${application.event_time ? ` at ${application.event_time}` : ''}`;
+        const applications = Array.isArray(data.applications)
+            ? data.applications
+            : (data.application ? [data.application] : []);
+
+        if (applications.length === 0) {
+            volunteeringSection.style.display = 'none';
+            return;
+        }
+
+        const rowsHtml = applications.map(application => {
+            const eventDateText = formatFullDate(application.event_date);
+            const eventDateTimeText = `${eventDateText}${application.event_time ? ` at ${application.event_time}` : ''}`;
+            const statusText = formatVolunteerStatus(application.status);
+            const statusClass = getVolunteerStatusClass(application.status);
+            const role = escapeHtmlDash(application.volunteer_position || 'General Volunteer');
+            const availability = escapeHtmlDash(application.availability || 'Flexible');
+            const appliedAt = formatDateTimeShort(application.applied_at);
+
+            return `
+                <tr>
+                    <td>${escapeHtmlDash(application.event_title || 'Volunteer Application')}</td>
+                    <td>${eventDateTimeText}</td>
+                    <td>${role}</td>
+                    <td>${availability}</td>
+                    <td>
+                        <span class="volunteer-status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td>${appliedAt}</td>
+                </tr>
+            `;
+        }).join('');
 
         volunteeringCard.innerHTML = `
             <div class="section-header">
                 <h2>Your Volunteering</h2>
                 <a class="view-all" href="/unipulse/public/user/events">Browse More</a>
             </div>
-            <div class="activity-list">
-                <div class="activity-item">
-                    <div class="activity-icon">🤝</div>
-                    <div class="activity-content">
-                        <h4>${application.event_title || 'Volunteer Application'}</h4>
-                        <p>Status: <strong>${statusText}</strong></p>
-                        <span class="activity-time">${eventDateTimeText}</span>
-                    </div>
+            <div class="volunteering-table-container donations-table-container">
+                <div class="volunteering-list-header">Submitted Applications (${applications.length})</div>
+                <div class="donations-table-wrap">
+                    <table class="donations-table volunteering-table">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Event Date</th>
+                                <th>Role</th>
+                                <th>Availability</th>
+                                <th>Status</th>
+                                <th>Applied On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `;
@@ -126,6 +163,13 @@ function formatVolunteerStatus(status) {
     return map[status] || 'Application Sent';
 }
 
+function getVolunteerStatusClass(status) {
+    const normalized = String(status || 'pending').toLowerCase();
+    if (normalized === 'accepted' || normalized === 'completed') return 'approved';
+    if (normalized === 'rejected') return 'rejected';
+    return 'pending';
+}
+
 function formatFullDate(dateString) {
     if (!dateString) return 'Date TBA';
 
@@ -136,6 +180,21 @@ function formatFullDate(dateString) {
     };
 
     return new Date(dateString).toLocaleDateString('en-US', options);
+}
+
+function formatDateTimeShort(dateTimeString) {
+    if (!dateTimeString) return 'N/A';
+
+    const parsed = new Date(dateTimeString);
+    if (Number.isNaN(parsed.getTime())) return 'N/A';
+
+    return parsed.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
 }
 
 // Initialize dashboard

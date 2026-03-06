@@ -712,22 +712,35 @@ function loadVolunteerData() {
                     applicationsList.innerHTML = '';
                     applications.forEach(volunteer => {
                         const initials = getInitials(volunteer.name);
+                        const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
+                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
+                        const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
+                        const volunteerType = formatUserType(volunteer.user_type || 'user');
+                        const appliedAt = formatDateTime(volunteer.applied_at);
                         const volunteerItem = document.createElement('div');
                         volunteerItem.className = 'activity-item volunteer-item';
                         const isPending = volunteer.status === 'pending';
                         volunteerItem.innerHTML = `
                             <div class="activity-icon volunteer-avatar">${initials}</div>
                             <div class="activity-content volunteer-info-content">
-                                <h4 class="volunteer-name">${volunteer.name}</h4>
-                                <p>${volunteer.role} • ${volunteer.event_title}</p>
-                                <span class="activity-time">Application: ${capitalizeFirstLetter(volunteer.status)}</span>
+                                <h4 class="volunteer-name">${volunteerName}</h4>
+                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
+                                <div class="volunteer-details">
+                                    ${buildVolunteerDetailRow('Type', volunteerType)}
+                                    ${buildVolunteerDetailRow('Availability', volunteer.availability)}
+                                    ${buildVolunteerDetailRow('Experience', volunteer.experience, { maxLength: 140 })}
+                                    ${buildVolunteerDetailRow('Skills', volunteer.skills, { maxLength: 140 })}
+                                    ${buildVolunteerDetailRow('Motivation', volunteer.motivation, { maxLength: 140 })}
+                                </div>
+                                <span class="activity-time">Applied: ${appliedAt}</span>
+                                <span class="volunteer-status-line-text">Status: ${capitalizeFirstLetter(volunteer.status)}</span>
                             </div>
                             <div class="volunteer-controls">
                                 <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
                                 ${isPending ? `
                                 <div class="volunteer-actions">
-                                    <button class="volunteer-action-btn approve" onclick="updateVolunteerStatus(${volunteer.id}, 'accepted')">Approve</button>
-                                    <button class="volunteer-action-btn reject" onclick="updateVolunteerStatus(${volunteer.id}, 'rejected')">Reject</button>
+                                    <button class="volunteer-action-btn approve" onclick="updateVolunteerStatus(${volunteer.id}, 'accepted')"><i class="fas fa-check"></i> Approve</button>
+                                    <button class="volunteer-action-btn reject" onclick="updateVolunteerStatus(${volunteer.id}, 'rejected')"><i class="fas fa-times"></i> Reject</button>
                                 </div>
                                 ` : ''}
                             </div>
@@ -744,13 +757,22 @@ function loadVolunteerData() {
                     shiftsList.innerHTML = '';
                     shifts.forEach(volunteer => {
                         const initials = getInitials(volunteer.name);
+                        const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
+                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
+                        const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
+                        const shiftText = formatVolunteerField(volunteer.shift);
+                        const eventDate = formatDate(volunteer.event_date);
                         const volunteerItem = document.createElement('div');
                         volunteerItem.className = 'activity-item volunteer-item';
                         volunteerItem.innerHTML = `
                             <div class="activity-icon volunteer-avatar">${initials}</div>
                             <div class="activity-content volunteer-info-content">
-                                <h4 class="volunteer-name">${volunteer.name}</h4>
-                                <p>${volunteer.shift} • ${volunteer.event_title}</p>
+                                <h4 class="volunteer-name">${volunteerName}</h4>
+                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
+                                <div class="volunteer-details">
+                                    <span><strong>Shift:</strong> ${shiftText}</span>
+                                    <span><strong>Event Date:</strong> ${eventDate}</span>
+                                </div>
                                 <span class="activity-time">Shift assigned</span>
                             </div>
                             <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
@@ -775,6 +797,90 @@ function getInitials(name) {
     if (!name) return 'NA';
     const parts = name.trim().split(/\s+/).slice(0, 2);
     return parts.map(part => part.charAt(0).toUpperCase()).join('');
+}
+
+function buildVolunteerDetailRow(label, value, options = {}) {
+    const normalized = normalizeVolunteerField(value);
+    const safeLabel = escapeHtml(label || 'Detail');
+
+    if (!normalized) {
+        return `<span class="volunteer-detail-row"><strong>${safeLabel}:</strong> Not provided</span>`;
+    }
+
+    const maxLength = Number(options.maxLength || 0);
+
+    if (!maxLength || normalized.length <= maxLength) {
+        return `<span class="volunteer-detail-row"><strong>${safeLabel}:</strong> ${escapeHtml(normalized)}</span>`;
+    }
+
+    const shortText = `${escapeHtml(normalized.slice(0, maxLength))}...`;
+    const fullText = escapeHtml(normalized);
+
+    return `
+        <span class="volunteer-detail-row">
+            <strong>${safeLabel}:</strong>
+            <span class="volunteer-expandable-text" data-short="${shortText}" data-full="${fullText}" data-expanded="false">${shortText}</span>
+            <button type="button" class="volunteer-more-btn" onclick="toggleVolunteerText(this)">Show more</button>
+        </span>
+    `;
+}
+
+function normalizeVolunteerField(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    return String(value).trim();
+}
+
+function formatVolunteerField(value) {
+    const normalized = normalizeVolunteerField(value);
+    return normalized ? escapeHtml(normalized) : 'Not provided';
+}
+
+function toggleVolunteerText(button) {
+    if (!button) {
+        return;
+    }
+
+    const wrapper = button.closest('.volunteer-detail-row');
+    if (!wrapper) {
+        return;
+    }
+
+    const textElement = wrapper.querySelector('.volunteer-expandable-text');
+    if (!textElement) {
+        return;
+    }
+
+    const isExpanded = textElement.getAttribute('data-expanded') === 'true';
+    const nextExpandedState = !isExpanded;
+
+    textElement.textContent = nextExpandedState
+        ? textElement.getAttribute('data-full') || ''
+        : textElement.getAttribute('data-short') || '';
+
+    textElement.setAttribute('data-expanded', nextExpandedState ? 'true' : 'false');
+    button.textContent = nextExpandedState ? 'Show less' : 'Show more';
+}
+
+function formatDateTime(dateTimeString) {
+    if (!dateTimeString) {
+        return 'N/A';
+    }
+
+    const parsed = new Date(dateTimeString);
+    if (Number.isNaN(parsed.getTime())) {
+        return 'N/A';
+    }
+
+    return parsed.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
 }
 
 function mapVolunteerStatusClass(status) {
@@ -838,6 +944,7 @@ function updateVolunteerStatus(registrationId, status) {
 }
 
 window.updateVolunteerStatus = updateVolunteerStatus;
+window.toggleVolunteerText = toggleVolunteerText;
 
 // Load recent activity
 function loadRecentActivity() {
@@ -1005,8 +1112,17 @@ function animateProgressBars() {
 
 // Format date
 function formatDate(dateString) {
+    if (!dateString) {
+        return 'N/A';
+    }
+
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) {
+        return 'N/A';
+    }
+
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return parsed.toLocaleDateString(undefined, options);
 }
 
 // Capitalize first letter

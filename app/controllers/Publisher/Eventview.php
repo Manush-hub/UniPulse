@@ -65,9 +65,15 @@ class PublisherEventview extends Controller {
                         // Check if publisher is already registered
                         $isRegistered = false;
                         $isVolunteerApplied = false;
+                        $volunteerApplication = null;
                         if ($currentPublisherId) {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
                             $isVolunteerApplied = $this->volunteerRegistrationModel->isUserRegistered($eventId, $currentPublisherId, 'publisher');
+
+                            if ($isVolunteerApplied) {
+                                $registration = $this->volunteerRegistrationModel->getRegistration($eventId, $currentPublisherId, 'publisher');
+                                $volunteerApplication = $this->formatVolunteerApplicationForResponse($registration);
+                            }
                         }
                         
                         // Pass server data to view for JavaScript (use raw event object, not formatted)
@@ -83,6 +89,7 @@ class PublisherEventview extends Controller {
                                 'isOwner' => $isOwner,
                                 'isRegistered' => $isRegistered,
                                 'isVolunteerApplied' => $isVolunteerApplied,
+                                'volunteerApplication' => $volunteerApplication,
                                 'apiEndpoint' => '/unipulse/public/publisher/eventview/getEvent',
                                 'joinEndpoint' => '/unipulse/public/publisher/eventview/joinEvent',
                                 'volunteerApplyEndpoint' => '/unipulse/public/publisher/eventview/applyVolunteer'
@@ -176,6 +183,7 @@ class PublisherEventview extends Controller {
             $eventData = $this->formatEventForResponse($event);
 
             $isVolunteerApplied = false;
+            $volunteerApplication = null;
             $currentUser = AuthService::getCurrentUser();
             if ($currentUser && $currentUser['type'] === 'publisher') {
                 $isVolunteerApplied = $this->volunteerRegistrationModel->isUserRegistered(
@@ -183,6 +191,11 @@ class PublisherEventview extends Controller {
                     $currentUser['id'],
                     'publisher'
                 );
+
+                if ($isVolunteerApplied) {
+                    $registration = $this->volunteerRegistrationModel->getRegistration($eventId, $currentUser['id'], 'publisher');
+                    $volunteerApplication = $this->formatVolunteerApplicationForResponse($registration);
+                }
             }
             
             // Format similar events
@@ -195,7 +208,8 @@ class PublisherEventview extends Controller {
                 'success' => true,
                 'event' => $eventData,
                 'similarEvents' => $formattedSimilarEvents,
-                'isVolunteerApplied' => $isVolunteerApplied
+                'isVolunteerApplied' => $isVolunteerApplied,
+                'volunteerApplication' => $volunteerApplication
             ]);
             
         } catch (Exception $e) {
@@ -408,6 +422,32 @@ class PublisherEventview extends Controller {
     }
 
     /**
+     * Helper method to format volunteer application data for API responses.
+     */
+    private function formatVolunteerApplicationForResponse($registration) {
+        if (!$registration) {
+            return null;
+        }
+
+        $row = (array) $registration;
+
+        return [
+            'id' => isset($row['id']) ? (int)$row['id'] : null,
+            'status' => $row['status'] ?? 'pending',
+            'volunteer_position' => $row['volunteer_position'] ?? null,
+            'availability' => $row['availability'] ?? null,
+            'experience' => $row['experience'] ?? null,
+            'skills' => $row['skills'] ?? null,
+            'motivation' => $row['motivation'] ?? null,
+            'have_transportation' => isset($row['have_transportation']) ? (int)$row['have_transportation'] : 0,
+            'commitment_understanding' => isset($row['commitment_understanding']) ? (int)$row['commitment_understanding'] : 0,
+            'receive_updates' => isset($row['receive_updates']) ? (int)$row['receive_updates'] : 0,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null
+        ];
+    }
+
+    /**
      * Quick volunteer apply endpoint
      */
     public function applyVolunteer($id = null) {
@@ -437,6 +477,48 @@ class PublisherEventview extends Controller {
         $userId = $_SESSION['user_id'];
         $userType = $_SESSION['user_type'];
 
+        $volunteerPosition = trim((string)($_POST['volunteer_position'] ?? 'General Volunteer'));
+        $availability = trim((string)($_POST['availability'] ?? 'Flexible'));
+        $experience = trim((string)($_POST['experience'] ?? ''));
+        $skills = trim((string)($_POST['skills'] ?? ''));
+        $motivation = trim((string)($_POST['motivation'] ?? ''));
+        $haveTransportation = isset($_POST['have_transportation']) && (string)$_POST['have_transportation'] === '1' ? 1 : 0;
+        $commitmentUnderstanding = isset($_POST['commitment_understanding']) && (string)$_POST['commitment_understanding'] === '0' ? 0 : 1;
+        $receiveUpdates = isset($_POST['receive_updates']) && (string)$_POST['receive_updates'] === '0' ? 0 : 1;
+
+        if ($volunteerPosition === '') {
+            $volunteerPosition = 'General Volunteer';
+        }
+
+        if ($availability === '') {
+            $availability = 'Flexible';
+        }
+
+        // Backward compatibility for quick-apply clients without full form payload.
+        if ($experience === '') {
+            $experience = 'Submitted via quick apply';
+        }
+
+        if ($motivation === '') {
+            $motivation = 'Interested in supporting this event';
+        }
+
+        if ($skills === '') {
+            $skills = 'Not specified';
+        }
+
+        $truncate = function ($value, $length) {
+            return function_exists('mb_substr')
+                ? mb_substr($value, 0, $length)
+                : substr($value, 0, $length);
+        };
+
+        $volunteerPosition = $truncate($volunteerPosition, 255);
+        $availability = $truncate($availability, 100);
+        $experience = $truncate($experience, 2000);
+        $skills = $truncate($skills, 2000);
+        $motivation = $truncate($motivation, 2000);
+
         try {
             $event = $this->eventModel->getEventById($eventId);
 
@@ -465,11 +547,13 @@ class PublisherEventview extends Controller {
             }
 
             if ($this->volunteerRegistrationModel->isUserRegistered($eventId, $userId, $userType)) {
+                $existing = $this->volunteerRegistrationModel->getRegistration($eventId, $userId, $userType);
                 echo json_encode([
                     'success' => false,
                     'alreadyRegistered' => true,
                     'error' => 'You have already applied as a volunteer for this event',
-                    'volunteers_needed' => $event->volunteers_needed
+                    'volunteers_needed' => $event->volunteers_needed,
+                    'volunteerApplication' => $this->formatVolunteerApplicationForResponse($existing)
                 ]);
                 exit;
             }
@@ -478,14 +562,14 @@ class PublisherEventview extends Controller {
                 'user_id' => $userId,
                 'user_type' => $userType,
                 'event_id' => $eventId,
-                'volunteer_position' => 'General Volunteer',
-                'availability' => 'Flexible',
-                'experience' => 'Submitted via quick apply',
-                'motivation' => 'Interested in supporting this event',
-                'skills' => 'N/A',
-                'have_transportation' => 0,
-                'commitment_understanding' => 1,
-                'receive_updates' => 1,
+                'volunteer_position' => $volunteerPosition,
+                'availability' => $availability,
+                'experience' => $experience,
+                'skills' => $skills,
+                'motivation' => $motivation,
+                'have_transportation' => $haveTransportation,
+                'commitment_understanding' => $commitmentUnderstanding,
+                'receive_updates' => $receiveUpdates,
                 'terms_accepted' => 1,
                 'status' => 'pending'
             ];
@@ -504,11 +588,13 @@ class PublisherEventview extends Controller {
             }
 
             $updatedEvent = $this->eventModel->getEventById($eventId);
+            $savedApplication = $this->volunteerRegistrationModel->getRegistration($eventId, $userId, $userType);
 
             echo json_encode([
                 'success' => true,
                 'message' => 'Volunteer application submitted successfully',
-                'volunteers_needed' => $updatedEvent ? $updatedEvent->volunteers_needed : $event->volunteers_needed
+                'volunteers_needed' => $updatedEvent ? $updatedEvent->volunteers_needed : $event->volunteers_needed,
+                'volunteerApplication' => $this->formatVolunteerApplicationForResponse($savedApplication)
             ]);
         } catch (Exception $e) {
             error_log("Database error in PublisherEventview::applyVolunteer: " . $e->getMessage());
