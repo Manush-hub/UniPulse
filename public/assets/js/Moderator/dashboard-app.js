@@ -44,7 +44,7 @@ function loadModeratorData() {
     if (statElements.pendingReviews) statElements.pendingReviews.textContent = moderatorData.pendingReviews;
     if (statElements.eventsReviewed) statElements.eventsReviewed.textContent = moderatorData.eventsReviewed;
     if (statElements.reportsHandled) statElements.reportsHandled.textContent = moderatorData.reportsHandled;
-    if (statElements.approvalRate) statElements.approvalRate.textContent = `${moderatorData.approvalRate}%`;
+    if (statElements.approvalRate) statElements.approvalRate.textContent = moderatorData.approvalRate;
     
     // Update moderation stats
     const statCards = document.querySelectorAll('.stat-card .stat-number');
@@ -152,10 +152,17 @@ function loadRecentActivity() {
             console.error('Activity list element not found!');
             return;
         }
-        
-        activityList.innerHTML = '<tr><td colspan="5" class="loading">Loading activities...</td></tr>';
-        
-        fetch('/unipulse/public/moderator/dashboard/getRecentActivity')
+
+        // Activity table is already server-rendered — skip the AJAX fetch
+        const existingRows = activityList.querySelectorAll('tr');
+        if (existingRows.length > 0) {
+            console.log('Activity table already populated by server — skipping fetch.');
+            return;
+        }
+
+        activityList.innerHTML = '<tr><td colspan="7" class="loading">Loading activities...</td></tr>';
+
+        fetch('/unipulse/public/moderator/dashboard/getActivities')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch recent activity');
@@ -236,9 +243,16 @@ function loadUserReports() {
             console.error('Reports table body element not found!');
             return;
         }
-        
+
+        // Reports table is already server-rendered — skip the AJAX fetch
+        const existingRows = reportsTableBody.querySelectorAll('tr');
+        if (existingRows.length > 0) {
+            console.log('Reports table already populated by server — skipping fetch.');
+            return;
+        }
+
         reportsTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading reports...</td></tr>';
-        
+
         fetch('/unipulse/public/moderator/dashboard/getUserReports')
             .then(response => {
                 if (!response.ok) {

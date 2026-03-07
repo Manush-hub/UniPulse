@@ -46,6 +46,9 @@ class PublisherDashboard extends Controller
             $eventModel = new Event();
             $activityModel = new Activity();
 
+            $notifications = [];
+            $unreadCount = 0;
+
             $publisherId = (int)($currentUser['id'] ?? 0);
             $sessionKey = 'publisher_event_notifications_last_read_at_' . $publisherId;
             $readItemsKey = 'publisher_event_notifications_read_items_' . $publisherId;

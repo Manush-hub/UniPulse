@@ -36,10 +36,18 @@ class ModeratorDashboard extends Controller {
             }
         }
         
-        // Get recent moderation activities (show all activities, not just current moderator's)
-        // Fetch more records (50) so we have enough for "View Full Log"
+        // Get all recent moderation activities (all moderators, so the log is never empty)
         $eventModel = new Event();
         $data['recent_activities'] = $eventModel->getRecentModerationActivities(null, 50);
+
+        // Get recent user reports for this moderator's university
+        try {
+            $reportModel = new Report();
+            $data['user_reports'] = $reportModel->getReportsForUniversity($data['moderator']->university, 20) ?: [];
+        } catch (Exception $e) {
+            error_log("Dashboard reports error: " . $e->getMessage());
+            $data['user_reports'] = [];
+        }
         
         // Calculate moderation stats using direct PDO connection
         try {
@@ -51,16 +59,21 @@ class ModeratorDashboard extends Controller {
             ];
             $conn = new PDO($string, DBUSER, DBPASS, $options);
             
-            // Count ALL hidden events by all moderators
-            $stmt = $conn->query("SELECT COUNT(*) as count FROM events WHERE is_deleted = 1");
+            $moderatorId = $data['user']['id'];
+
+            // Count hidden events by this moderator
+            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM events WHERE is_deleted = 1 AND moderated_by = :mid");
+            $stmt->execute([':mid' => $moderatorId]);
             $data['moderation_stats']['hidden_events'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
             
-            // Count ALL approved publishers across all universities
-            $stmt = $conn->query("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'approved'");
+            // Count approved publishers handled by this moderator
+            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'approved' AND approved_by = :mid");
+            $stmt->execute([':mid' => $moderatorId]);
             $data['moderation_stats']['approved_publishers'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
             
-            // Count ALL rejected publishers across all universities
-            $stmt = $conn->query("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'rejected'");
+            // Count rejected publishers handled by this moderator
+            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'rejected' AND approved_by = :mid");
+            $stmt->execute([':mid' => $moderatorId]);
             $data['moderation_stats']['rejected_publishers'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
             
             // Total moderation actions
