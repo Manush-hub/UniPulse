@@ -66,102 +66,6 @@
             </div>
         </section>
 
-
-        <!-- Moderation Stats and Guidelines Section -->
-        <section class="moderation-overview">
-            <div class="container">
-                <div class="moderation-grid">
-                    <div class="moderation-card">
-                        <h3><i class="fas fa-chart-bar"></i> Moderation Stats</h3>
-                        <div class="stats-container">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-eye-slash" style="color: #f59e0b;"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-number"><?= $moderation_stats['hidden_events'] ?? 0 ?></span>
-                                    <span class="stat-label">Hidden Events</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-number"><?= $moderation_stats['approved_publishers'] ?? 0 ?></span>
-                                    <span class="stat-label">Approved Publishers</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-times-circle" style="color: #ef4444;"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-number"><?= $moderation_stats['rejected_publishers'] ?? 0 ?></span>
-                                    <span class="stat-label">Rejected Publishers</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-tasks" style="color: #3b82f6;"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-number"><?= $moderation_stats['total_actions'] ?? 0 ?></span>
-                                    <span class="stat-label">Total Actions</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="moderation-card">
-                        <h3><i class="fas fa-book"></i> Moderation Guidelines</h3>
-                        <div class="guidelines-list">
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Ensure events follow university policies</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Verify organizer credentials and authenticity</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Check for appropriate and respectful content</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Ensure accurate event information and dates</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Verify event location and capacity details</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Review event descriptions for clarity</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Check registration requirements are reasonable</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Ensure images and media are appropriate</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Verify publisher documentation is valid</span>
-                            </div>
-                            <div class="guideline-item">
-                                <i class="fas fa-check"></i>
-                                <span>Respond to requests within 24-48 hours</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Publisher Approval Section -->
         <?php if (isset($permissions['approve_publishers']) && $permissions['approve_publishers']): ?>
         <section class="publisher-approval-section">
@@ -303,60 +207,71 @@
                                         <td>
                                             <div class="activity-info">
                                                 <?php if ($activity->activity_type === 'hidden_event'): ?>
-                                                    <i class="fas fa-eye-slash activity-icon"></i>
-                                                    <span>Hidden Event</span>
+                                                    <i class="fas fa-eye-slash activity-icon" style="color: #f59e0b;"></i>
+                                                    <span>Hid Event</span>
+                                                <?php elseif ($activity->activity_type === 'restored_event'): ?>
+                                                    <i class="fas fa-eye activity-icon" style="color: #3b82f6;"></i>
+                                                    <span>Unhid Event</span>
+                                                <?php elseif ($activity->activity_type === 'hidden_comment'): ?>
+                                                    <i class="fas fa-comment-slash activity-icon" style="color: #8b5cf6;"></i>
+                                                    <span>Hid Comment</span>
                                                 <?php elseif ($activity->activity_type === 'publisher_approved'): ?>
                                                     <i class="fas fa-check-circle activity-icon" style="color: #10b981;"></i>
                                                     <span>Approved Publisher</span>
                                                 <?php elseif ($activity->activity_type === 'publisher_rejected'): ?>
                                                     <i class="fas fa-times-circle activity-icon" style="color: #ef4444;"></i>
                                                     <span>Rejected Publisher</span>
-                                                <?php else: ?>
-                                                    <i class="fas fa-clock activity-icon" style="color: #f59e0b;"></i>
-                                                    <span>Pending Publisher</span>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
                                         <td>
                                             <?php if ($activity->activity_type === 'hidden_event'): ?>
                                                 <span class="badge badge-warning">Event Hidden</span>
+                                            <?php elseif ($activity->activity_type === 'restored_event'): ?>
+                                                <span class="badge badge-info">Event Unhidden</span>
+                                            <?php elseif ($activity->activity_type === 'hidden_comment'): ?>
+                                                <span class="badge" style="background:#ede9fe;color:#6d28d9;">Comment Hidden</span>
                                             <?php elseif ($activity->activity_type === 'publisher_approved'): ?>
                                                 <span class="badge badge-success">Publisher Approved</span>
                                             <?php elseif ($activity->activity_type === 'publisher_rejected'): ?>
                                                 <span class="badge badge-danger">Publisher Rejected</span>
-                                            <?php else: ?>
-                                                <span class="badge badge-warning">Pending Approval</span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
                                             <div class="activity-details">
                                                 <strong><?= htmlspecialchars($activity->item_title) ?></strong>
                                                 <br>
-                                                <?php if ($activity->activity_type === 'hidden_event' && $activity->activity_reason): ?>
-                                                    <small>Reason: <?= htmlspecialchars(substr($activity->activity_reason, 0, 50)) ?><?= strlen($activity->activity_reason) > 50 ? '...' : '' ?></small>
-                                                <?php elseif ($activity->activity_type === 'publisher_rejected' && $activity->activity_reason): ?>
-                                                    <small>Reason: <?= htmlspecialchars(substr($activity->activity_reason, 0, 50)) ?><?= strlen($activity->activity_reason) > 50 ? '...' : '' ?></small>
+                                                <?php if (in_array($activity->activity_type, ['hidden_event', 'hidden_comment', 'publisher_rejected']) && $activity->activity_reason): ?>
+                                                    <small>Reason: <?= htmlspecialchars(substr($activity->activity_reason, 0, 60)) ?><?= strlen($activity->activity_reason) > 60 ? '...' : '' ?></small>
+                                                <?php elseif ($activity->activity_type === 'restored_event'): ?>
+                                                    <small>Event restored / made visible again</small>
                                                 <?php elseif ($activity->activity_type === 'publisher_approved'): ?>
-                                                    <small>Publisher approved by <?= htmlspecialchars($activity->moderator_name ?: 'Moderator') ?></small>
+                                                    <small>Approved by <?= htmlspecialchars($activity->moderator_name ?: 'Moderator') ?></small>
                                                 <?php elseif ($activity->activity_type === 'publisher_rejected'): ?>
-                                                    <small>Publisher rejected by <?= htmlspecialchars($activity->moderator_name ?: 'Moderator') ?></small>
-                                                <?php else: ?>
-                                                    <small>Awaiting moderator review</small>
+                                                    <small>Rejected by <?= htmlspecialchars($activity->moderator_name ?: 'Moderator') ?></small>
                                                 <?php endif; ?>
                                             </div>
                                         </td>
                                         <td>
-                                            <strong><?= htmlspecialchars($activity->moderator_name ?: ($activity->activity_type === 'publisher_pending' ? 'Pending' : 'Unknown')) ?></strong>
+                                            <strong><?= htmlspecialchars($activity->moderator_name ?: 'Unknown') ?></strong>
                                         </td>
                                         <td>
                                             <span class="badge badge-info"><?= htmlspecialchars($activity->university ?: 'N/A') ?></span>
                                         </td>
                                         <td>
                                             <span class="time-ago" data-time="<?= $activity->activity_time ?>">
-                                                <?= date('M d, Y H:i', strtotime($activity->activity_time)) ?>
+                                                <?= $activity->activity_time ? date('M d, Y H:i', strtotime($activity->activity_time)) : '-' ?>
                                             </span>
                                         </td>
-                                        <td><span class="status-badge status-completed"><i class="fas fa-check"></i> Completed</span></td>
+                                        <td>
+                                            <?php if ($activity->activity_type === 'restored_event'): ?>
+                                                <span class="status-badge" style="background:#dbeafe;color:#1d4ed8;padding:4px 10px;border-radius:6px;font-size:0.78rem;"><i class="fas fa-undo"></i> Restored</span>
+                                            <?php elseif ($activity->activity_type === 'publisher_rejected'): ?>
+                                                <span class="status-badge" style="background:#fee2e2;color:#b91c1c;padding:4px 10px;border-radius:6px;font-size:0.78rem;"><i class="fas fa-times"></i> Rejected</span>
+                                            <?php else: ?>
+                                                <span class="status-badge status-completed"><i class="fas fa-check"></i> Completed</span>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -395,12 +310,150 @@
                             </tr>
                         </thead>
                         <tbody id="reportsTableBody">
-                            <!-- Initial 2 report rows will be loaded here -->
+                            <?php if (!empty($user_reports)): ?>
+                                <?php foreach ($user_reports as $index => $report): ?>
+                                    <tr<?= $index >= 5 ? ' class="hidden-row" style="display:none;"' : '' ?>>
+                                        <td class="report-content">
+                                            <strong><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $report->reported_content_type ?? 'Content'))) ?></strong>
+                                            <?php if (!empty($report->reporter_name)): ?>
+                                                <br><small>by <?= htmlspecialchars($report->reporter_name) ?></small>
+                                            <?php endif; ?>
+                                            <?php if (!empty($report->description)): ?>
+                                                <br><small><?= htmlspecialchars(substr($report->description, 0, 60)) ?><?= strlen($report->description) > 60 ? '...' : '' ?></small>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                                $rtype = $report->report_type ?? 'other';
+                                                $rtypeColors = ['spam'=>'#fef3c7;color:#92400e','inappropriate'=>'#fee2e2;color:#b91c1c','harassment'=>'#fce7f3;color:#9d174d','misinformation'=>'#ede9fe;color:#6d28d9','other'=>'#f3f4f6;color:#374151'];
+                                                $rtypeStyle = $rtypeColors[$rtype] ?? $rtypeColors['other'];
+                                            ?>
+                                            <span class="badge" style="background:<?= $rtypeStyle ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $rtype))) ?></span>
+                                        </td>
+                                        <td><?= date('M d, Y', strtotime($report->created_at)) ?></td>
+                                        <td>
+                                            <?php
+                                                $statusColors = ['pending'=>'badge-warning','in_progress'=>'badge-info','resolved'=>'badge-success'];
+                                                $sc = $statusColors[$report->status] ?? 'badge-warning';
+                                            ?>
+                                            <span class="badge <?= $sc ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $report->status ?? 'pending'))) ?></span>
+                                        </td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <a href="/unipulse/public/moderator/userreports" class="action-btn view" title="View Reports"><i class="fas fa-eye"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" style="text-align:center;padding:2rem;color:#6b7280;">
+                                        <i class="fas fa-flag" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
+                                        No user reports yet
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </section>
+
+<!-- Moderation Stats and Guidelines Section -->
+        <section class="moderation-overview">
+            <div class="container">
+                <div class="moderation-grid">
+                    <div class="moderation-card">
+                        <h3><i class="fas fa-chart-bar"></i> Moderation Stats</h3>
+                        <div class="stats-container">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-eye-slash" style="color: #f59e0b;"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number"><?= $moderation_stats['hidden_events'] ?? 0 ?></span>
+                                    <span class="stat-label">Hidden Events</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number"><?= $moderation_stats['approved_publishers'] ?? 0 ?></span>
+                                    <span class="stat-label">Approved Publishers</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-times-circle" style="color: #ef4444;"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number"><?= $moderation_stats['rejected_publishers'] ?? 0 ?></span>
+                                    <span class="stat-label">Rejected Publishers</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-tasks" style="color: #3b82f6;"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-number"><?= $moderation_stats['total_actions'] ?? 0 ?></span>
+                                    <span class="stat-label">Total Actions</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="moderation-card">
+                        <h3><i class="fas fa-book"></i> Moderation Guidelines</h3>
+                        <div class="guidelines-list">
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure events follow university policies</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify organizer credentials and authenticity</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Check for appropriate and respectful content</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure accurate event information and dates</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify event location and capacity details</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Review event descriptions for clarity</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Check registration requirements are reasonable</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Ensure images and media are appropriate</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Verify publisher documentation is valid</span>
+                            </div>
+                            <div class="guideline-item">
+                                <i class="fas fa-check"></i>
+                                <span>Respond to requests within 24-48 hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <!-- Footer -->
@@ -432,6 +485,20 @@
         </div>
     </div>
 
+    <script>
+        // Provide moderatorData so dashboard-app.js can reference it
+        const moderatorData = {
+            displayName: '<?= htmlspecialchars($moderator->full_name ?? 'Moderator') ?>',
+            pendingReviews: <?= intval($publisher_stats->pending ?? 0) ?>,
+            eventsReviewed: <?= intval($publisher_stats->approved ?? 0) ?>,
+            reportsHandled: <?= intval($publisher_stats->rejected ?? 0) ?>,
+            approvalRate: <?= intval($publisher_stats->total ?? 0) ?>,
+            approvedEvents: <?= intval($moderation_stats['approved_publishers'] ?? 0) ?>,
+            rejectedEvents: <?= intval($moderation_stats['rejected_publishers'] ?? 0) ?>,
+            editedEvents: <?= intval($moderation_stats['hidden_events'] ?? 0) ?>,
+            verifiedOrganizers: <?= intval($moderation_stats['total_actions'] ?? 0) ?>
+        };
+    </script>
     <script src="/unipulse/public/assets/js/Moderator/dashboard-app.js"></script>
     <script>
         let currentPublisherId = null;

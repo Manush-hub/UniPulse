@@ -1093,7 +1093,7 @@ class Event
     /**
      * Restore a soft-deleted event
      */
-    public function restore($eventId)
+    public function restore($eventId, $moderatorId = null)
     {
         try {
             $conn = $this->connect();
@@ -1103,11 +1103,13 @@ class Event
                           deleted_at = NULL,
                           deleted_by = NULL,
                           deletion_reason = NULL,
+                          restored_by = :restored_by,
+                          restored_at = NOW(),
                           updated_at = NOW()
                       WHERE id = :event_id";
 
             $stmt = $conn->prepare($query);
-            $result = $stmt->execute(['event_id' => $eventId]);
+            $result = $stmt->execute(['event_id' => $eventId, 'restored_by' => $moderatorId]);
 
             if ($result) {
                 // Optionally notify the publisher that their event has been restored
@@ -1437,87 +1439,94 @@ class Event
         try {
             $conn = $this->connect();
 
-            // Build UNION query to get hidden events, approved publishers, rejected publishers, and pending publishers
+            // CONVERT all text columns to utf8mb4 to avoid collation mismatch across tables
             $query = "
-                (SELECT 
-                    e.id as item_id,
-                    e.title as item_title,
-                    e.deleted_at as activity_time,
-                    e.deletion_reason as activity_reason,
-                    m.full_name as moderator_name,
-                    m.university_name as university,
-                    p.society_name as related_name,
-                    'hidden_event' as activity_type
+                (SELECT
+                    e.id                                                            AS item_id,
+                    CONVERT(e.title          USING utf8mb4)                         AS item_title,
+                    e.deleted_at                                                    AS activity_time,
+                    CONVERT(COALESCE(e.deletion_reason,'') USING utf8mb4)           AS activity_reason,
+                    CONVERT(COALESCE(m.full_name,'')       USING utf8mb4)           AS moderator_name,
+                    CONVERT(COALESCE(m.university_name,'') USING utf8mb4)           AS university,
+                    CONVERT('hidden_event'                 USING utf8mb4)           AS activity_type
                 FROM events e
                 LEFT JOIN moderators m ON e.deleted_by = m.id
-                LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
-                WHERE e.is_deleted = 1";
-
-            if ($moderatorId) {
-                $query .= " AND e.deleted_by = :moderator_id1";
-            }
-
+                WHERE e.is_deleted = 1 AND e.deleted_at IS NOT NULL";
+            if ($moderatorId) { $query .= " AND e.deleted_by = :moderator_id1"; }
             $query .= ")
+
                 UNION ALL
-                (SELECT 
-                    pub.id as item_id,
-                    pub.society_name as item_title,
-                    pub.approved_at as activity_time,
-                    NULL as activity_reason,
-                    m.full_name as moderator_name,
-                    m.university_name as university,
-                    pub.society_name as related_name,
-                    'publisher_approved' as activity_type
+                (SELECT
+                    e.id,
+                    CONVERT(e.title          USING utf8mb4),
+                    e.restored_at,
+                    CONVERT(''               USING utf8mb4),
+                    CONVERT(COALESCE(m.full_name,'')       USING utf8mb4),
+                    CONVERT(COALESCE(m.university_name,'') USING utf8mb4),
+                    CONVERT('restored_event' USING utf8mb4)
+                FROM events e
+                LEFT JOIN moderators m ON e.restored_by = m.id
+                WHERE e.restored_at IS NOT NULL";
+            if ($moderatorId) { $query .= " AND e.restored_by = :moderator_id_r"; }
+            $query .= ")
+
+                UNION ALL
+                (SELECT
+                    c.id,
+                    CONVERT(CONCAT('Comment on \"', LEFT(COALESCE(e.title,''), 40), '\"') USING utf8mb4),
+                    c.hidden_at,
+                    CONVERT(COALESCE(c.hidden_reason,'')   USING utf8mb4),
+                    CONVERT(COALESCE(m.full_name,'')       USING utf8mb4),
+                    CONVERT(COALESCE(m.university_name,'') USING utf8mb4),
+                    CONVERT('hidden_comment' USING utf8mb4)
+                FROM event_comments c
+                LEFT JOIN events e ON c.event_id = e.id
+                LEFT JOIN moderators m ON c.hidden_by = m.id
+                WHERE c.is_hidden = 1 AND c.hidden_at IS NOT NULL";
+            if ($moderatorId) { $query .= " AND c.hidden_by = :moderator_id_hc"; }
+            $query .= ")
+
+                UNION ALL
+                (SELECT
+                    pub.id,
+                    CONVERT(pub.society_name USING utf8mb4),
+                    pub.approved_at,
+                    CONVERT(''               USING utf8mb4),
+                    CONVERT(COALESCE(m.full_name,'')       USING utf8mb4),
+                    CONVERT(COALESCE(m.university_name,'') USING utf8mb4),
+                    CONVERT('publisher_approved' USING utf8mb4)
                 FROM publishers pub
                 LEFT JOIN moderators m ON pub.approved_by = m.id
                 WHERE pub.approval_status = 'approved' AND pub.approved_at IS NOT NULL";
-
-            if ($moderatorId) {
-                $query .= " AND pub.approved_by = :moderator_id2";
-            }
-
+            if ($moderatorId) { $query .= " AND pub.approved_by = :moderator_id2"; }
             $query .= ")
+
                 UNION ALL
-                (SELECT 
-                    pub.id as item_id,
-                    pub.society_name as item_title,
-                    pub.approved_at as activity_time,
-                    pub.rejection_reason as activity_reason,
-                    m.full_name as moderator_name,
-                    m.university_name as university,
-                    pub.society_name as related_name,
-                    'publisher_rejected' as activity_type
+                (SELECT
+                    pub.id,
+                    CONVERT(pub.society_name USING utf8mb4),
+                    pub.approved_at,
+                    CONVERT(COALESCE(pub.rejection_reason,'') USING utf8mb4),
+                    CONVERT(COALESCE(m.full_name,'')       USING utf8mb4),
+                    CONVERT(COALESCE(m.university_name,'') USING utf8mb4),
+                    CONVERT('publisher_rejected' USING utf8mb4)
                 FROM publishers pub
                 LEFT JOIN moderators m ON pub.approved_by = m.id
                 WHERE pub.approval_status = 'rejected' AND pub.approved_at IS NOT NULL";
-
-            if ($moderatorId) {
-                $query .= " AND pub.approved_by = :moderator_id3";
-            }
-
+            if ($moderatorId) { $query .= " AND pub.approved_by = :moderator_id3"; }
             $query .= ")
-                UNION ALL
-                (SELECT 
-                    pub.id as item_id,
-                    pub.society_name as item_title,
-                    pub.created_at as activity_time,
-                    NULL as activity_reason,
-                    NULL as moderator_name,
-                    NULL as university,
-                    pub.society_name as related_name,
-                    'publisher_pending' as activity_type
-                FROM publishers pub
-                WHERE pub.approval_status = 'pending'
-                )
+
                 ORDER BY activity_time DESC
                 LIMIT :limit";
 
             $stmt = $conn->prepare($query);
 
             if ($moderatorId) {
-                $stmt->bindValue(':moderator_id1', $moderatorId, PDO::PARAM_INT);
-                $stmt->bindValue(':moderator_id2', $moderatorId, PDO::PARAM_INT);
-                $stmt->bindValue(':moderator_id3', $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id1',   $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id_r',  $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id_hc', $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id2',   $moderatorId, PDO::PARAM_INT);
+                $stmt->bindValue(':moderator_id3',   $moderatorId, PDO::PARAM_INT);
             }
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 

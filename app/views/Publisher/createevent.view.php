@@ -1115,7 +1115,7 @@
                 <div class="bottom-actions">
                     <button type="button" class="cancel-btn" onclick="window.location.href='/unipulse/public/publisher/events'">Cancel</button>
                     <div class="action-buttons">
-                        <button type="button" class="save-draft-btn" id="clearDraftBtn" style="background: #6B7280; display: none;">
+                        <button type="button" class="save-draft-btn" id="clearDraftBtn" style="background: #ffffff; display: none;">
                             <i class="fas fa-trash"></i> Clear Draft
                         </button>
                         <button type="submit" class="publish-btn">Publish Event</button>
@@ -2220,7 +2220,9 @@
 
                         const field = form.querySelector(`[name="${key}"]`);
                         if (field) {
-                            if (field.type === 'checkbox') {
+                            if (field.type === 'file') {
+                                // Cannot restore file inputs programmatically - skip
+                            } else if (field.type === 'checkbox') {
                                 field.checked = draft[key] === true || draft[key] === '1';
                             } else if (field.type === 'radio') {
                                 if (field.value === draft[key]) {

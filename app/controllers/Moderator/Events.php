@@ -347,9 +347,10 @@ class ModeratorEvents extends Controller{
             }
             
             $eventId = intval($input['event_id']);
+            $currentUser = AuthService::getCurrentUser();
             
-            // Restore the event
-            $result = $this->eventModel->restore($eventId);
+            // Restore the event (record who restored it)
+            $result = $this->eventModel->restore($eventId, $currentUser['id']);
             
             if ($result) {
                 echo json_encode([
