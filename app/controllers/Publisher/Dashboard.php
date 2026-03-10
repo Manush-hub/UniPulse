@@ -658,7 +658,21 @@ class PublisherDashboard extends Controller
                         WHEN vr.user_type = 'publisher' THEN p.society_name
                         WHEN vr.user_type = 'sponsor' THEN s.company_name
                         ELSE CONCAT('User #', vr.user_id)
-                    END as volunteer_name
+                    END as volunteer_name,
+                    CASE
+                        WHEN vr.user_type = 'university' THEN uu.email
+                        WHEN vr.user_type = 'public' THEN pu.email
+                        WHEN vr.user_type = 'publisher' THEN p.email
+                        WHEN vr.user_type = 'sponsor' THEN s.email
+                        ELSE NULL
+                    END as volunteer_email,
+                    CASE
+                        WHEN vr.user_type = 'university' THEN uu.phone
+                        WHEN vr.user_type = 'public' THEN pu.phone
+                        WHEN vr.user_type = 'publisher' THEN p.phone
+                        WHEN vr.user_type = 'sponsor' THEN s.phone
+                        ELSE NULL
+                    END as volunteer_phone
                 FROM volunteer_registrations vr
                 INNER JOIN events e ON e.id = vr.event_id
                 LEFT JOIN university_users uu ON vr.user_type = 'university' AND vr.user_id = uu.id
@@ -684,6 +698,8 @@ class PublisherDashboard extends Controller
                 $applications[] = [
                     'id' => $row->id,
                     'name' => $name,
+                    'email' => $row->volunteer_email ?: null,
+                    'phone' => $row->volunteer_phone ?: null,
                     'user_type' => $row->user_type,
                     'event_title' => $row->event_title,
                     'event_date' => $row->event_date,
@@ -700,6 +716,8 @@ class PublisherDashboard extends Controller
                     $shifts[] = [
                         'id' => $row->id,
                         'name' => $name,
+                        'email' => $row->volunteer_email ?: null,
+                        'phone' => $row->volunteer_phone ?: null,
                         'user_type' => $row->user_type,
                         'event_title' => $row->event_title,
                         'event_date' => $row->event_date,
@@ -747,7 +765,7 @@ class PublisherDashboard extends Controller
 
         try {
             $ownershipQuery = "
-                SELECT vr.id
+                SELECT vr.id, vr.event_id, vr.status AS current_status, e.volunteers_needed
                 FROM volunteer_registrations vr
                 INNER JOIN events e ON e.id = vr.event_id
                 WHERE vr.id = :registration_id
@@ -768,12 +786,43 @@ class PublisherDashboard extends Controller
                 return;
             }
 
+            $currentStatus = strtolower((string)($owned->current_status ?? 'pending'));
+            $isChangingToAccepted = ($newStatus === 'accepted' && $currentStatus !== 'accepted');
+            $isChangingFromAccepted = ($newStatus !== 'accepted' && $currentStatus === 'accepted');
+
+            if ($isChangingToAccepted && !is_null($owned->volunteers_needed) && (int)$owned->volunteers_needed <= 0) {
+                echo json_encode(['success' => false, 'error' => 'No volunteer slots remaining for this event']);
+                return;
+            }
+
             $volunteerReg = new VolunteerRegistration();
+            $db = $this->connect();
+            $db->beginTransaction();
+
             $updated = $volunteerReg->updateStatus((int)$registrationId, $newStatus);
 
             if (!$updated) {
+                if ($db->inTransaction()) {
+                    $db->rollBack();
+                }
                 echo json_encode(['success' => false, 'error' => 'Failed to update status']);
                 return;
+            }
+
+            if (!is_null($owned->volunteers_needed)) {
+                $currentNeeded = (int)$owned->volunteers_needed;
+
+                if ($isChangingToAccepted) {
+                    $currentNeeded = max(0, $currentNeeded - 1);
+                    $this->eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
+                } elseif ($isChangingFromAccepted) {
+                    $currentNeeded = $currentNeeded + 1;
+                    $this->eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
+                }
+            }
+
+            if ($db->inTransaction()) {
+                $db->commit();
             }
 
             echo json_encode([
@@ -782,6 +831,9 @@ class PublisherDashboard extends Controller
                 'status' => $newStatus
             ]);
         } catch (Exception $e) {
+            if (isset($db) && $db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
             error_log('Error updating volunteer status: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to update volunteer status']);
         }

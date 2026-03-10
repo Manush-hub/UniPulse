@@ -709,44 +709,64 @@ function loadVolunteerData() {
                 if (applications.length === 0) {
                     applicationsList.innerHTML = '<div class="no-data">No volunteer applications yet.</div>';
                 } else {
-                    applicationsList.innerHTML = '';
-                    applications.forEach(volunteer => {
-                        const initials = getInitials(volunteer.name);
+                    const rows = applications.map(volunteer => {
                         const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
-                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
+                        const volunteerEmail = escapeHtml(
+                            volunteer.email || volunteer.volunteer_email || volunteer.user_email || 'N/A'
+                        );
+                        const volunteerPhone = escapeHtml(
+                            volunteer.phone || volunteer.contact_number || volunteer.volunteer_phone || volunteer.user_phone || 'N/A'
+                        );
                         const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
-                        const volunteerType = formatUserType(volunteer.user_type || 'user');
-                        const appliedAt = formatDateTime(volunteer.applied_at);
-                        const volunteerItem = document.createElement('div');
-                        volunteerItem.className = 'activity-item volunteer-item';
-                        const isPending = volunteer.status === 'pending';
-                        volunteerItem.innerHTML = `
-                            <div class="activity-icon volunteer-avatar">${initials}</div>
-                            <div class="activity-content volunteer-info-content">
-                                <h4 class="volunteer-name">${volunteerName}</h4>
-                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
-                                <div class="volunteer-details">
-                                    ${buildVolunteerDetailRow('Type', volunteerType)}
-                                    ${buildVolunteerDetailRow('Availability', volunteer.availability)}
-                                    ${buildVolunteerDetailRow('Experience', volunteer.experience, { maxLength: 140 })}
-                                    ${buildVolunteerDetailRow('Skills', volunteer.skills, { maxLength: 140 })}
-                                    ${buildVolunteerDetailRow('Motivation', volunteer.motivation, { maxLength: 140 })}
-                                </div>
-                                <span class="activity-time">Applied: ${appliedAt}</span>
-                                <span class="volunteer-status-line-text">Status: ${capitalizeFirstLetter(volunteer.status)}</span>
-                            </div>
-                            <div class="volunteer-controls">
-                                <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
-                                ${isPending ? `
-                                <div class="volunteer-actions">
-                                    <button class="volunteer-action-btn approve" onclick="updateVolunteerStatus(${volunteer.id}, 'accepted')"><i class="fas fa-check"></i> Approve</button>
-                                    <button class="volunteer-action-btn reject" onclick="updateVolunteerStatus(${volunteer.id}, 'rejected')"><i class="fas fa-times"></i> Reject</button>
-                                </div>
-                                ` : ''}
-                            </div>
+                        const eventDate = formatDate(volunteer.event_date);
+                        const statusText = formatVolunteerStatus(volunteer.status);
+                        const statusClass = getVolunteerBadgeClass(volunteer.status);
+                        const isPending = String(volunteer.status || '').toLowerCase() === 'pending';
+
+                        return `
+                            <tr>
+                                <td>${volunteerName}</td>
+                                <td>${volunteerEmail}</td>
+                                <td>${volunteerPhone}</td>
+                                <td>${eventTitle}</td>
+                                <td>${eventDate}</td>
+                                <td><span class="volunteer-status-badge ${statusClass}">${statusText}</span></td>
+                                <td>
+                                    ${isPending ? `
+                                    <div class="volunteer-table-actions">
+                                        <button class="volunteer-action-btn approve" onclick="updateVolunteerStatus(${volunteer.id}, 'accepted')"><i class="fas fa-check"></i> Approve</button>
+                                        <button class="volunteer-action-btn reject" onclick="updateVolunteerStatus(${volunteer.id}, 'rejected')"><i class="fas fa-times"></i> Reject</button>
+                                    </div>
+                                    ` : '<span class="volunteer-action-done">-</span>'}
+                                </td>
+                            </tr>
                         `;
-                        applicationsList.appendChild(volunteerItem);
-                    });
+                    }).join('');
+
+                    applicationsList.innerHTML = `
+                        <div class="registration-event-header">
+                            <h3>Recent Applications</h3>
+                            <span class="registration-count-badge">${applications.length} Total</span>
+                        </div>
+                        <div class="registration-table-wrapper volunteer-scroll-table-wrapper">
+                                <table class="registration-table volunteer-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Volunteer Name</th>
+                                            <th>Email</th>
+                                            <th>Contact Number</th>
+                                            <th>Event Name</th>
+                                            <th>Event Date</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rows}
+                                    </tbody>
+                                </table>
+                        </div>
+                    `;
                 }
             }
 
@@ -754,31 +774,44 @@ function loadVolunteerData() {
                 if (shifts.length === 0) {
                     shiftsList.innerHTML = '<div class="no-data">No accepted volunteer shifts yet.</div>';
                 } else {
-                    shiftsList.innerHTML = '';
-                    shifts.forEach(volunteer => {
-                        const initials = getInitials(volunteer.name);
+                    const rows = shifts.map(volunteer => {
                         const volunteerName = escapeHtml(volunteer.name || 'Volunteer');
-                        const volunteerRole = escapeHtml(volunteer.role || 'General Volunteer');
                         const eventTitle = escapeHtml(volunteer.event_title || 'Untitled Event');
-                        const shiftText = formatVolunteerField(volunteer.shift);
                         const eventDate = formatDate(volunteer.event_date);
-                        const volunteerItem = document.createElement('div');
-                        volunteerItem.className = 'activity-item volunteer-item';
-                        volunteerItem.innerHTML = `
-                            <div class="activity-icon volunteer-avatar">${initials}</div>
-                            <div class="activity-content volunteer-info-content">
-                                <h4 class="volunteer-name">${volunteerName}</h4>
-                                <p class="volunteer-role-event-line">${eventTitle} • ${volunteerRole}</p>
-                                <div class="volunteer-details">
-                                    <span><strong>Shift:</strong> ${shiftText}</span>
-                                    <span><strong>Event Date:</strong> ${eventDate}</span>
-                                </div>
-                                <span class="activity-time">Shift assigned</span>
-                            </div>
-                            <span class="volunteer-status ${mapVolunteerStatusClass(volunteer.status)}">${capitalizeFirstLetter(volunteer.status)}</span>
+                        const statusText = formatVolunteerStatus(volunteer.status);
+                        const statusClass = getVolunteerBadgeClass(volunteer.status);
+
+                        return `
+                            <tr>
+                                <td>${volunteerName}</td>
+                                <td>${eventTitle}</td>
+                                <td>${eventDate}</td>
+                                <td><span class="volunteer-status-badge ${statusClass}">${statusText}</span></td>
+                            </tr>
                         `;
-                        shiftsList.appendChild(volunteerItem);
-                    });
+                    }).join('');
+
+                    shiftsList.innerHTML = `
+                        <div class="registration-event-header">
+                            <h3>Upcoming Shifts</h3>
+                            <span class="registration-count-badge">${shifts.length} Total</span>
+                        </div>
+                        <div class="registration-table-wrapper volunteer-scroll-table-wrapper">
+                                <table class="registration-table volunteer-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Volunteer Name</th>
+                                            <th>Event Name</th>
+                                            <th>Event Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rows}
+                                    </tbody>
+                                </table>
+                        </div>
+                    `;
                 }
             }
         })
@@ -888,6 +921,22 @@ function mapVolunteerStatusClass(status) {
     if (status === 'accepted') return 'status-upcoming';
     if (status === 'rejected') return 'rejected';
     return 'status-ongoing';
+}
+
+function formatVolunteerStatus(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'pending') return 'Pending';
+    if (normalized === 'accepted') return 'Accepted';
+    if (normalized === 'rejected') return 'Rejected';
+    if (normalized === 'completed') return 'Completed';
+    return 'Updated';
+}
+
+function getVolunteerBadgeClass(status) {
+    const normalized = String(status || '').toLowerCase();
+    if (normalized === 'accepted' || normalized === 'completed') return 'approved';
+    if (normalized === 'rejected') return 'rejected';
+    return 'pending';
 }
 
 function showDashboardToast(message, type = 'info') {

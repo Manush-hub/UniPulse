@@ -312,15 +312,13 @@
                     <h2>Volunteer Management</h2>
                 </div>
                 <div class="volunteer-layout">
-                    <div class="volunteer-applications">
-                        <h3 class="volunteer-subtitle">Recent Applications</h3>
-                        <div class="activity-list volunteer-list" id="volunteerApplicationsList">
+                    <div class="volunteer-applications registration-event-section">
+                        <div class="volunteer-list" id="volunteerApplicationsList">
                             <!-- Volunteer applications will be loaded here -->
                         </div>
                     </div>
-                    <div class="volunteer-shifts">
-                        <h3 class="volunteer-subtitle">Upcoming Shifts</h3>
-                        <div class="activity-list volunteer-list" id="volunteerShiftsList">
+                    <div class="volunteer-shifts registration-event-section">
+                        <div class="volunteer-list" id="volunteerShiftsList">
                             <!-- Volunteer shifts will be loaded here -->
                         </div>
                     </div>
