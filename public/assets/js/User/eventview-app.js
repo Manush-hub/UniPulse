@@ -647,7 +647,7 @@ function closeVolunteerConsentModal() {
 
 function confirmVolunteerConsent() {
     closeVolunteerConsentModal();
-    openVolunteerApplicationModal();
+    submitVolunteerApplication();
 }
 
 function openVolunteerApplicationModal() {
@@ -670,29 +670,14 @@ function submitVolunteerApplication() {
         return;
     }
 
-    const volunteerPosition = (document.getElementById('volunteerPosition')?.value || 'General Volunteer').trim();
-    const volunteerAvailability = (document.getElementById('volunteerAvailability')?.value || 'Flexible').trim();
-    const volunteerExperience = (document.getElementById('volunteerExperience')?.value || '').trim();
-    const volunteerSkills = (document.getElementById('volunteerSkills')?.value || '').trim();
-    const volunteerMotivation = (document.getElementById('volunteerMotivation')?.value || '').trim();
+    const volunteerPosition = 'General Volunteer';
+    const volunteerAvailability = 'Flexible';
+    const volunteerExperience = 'Interested in supporting this event as a volunteer.';
+    const volunteerSkills = 'Communication, teamwork';
+    const volunteerMotivation = 'I want to help make this event successful.';
     const hasTransportation = document.getElementById('volunteerTransportation')?.checked ? '1' : '0';
     const receiveUpdates = document.getElementById('volunteerReceiveUpdates')?.checked ? '1' : '0';
-    const commitmentUnderstanding = document.getElementById('volunteerCommitment')?.checked ? '1' : '0';
-
-    if (!volunteerPosition || !volunteerAvailability) {
-        alert('Please select preferred role and availability before submitting.');
-        return;
-    }
-
-    if (!volunteerExperience || !volunteerSkills || !volunteerMotivation) {
-        alert('Please complete experience, skills, and motivation before submitting.');
-        return;
-    }
-
-    if (commitmentUnderstanding !== '1') {
-        alert('Please confirm your commitment to continue.');
-        return;
-    }
+    const commitmentUnderstanding = '1';
 
     const submitBtn = document.getElementById('submitVolunteerApplicationBtn');
     const originalText = submitBtn ? submitBtn.innerHTML : 'Submit Application';
@@ -1568,8 +1553,6 @@ function displayVolunteerInvolvement(event) {
     const eventDate = formatDate(event.event_date || event.date);
     const eventTime = event.event_time || event.time || 'TBA';
     const applicationStatus = volunteerApplication?.status || 'pending';
-    const role = volunteerApplication?.volunteer_position || 'General Volunteer';
-    const availability = volunteerApplication?.availability || 'Flexible';
     const appliedAt = formatVolunteerAppliedAt(volunteerApplication?.created_at);
     const statusText = capitalizeFirstLetter(applicationStatus);
     const statusClass = getVolunteerStatusBadgeClass(applicationStatus);
@@ -1586,8 +1569,6 @@ function displayVolunteerInvolvement(event) {
             <div class="volunteer-involvement-meta">
                 <p><strong>Event:</strong> ${event.title}</p>
                 <p><strong>Date:</strong> ${eventDate} at ${eventTime}</p>
-                <p><strong>Role:</strong> ${role}</p>
-                <p><strong>Availability:</strong> ${availability}</p>
                 <p><strong>Applied On:</strong> ${appliedAt}</p>
                 <div style="margin-top: 12px;">
                     <button class="btn btn-primary" onclick="viewMyVolunteerApplication()">View My Application</button>

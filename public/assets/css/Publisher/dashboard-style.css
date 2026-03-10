@@ -978,269 +978,15 @@ body {
 
 .volunteer-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 3rem;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
     align-items: stretch;
 }
 
 .volunteer-applications,
 .volunteer-shifts {
-    position: relative;
-    border-radius: 16px;
-    padding: 1.15rem;
     min-height: 100%;
-    display: flex;
-    flex-direction: column;
     overflow: hidden;
-}
-
-.volunteer-applications::after,
-.volunteer-shifts::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 4px;
-}
-
-.volunteer-applications {
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
-    border: 1px solid #dbeafe;
-    box-shadow: 0 8px 24px rgba(30, 58, 138, 0.06);
-}
-
-.volunteer-applications::after {
-    background: linear-gradient(90deg, #2563eb, #60a5fa);
-}
-
-.volunteer-applications .volunteer-subtitle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.9rem;
-    color: #1e3a8a;
-}
-
-.volunteer-applications .volunteer-subtitle::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #2563eb;
-    box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.15);
-}
-
-.volunteer-applications .volunteer-list {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    margin-top: 0.1rem;
-}
-
-.volunteer-applications .volunteer-item {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 0.9rem 1rem;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    position: relative;
-    gap: 0.9rem;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: stretch;
-    overflow: hidden;
-}
-
-.volunteer-applications .volunteer-info-content {
-    min-width: 0;
-}
-
-.volunteer-applications .volunteer-item::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 4px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #2563eb, #60a5fa);
-}
-
-.volunteer-applications .volunteer-item:hover {
-    transform: translateY(-2px);
-    border-color: #bfdbfe;
-    box-shadow: 0 8px 18px rgba(30, 64, 175, 0.12);
-}
-
-.volunteer-applications .volunteer-item:last-child {
-    margin-bottom: 0;
-}
-
-.volunteer-applications .volunteer-name {
-    color: #0f172a;
-}
-
-.volunteer-applications .volunteer-info-content p {
-    margin: 0.2rem 0 0.25rem;
-    padding: 0.25rem 0.55rem;
-    display: inline-flex;
-    width: fit-content;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1e3a8a;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-}
-
-.volunteer-applications .volunteer-avatar {
-    box-shadow: 0 0 0 3px #e0edff;
-}
-
-.volunteer-applications .volunteer-controls {
-    min-width: 128px;
-    margin-left: auto;
-    align-self: stretch;
-    align-items: stretch;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 0.5rem;
-    margin-right: 0.3rem;
-    margin-bottom: 0.3rem;
-}
-
-.volunteer-applications .volunteer-status {
-    width: 100%;
-    text-align: center;
-}
-
-.volunteer-applications .volunteer-actions {
-    flex-direction: column;
-    width: 100%;
-}
-
-.volunteer-applications .volunteer-action-btn {
-    width: 100%;
-    min-width: 0;
-}
-
-.volunteer-applications .activity-time {
-    color: #475569;
-}
-
-.volunteer-shifts {
-    background: linear-gradient(180deg, #ffffff 0%, #f7fdf9 100%);
-    border: 1px solid #bbf7d0;
-    box-shadow: 0 8px 24px rgba(22, 163, 74, 0.08);
-}
-
-.volunteer-shifts::after {
-    background: linear-gradient(90deg, #16a34a, #4ade80);
-}
-
-.volunteer-shifts .volunteer-subtitle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.9rem;
-    color: #166534;
-}
-
-.volunteer-shifts .volunteer-subtitle::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #16a34a;
-    box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.15);
-}
-
-.volunteer-shifts .volunteer-list {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    margin-top: 0.1rem;
-}
-
-.volunteer-shifts .volunteer-item {
-    background: #ffffff;
-    border: 1px solid #dcfce7;
-    border-radius: 12px;
-    padding: 0.9rem 1rem;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 2px 8px rgba(21, 128, 61, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    position: relative;
-    gap: 0.9rem;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: stretch;
-    overflow: hidden;
-}
-
-.volunteer-shifts .volunteer-info-content {
-    min-width: 0;
-}
-
-.volunteer-shifts .volunteer-item::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 4px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #16a34a, #4ade80);
-}
-
-.volunteer-shifts .volunteer-item:hover {
-    transform: translateY(-2px);
-    border-color: #86efac;
-    box-shadow: 0 8px 18px rgba(22, 163, 74, 0.14);
-}
-
-.volunteer-shifts .volunteer-item:last-child {
-    margin-bottom: 0;
-}
-
-.volunteer-shifts .volunteer-name {
-    color: #14532d;
-}
-
-.volunteer-shifts .volunteer-info-content p {
-    margin: 0.2rem 0 0.25rem;
-    padding: 0.25rem 0.55rem;
-    display: inline-flex;
-    width: fit-content;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #166534;
-    background: #ecfdf3;
-    border: 1px solid #bbf7d0;
-}
-
-.volunteer-shifts .volunteer-avatar {
-    box-shadow: 0 0 0 3px #dcfce7;
-}
-
-.volunteer-shifts .activity-time {
-    color: #3f6212;
-}
-
-.volunteer-shifts .volunteer-status {
-    min-width: 106px;
-    text-align: center;
-    align-self: end;
-    justify-self: end;
-    margin-right: 0.1rem;
-    margin-bottom: 0.1rem;
-    white-space: nowrap;
 }
 
 /* Stronger card-body typography for Volunteer Management */
@@ -1317,11 +1063,103 @@ body {
     }
 }
 
-.volunteer-subtitle {
-    font-size: 1.25rem;
+.volunteer-table {
+    min-width: 760px;
+}
+
+.volunteer-scroll-table-wrapper {
+    max-height: 360px;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+.volunteer-scroll-table-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.volunteer-scroll-table-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.volunteer-scroll-table-wrapper::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+}
+
+.volunteer-scroll-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+.volunteer-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.volunteer-table tbody td {
+    vertical-align: middle;
+}
+
+.volunteer-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.volunteer-status-badge.pending {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.volunteer-status-badge.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.volunteer-status-badge.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.volunteer-table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.volunteer-action-done {
+    color: #94a3b8;
+    font-size: 0.88rem;
+}
+
+.volunteer-applications .registration-event-header,
+.volunteer-shifts .registration-event-header {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.volunteer-status-badge.pending {
+    background: #ffedd5;
+    color: #9a3412;
+}
+
+.volunteer-status-badge.approved {
+    background: #ecfdf3;
+    color: #166534;
+}
+
+.volunteer-status-badge.rejected {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.volunteer-action-btn {
+    border-radius: 8px;
     font-weight: 600;
-    margin: 0 0 1rem;
-    color: #1f2937;
 }
 
 .volunteer-list {
@@ -1452,15 +1290,15 @@ body {
 .volunteer-action-btn {
     border: 1px solid transparent;
     border-radius: 8px;
-    padding: 0.42rem 0.75rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.56rem;
+    font-size: 0.74rem;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    gap: 0.25rem;
     cursor: pointer;
-    min-width: 84px;
+    min-width: 68px;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }

@@ -100,16 +100,12 @@ async function renderVolunteeringSection() {
             const eventDateTimeText = `${eventDateText}${application.event_time ? ` at ${application.event_time}` : ''}`;
             const statusText = formatVolunteerStatus(application.status);
             const statusClass = getVolunteerStatusClass(application.status);
-            const role = escapeHtmlDash(application.volunteer_position || 'General Volunteer');
-            const availability = escapeHtmlDash(application.availability || 'Flexible');
             const appliedAt = formatDateTimeShort(application.applied_at);
 
             return `
                 <tr>
                     <td>${escapeHtmlDash(application.event_title || 'Volunteer Application')}</td>
                     <td>${eventDateTimeText}</td>
-                    <td>${role}</td>
-                    <td>${availability}</td>
                     <td>
                         <span class="volunteer-status-badge ${statusClass}">${statusText}</span>
                     </td>
@@ -131,8 +127,6 @@ async function renderVolunteeringSection() {
                             <tr>
                                 <th>Event Name</th>
                                 <th>Event Date</th>
-                                <th>Role</th>
-                                <th>Availability</th>
                                 <th>Status</th>
                                 <th>Applied On</th>
                             </tr>
@@ -154,7 +148,7 @@ async function renderVolunteeringSection() {
 
 function formatVolunteerStatus(status) {
     const map = {
-        pending: 'Pending Review',
+        pending: 'Pending',
         accepted: 'Accepted',
         rejected: 'Rejected',
         completed: 'Completed'

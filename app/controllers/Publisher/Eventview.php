@@ -582,18 +582,12 @@ class PublisherEventview extends Controller {
                 exit;
             }
 
-            if (!is_null($event->volunteers_needed) && (int)$event->volunteers_needed > 0) {
-                $remainingVolunteers = max(0, (int)$event->volunteers_needed - 1);
-                $this->eventModel->update($eventId, ['volunteers_needed' => $remainingVolunteers]);
-            }
-
-            $updatedEvent = $this->eventModel->getEventById($eventId);
             $savedApplication = $this->volunteerRegistrationModel->getRegistration($eventId, $userId, $userType);
 
             echo json_encode([
                 'success' => true,
                 'message' => 'Volunteer application submitted successfully',
-                'volunteers_needed' => $updatedEvent ? $updatedEvent->volunteers_needed : $event->volunteers_needed,
+                'volunteers_needed' => $event->volunteers_needed,
                 'volunteerApplication' => $this->formatVolunteerApplicationForResponse($savedApplication)
             ]);
         } catch (Exception $e) {
