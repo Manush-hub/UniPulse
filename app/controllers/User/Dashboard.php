@@ -677,7 +677,7 @@ class UserDashboard extends Controller
 
             $volunteerReg = new VolunteerRegistration();
 
-                        $sql = "SELECT vr.id, vr.status, vr.created_at, vr.event_id,
+            $sql = "SELECT vr.id, vr.status, vr.created_at, vr.event_id,
                                                      vr.volunteer_position, vr.availability,
                                                      e.title, e.event_date, e.event_time
                     FROM volunteer_registrations vr
@@ -875,36 +875,63 @@ class UserDashboard extends Controller
         $participation = is_array($data['participation']) ? $data['participation'] : [];
         $donationTotal = floatval($data['donationTotal'] ?? 0);
         $eventSpending = floatval($data['eventSpending'] ?? 0);
+        $headerLogo = $this->loadPDFHeaderLogoImage();
 
-        // Start PDF content
+        // Build colorful, statement-style page content.
+        $content = $this->buildPDFContent(
+            $monthName,
+            $userName,
+            $volunteering,
+            $donations,
+            $participation,
+            $donationTotal,
+            $eventSpending,
+            !empty($headerLogo)
+        );
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $resourceParts = [
+            '/Font << /F1 5 0 R /F2 6 0 R >>'
+        ];
+
+        if (!empty($headerLogo)) {
+            $resourceParts[] = '/XObject << /Im1 7 0 R >>';
+        }
+
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << " . implode(' ', $resourceParts) . " >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        if (!empty($headerLogo)) {
+            $objects[7] = "<< /Type /XObject /Subtype /Image"
+                . " /Width " . (int)$headerLogo['width']
+                . " /Height " . (int)$headerLogo['height']
+                . " /ColorSpace /DeviceRGB /BitsPerComponent 8"
+                . " /Filter /DCTDecode /Length " . strlen($headerLogo['data']) . " >>\nstream\n"
+                . $headerLogo['data']
+                . "\nendstream";
+        }
+
         $pdf = "%PDF-1.4\n";
-        $pdf .= "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
-        $pdf .= "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n";
+        $offsets = [0 => 0];
 
-        // Build content
-        $content = $this->buildPDFContent($monthName, $userName, $volunteering, $donations, $participation, $donationTotal, $eventSpending);
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
 
-        // Content object
-        $pdf .= "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>\nendobj\n";
-        $pdf .= "4 0 obj\n<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream\nendobj\n";
-
-        // Font objects
-        $pdf .= "5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n";
-        $pdf .= "6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>\nendobj\n";
-
-        // Xref and trailer
         $xrefOffset = strlen($pdf);
-        $pdf .= "xref\n0 7\n";
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
         $pdf .= "0000000000 65535 f \n";
 
-        // Calculate offsets (simplified - just use placeholders)\n        $pdf .= "0000000009 00000 n \n";
-        $pdf .= "0000000058 00000 n \n";
-        $pdf .= "0000000115 00000 n \n";
-        $pdf .= "0000000214 00000 n \n";
-        $pdf .= str_pad($xrefOffset - 100, 10, '0', STR_PAD_LEFT) . " 00000 n \n";
-        $pdf .= str_pad($xrefOffset - 50, 10, '0', STR_PAD_LEFT) . " 00000 n \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
 
-        $pdf .= "trailer\n<< /Size 7 /Root 1 0 R >>\n";
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
         $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
 
         return $pdf;
@@ -913,129 +940,330 @@ class UserDashboard extends Controller
     /**
      * Build PDF content stream
      */
-    private function buildPDFContent($monthName, $userName, $volunteering, $donations, $participation, $donationTotal, $eventSpending)
+    private function buildPDFContent($monthName, $userName, $volunteering, $donations, $participation, $donationTotal, $eventSpending, $hasHeaderLogo = false)
     {
-        $content = "BT\n/F2 16 Tf\n50 750 Td\n(Monthly Activity Report - " . $this->escapePDF($monthName) . ") Tj\n";
-        $content .= "ET\n";
-        $content .= "BT\n/F1 12 Tf\n50 720 Td\n(User: " . $this->escapePDF($userName) . ") Tj\n";
-        $content .= "ET\n";
-        $content .= "BT\n/F1 10 Tf\n50 700 Td\n(Generated: " . date('Y-m-d H:i:s') . ") Tj\n";
-        $content .= "ET\n";
+        $content = '';
 
-        $yPos = 670;
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 48;
+        $contentRight = $pageWidth - $marginX;
+        $contentWidth = $contentRight - $marginX;
 
-        // Summary Section
-        $content .= "BT\n/F2 14 Tf\n50 " . $yPos . " Td\n(SUMMARY) Tj\nET\n";
-        $yPos -= 25;
+        $brandPrimary = [73, 31, 146];
+        $brandSecondary = [120, 74, 196];
+        $pageBackground = [248, 249, 253];
+        $textDark = [36, 32, 67];
+        $textMuted = [108, 113, 133];
+        $lineColor = [223, 226, 238];
+        $spendingsTotal = $donationTotal + $eventSpending;
+        $headerBottom = 688;
+        $headerHeight = 104;
 
-        $summaryData = [
-            "Volunteer Sessions: " . count($volunteering),
-            "Total Donations: LKR " . number_format($donationTotal, 2) . " (" . count($donations) . " donations)",
-            "Events Participated: " . count($participation),
-            "Total Event Spending: LKR " . number_format($eventSpending, 2)
+        // Page background + branded top banner.
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, $pageBackground);
+        $content .= $this->pdfRect(0, $headerBottom, $pageWidth, $headerHeight, $brandPrimary);
+        $content .= $this->pdfRect($pageWidth - 200, $headerBottom, 200, $headerHeight, $brandSecondary);
+        $content .= $this->pdfLine(0, $headerBottom, $pageWidth, $headerBottom, [237, 233, 250], 1.2);
+
+        if ($hasHeaderLogo) {
+            $logoBoxX = $marginX;
+            $logoBoxY = 724;
+            $logoBoxW = 100;
+            $logoBoxH = 52;
+            $content .= $this->pdfRect($logoBoxX, $logoBoxY, $logoBoxW, $logoBoxH, [248, 248, 252], [196, 180, 231], 0.8);
+            $content .= $this->pdfImage('Im1', $logoBoxX + 6, $logoBoxY + 5, $logoBoxW - 12, $logoBoxH - 10);
+        } else {
+            $content .= $this->pdfText($marginX, 748, 'UniPulse', 'F2', 23, [255, 255, 255]);
+        }
+
+        $content .= $this->pdfText($marginX, 710, 'Monthly Activity Statement', 'F2', 16, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 692, $monthName . '  |  Generated ' . date('M d, Y'), 'F1', 10, [225, 220, 245]);
+
+        $accountPanelX = $contentRight - 180;
+        $content .= $this->pdfRect($accountPanelX, 705, 170, 70, [136, 92, 206], [162, 129, 222], 0.8);
+        $content .= $this->pdfText($accountPanelX + 12, 746, 'Account Holder', 'F1', 9, [232, 224, 252]);
+        $content .= $this->pdfText($accountPanelX + 12, 724, $this->truncatePDFText($userName, 24), 'F2', 12, [255, 255, 255]);
+
+        // KPI cards row with consistent side margins.
+        $cardY = 602;
+        $cardHeight = 70;
+        $cardGap = 12;
+        $cardWidth = ($contentWidth - ($cardGap * 3)) / 4;
+        $cardX = $marginX;
+
+        $cards = [
+            ['label' => 'Volunteer Sessions', 'value' => (string)count($volunteering), 'accent' => [243, 156, 18]],
+            ['label' => 'Donations', 'value' => 'LKR ' . number_format($donationTotal, 2), 'accent' => [42, 187, 155]],
+            ['label' => 'Events Participated', 'value' => (string)count($participation), 'accent' => [72, 166, 88]],
+            ['label' => 'Event Spending', 'value' => 'LKR ' . number_format($eventSpending, 2), 'accent' => [80, 127, 255]],
         ];
 
-        foreach ($summaryData as $item) {
-            $content .= "BT\n/F1 10 Tf\n50 " . $yPos . " Td\n(" . $this->escapePDF($item) . ") Tj\nET\n";
-            $yPos -= 15;
+        foreach ($cards as $card) {
+            $content .= $this->pdfRect($cardX, $cardY, $cardWidth, $cardHeight, [255, 255, 255], $lineColor, 0.9);
+            $content .= $this->pdfRect($cardX, $cardY + $cardHeight - 5, $cardWidth, 5, $card['accent']);
+            $content .= $this->pdfText($cardX + 10, $cardY + 47, $card['label'], 'F1', 8.5, $textMuted);
+            $content .= $this->pdfText($cardX + 10, $cardY + 24, $this->truncatePDFText($card['value'], 20), 'F2', 13, $textDark);
+            $cardX += ($cardWidth + $cardGap);
         }
 
-        $yPos -= 20;
+        // Donations section.
+        $content .= $this->pdfText($marginX, 564, 'Donations', 'F2', 13, $brandPrimary);
+        $content .= $this->pdfLine($marginX, 559, $contentRight, 559, $lineColor, 1);
 
-        // Volunteering Section
-        if (!empty($volunteering)) {
-            $content .= "BT\n/F2 12 Tf\n50 " . $yPos . " Td\n(VOLUNTEERING ACTIVITIES) Tj\nET\n";
-            $yPos -= 18;
+        $tableX = $marginX;
+        $tableW = $contentWidth;
+        $headerY = 532;
+        $rowH = 20;
+        $amountX = $tableX + $tableW - 205;
+        $statusX = $tableX + $tableW - 70;
 
-            $count = 1;
-            foreach ($volunteering as $vol) {
-                if ($yPos < 80) break;
+        $content .= $this->pdfRect($tableX, $headerY, $tableW, $rowH, $brandPrimary);
+        $content .= $this->pdfText($tableX + 10, $headerY + 6, '#', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 34, $headerY + 6, 'TYPE', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 210, $headerY + 6, 'DATE', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($amountX, $headerY + 6, 'AMOUNT', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($statusX, $headerY + 6, 'STATUS', 'F2', 8.5, [255, 255, 255]);
 
-                $title = $this->escapePDF($vol->title ?? 'N/A');
-                $date = date('M d, Y', strtotime($vol->event_date ?? ''));
-                $position = $this->escapePDF($vol->volunteer_position ?? 'General');
-                $status = ucfirst($vol->volunteer_status ?? 'pending');
+        $maxDonationRows = 6;
+        $donationRows = array_slice($donations, 0, $maxDonationRows);
+        $rowY = $headerY - $rowH;
 
-                $content .= "BT\n/F2 9 Tf\n50 " . $yPos . " Td\n(" . $count . ". " . $title . ") Tj\nET\n";
-                $yPos -= 12;
-                $content .= "BT\n/F1 8 Tf\n60 " . $yPos . " Td\n(Date: " . $date . " | Position: " . $position . " | Status: " . $status . ") Tj\nET\n";
-                $yPos -= 15;
-                $count++;
-            }
+        if (empty($donationRows)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No donations recorded for this month.', 'F1', 9, $textMuted);
+            $rowY -= $rowH;
         } else {
-            $content .= "BT\n/F1 9 Tf\n60 " . $yPos . " Td\n(No volunteering activities this month) Tj\nET\n";
-            $yPos -= 15;
-        }
+            foreach ($donationRows as $index => $donation) {
+                $bg = (($index % 2) === 0) ? [255, 255, 255] : [246, 247, 252];
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, $lineColor, 0.6);
 
-        $yPos -= 15;
+                $name = $donation->event_title ?? $donation->title ?? 'Event Donation';
+                $date = $this->formatPDFDate($donation->created_at ?? null);
+                $amount = 'LKR ' . number_format((float)($donation->amount ?? 0), 2);
+                $statusRaw = strtolower((string)($donation->status ?? 'pending'));
+                $status = ($statusRaw === 'accepted' || $statusRaw === 'completed') ? 'Completed' : (($statusRaw === 'rejected' || $statusRaw === 'failed' || $statusRaw === 'refunded') ? 'Rejected' : 'Pending');
+                $statusColor = ($status === 'Completed') ? [46, 159, 67] : (($status === 'Rejected') ? [199, 75, 52] : [194, 132, 22]);
 
-        // Donations Section
-        if (!empty($donations)) {
-            if ($yPos < 100) {
-                $content .= "BT\n/F1 9 Tf\n50 " . $yPos . " Td\n(Continued on next page...) Tj\nET\n";
-            } else {
-                $content .= "BT\n/F2 12 Tf\n50 " . $yPos . " Td\n(DONATIONS) Tj\nET\n";
-                $yPos -= 18;
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, (string)($index + 1), 'F1', 8.5, $textDark);
+                $content .= $this->pdfText($tableX + 34, $rowY + 6, $this->truncatePDFText($name, 32), 'F2', 8.5, $textDark);
+                $content .= $this->pdfText($tableX + 210, $rowY + 6, $date, 'F1', 8.5, $textMuted);
+                $content .= $this->pdfText($amountX, $rowY + 6, $amount, 'F2', 8.5, $textDark);
+                $content .= $this->pdfText($statusX, $rowY + 6, $status, 'F2', 8.5, $statusColor);
 
-                $count = 1;
-                foreach ($donations as $donation) {
-                    if ($yPos < 80) break;
-
-                    $title = $this->escapePDF($donation->title ?? 'Event Donation');
-                    $amount = number_format($donation->amount ?? 0, 2);
-                    $date = date('M d, Y', strtotime($donation->created_at ?? ''));
-                    $status = ucfirst($donation->status ?? 'pending');
-
-                    $content .= "BT\n/F2 9 Tf\n50 " . $yPos . " Td\n(" . $count . ". " . $title . ") Tj\nET\n";
-                    $yPos -= 12;
-                    $content .= "BT\n/F1 8 Tf\n60 " . $yPos . " Td\n(Amount: LKR " . $amount . " | Date: " . $date . " | Status: " . $status . ") Tj\nET\n";
-                    $yPos -= 15;
-                    $count++;
-                }
-
-                // Donations Total
-                $yPos -= 5;
-                $content .= "BT\n/F2 10 Tf\n50 " . $yPos . " Td\n(Total Donations: LKR " . number_format($donationTotal, 2) . ") Tj\nET\n";
-                $yPos -= 20;
+                $rowY -= $rowH;
             }
-        } else {
-            $content .= "BT\n/F1 9 Tf\n60 " . $yPos . " Td\n(No donations this month) Tj\nET\n";
-            $yPos -= 20;
         }
 
-        // Participation Section
-        if (!empty($participation)) {
-            if ($yPos < 100) {
-                $content .= "BT\n/F1 9 Tf\n50 " . $yPos . " Td\n(Continued on next page...) Tj\nET\n";
-            } else {
-                $content .= "BT\n/F2 12 Tf\n50 " . $yPos . " Td\n(EVENT PARTICIPATION) Tj\nET\n";
-                $yPos -= 18;
+        $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [236, 232, 247]);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Total Donations', 'F2', 9.5, $brandPrimary);
+        $content .= $this->pdfText($tableX + $tableW - 130, $rowY + 6, 'LKR ' . number_format($donationTotal, 2), 'F2', 9.5, $brandPrimary);
 
-                $count = 1;
-                foreach ($participation as $event) {
-                    if ($yPos < 80) break;
+        // Participation section.
+        $sectionTitleY = $rowY - 40;
+        $content .= $this->pdfText($marginX, $sectionTitleY, 'Event Participation', 'F2', 13, $brandPrimary);
+        $content .= $this->pdfLine($marginX, $sectionTitleY - 5, $contentRight, $sectionTitleY - 5, $lineColor, 1);
 
-                    $title = $this->escapePDF($event->title ?? 'Event');
-                    $date = date('M d, Y', strtotime($event->event_date ?? ''));
-                    $ticketType = $this->escapePDF($event->ticket_type ?? 'Standard');
-                    $amountPaid = number_format($event->amount_paid ?? 0, 2);
+        $pHeaderY = $sectionTitleY - 33;
+        $content .= $this->pdfRect($tableX, $pHeaderY, $tableW, $rowH, $brandPrimary);
+        $content .= $this->pdfText($tableX + 10, $pHeaderY + 6, '#', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 34, $pHeaderY + 6, 'EVENT NAME', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 290, $pHeaderY + 6, 'TICKET TYPE', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 410, $pHeaderY + 6, 'AMOUNT PAID', 'F2', 8.5, [255, 255, 255]);
 
-                    $content .= "BT\n/F2 9 Tf\n50 " . $yPos . " Td\n(" . $count . ". " . $title . ") Tj\nET\n";
-                    $yPos -= 12;
-                    $content .= "BT\n/F1 8 Tf\n60 " . $yPos . " Td\n(Date: " . $date . " | Ticket: " . $ticketType . " | Paid: LKR " . $amountPaid . ") Tj\nET\n";
-                    $yPos -= 15;
-                    $count++;
-                }
+        $pRowY = $pHeaderY - $rowH;
+        $maxParticipationRows = 7;
+        $participationRows = array_slice($participation, 0, $maxParticipationRows);
 
-                // Event Spending Total
-                $yPos -= 5;
-                $content .= "BT\n/F2 10 Tf\n50 " . $yPos . " Td\n(Total Event Spending: LKR " . number_format($eventSpending, 2) . ") Tj\nET\n";
+        if (empty($participationRows)) {
+            $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
+            $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'No event participation for this month.', 'F1', 9, $textMuted);
+        } else {
+            foreach ($participationRows as $index => $event) {
+                $bg = (($index % 2) === 0) ? [255, 255, 255] : [246, 247, 252];
+                $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, $bg, $lineColor, 0.6);
+
+                $eventName = $event->title ?? 'Event';
+                $ticketType = strtoupper((string)($event->ticket_type ?? 'free'));
+                $amountPaidValue = (float)($event->amount_paid ?? 0);
+                $amountPaid = $amountPaidValue > 0 ? ('LKR ' . number_format($amountPaidValue, 2)) : 'FREE';
+                $amountColor = $amountPaidValue > 0 ? $textDark : [31, 151, 84];
+
+                $content .= $this->pdfText($tableX + 10, $pRowY + 6, (string)($index + 1), 'F1', 8.5, $textDark);
+                $content .= $this->pdfText($tableX + 34, $pRowY + 6, $this->truncatePDFText($eventName, 40), 'F2', 8.5, $textDark);
+                $content .= $this->pdfText($tableX + 290, $pRowY + 6, $this->truncatePDFText($ticketType, 14), 'F1', 8.5, $textMuted);
+                $content .= $this->pdfText($tableX + 410, $pRowY + 6, $amountPaid, 'F2', 8.5, $amountColor);
+
+                $pRowY -= $rowH;
             }
-        } else {
-            $content .= "BT\n/F1 9 Tf\n60 " . $yPos . " Td\n(No event participation this month) Tj\nET\n";
         }
+
+        // Total event spending row (matches donations summary row pattern).
+        $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [236, 232, 247]);
+        $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'Total Event Spending', 'F2', 9.5, $brandPrimary);
+        $content .= $this->pdfText($tableX + $tableW - 130, $pRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9.5, $brandPrimary);
+        $pRowY -= 32;
+
+        // Total spendings section.
+        $spendingTitleY = $pRowY;
+        $content .= $this->pdfText($marginX, $spendingTitleY, 'Total Spendings', 'F2', 13, $brandPrimary);
+        $content .= $this->pdfLine($marginX, $spendingTitleY - 5, $contentRight, $spendingTitleY - 5, $lineColor, 1);
+
+        $spendingRowY = $spendingTitleY - 28;
+        $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Donations', 'F1', 9, $textDark);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($donationTotal, 2), 'F2', 9, $textDark);
+
+        $spendingRowY -= $rowH;
+        $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Event Spending', 'F1', 9, $textDark);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9, $textDark);
+
+        $spendingRowY -= $rowH;
+        $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [226, 236, 255], $lineColor, 0.8);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Overall Spending', 'F2', 9.5, [34, 69, 150]);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($spendingsTotal, 2), 'F2', 9.5, [34, 69, 150]);
+
+        // Footer band.
+        $content .= $this->pdfRect(0, 0, $pageWidth, 28, $brandPrimary);
+        $content .= $this->pdfText($marginX, 9, 'UniPulse  |  Confidential Statement  |  ' . $monthName, 'F1', 8.5, [222, 218, 245]);
 
         return $content;
+    }
+
+    private function pdfImage($imageRefName, $x, $y, $width, $height)
+    {
+        return "q\n"
+            . number_format($width, 2, '.', '') . " 0 0 " . number_format($height, 2, '.', '') . " "
+            . number_format($x, 2, '.', '') . " " . number_format($y, 2, '.', '') . " cm\n"
+            . "/" . $imageRefName . " Do\nQ\n";
+    }
+
+    private function loadPDFHeaderLogoImage()
+    {
+        $logoPath = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'logo.png';
+        if (!is_file($logoPath)) {
+            return null;
+        }
+
+        if (!function_exists('imagecreatefrompng') || !function_exists('imagejpeg')) {
+            return null;
+        }
+
+        $sourceImage = @imagecreatefrompng($logoPath);
+        if (!$sourceImage) {
+            return null;
+        }
+
+        $width = imagesx($sourceImage);
+        $height = imagesy($sourceImage);
+
+        if ($width <= 0 || $height <= 0) {
+            imagedestroy($sourceImage);
+            return null;
+        }
+
+        // Flatten transparency onto white for consistent PDF output.
+        $canvas = imagecreatetruecolor($width, $height);
+        $white = imagecolorallocate($canvas, 255, 255, 255);
+        imagefill($canvas, 0, 0, $white);
+        imagecopy($canvas, $sourceImage, 0, 0, 0, 0, $width, $height);
+
+        ob_start();
+        imagejpeg($canvas, null, 92);
+        $jpegBinary = ob_get_clean();
+
+        imagedestroy($canvas);
+        imagedestroy($sourceImage);
+
+        if ($jpegBinary === false || $jpegBinary === '') {
+            return null;
+        }
+
+        return [
+            'width' => $width,
+            'height' => $height,
+            'data' => $jpegBinary,
+        ];
+    }
+
+    private function pdfRect($x, $y, $width, $height, $fillColor = null, $strokeColor = null, $lineWidth = 1)
+    {
+        $cmd = '';
+
+        if (is_array($fillColor)) {
+            $cmd .= $this->pdfColor($fillColor, false);
+        }
+
+        if (is_array($strokeColor)) {
+            $cmd .= $this->pdfColor($strokeColor, true);
+            $cmd .= number_format($lineWidth, 2, '.', '') . " w\n";
+        }
+
+        $x = number_format($x, 2, '.', '');
+        $y = number_format($y, 2, '.', '');
+        $width = number_format($width, 2, '.', '');
+        $height = number_format($height, 2, '.', '');
+
+        if (is_array($fillColor) && is_array($strokeColor)) {
+            $cmd .= $x . ' ' . $y . ' ' . $width . ' ' . $height . " re B\n";
+        } elseif (is_array($fillColor)) {
+            $cmd .= $x . ' ' . $y . ' ' . $width . ' ' . $height . " re f\n";
+        } elseif (is_array($strokeColor)) {
+            $cmd .= $x . ' ' . $y . ' ' . $width . ' ' . $height . " re S\n";
+        }
+
+        return $cmd;
+    }
+
+    private function pdfLine($x1, $y1, $x2, $y2, $strokeColor = [0, 0, 0], $lineWidth = 1)
+    {
+        return $this->pdfColor($strokeColor, true)
+            . number_format($lineWidth, 2, '.', '') . " w\n"
+            . number_format($x1, 2, '.', '') . ' ' . number_format($y1, 2, '.', '') . " m\n"
+            . number_format($x2, 2, '.', '') . ' ' . number_format($y2, 2, '.', '') . " l\nS\n";
+    }
+
+    private function pdfText($x, $y, $text, $font = 'F1', $fontSize = 10, $color = [0, 0, 0])
+    {
+        return "BT\n"
+            . $this->pdfColor($color, false)
+            . '/' . $font . ' ' . number_format($fontSize, 2, '.', '') . " Tf\n"
+            . "1 0 0 1 " . number_format($x, 2, '.', '') . ' ' . number_format($y, 2, '.', '') . " Tm\n"
+            . '(' . $this->escapePDF($text) . ") Tj\n"
+            . "ET\n";
+    }
+
+    private function pdfColor($rgb, $isStroke)
+    {
+        $r = number_format(max(0, min(255, (float)($rgb[0] ?? 0))) / 255, 3, '.', '');
+        $g = number_format(max(0, min(255, (float)($rgb[1] ?? 0))) / 255, 3, '.', '');
+        $b = number_format(max(0, min(255, (float)($rgb[2] ?? 0))) / 255, 3, '.', '');
+        return $r . ' ' . $g . ' ' . $b . ($isStroke ? " RG\n" : " rg\n");
+    }
+
+    private function truncatePDFText($text, $maxChars)
+    {
+        $text = trim((string)$text);
+        if (strlen($text) <= $maxChars) {
+            return $text;
+        }
+
+        return substr($text, 0, max(0, $maxChars - 3)) . '...';
+    }
+
+    private function formatPDFDate($value)
+    {
+        if (!$value) {
+            return '-';
+        }
+
+        $timestamp = strtotime((string)$value);
+        if ($timestamp === false) {
+            return '-';
+        }
+
+        return date('M d, Y', $timestamp);
     }
 
     /**
