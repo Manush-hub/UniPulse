@@ -950,40 +950,39 @@ class UserDashboard extends Controller
         $contentRight = $pageWidth - $marginX;
         $contentWidth = $contentRight - $marginX;
 
-        $brandPrimary = [73, 31, 146];
-        $brandSecondary = [120, 74, 196];
-        $pageBackground = [248, 249, 253];
-        $textDark = [36, 32, 67];
-        $textMuted = [108, 113, 133];
-        $lineColor = [223, 226, 238];
+        $brandPrimary = [30, 58, 138];
+        $brandSecondary = [249, 115, 22];
+        $pageBackground = [248, 250, 252];
+        $textDark = [30, 41, 59];
+        $textMuted = [100, 116, 139];
+        $lineColor = [226, 232, 240];
         $spendingsTotal = $donationTotal + $eventSpending;
         $headerBottom = 688;
         $headerHeight = 104;
 
         // Page background + branded top banner.
         $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, $pageBackground);
-        $content .= $this->pdfRect(0, $headerBottom, $pageWidth, $headerHeight, $brandPrimary);
-        $content .= $this->pdfRect($pageWidth - 200, $headerBottom, 200, $headerHeight, $brandSecondary);
-        $content .= $this->pdfLine(0, $headerBottom, $pageWidth, $headerBottom, [237, 233, 250], 1.2);
+        $content .= $this->pdfLinearGradientRect(0, $headerBottom, $pageWidth, $headerHeight, $brandPrimary, $brandSecondary, 56);
+        $content .= $this->pdfLine(0, $headerBottom, $pageWidth, $headerBottom, [254, 215, 170], 1.2);
 
         if ($hasHeaderLogo) {
             $logoBoxX = $marginX;
             $logoBoxY = 724;
             $logoBoxW = 100;
             $logoBoxH = 52;
-            $content .= $this->pdfRect($logoBoxX, $logoBoxY, $logoBoxW, $logoBoxH, [248, 248, 252], [196, 180, 231], 0.8);
+            $content .= $this->pdfRect($logoBoxX, $logoBoxY, $logoBoxW, $logoBoxH, [255, 255, 255], [253, 186, 116], 0.8);
             $content .= $this->pdfImage('Im1', $logoBoxX + 6, $logoBoxY + 5, $logoBoxW - 12, $logoBoxH - 10);
         } else {
             $content .= $this->pdfText($marginX, 748, 'UniPulse', 'F2', 23, [255, 255, 255]);
         }
 
         $content .= $this->pdfText($marginX, 710, 'Monthly Activity Statement', 'F2', 16, [255, 255, 255]);
-        $content .= $this->pdfText($marginX, 692, $monthName . '  |  Generated ' . date('M d, Y'), 'F1', 10, [225, 220, 245]);
+        $content .= $this->pdfText($marginX, 692, $monthName . '  |  Generated ' . date('M d, Y'), 'F1', 10, [219, 234, 254]);
 
         $accountPanelX = $contentRight - 180;
-        $content .= $this->pdfRect($accountPanelX, 705, 170, 70, [136, 92, 206], [162, 129, 222], 0.8);
-        $content .= $this->pdfText($accountPanelX + 12, 746, 'Account Holder', 'F1', 9, [232, 224, 252]);
-        $content .= $this->pdfText($accountPanelX + 12, 724, $this->truncatePDFText($userName, 24), 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfRect($accountPanelX, 712, 170, 54, null, [255, 237, 213], 0.9);
+        $content .= $this->pdfText($accountPanelX + 12, 746, 'Account Holder', 'F1', 9, [255, 237, 213]);
+        $content .= $this->pdfText($accountPanelX + 12, 724, $this->truncatePDFText($userName, 24), 'F2', 14, [255, 255, 255]);
 
         // KPI cards row with consistent side margins.
         $cardY = 602;
@@ -993,10 +992,10 @@ class UserDashboard extends Controller
         $cardX = $marginX;
 
         $cards = [
-            ['label' => 'Volunteer Sessions', 'value' => (string)count($volunteering), 'accent' => [243, 156, 18]],
-            ['label' => 'Donations', 'value' => 'LKR ' . number_format($donationTotal, 2), 'accent' => [42, 187, 155]],
-            ['label' => 'Events Participated', 'value' => (string)count($participation), 'accent' => [72, 166, 88]],
-            ['label' => 'Event Spending', 'value' => 'LKR ' . number_format($eventSpending, 2), 'accent' => [80, 127, 255]],
+            ['label' => 'Volunteer Sessions', 'value' => (string)count($volunteering), 'accent' => [30, 58, 138]],
+            ['label' => 'Donations', 'value' => 'LKR ' . number_format($donationTotal, 2), 'accent' => [249, 115, 22]],
+            ['label' => 'Events Participated', 'value' => (string)count($participation), 'accent' => [37, 99, 235]],
+            ['label' => 'Event Spending', 'value' => 'LKR ' . number_format($eventSpending, 2), 'accent' => [251, 146, 60]],
         ];
 
         foreach ($cards as $card) {
@@ -1018,7 +1017,7 @@ class UserDashboard extends Controller
         $amountX = $tableX + $tableW - 205;
         $statusX = $tableX + $tableW - 70;
 
-        $content .= $this->pdfRect($tableX, $headerY, $tableW, $rowH, $brandPrimary);
+        $content .= $this->pdfLinearGradientRect($tableX, $headerY, $tableW, $rowH, $brandPrimary, $brandSecondary, 22);
         $content .= $this->pdfText($tableX + 10, $headerY + 6, '#', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($tableX + 34, $headerY + 6, 'TYPE', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($tableX + 210, $headerY + 6, 'DATE', 'F2', 8.5, [255, 255, 255]);
@@ -1035,7 +1034,7 @@ class UserDashboard extends Controller
             $rowY -= $rowH;
         } else {
             foreach ($donationRows as $index => $donation) {
-                $bg = (($index % 2) === 0) ? [255, 255, 255] : [246, 247, 252];
+                $bg = (($index % 2) === 0) ? [255, 255, 255] : [248, 250, 252];
                 $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, $lineColor, 0.6);
 
                 $name = $donation->event_title ?? $donation->title ?? 'Event Donation';
@@ -1043,7 +1042,7 @@ class UserDashboard extends Controller
                 $amount = 'LKR ' . number_format((float)($donation->amount ?? 0), 2);
                 $statusRaw = strtolower((string)($donation->status ?? 'pending'));
                 $status = ($statusRaw === 'accepted' || $statusRaw === 'completed') ? 'Completed' : (($statusRaw === 'rejected' || $statusRaw === 'failed' || $statusRaw === 'refunded') ? 'Rejected' : 'Pending');
-                $statusColor = ($status === 'Completed') ? [46, 159, 67] : (($status === 'Rejected') ? [199, 75, 52] : [194, 132, 22]);
+                $statusColor = ($status === 'Completed') ? [22, 163, 74] : (($status === 'Rejected') ? [220, 38, 38] : [245, 158, 11]);
 
                 $content .= $this->pdfText($tableX + 10, $rowY + 6, (string)($index + 1), 'F1', 8.5, $textDark);
                 $content .= $this->pdfText($tableX + 34, $rowY + 6, $this->truncatePDFText($name, 32), 'F2', 8.5, $textDark);
@@ -1055,7 +1054,7 @@ class UserDashboard extends Controller
             }
         }
 
-        $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [236, 232, 247]);
+        $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 247, 237]);
         $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Total Donations', 'F2', 9.5, $brandPrimary);
         $content .= $this->pdfText($tableX + $tableW - 130, $rowY + 6, 'LKR ' . number_format($donationTotal, 2), 'F2', 9.5, $brandPrimary);
 
@@ -1065,7 +1064,7 @@ class UserDashboard extends Controller
         $content .= $this->pdfLine($marginX, $sectionTitleY - 5, $contentRight, $sectionTitleY - 5, $lineColor, 1);
 
         $pHeaderY = $sectionTitleY - 33;
-        $content .= $this->pdfRect($tableX, $pHeaderY, $tableW, $rowH, $brandPrimary);
+        $content .= $this->pdfLinearGradientRect($tableX, $pHeaderY, $tableW, $rowH, $brandPrimary, $brandSecondary, 22);
         $content .= $this->pdfText($tableX + 10, $pHeaderY + 6, '#', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($tableX + 34, $pHeaderY + 6, 'EVENT NAME', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($tableX + 290, $pHeaderY + 6, 'TICKET TYPE', 'F2', 8.5, [255, 255, 255]);
@@ -1080,7 +1079,7 @@ class UserDashboard extends Controller
             $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'No event participation for this month.', 'F1', 9, $textMuted);
         } else {
             foreach ($participationRows as $index => $event) {
-                $bg = (($index % 2) === 0) ? [255, 255, 255] : [246, 247, 252];
+                $bg = (($index % 2) === 0) ? [255, 255, 255] : [248, 250, 252];
                 $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, $bg, $lineColor, 0.6);
 
                 $eventName = $event->title ?? 'Event';
@@ -1099,7 +1098,7 @@ class UserDashboard extends Controller
         }
 
         // Total event spending row (matches donations summary row pattern).
-        $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [236, 232, 247]);
+        $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [255, 247, 237]);
         $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'Total Event Spending', 'F2', 9.5, $brandPrimary);
         $content .= $this->pdfText($tableX + $tableW - 130, $pRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9.5, $brandPrimary);
         $pRowY -= 32;
@@ -1120,13 +1119,13 @@ class UserDashboard extends Controller
         $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9, $textDark);
 
         $spendingRowY -= $rowH;
-        $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [226, 236, 255], $lineColor, 0.8);
-        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Overall Spending', 'F2', 9.5, [34, 69, 150]);
-        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($spendingsTotal, 2), 'F2', 9.5, [34, 69, 150]);
+        $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 237, 213], $lineColor, 0.8);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Overall Spending', 'F2', 9.5, [194, 65, 12]);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($spendingsTotal, 2), 'F2', 9.5, [194, 65, 12]);
 
         // Footer band.
-        $content .= $this->pdfRect(0, 0, $pageWidth, 28, $brandPrimary);
-        $content .= $this->pdfText($marginX, 9, 'UniPulse  |  Confidential Statement  |  ' . $monthName, 'F1', 8.5, [222, 218, 245]);
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 28, $brandPrimary, $brandSecondary, 36);
+        $content .= $this->pdfText($marginX, 9, 'UniPulse  |  Confidential Statement  |  ' . $monthName, 'F1', 8.5, [219, 234, 254]);
 
         return $content;
     }
@@ -1211,6 +1210,30 @@ class UserDashboard extends Controller
             $cmd .= $x . ' ' . $y . ' ' . $width . ' ' . $height . " re f\n";
         } elseif (is_array($strokeColor)) {
             $cmd .= $x . ' ' . $y . ' ' . $width . ' ' . $height . " re S\n";
+        }
+
+        return $cmd;
+    }
+
+    private function pdfLinearGradientRect($x, $y, $width, $height, $startColor, $endColor, $steps = 32)
+    {
+        $steps = max(2, (int)$steps);
+        $cmd = '';
+
+        for ($i = 0; $i < $steps; $i++) {
+            $t0 = $i / $steps;
+            $t1 = ($i + 1) / $steps;
+
+            $segmentX = $x + ($width * $t0);
+            $segmentW = $width * ($t1 - $t0);
+
+            $color = [
+                (int)round(($startColor[0] ?? 0) + (($endColor[0] ?? 0) - ($startColor[0] ?? 0)) * $t0),
+                (int)round(($startColor[1] ?? 0) + (($endColor[1] ?? 0) - ($startColor[1] ?? 0)) * $t0),
+                (int)round(($startColor[2] ?? 0) + (($endColor[2] ?? 0) - ($startColor[2] ?? 0)) * $t0),
+            ];
+
+            $cmd .= $this->pdfRect($segmentX, $y, $segmentW + 0.2, $height, $color);
         }
 
         return $cmd;
