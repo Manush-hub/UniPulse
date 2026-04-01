@@ -31,6 +31,7 @@ class PublisherDashboard extends Controller
     public function getNotifications()
     {
         header('Content-Type: application/json');
+        if (ob_get_level() > 0) ob_clean();
 
         $currentUser = AuthService::getCurrentUser();
         if (!$currentUser || ($currentUser['type'] ?? '') !== 'publisher') {

@@ -68,6 +68,7 @@ class PublisherMessages extends Controller {
      */
     public function conversation($contactId = '', $contactType = '') {
         header('Content-Type: application/json');
+        if (ob_get_level() > 0) ob_clean();
         
         try {
             $currentUser = AuthService::getCurrentUser();
@@ -76,7 +77,8 @@ class PublisherMessages extends Controller {
                 exit();
             }
             
-            if (empty($contactId) || empty($contactType)) {
+            $contactId = (int)$contactId;
+            if ($contactId <= 0 || empty($contactType)) {
                 echo json_encode(['success' => false, 'message' => 'Contact ID and type are required']);
                 exit();
             }
