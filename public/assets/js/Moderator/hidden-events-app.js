@@ -151,7 +151,7 @@ function createEventCard(event) {
     
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
-    const imageUrl = event.image_url || event.image;
+    const imageUrl = resolveEventImageUrl(event);
     const deletedAt = event.deleted_at || event.deletedAt;
     const deletionReason = event.deletion_reason || event.deletionReason;
     const moderatorName = event.moderator_name || event.moderatorName || 'Moderator';
@@ -159,7 +159,7 @@ function createEventCard(event) {
     card.innerHTML = `
         <div class="event-image">
             ${imageUrl ? 
-                `<img src="${imageUrl}" alt="${event.title}">` : 
+                `<img src="${imageUrl}" alt="${event.title}" onerror="this.style.display='none'; const icon=this.parentNode.querySelector('.placeholder-icon'); if(icon){icon.style.display='block';}">` : 
                 `<svg class="placeholder-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -167,6 +167,12 @@ function createEventCard(event) {
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>`
             }
+            ${imageUrl ? `<svg class="placeholder-icon" style="display:none;" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>` : ''}
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
             <div class="event-status hidden-badge">Hidden</div>
         </div>
@@ -229,6 +235,17 @@ function createEventCard(event) {
     `;
     
     return card;
+}
+
+function resolveEventImageUrl(event) {
+    const raw = event.cover_image || event.image_url || event.image || '';
+    if (!raw) return '';
+
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) {
+        return raw;
+    }
+
+    return `/unipulse/public/${raw}`;
 }
 
 // Search events

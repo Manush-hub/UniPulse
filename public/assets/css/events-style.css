@@ -292,6 +292,11 @@ body {
     color: #6b7280;
 }
 
+.event-status.hidden{
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+
 .event-content {
     padding: 1.25rem;
     flex: 1;

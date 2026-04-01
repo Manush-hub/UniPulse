@@ -363,6 +363,11 @@ class Message {
         foreach ($partners as $partner) {
             $contactId = $partner->contact_id;
             $contactType = $partner->contact_type;
+
+            // Skip malformed conversation rows.
+            if (empty($contactId) || empty($contactType)) {
+                continue;
+            }
             
             // Get contact details
             $contactQuery = "SELECT 
@@ -371,27 +376,39 @@ class Message {
                                     WHEN ? = 'sponsor' THEN s.company_name
                                     WHEN ? = 'moderator' THEN modr.full_name
                                     WHEN ? = 'admin' THEN adm.full_name
+                                    ELSE NULL
                                 END as contact_name,
                                 CASE 
                                     WHEN ? = 'publisher' THEN p.email
                                     WHEN ? = 'sponsor' THEN s.email
                                     WHEN ? = 'moderator' THEN modr.email
                                     WHEN ? = 'admin' THEN adm.email
-                                END as contact_email
+                                    ELSE NULL
+                                END as contact_email,
+                                CASE
+                                    WHEN ? = 'publisher' THEN pp.logo_url
+                                    WHEN ? = 'sponsor' THEN sp.logo_url
+                                    ELSE NULL
+                                END as contact_photo
                             FROM (SELECT 1) dummy
                             LEFT JOIN publishers p ON ? = 'publisher' AND p.id = ?
+                            LEFT JOIN publisher_profiles pp ON ? = 'publisher' AND pp.publisher_id = ?
                             LEFT JOIN sponsors s ON ? = 'sponsor' AND s.id = ?
+                            LEFT JOIN sponsor_profiles sp ON ? = 'sponsor' AND sp.sponsor_id = ?
                             LEFT JOIN moderators modr ON ? = 'moderator' AND modr.id = ?
                             LEFT JOIN admins adm ON ? = 'admin' AND adm.id = ?";
             
             $contactInfo = $this->getRow($contactQuery, [
                 $contactType, $contactType, $contactType, $contactType,
                 $contactType, $contactType, $contactType, $contactType,
+                $contactType, $contactType,
+                $contactType, $contactId,
+                $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType, $contactId,
                 $contactType,
-                $contactType
+                $contactId
             ]);
             
             // Get latest message and conversation stats
@@ -426,10 +443,15 @@ class Message {
             
             // Combine all data
             if ($contactInfo && $stats) {
+                $resolvedName = trim((string)($contactInfo->contact_name ?? ''));
+                if ($resolvedName === '') {
+                    $resolvedName = ucfirst((string)$contactType) . ' #' . (int)$contactId;
+                }
+
                 $conversations[] = (object)[
                     'contact_id' => $contactId,
                     'contact_type' => $contactType,
-                    'contact_name' => $contactInfo->contact_name,
+                    'contact_name' => $resolvedName,
                     'contact_email' => $contactInfo->contact_email,
                     'contact_photo' => $contactInfo->contact_photo ?? null,
                     'last_message_time' => $stats->last_message_time,

@@ -70,9 +70,11 @@ class Event
      */
     public function getAllEvents($filters = [], $currentUser = null)
     {
-        $whereClause = ['e.is_deleted = 0']; // Exclude soft-deleted events
+        $includeDeleted = !empty($filters['include_deleted']);
+        $whereClause = $includeDeleted ? [] : ['e.is_deleted = 0']; // Exclude soft-deleted events unless explicitly requested
         $params = [];
         $computedStatusSql = "CASE
+                    WHEN e.is_deleted = 1 OR e.status = 'hidden' THEN 'hidden'
                     WHEN TIMESTAMP(e.event_date, e.event_time) > NOW() THEN 'upcoming'
                     WHEN e.event_end_time IS NOT NULL AND TIMESTAMP(e.event_date, e.event_end_time) <= NOW() THEN 'completed'
                     WHEN e.event_end_time IS NULL AND e.event_date < CURDATE() THEN 'completed'
@@ -108,6 +110,15 @@ class Event
         }
 
         $sql = "SELECT e.*, ({$computedStatusSql}) as status, p.society_name as organizer_name, pp.logo_url as organizer_photo,
+                CASE WHEN e.is_deleted = 1 OR e.status = 'hidden' THEN 1 ELSE 0 END as is_hidden_event,
+                e.deleted_at as hidden_at,
+                CONVERT(COALESCE(e.deletion_reason, '') USING utf8mb4) as hidden_reason,
+                COALESCE(mod_hide.full_name, adm_hide.full_name) as hidden_by_name,
+                CASE
+                    WHEN mod_hide.id IS NOT NULL THEN 'moderator'
+                    WHEN adm_hide.id IS NOT NULL THEN 'admin'
+                    ELSE NULL
+                END as hidden_by_role,
                 CASE 
                     WHEN e.event_date = CURDATE() AND e.event_time <= CURTIME() AND (e.event_end_time IS NULL OR e.event_end_time > CURTIME()) THEN 1
                     WHEN e.event_date > CURDATE() OR (e.event_date = CURDATE() AND e.event_time > CURTIME()) THEN 2
@@ -115,7 +126,9 @@ class Event
                 END as event_status_order
                 FROM {$this->table} e
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
-                LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id";
+                LEFT JOIN publisher_profiles pp ON p.id = pp.publisher_id
+                LEFT JOIN moderators mod_hide ON e.deleted_by = mod_hide.id
+                LEFT JOIN admins adm_hide ON e.deleted_by = adm_hide.id";
 
         if (!empty($whereClause)) {
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
@@ -337,6 +350,7 @@ class Event
     {
         $allowCompletedEvents = in_array($userRole, ['admin', 'moderator']);
         $computedStatusSql = "CASE
+                    WHEN e.is_deleted = 1 OR e.status = 'hidden' THEN 'hidden'
                     WHEN TIMESTAMP(e.event_date, e.event_time) > NOW() THEN 'upcoming'
                     WHEN e.event_end_time IS NOT NULL AND TIMESTAMP(e.event_date, e.event_end_time) <= NOW() THEN 'completed'
                     WHEN e.event_end_time IS NULL AND e.event_date < CURDATE() THEN 'completed'
@@ -834,7 +848,7 @@ class Event
     /**
      * Hide event (admin only)
      */
-    public function hideEvent($eventId)
+    public function hideEvent($eventId, $moderatorOrAdminId = null, $reason = '')
     {
         try {
             // First check if the event exists
@@ -845,9 +859,20 @@ class Event
                 return ['success' => false, 'errors' => ['general' => 'Event not found']];
             }
 
-            // Update the event to set status as hidden (using status field for now)
-            $query = "UPDATE events SET status = 'hidden', updated_at = CURRENT_TIMESTAMP WHERE id = :id";
-            $this->query($query, ['id' => $eventId]);
+            // Persist hidden metadata so admin list can show who hid the event and why.
+            $query = "UPDATE events
+                      SET status = 'hidden',
+                          is_deleted = 1,
+                          deleted_at = NOW(),
+                          deleted_by = :hidden_by,
+                          deletion_reason = :reason,
+                          updated_at = CURRENT_TIMESTAMP
+                      WHERE id = :id";
+            $this->query($query, [
+                'id' => $eventId,
+                'hidden_by' => $moderatorOrAdminId,
+                'reason' => $reason
+            ]);
 
             return ['success' => true, 'message' => 'Event hidden successfully'];
         } catch (Exception $e) {
@@ -870,8 +895,15 @@ class Event
                 return ['success' => false, 'errors' => ['general' => 'Event not found']];
             }
 
-            // Update the event to set status back to upcoming (restore visibility)
-            $query = "UPDATE events SET status = 'upcoming', updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+            // Restore visibility and clear hidden metadata.
+            $query = "UPDATE events
+                      SET status = 'upcoming',
+                          is_deleted = 0,
+                          deleted_at = NULL,
+                          deleted_by = NULL,
+                          deletion_reason = NULL,
+                          updated_at = CURRENT_TIMESTAMP
+                      WHERE id = :id";
             $this->query($query, ['id' => $eventId]);
 
             return ['success' => true, 'message' => 'Event shown successfully'];

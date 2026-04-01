@@ -30,6 +30,33 @@ class AdminDashboard extends Controller {
         $sponsorCountResult   = $this->query("SELECT COUNT(*) as cnt FROM sponsors");
         $data['stats']['total_publishers'] = $publisherCountResult ? (int)$publisherCountResult[0]->cnt : 0;
         $data['stats']['total_sponsors']   = $sponsorCountResult   ? (int)$sponsorCountResult[0]->cnt   : 0;
+
+        // Count public and university users
+        $publicCountResult = $this->query("SELECT COUNT(*) as cnt FROM public_users");
+        $universityCountResult = $this->query("SELECT COUNT(*) as cnt FROM university_users");
+        $data['stats']['total_public_users'] = $publicCountResult ? (int)$publicCountResult[0]->cnt : 0;
+        $data['stats']['total_university_users'] = $universityCountResult ? (int)$universityCountResult[0]->cnt : 0;
+        $data['stats']['total_users'] =
+            $data['stats']['total_public_users'] +
+            $data['stats']['total_university_users'] +
+            $data['stats']['total_publishers'] +
+            $data['stats']['total_sponsors'];
+
+        // Event statistics for overview card
+        $activeEventsResult = $this->query(
+            "SELECT COUNT(*) as cnt
+             FROM events
+             WHERE is_deleted = 0
+               AND event_date >= CURDATE()"
+        );
+        $totalEventsResult = $this->query(
+            "SELECT COUNT(*) as cnt
+             FROM events
+             WHERE is_deleted = 0"
+        );
+
+        $data['stats']['active_events'] = $activeEventsResult ? (int)$activeEventsResult[0]->cnt : 0;
+        $data['stats']['total_events'] = $totalEventsResult ? (int)$totalEventsResult[0]->cnt : 0;
         
         // Get recent registrations from all user types
         $universityUser = new UniversityUser();
@@ -413,38 +440,57 @@ class AdminDashboard extends Controller {
         //     return;
         // }
         
-        // Get total users
-        $totalUsersResult = $this->query("SELECT COUNT(*) as count FROM users");
-        $totalUsers = $totalUsersResult ? $totalUsersResult[0]->count : 0;
-        
-        // Get active events
-        $activeEventsResult = $this->query("SELECT COUNT(*) as count FROM events");
-        $activeEvents = $activeEventsResult ? $activeEventsResult[0]->count : 0;
-        
-        // Get pending approvals count (simplified since status column might not exist)
-        $totalPending = 3; // Set a default value for now
-        
-        // Get users registered this week
+        // Get per-user-type totals
+        $publicUsersResult = $this->query("SELECT COUNT(*) as count FROM public_users");
+        $universityUsersResult = $this->query("SELECT COUNT(*) as count FROM university_users");
+        $publishersResult = $this->query("SELECT COUNT(*) as count FROM publishers");
+        $sponsorsResult = $this->query("SELECT COUNT(*) as count FROM sponsors");
+
+        $publicUsers = $publicUsersResult ? (int)$publicUsersResult[0]->count : 0;
+        $universityUsers = $universityUsersResult ? (int)$universityUsersResult[0]->count : 0;
+        $publishers = $publishersResult ? (int)$publishersResult[0]->count : 0;
+        $sponsors = $sponsorsResult ? (int)$sponsorsResult[0]->count : 0;
+        $totalUsers = $publicUsers + $universityUsers + $publishers + $sponsors;
+
+        // Get users registered this week (across all user types)
         $weekAgo = date('Y-m-d H:i:s', strtotime('-1 week'));
-        $newUsersThisWeekResult = $this->query("SELECT COUNT(*) as count FROM users WHERE created_at >= ?", [$weekAgo]);
-        $newUsersThisWeek = $newUsersThisWeekResult ? $newUsersThisWeekResult[0]->count : 0;
-        
-        // Get events this week
-        $eventsThisWeekResult = $this->query("SELECT COUNT(*) as count FROM events WHERE created_at >= ?", [$weekAgo]);
-        $eventsThisWeek = $eventsThisWeekResult ? $eventsThisWeekResult[0]->count : 0;
+        $newPublicThisWeekResult = $this->query("SELECT COUNT(*) as count FROM public_users WHERE created_at >= ?", [$weekAgo]);
+        $newUniversityThisWeekResult = $this->query("SELECT COUNT(*) as count FROM university_users WHERE created_at >= ?", [$weekAgo]);
+        $newPublishersThisWeekResult = $this->query("SELECT COUNT(*) as count FROM publishers WHERE created_at >= ?", [$weekAgo]);
+        $newSponsorsThisWeekResult = $this->query("SELECT COUNT(*) as count FROM sponsors WHERE created_at >= ?", [$weekAgo]);
+
+        $newUsersThisWeek =
+            ($newPublicThisWeekResult ? (int)$newPublicThisWeekResult[0]->count : 0) +
+            ($newUniversityThisWeekResult ? (int)$newUniversityThisWeekResult[0]->count : 0) +
+            ($newPublishersThisWeekResult ? (int)$newPublishersThisWeekResult[0]->count : 0) +
+            ($newSponsorsThisWeekResult ? (int)$newSponsorsThisWeekResult[0]->count : 0);
+
+        // Event totals
+        $activeEventsResult = $this->query(
+            "SELECT COUNT(*) as count
+             FROM events
+             WHERE is_deleted = 0
+               AND event_date >= CURDATE()"
+        );
+        $activeEvents = $activeEventsResult ? (int)$activeEventsResult[0]->count : 0;
+
+        $totalEventsResult = $this->query(
+            "SELECT COUNT(*) as count
+             FROM events
+             WHERE is_deleted = 0"
+        );
+        $totalEvents = $totalEventsResult ? (int)$totalEventsResult[0]->count : 0;
         
         $stats = [
             'totalUsers' => intval($totalUsers),
+            'publicUsers' => intval($publicUsers),
+            'universityUsers' => intval($universityUsers),
+            'publisherUsers' => intval($publishers),
+            'sponsorUsers' => intval($sponsors),
             'activeEvents' => intval($activeEvents),
-            'pendingApprovals' => intval($totalPending),
-            'systemHealth' => 98, // This could be calculated based on various factors
+            'totalEvents' => intval($totalEvents),
             'newUsersThisWeek' => intval($newUsersThisWeek),
-            'userActiveRate' => 94, // This would need more complex calculation
-            'eventsThisWeek' => intval($eventsThisWeek),
-            'attendanceRate' => 78, // This would need attendance tracking
-            'systemUptime' => 98,
-            'avgResponseTime' => '1.2s',
-            'errorRate' => '0.2%'
+            'eventsThisWeek' => 0
         ];
         
         echo json_encode($stats);

@@ -167,9 +167,10 @@ class AdminEventview extends Controller {
         }
 
         $reason = trim($input['reason'] ?? $_POST['reason'] ?? '');
+        $currentUser = AuthService::getCurrentUser();
 
         try {
-            $result = $this->eventModel->hideEvent($eventId);
+            $result = $this->eventModel->hideEvent($eventId, $currentUser['id'] ?? null, $reason);
 
             if ($result['success']) {
                 echo json_encode(['success' => true, 'message' => 'Event hidden successfully.']);
