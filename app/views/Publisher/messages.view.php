@@ -55,20 +55,20 @@
                                     <div class="conversation-item <?= $conv->unread_count > 0 ? 'has-unread' : '' ?> <?= $index === 0 ? 'active' : '' ?>" 
                                          data-contact-id="<?= $conv->contact_id ?>"
                                          data-contact-type="<?= $conv->contact_type ?>"
-                                         data-contact-name="<?= htmlspecialchars($conv->contact_name) ?>"
+                                         data-contact-name="<?= htmlspecialchars($conv->contact_name ?? '') ?>"
                                          data-contact-photo="<?= htmlspecialchars($conv->contact_photo ?? '') ?>"
                                          onclick="selectConversation(this)">
                                         <div class="conversation-avatar">
                                             <?php if (!empty($conv->contact_photo)): ?>
-                                                <img src="<?= htmlspecialchars($conv->contact_photo) ?>" alt="<?= htmlspecialchars($conv->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                                <img src="<?= htmlspecialchars($conv->contact_photo ?? '') ?>" alt="<?= htmlspecialchars($conv->contact_name ?? '') ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                                             <?php else: ?>
-                                                <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
+                                                <?= strtoupper(substr($conv->contact_name ?? '', 0, 2)) ?>
                                             <?php endif; ?>
                                         </div>
                                         <div class="conversation-info">
-                                            <h4 class="conversation-name"><?= htmlspecialchars($conv->contact_name) ?></h4>
+                                            <h4 class="conversation-name"><?= htmlspecialchars($conv->contact_name ?? '') ?></h4>
                                             <p class="conversation-last-message">
-                                                <?= htmlspecialchars(substr($conv->last_message, 0, 40)) ?>...
+                                                <?= htmlspecialchars(substr($conv->last_message ?? '', 0, 40)) ?>...
                                             </p>
                                         </div>
                                         <div class="conversation-meta">
