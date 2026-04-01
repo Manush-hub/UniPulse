@@ -93,10 +93,10 @@ class Signin extends Controller{
                         header('Location: /unipulse/public/user/landing');
                         break;
                     case 'sponsor':
-                        header('Location: /unipulse/public/sponsor/dashboard');
+                        header('Location: /unipulse/public/sponsor/profile');
                         break;
                     case 'publisher':
-                        header('Location: /unipulse/public/publisher/dashboard');
+                        header('Location: /unipulse/public/publisher/profile');
                         break;
                     default:
                         header('Location: /unipulse/public/user/landing');
