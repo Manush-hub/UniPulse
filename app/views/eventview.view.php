@@ -840,7 +840,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
         <?php endif; ?>
     </script>
 
-    <script src="<?php echo $config['jsFile']; ?>"></script>
+    <script src="<?php echo $config['jsFile']; ?>?v=<?= time() ?>"></script>
 
     <?php if ($currentRole === 'Publisher'): ?>
         <!-- Report Comment Modal (Publisher only) -->

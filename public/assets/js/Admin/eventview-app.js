@@ -90,7 +90,8 @@ function displayEventDetails(event) {
 
         const eventDate = event.event_date || event.date;
         const eventTime = event.event_time || event.time;
-        const computedStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
+        const isHiddenEvent = event.is_deleted == 1 || event.status === 'hidden';
+        const computedStatus = isHiddenEvent ? 'hidden' : getEventStatus(eventDate, eventTime, event.event_end_time);
 
         setEl('eventStatus', el => {
             el.textContent = capitalizeFirstLetter(computedStatus);
@@ -135,6 +136,9 @@ function displayEventDetails(event) {
         setEl('eventDescription', el => el.textContent = event.description);
 
         displayRegistrationTicketPeriods(event);
+
+            // Location details card
+            displayLocationDetails(event);
 
         // Schedule
         const scheduleCard = document.getElementById('scheduleCard');
@@ -215,9 +219,6 @@ function displayEventDetails(event) {
         const shareLink = document.getElementById('shareLink');
         if (shareLink) shareLink.value = window.location.href;
 
-        // Inject admin action bar
-        injectAdminActionBar(event);
-
         // Load comments for completed events
         initializeComments();
 
@@ -229,48 +230,7 @@ function displayEventDetails(event) {
 
 // ─── Admin action bar ─────────────────────────────────────────────
 function injectAdminActionBar(event) {
-    const hero = document.getElementById('eventHero');
-    if (!hero) return;
-
-    // Remove any existing bar
-    const existing = document.getElementById('adminActionBar');
-    if (existing) existing.remove();
-
-    const isHidden = event.is_hidden == 1 || event.is_hidden === true || event.is_hidden === '1';
-
-    const bar = document.createElement('div');
-    bar.id    = 'adminActionBar';
-    bar.style.cssText = `
-        background:#1e293b; color:#f8fafc; padding:12px 24px;
-        display:flex; align-items:center; justify-content:space-between;
-        gap:12px; flex-wrap:wrap; font-size:0.9rem;`;
-
-    bar.innerHTML = `
-        <div style="display:flex;align-items:center;gap:10px;">
-            <span style="background:#334155;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;letter-spacing:.5px;">
-                <i class="fas fa-shield-alt" style="margin-right:6px;color:#60a5fa;"></i>ADMIN VIEW
-            </span>
-            ${isHidden
-                ? '<span style="background:#dc2626;color:#fff;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;"><i class="fas fa-eye-slash" style="margin-right:4px;"></i>HIDDEN FROM PUBLIC</span>'
-                : '<span style="background:#16a34a;color:#fff;padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:600;"><i class="fas fa-eye" style="margin-right:4px;"></i>PUBLICLY VISIBLE</span>'
-            }
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            ${isHidden
-                ? `<button onclick="showEvent()" style="background:#16a34a;color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;">
-                       <i class="fas fa-eye"></i> Make Visible
-                   </button>`
-                : `<button onclick="openHideEventModal()" style="background:#dc2626;color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;">
-                       <i class="fas fa-eye-slash"></i> Hide Event
-                   </button>`
-            }
-            <a href="/unipulse/public/admin/allevents"
-               style="background:#475569;color:#fff;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:6px;text-decoration:none;">
-                <i class="fas fa-arrow-left"></i> All Events
-            </a>
-        </div>`;
-
-    hero.parentNode.insertBefore(bar, hero);
+    return;
 }
 
 // ─── Registration / Ticket periods ───────────────────────────────
@@ -362,6 +322,47 @@ function displayCustomFields(customFields) {
     card.style.display = 'block';
 }
 
+    function displayLocationDetails(event) {
+        const locationType = event.location_type || 'inside-university';
+        const universityName = event.university_name || event.universityName;
+        let locationHTML = '';
+
+        if (locationType === 'outside-university') {
+            if (event.venue_name) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-map-marker-alt"></i></div><div class="location-content"><strong>Venue</strong><span>${escapeHtml(event.venue_name)}</span></div></div>`;
+            }
+            if (event.street_address) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-road"></i></div><div class="location-content"><strong>Address</strong><span>${escapeHtml(event.street_address)}</span></div></div>`;
+            }
+            if (event.city) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-city"></i></div><div class="location-content"><strong>City</strong><span>${escapeHtml(event.city)}</span></div></div>`;
+            }
+            if (event.district_province) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-map"></i></div><div class="location-content"><strong>District/Province</strong><span>${escapeHtml(event.district_province)}</span></div></div>`;
+            }
+        } else {
+            if (universityName) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-university"></i></div><div class="location-content"><strong>University</strong><span>${escapeHtml(universityName)}</span></div></div>`;
+            }
+            if (event.faculty_department) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-building"></i></div><div class="location-content"><strong>Faculty/Department</strong><span>${escapeHtml(event.faculty_department)}</span></div></div>`;
+            }
+            if (event.location) {
+                locationHTML += `<div class="location-box"><div class="location-icon"><i class="fas fa-map-marker-alt"></i></div><div class="location-content"><strong>Exact Location</strong><span>${escapeHtml(event.location)}</span></div></div>`;
+            }
+        }
+
+        const locationDetailsCard = document.getElementById('locationDetailsCard');
+        const locationDetails = document.getElementById('locationDetails');
+
+        if (locationHTML) {
+            if (locationDetailsCard) locationDetailsCard.style.display = 'block';
+            if (locationDetails) locationDetails.innerHTML = locationHTML;
+        } else if (locationDetailsCard) {
+            locationDetailsCard.style.display = 'none';
+        }
+    }
+
 // ─── Hide / Show event ────────────────────────────────────────────
 function openHideEventModal() {
     const modal    = document.getElementById('hideEventModal');
@@ -446,7 +447,8 @@ function initializeComments() {
     if (!currentEvent) return;
     const eventDate = currentEvent.event_date || currentEvent.date;
     const eventTime = currentEvent.event_time || currentEvent.time;
-    const status    = getEventStatus(eventDate, eventTime, currentEvent.event_end_time);
+    const isHiddenEvent = currentEvent.is_deleted == 1 || currentEvent.status === 'hidden';
+    const status    = isHiddenEvent ? 'hidden' : getEventStatus(eventDate, eventTime, currentEvent.event_end_time);
     const section   = document.getElementById('commentsSection');
     if (section && status === 'completed') {
         section.style.display = 'block';
@@ -465,7 +467,7 @@ function loadComments() {
             <p>Loading comments…</p>
         </div>`;
 
-    fetch(`/unipulse/public/admin/allevents/getEventComments?event_id=${currentEvent.id}`)
+    fetch(`/unipulse/public/admin/comments/getEventComments/${currentEvent.id}`)
         .then(r => r.json())
         .then(data => {
             if (data.success) {

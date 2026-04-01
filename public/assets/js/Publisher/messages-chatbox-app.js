@@ -3,6 +3,12 @@ let currentContactId = null;
 let currentContactType = null;
 let currentContactName = null;
 
+function hasValidContact(contactId, contactType) {
+    const normalizedId = String(contactId || '').trim();
+    const normalizedType = String(contactType || '').trim();
+    return normalizedId !== '' && normalizedId !== '0' && normalizedType !== '';
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Publisher Messages Chatbox App initialized');
@@ -79,13 +85,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (firstConversation) {
         const contactId = firstConversation.dataset.contactId;
         const contactType = firstConversation.dataset.contactType;
-        const contactName = firstConversation.dataset.contactName;
-        
-        currentContactId = contactId;
-        currentContactType = contactType;
-        currentContactName = contactName;
-        
-        loadConversation(contactId, contactType, contactName);
+        const contactName = firstConversation.dataset.contactName || 'Unknown Contact';
+
+        if (hasValidContact(contactId, contactType)) {
+            currentContactId = contactId;
+            currentContactType = contactType;
+            currentContactName = contactName;
+            loadConversation(contactId, contactType, contactName);
+        }
     }
     
     // Auto-resize textarea
@@ -129,7 +136,13 @@ function selectConversation(element) {
     // Get conversation details
     const contactId = element.dataset.contactId;
     const contactType = element.dataset.contactType;
-    const contactName = element.dataset.contactName;
+    const contactName = element.dataset.contactName || 'Unknown Contact';
+
+    if (!hasValidContact(contactId, contactType)) {
+        console.error('Invalid conversation metadata', { contactId, contactType, element });
+        showNotification('This conversation has invalid contact details.', 'error');
+        return;
+    }
     
     currentContactId = contactId;
     currentContactType = contactType;
@@ -169,6 +182,14 @@ function selectConversation(element) {
 
 // Start a new conversation with a contact
 function startConversation(contactId, contactType, contactName, contactPhoto = '') {
+    if (!hasValidContact(contactId, contactType)) {
+        console.error('Cannot start conversation with invalid contact details', { contactId, contactType });
+        showNotification('Unable to open chat: invalid contact details.', 'error');
+        return;
+    }
+
+    contactName = contactName || 'Unknown Contact';
+
     // Remove active class from all conversations
     document.querySelectorAll('.conversation-item').forEach(item => {
         item.classList.remove('active');
@@ -285,6 +306,21 @@ function startConversation(contactId, contactType, contactName, contactPhoto = '
 
 // Load conversation messages
 function loadConversation(contactId, contactType, contactName, silent = false) {
+    if (!hasValidContact(contactId, contactType)) {
+        console.error('Cannot load conversation. Missing contact details.', { contactId, contactType });
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            chatMessages.innerHTML = `
+                <div class="error-messages">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Failed to load messages</p>
+                    <small>Contact ID and type are required</small>
+                </div>
+            `;
+        }
+        return;
+    }
+
     const chatMessages = document.getElementById('chatMessages');
     
     if (!silent) {
@@ -400,6 +436,10 @@ function sendMessage(event) {
     const message = messageInput.value.trim();
     
     if (!message) return;
+    if (!hasValidContact(currentContactId, currentContactType)) {
+        showNotification('Cannot send message: invalid recipient details.', 'error');
+        return;
+    }
     
     // Disable send button
     sendBtn.disabled = true;

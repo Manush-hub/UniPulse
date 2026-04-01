@@ -121,6 +121,6 @@
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
     </script>
 
-    <script src="/unipulse/public/assets/js/Moderator/hidden-events-app.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/hidden-events-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

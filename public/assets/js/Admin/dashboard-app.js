@@ -40,38 +40,30 @@ function loadAdminData() {
 function updateDashboardStats(data) {
     // Update quick stats
     const statElements = {
-        totalUsers: document.getElementById('totalUsers'),
-        activeEvents: document.getElementById('activeEvents'),
-        pendingApprovals: document.getElementById('pendingApprovals'),
-        systemHealth: document.getElementById('systemHealth')
+        totalUsers: document.getElementById('totalUsers')
     };
     
     if (statElements.totalUsers) statElements.totalUsers.textContent = data.totalUsers.toLocaleString();
-    if (statElements.activeEvents) statElements.activeEvents.textContent = data.activeEvents;
-    if (statElements.pendingApprovals) statElements.pendingApprovals.textContent = data.pendingApprovals;
-    if (statElements.systemHealth) statElements.systemHealth.textContent = `${data.systemHealth}%`;
-    
-    // Update system overview cards
-    const userStats = document.querySelectorAll('.overview-card:nth-child(1) .stat-value');
-    if (userStats.length >= 3) {
-        userStats[0].textContent = data.totalUsers.toLocaleString();
-        userStats[1].textContent = data.newUsersThisWeek;
-        userStats[2].textContent = `${data.userActiveRate}%`;
-    }
-    
-    const eventStats = document.querySelectorAll('.overview-card:nth-child(2) .stat-value');
-    if (eventStats.length >= 3) {
-        eventStats[0].textContent = data.activeEvents;
-        eventStats[1].textContent = data.eventsThisWeek;
-        eventStats[2].textContent = `${data.attendanceRate}%`;
-    }
-    
-    const performanceStats = document.querySelectorAll('.overview-card:nth-child(3) .stat-value');
-    if (performanceStats.length >= 3) {
-        performanceStats[0].textContent = `${data.systemUptime}%`;
-        performanceStats[1].textContent = data.avgResponseTime;
-        performanceStats[2].textContent = data.errorRate;
-    }
+
+    // Update user statistics card (all user types)
+    const overviewTotalUsers = document.getElementById('overviewTotalUsers');
+    const overviewUniversityUsers = document.getElementById('overviewUniversityUsers');
+    const overviewPublicUsers = document.getElementById('overviewPublicUsers');
+    const overviewPublisherUsers = document.getElementById('overviewPublisherUsers');
+    const overviewSponsorUsers = document.getElementById('overviewSponsorUsers');
+
+    if (overviewTotalUsers) overviewTotalUsers.textContent = data.totalUsers.toLocaleString();
+    if (overviewUniversityUsers) overviewUniversityUsers.textContent = (data.universityUsers || 0).toLocaleString();
+    if (overviewPublicUsers) overviewPublicUsers.textContent = (data.publicUsers || 0).toLocaleString();
+    if (overviewPublisherUsers) overviewPublisherUsers.textContent = (data.publisherUsers || 0).toLocaleString();
+    if (overviewSponsorUsers) overviewSponsorUsers.textContent = (data.sponsorUsers || 0).toLocaleString();
+
+    // Update event statistics card
+    const overviewActiveEvents = document.getElementById('overviewActiveEvents');
+    const overviewTotalEvents = document.getElementById('overviewTotalEvents');
+
+    if (overviewActiveEvents) overviewActiveEvents.textContent = (data.activeEvents || 0).toLocaleString();
+    if (overviewTotalEvents) overviewTotalEvents.textContent = (data.totalEvents || 0).toLocaleString();
 }
 
 // Load recent activity

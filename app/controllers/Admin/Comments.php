@@ -111,6 +111,10 @@ class AdminComments extends Controller {
                 return;
             }
             
+            if (!$eventId && isset($_GET['event_id'])) {
+                $eventId = $_GET['event_id'];
+            }
+
             if (!$eventId || !is_numeric($eventId)) {
                 echo json_encode(['success' => false, 'error' => 'Invalid event ID']);
                 return;

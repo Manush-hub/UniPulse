@@ -89,8 +89,11 @@ function displayEventDetails(event) {
         const eventDate = event.event_date || event.date;
         const eventTime = event.event_time || event.time;
         const rawStatus      = (event.status || '').toString().trim().toLowerCase();
+        const isHiddenEvent  = event.is_deleted == 1 || rawStatus === 'hidden';
         const computedStatus  = getEventStatus(eventDate, eventTime, event.event_end_time);
-        const effectiveStatus = (rawStatus === 'cancelled' || rawStatus === 'completed') ? rawStatus : computedStatus;
+        const effectiveStatus = isHiddenEvent
+            ? 'hidden'
+            : ((rawStatus === 'cancelled' || rawStatus === 'completed') ? rawStatus : computedStatus);
 
         setEl('eventStatus', el => {
             el.textContent = capitalizeFirstLetter(effectiveStatus);
@@ -561,7 +564,9 @@ function initializeComments() {
     if (!currentEvent) return;
     const eventDate   = currentEvent.event_date || currentEvent.date;
     const eventTime   = currentEvent.event_time || currentEvent.time;
-    const status      = getEventStatus(eventDate, eventTime, currentEvent.event_end_time);
+    const rawStatus   = (currentEvent.status || '').toString().trim().toLowerCase();
+    const isHiddenEvent = currentEvent.is_deleted == 1 || rawStatus === 'hidden';
+    const status      = isHiddenEvent ? 'hidden' : getEventStatus(eventDate, eventTime, currentEvent.event_end_time);
     const commentsSection = document.getElementById('commentsSection');
     if (commentsSection && status === 'completed') {
         commentsSection.style.display = 'block';

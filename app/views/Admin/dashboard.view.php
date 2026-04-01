@@ -29,7 +29,7 @@
                         <p>Monitor system performance and manage platform operations from your admin dashboard.</p>
                         <div class="quick-stats">
                             <div class="stat-item">
-                                <span class="stat-number" id="totalUsers">2,847</span>
+                                <span class="stat-number" id="totalUsers"><?php echo number_format((int)($stats['total_users'] ?? 0)); ?></span>
                                 <span class="stat-label">Total Users</span>
                             </div>
                             <div class="stat-item">
@@ -103,10 +103,6 @@
             <div class="container">
                 <div class="section-header">
                     <h2>System Overview</h2>
-                    <button onclick="toggleSystemReports()" class="view-all expand-btn" id="systemReportsBtn">
-                        <span class="btn-text">View Detailed Reports</span>
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </button>
                 </div>
                 <div class="overview-cards">
                     <div class="overview-card">
@@ -117,16 +113,24 @@
                             <h3>User Statistics</h3>
                             <div class="stats-grid">
                                 <div class="stat">
-                                    <span class="stat-value">2,847</span>
+                                    <span class="stat-value" id="overviewTotalUsers"><?php echo number_format((int)($stats['total_users'] ?? 0)); ?></span>
                                     <span class="stat-label">Total Users</span>
                                 </div>
                                 <div class="stat">
-                                    <span class="stat-value">127</span>
-                                    <span class="stat-label">New This Week</span>
+                                    <span class="stat-value" id="overviewUniversityUsers"><?php echo number_format((int)($stats['total_university_users'] ?? 0)); ?></span>
+                                    <span class="stat-label">University Users</span>
                                 </div>
                                 <div class="stat">
-                                    <span class="stat-value">94%</span>
-                                    <span class="stat-label">Active Rate</span>
+                                    <span class="stat-value" id="overviewPublicUsers"><?php echo number_format((int)($stats['total_public_users'] ?? 0)); ?></span>
+                                    <span class="stat-label">Public Users</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value" id="overviewPublisherUsers"><?php echo number_format((int)($stats['total_publishers'] ?? 0)); ?></span>
+                                    <span class="stat-label">Publishers</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value" id="overviewSponsorUsers"><?php echo number_format((int)($stats['total_sponsors'] ?? 0)); ?></span>
+                                    <span class="stat-label">Sponsors</span>
                                 </div>
                             </div>
                         </div>
@@ -139,61 +143,12 @@
                             <h3>Event Statistics</h3>
                             <div class="stats-grid">
                                 <div class="stat">
-                                    <span class="stat-value">124</span>
+                                    <span class="stat-value" id="overviewActiveEvents"><?php echo number_format((int)($stats['active_events'] ?? 0)); ?></span>
                                     <span class="stat-label">Active Events</span>
                                 </div>
                                 <div class="stat">
-                                    <span class="stat-value">42</span>
-                                    <span class="stat-label">This Week</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">78%</span>
-                                    <span class="stat-label">Attendance Rate</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Hidden cards - shown when expanding -->
-                    <div class="overview-card hidden-card" style="display: none;">
-                        <div class="overview-icon">
-                            <i class="fas fa-server"></i>
-                        </div>
-                        <div class="overview-content">
-                            <h3>System Health</h3>
-                            <div class="stats-grid">
-                                <div class="stat">
-                                    <span class="stat-value">99.9%</span>
-                                    <span class="stat-label">Uptime</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">145ms</span>
-                                    <span class="stat-label">Response Time</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">0.01%</span>
-                                    <span class="stat-label">Error Rate</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="overview-card hidden-card" style="display: none;">
-                        <div class="overview-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <div class="overview-content">
-                            <h3>Database Metrics</h3>
-                            <div class="stats-grid">
-                                <div class="stat">
-                                    <span class="stat-value">125,847</span>
-                                    <span class="stat-label">Total Records</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">2.4GB</span>
-                                    <span class="stat-label">Storage Used</span>
-                                </div>
-                                <div class="stat">
-                                    <span class="stat-value">23ms</span>
-                                    <span class="stat-label">Query Time</span>
+                                    <span class="stat-value" id="overviewTotalEvents"><?php echo number_format((int)($stats['total_events'] ?? 0)); ?></span>
+                                    <span class="stat-label">Total Events</span>
                                 </div>
                             </div>
                         </div>
@@ -481,28 +436,8 @@
         </div>
     </div>
 
-    <script src="/unipulse/public/assets/js/Admin/dashboard-app.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/dashboard-app.js?v=<?= time() ?>"></script>
     <script>
-        // Toggle System Reports - show/hide additional overview cards
-        function toggleSystemReports() {
-            const hiddenCards = document.querySelectorAll('.overview-card.hidden-card');
-            const btn = document.getElementById('systemReportsBtn');
-            const icon = btn.querySelector('.expand-icon');
-            const btnText = btn.querySelector('.btn-text');
-            
-            hiddenCards.forEach(card => {
-                if (card.style.display === 'none') {
-                    card.style.display = 'block';
-                    icon.style.transform = 'rotate(180deg)';
-                    btnText.textContent = 'Show Less';
-                } else {
-                    card.style.display = 'none';
-                    icon.style.transform = 'rotate(0deg)';
-                    btnText.textContent = 'View Detailed Reports';
-                }
-            });
-        }
-
         // Toggle Activity Log - show/hide additional activity items
         function toggleActivityLog() {
             const activityList = document.getElementById('activityList');
