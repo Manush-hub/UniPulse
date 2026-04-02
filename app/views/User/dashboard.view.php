@@ -53,10 +53,25 @@
             text-transform: capitalize;
         }
 
-        .status-new { background: #dbeafe; color: #1e40af; }
-        .status-in_progress { background: #fef3c7; color: #92400e; }
-        .status-completed { background: #dcfce7; color: #166534; }
-        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-in_progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         .password-request-reply {
             margin-top: 0.45rem;
@@ -87,12 +102,6 @@
                         <p>Ready to discover amazing events and connect with your university community?</p>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <section class="volunteering-section" id="volunteeringSection" style="display: none;">
-            <div class="container">
-                <div id="volunteeringCard"></div>
             </div>
         </section>
 
@@ -167,6 +176,10 @@
                         <div class="donations-table-container" id="donationsTableContainer">
                             <div class="loading">Loading donations...</div>
                         </div>
+
+                        <section class="volunteering-section" id="volunteeringSection" style="display: none;">
+                            <div id="volunteeringCard"></div>
+                        </section>
                     </div>
                     <!-- <div class="sidebar">
                         <div class="sidebar-widget">
