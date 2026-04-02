@@ -493,6 +493,7 @@
             let amount = 0;
             let quantity = 1;
             let description = 'Event Ticket';
+            let ticketTierName = 'General';
 
             if (paymentData && Array.isArray(paymentData.tickets) && paymentData.tickets.length > 0) {
                 amount = Number(paymentData.totalAmount || 0);
@@ -502,8 +503,10 @@
 
                 if (paymentData.tickets.length === 1) {
                     description = `Event Ticket - ${paymentData.tickets[0].name}`;
+                    ticketTierName = paymentData.tickets[0].name;
                 } else {
                     description = `Event Tickets - ${paymentData.tickets.length} types`;
+                    ticketTierName = paymentData.tickets.map(t => t.name).join(', ');
                 }
             } else {
                 const totalAmountText = document.getElementById('totalAmount').textContent;
@@ -519,13 +522,16 @@
 
             // Redirect to PayHere payment with session setup
             // The Payment controller expects these params
-            const paymentUrl = `/unipulse/public/payment?amount=${encodeURIComponent(amount.toFixed(2))}&type=ticket&event_id=${encodeURIComponent(eventId)}&quantity=${encodeURIComponent(quantity)}&description=${encodeURIComponent(description)}`;
+            const ticketsMetadata = paymentData && paymentData.tickets ? JSON.stringify(paymentData.tickets) : '';
+            const paymentUrl = `/unipulse/public/payment?amount=${encodeURIComponent(amount.toFixed(2))}&type=ticket&event_id=${encodeURIComponent(eventId)}&quantity=${encodeURIComponent(quantity)}&description=${encodeURIComponent(description)}&ticket_tier=${encodeURIComponent(ticketTierName)}&tickets_metadata=${encodeURIComponent(ticketsMetadata)}`;
 
             console.log('Redirecting to PayHere:', {
                 event_id: eventId,
                 amount: amount,
                 quantity: quantity,
                 description: description,
+                ticket_tier: ticketTierName,
+                tickets_metadata: ticketsMetadata,
                 url: paymentUrl
             });
 

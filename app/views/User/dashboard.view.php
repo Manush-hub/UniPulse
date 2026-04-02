@@ -162,6 +162,18 @@
             </div>
         </section>
 
+        <!-- My Tickets Section -->
+        <section class="my-tickets-section" style="margin-top: 30px; margin-bottom: 30px;">
+            <div class="container">
+                <div class="section-header">
+                    <h2>My Tickets</h2>
+                </div>
+                <div class="events-carousel" id="myTicketsCarousel" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    <!-- Tickets will be loaded here -->
+                </div>
+            </div>
+        </section>
+
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">

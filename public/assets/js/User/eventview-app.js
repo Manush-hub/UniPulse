@@ -1330,6 +1330,9 @@ function renderMixedTickets(event) {
 
     if (isUniversityUser()) {
         renderMixedAsFreeForUniversityUser(event);
+        // Do not return here, we want them to see the paid tickets section too!
+        // Instead of showing `mixedSection`, we'll just render the paid tickets.
+        renderPaidTickets(event);
         return;
     }
 

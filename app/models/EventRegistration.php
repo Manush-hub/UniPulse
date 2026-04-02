@@ -541,7 +541,7 @@ class EventRegistration
         $hasRegisteredAt = in_array('registered_at', $columns, true);
         $hasStatus = in_array('status', $columns, true);
 
-        $sql = "SELECT e.*";
+        $sql = "SELECT e.*, pe.order_number";
         if ($hasRegisteredAt) {
             $sql .= ", er.registered_at";
         } else {
@@ -557,6 +557,7 @@ class EventRegistration
         $sql .= "
                 FROM {$this->table} er
                 INNER JOIN events e ON er.event_id = e.id
+                LEFT JOIN paid_event_registrations pe ON pe.event_id = e.id AND pe.registered_user_id = er.user_id AND pe.registered_user_type = er.user_type
                 WHERE er.user_id = :user_id 
                 AND er.user_type = :user_type";
 

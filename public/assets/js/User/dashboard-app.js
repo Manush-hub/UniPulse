@@ -247,6 +247,7 @@ function loadUpcomingEvents() {
 // Display upcoming events
 function displayUpcomingEvents(events) {
     const carousel = document.getElementById('upcomingEventsCarousel');
+    const ticketsCarousel = document.getElementById('myTicketsCarousel');
     if (!carousel) return;
 
     const upcomingEvents = Array.isArray(events)
@@ -255,15 +256,121 @@ function displayUpcomingEvents(events) {
 
     if (upcomingEvents.length === 0) {
         carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
+        if (ticketsCarousel) {
+            ticketsCarousel.innerHTML = '<div class="no-data">You have no tickets yet.</div>';
+        }
         return;
     }
 
     carousel.innerHTML = '';
+    if (ticketsCarousel) ticketsCarousel.innerHTML = '';
 
-    upcomingEvents.forEach(event => {
-        const eventCard = createUpcomingEventCard(event);
-        carousel.appendChild(eventCard);
+    let hasTickets = false;
+    let seenEventIds = new Set();
+
+    events.forEach(event => {
+        // Add to Upcoming Events ONCE per event
+        if (!seenEventIds.has(event.id)) {
+            const eventCard = createUpcomingEventCard(event);
+            carousel.appendChild(eventCard);
+            seenEventIds.add(event.id);
+        }
+
+        // Add to My Tickets if they have an order_number (bought ticket)
+        if (ticketsCarousel && event.order_number) {
+            const ticketCard = createTicketCard(event);
+            ticketsCarousel.appendChild(ticketCard);
+            hasTickets = true;
+        }
     });
+
+    if (ticketsCarousel && !hasTickets) {
+        ticketsCarousel.innerHTML = '<div class="no-data">You have no tickets yet.</div>';
+    }
+}
+
+// Create a special smaller card for the tickets
+function createTicketCard(event) {
+    const card = document.createElement('div');
+    // Using a distinct class to drop the standard event-card styling completely
+    card.className = 'my-ticket-stub';
+    card.onclick = () => viewEventDetails(event.id);
+    
+    // Apply boarding-pass-style CSS dynamically
+    card.style.cssText = 'background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); overflow: hidden; border: 1px solid #e2e8f0; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; height: 100%; position: relative;';
+    
+    card.addEventListener('mouseover', () => {
+        card.style.transform = 'translateY(-4px)';
+        card.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+    });
+    card.addEventListener('mouseout', () => {
+        card.style.transform = 'translateY(0)';
+        card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
+    });
+
+    const isPast = new Date(event.date) < new Date() ? true : false;
+    const ticketStatus = isPast ? 'PAST EVENT' : 'ADMIT ONE';
+    const statusColor = isPast ? '#94a3b8' : '#4338ca';
+    const statusBg = isPast ? '#f1f5f9' : '#e0e7ff';
+
+    card.innerHTML = `
+        <div style="padding: 20px; border-bottom: 2px dashed #cbd5e1; position: relative; background: #ffffff;">
+            <!-- Perforated cutouts on the ticket separator -->
+            <div style="position: absolute; bottom: -12px; left: -1px; width: 24px; height: 24px; background: #f4f4f4; border-radius: 50%; border-right: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; transform: rotate(45deg); z-index: 1;"></div>
+            <div style="position: absolute; bottom: -12px; right: -1px; width: 24px; height: 24px; background: #f4f4f4; border-radius: 50%; border-left: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; transform: rotate(-45deg); z-index: 1;"></div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">${ticketStatus}</span>
+                <span style="color: #64748b; font-size: 13px; font-weight: 700;"><i class="far fa-calendar-alt"></i> ${formatDate(event.date)}</span>
+            </div>
+            
+            <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #0f172a; line-height: 1.3; font-weight: 700;">${event.title}</h3>
+            
+            <div style="color: #475569; font-size: 13px; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                <i class="far fa-clock"></i> ${event.time}
+            </div>
+        </div>
+        
+        <div style="padding: 20px; background: #f8fafc; flex: 1; display: flex; flex-direction: column; position: relative;">
+            <div style="margin-bottom: 16px;">
+                <p style="margin: 0; font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Location</p>
+                <p style="margin: 4px 0 0 0; font-size: 14px; color: #1e293b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-map-marker-alt" style="color: #94a3b8; margin-right: 4px;"></i> ${event.location}</p>
+            </div>
+            
+            <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
+                <div>
+                    <p style="margin: 0; font-size: 11px; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Order Ref</p>
+                    <p style="margin: 4px 0 0 0; font-size: 14px; color: #1e293b; font-family: 'Courier New', Courier, monospace; font-weight: 700;">${event.order_number}</p>
+                </div>
+                <div style="text-align: right;">
+                    <i class="fas fa-qrcode" style="font-size: 32px; color: #cbd5e1; opacity: 0.6;"></i>
+                </div>
+            </div>
+            
+            <div style="margin-top: auto; padding-top: 10px;">
+                <a href="/UniPulse/public/ticket/download?order=${encodeURIComponent(event.order_number)}" target="_blank" onclick="event.stopPropagation();" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; border: 2px dashed #cbd5e1; background: white; color: #475569; padding: 12px; border-radius: 8px; font-size: 14px; text-decoration: none; font-weight: 700; box-sizing: border-box; transition: all 0.2s;">
+                    <i class="fas fa-print"></i> Download e-Ticket
+                </a>
+            </div>
+        </div>
+    `;
+
+    // Add a simple hover effect for the button
+    const btn = card.querySelector('a');
+    if (btn) {
+        btn.addEventListener('mouseover', () => { 
+            btn.style.borderColor = '#3b82f6';
+            btn.style.color = '#3b82f6';
+            btn.style.background = '#eff6ff';
+        });
+        btn.addEventListener('mouseout', () => { 
+            btn.style.borderColor = '#cbd5e1';
+            btn.style.color = '#475569';
+            btn.style.background = 'white';
+        });
+    }
+
+    return card;
 }
 
 function isFutureEvent(event) {

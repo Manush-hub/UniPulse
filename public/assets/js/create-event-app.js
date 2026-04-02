@@ -113,8 +113,8 @@ function toggleLocationFields() {
         outsideUniversityLocation.classList.add('hidden');
 
         // Add required to inside university fields
-        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.setAttribute('required', 'required'));
-        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('input[name="selected_university"]').forEach(el => el.setAttribute('required', 'required'));
+        insideUniversityLocation.querySelectorAll('input[name="faculty_department"]').forEach(el => el.setAttribute('required', 'required'));
         insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.setAttribute('required', 'required'));
 
         // Remove required from outside university fields
@@ -125,8 +125,8 @@ function toggleLocationFields() {
         outsideUniversityLocation.classList.remove('hidden');
 
         // Remove required from inside university fields
-        insideUniversityLocation.querySelectorAll('select[name="selected_university"]').forEach(el => el.removeAttribute('required'));
-        insideUniversityLocation.querySelectorAll('select[name="faculty_department"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('input[name="selected_university"]').forEach(el => el.removeAttribute('required'));
+        insideUniversityLocation.querySelectorAll('input[name="faculty_department"]').forEach(el => el.removeAttribute('required'));
         insideUniversityLocation.querySelectorAll('input[name="event_location"]').forEach(el => el.removeAttribute('required'));
 
         // Add required to outside university fields
@@ -377,6 +377,14 @@ function setupTicketDiscount(ticketElement) {
 // Add ticket type functionality
 function addTicketType(containerId, counterVar) {
     const container = document.getElementById(containerId);
+    
+    // Limit to a maximum of 10 ticket types per container
+    const currentCount = container.querySelectorAll('.ticket-type-item').length;
+    if (currentCount >= 10) {
+        alert("You have reached the maximum limit of 10 ticket types.");
+        return counterVar;
+    }
+
     const newTicketType = document.createElement("div");
     newTicketType.classList.add("ticket-type-item");
 
