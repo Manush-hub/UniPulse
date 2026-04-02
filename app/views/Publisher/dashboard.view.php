@@ -306,7 +306,7 @@
         </section>
 
         <!-- Volunteer Management -->
-        <section class="volunteer-management">
+        <section class="volunteer-management" id="volunteer-management">
             <div class="container">
                 <div class="section-header">
                     <h2>Volunteer Management</h2>
