@@ -10,7 +10,7 @@ class SponsorDashboard extends Controller{
             header('Location: /unipulse/public/signin');
             exit();
         }
-        
+
         // Pass user data to view
         $data = [
             'user' => $currentUser,

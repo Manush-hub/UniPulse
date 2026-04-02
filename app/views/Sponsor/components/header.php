@@ -9,7 +9,7 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
 }
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
 
 <header class="header">
     <div class="header-container">
@@ -69,7 +69,7 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
         </div>
     </div>
 </header>
-<script src="/unipulse/public/assets/js/sponsor/header-app.js"></script>
+<script src="/unipulse/public/assets/js/Sponsor/header-app.js"></script>
 <script>
 (function () {
     function updateSponsorMsgBadge() {

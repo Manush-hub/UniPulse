@@ -20,7 +20,7 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
 }
 ?>
 
-<link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
+<link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
 
 <header class="header">
     <div class="header-container">
@@ -74,4 +74,4 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
         </div>
     </div>
 </header>
-<script src="/unipulse/public/assets/js/user/header-app.js"></script>
+<script src="/unipulse/public/assets/js/User/header-app.js"></script>
