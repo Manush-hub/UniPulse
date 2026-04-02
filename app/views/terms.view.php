@@ -7,16 +7,7 @@
   <link rel="stylesheet" href="<?php echo $controller->loadCSS('terms-style.css'); ?>">
 </head>
 <body>
-
-<header class="header">
-  <div class="header-container">
-    <div class="logo">
-      <a href="/unipulse/public/">
-      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-      </a>
-    </div>
-  </div>
-</header>
+<?php include __DIR__ . '/Components/role_header.php'; ?>
   <main>
     <h1>UniPulse Terms & Conditions</h1>
     <p>Last Updated: February 2026 | Effective Date: Upon Deployment | Version: 1.0</p>
@@ -330,7 +321,7 @@
   </main>
 
 <!-- Footer -->
-<?php include 'footer.php'; ?>
+<?php include __DIR__ . '/Components/footer.php'; ?>
 
 </body>
 </html>

@@ -16,21 +16,7 @@
     return htmlspecialchars($formData[$key] ?? '', ENT_QUOTES, 'UTF-8');
   }
 ?>
-<header class="header">
-  <div class="header-container">
-    <div class="logo">
-      <a href="/unipulse/public/">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-      </a>
-    </div>
-    <nav class="top-nav">
-      <a href="/unipulse/public/">Home</a>
-      <a href="#support-form">Contact</a>
-      <a href="#faq">FAQ</a>
-      <a href="#legal">Legal</a>
-    </nav>
-  </div>
-</header>
+<?php include __DIR__ . '/Components/role_header.php'; ?>
 
   <main>
     <section class="hero">
@@ -171,7 +157,7 @@
   </main>
 
   <!-- Footer -->
-  <?php include 'footer.php'; ?>
+  <?php include __DIR__ . '/Components/footer.php'; ?>
 
   <script>
     const contactForm = document.getElementById('contactForm');

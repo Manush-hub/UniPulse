@@ -7,16 +7,7 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/faq-style.css">
 </head>
 <body>
-
-<header class="header">
-  <div class="header-container">
-    <div class="logo">
-      <a href="index.php">
-      <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-      </a>
-    </div>
-  </div>
-</header>
+<?php include __DIR__ . '/Components/role_header.php'; ?>
 
   <main>
     <h1>UniPulse FAQ</h1>
@@ -98,7 +89,7 @@
   </main>
 
   <!-- Footer -->
-  <?php include __DIR__ . '/components/footer.php'; ?>
+  <?php include __DIR__ . '/Components/footer.php'; ?>
 
   <script src="/unipulse/public/assets/js/faq.js"></script>
 </body>

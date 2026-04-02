@@ -5,6 +5,12 @@ a {
     background: transparent;
 }
 
+html,
+body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Remove default form element styles */
 input,
 select,
@@ -44,15 +50,19 @@ textarea {
     top: 0 !important;
     z-index: 100 !important;
     margin: 0 !important;
+    width: 100% !important;
+    border: 0 !important;
 }
 
 .header-container {
+    width: 100% !important;
     max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 2rem !important;
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
+    box-sizing: border-box !important;
 }
 
 .header .logo {
@@ -69,10 +79,13 @@ textarea {
 .nav {
     display: flex !important;
     gap: 2rem !important;
+    align-items: center !important;
 }
 
 .nav a {
     color: #666 !important;
+    display: inline-flex !important;
+    align-items: center !important;
     padding: 0.5rem 0 !important;
     border-bottom: 2px solid transparent !important;
     transition: all 0.3s ease !important;
@@ -108,6 +121,14 @@ textarea {
 
 .notification-btn:hover {
     background: #f3f4f6 !important;
+}
+
+.notification-btn svg,
+.notification-btn i,
+.user-dropdown-btn svg,
+.user-dropdown-btn i {
+    display: block !important;
+    visibility: visible !important;
 }
 
 .notification-badge {

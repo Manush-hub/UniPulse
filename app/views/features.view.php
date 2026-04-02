@@ -8,19 +8,7 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/features-style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-container">
-      <a href="/unipulse/public/" class="logo">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-      </a>
-      <nav class="top-nav">
-        <a href="/unipulse/public/">Home</a>
-        <a href="/unipulse/public/about_us">About</a>
-        <a href="#features">Features</a>
-        <a href="/unipulse/public/contact">Contact</a>
-      </nav>
-    </div>
-  </header>
+  <?php include __DIR__ . '/Components/role_header.php'; ?>
 
   <main class="page">
     <div class="container">

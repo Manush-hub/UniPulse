@@ -44,6 +44,8 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
 }
 ?>
 
+<link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
+
 <header class="header">
     <div class="header-container">
         <div class="logo">

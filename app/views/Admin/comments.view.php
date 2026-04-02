@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="<?= ROOT ?>/assets/css/comments-style.css">
 </head>
 <body>
-    <?php include '../app/views/admin-header.php'; ?>
+    <?php include __DIR__ . '/components/header.php'; ?>
     
     <div class="admin-container">
         <div class="admin-sidebar">
