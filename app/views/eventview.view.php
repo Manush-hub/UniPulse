@@ -312,7 +312,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                                 </div>
                             </div>
 
-                            <div id="paidTicketingSection" style="display: none;">
+                            <div id="paidTicketingSection" style="display: none; margin-top: 24px;">
                                 <div class="ticketing-type-modern">
                                     <div class="ticketing-header-modern">
                                         <div class="ticket-icon-wrapper">

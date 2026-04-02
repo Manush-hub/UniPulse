@@ -62,6 +62,8 @@ class Payment extends Controller
         $data['event_id']     = $_GET['event_id']     ?? $_SESSION['payment_event_id']     ?? '';
         $data['publisher_id'] = $_GET['publisher_id'] ?? $_SESSION['payment_publisher_id'] ?? '';
         $data['quantity']     = $_GET['quantity']     ?? $_SESSION['payment_quantity']     ?? 1;
+        $data['ticket_tier'] = $_GET['ticket_tier'] ?? $_SESSION['payment_ticket_tier'] ?? 'General';
+        $data['tickets_metadata'] = $_GET['tickets_metadata'] ?? $_SESSION['payment_tickets_metadata'] ?? null;
 
         // Set item description based on payment type
         if ($data['payment_type'] === 'boost') {
@@ -77,6 +79,8 @@ class Payment extends Controller
         if ($data['event_id'] !== '')     $_SESSION['payment_event_id']    = $data['event_id'];
         if ($data['publisher_id'] !== '') $_SESSION['payment_publisher_id'] = $data['publisher_id'];
         $_SESSION['payment_quantity'] = max(1, (int)$data['quantity']);
+        $_SESSION['payment_ticket_tier'] = $data['ticket_tier'];
+        if ($data['tickets_metadata']) $_SESSION['payment_tickets_metadata'] = $data['tickets_metadata'];
         $_SESSION['payment_description'] = $data['item_description'];
 
         // Calculate commission for ticket sales only (5%)
@@ -103,6 +107,7 @@ class Payment extends Controller
         $data['payment_date'] = $_SESSION['payment_date'] ?? date('F j, Y');
         $data['payment_time'] = $_SESSION['payment_time'] ?? date('g:i A');
         $data['event_id'] = $_SESSION['payment_completed_event_id'] ?? null;
+        $data['order_number'] = $_SESSION['payment_order_number'] ?? null;
 
         $currentUserType = $_SESSION['user_type'] ?? null;
         if (!empty($data['event_id']) && in_array($currentUserType, ['public', 'university'], true)) {
@@ -120,6 +125,7 @@ class Payment extends Controller
         unset($_SESSION['payment_date']);
         unset($_SESSION['payment_time']);
         unset($_SESSION['payment_completed_event_id']);
+        unset($_SESSION['payment_order_number']);
 
         $this->view('payment_success', $data);
     }
@@ -424,6 +430,7 @@ class Payment extends Controller
         $_SESSION['payment_date']               = date('F j, Y');
         $_SESSION['payment_time']               = date('g:i A');
         $_SESSION['payment_completed_event_id'] = $completedEventId;
+        $_SESSION['payment_order_number']       = $orderId;
 
         unset($_SESSION['payhere_order_id'], $_SESSION['payhere_amount'], $_SESSION['payhere_event_id']);
         // Clear boost session variables
@@ -669,14 +676,19 @@ class Payment extends Controller
                     }
 
                     $whereParts = [];
+                    $queryParams = [];
+                    
                     if (in_array('transaction_id', $paymentsColumns, true)) {
-                        $whereParts[] = 'transaction_id = :ref';
+                        $whereParts[] = 'transaction_id = :ref1';
+                        $queryParams['ref1'] = $paymentReference;
                     }
                     if (in_array('payhere_payment_id', $paymentsColumns, true)) {
-                        $whereParts[] = 'payhere_payment_id = :ref';
+                        $whereParts[] = 'payhere_payment_id = :ref2';
+                        $queryParams['ref2'] = $paymentReference;
                     }
                     if (in_array('payhere_order_id', $paymentsColumns, true)) {
-                        $whereParts[] = 'payhere_order_id = :ref';
+                        $whereParts[] = 'payhere_order_id = :ref3';
+                        $queryParams['ref3'] = $paymentReference;
                     }
 
                     if (!empty($whereParts)) {
@@ -686,7 +698,7 @@ class Payment extends Controller
                              WHERE " . implode(' OR ', $whereParts) . "
                              ORDER BY id DESC
                              LIMIT 1",
-                            ['ref' => $paymentReference]
+                             $queryParams
                         );
 
                         if (!empty($paymentResult)) {
@@ -714,7 +726,6 @@ class Payment extends Controller
             if ($ticketQuantity <= 0) {
                 $ticketQuantity = 1;
             }
-            $unitPrice = $ticketQuantity > 0 ? round($resolvedAmount / $ticketQuantity, 2) : $resolvedAmount;
 
             $userInfo = $this->getUserSnapshotForPaidRegistration($userId, $userType);
 
@@ -752,6 +763,15 @@ class Payment extends Controller
                 $paymentTransactionId = substr((string)$paymentTransactionId, 0, 100);
             }
 
+            $metadataArray = [
+                'source' => 'payment_success',
+                'payment_reference' => $paymentReference,
+                'payment_type' => 'ticket'
+            ];
+            if (!empty($_SESSION['payment_tickets_metadata'])) {
+                $metadataArray['ticket_breakdown'] = json_decode($_SESSION['payment_tickets_metadata'], true);
+            }
+
             return $paidRegistrationModel->upsertByPaymentReference([
                 'event_id' => $eventId,
                 'publisher_id' => (isset($event->created_by_type) && $event->created_by_type === 'publisher' && isset($event->created_by)) ? (int)$event->created_by : null,
@@ -764,9 +784,8 @@ class Payment extends Controller
                 'registered_user_email_snapshot' => (string)($userInfo['email'] ?? ''),
                 'registered_user_phone_snapshot' => (string)($userInfo['phone'] ?? ''),
                 'order_number' => (string)$orderNumber,
-                'ticket_tier_name' => 'General',
+                'ticket_tier_name' => $_SESSION['payment_ticket_tier'] ?? 'General',
                 'ticket_quantity' => $ticketQuantity,
-                'unit_price' => $unitPrice,
                 'currency_code' => 'LKR',
                 'subtotal_amount' => $resolvedAmount,
                 'discount_amount' => 0.00,
@@ -780,11 +799,7 @@ class Payment extends Controller
                 'paid_at' => $paidAt,
                 'registration_status' => 'confirmed',
                 'registration_source' => 'web',
-                'metadata' => [
-                    'source' => 'payment_success',
-                    'payment_reference' => $paymentReference,
-                    'payment_type' => 'ticket'
-                ]
+                'metadata' => $metadataArray
             ]);
         } catch (Throwable $e) {
             error_log('[Payment] Failed to sync paid_event_registrations: ' . $e->getMessage());

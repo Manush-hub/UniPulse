@@ -33,8 +33,12 @@ class PublisherCreateevent extends Controller
             exit();
         }
 
+        $publisherModel = new Publisher();
+        $publisherDetails = $publisherModel->first(['id' => $currentUser['id']]);
+
         $data = [
-            'currentUser' => $currentUser
+            'currentUser' => $currentUser,
+            'publisherDetails' => $publisherDetails
         ];
 
         // Check if form was submitted
@@ -620,6 +624,8 @@ class PublisherCreateevent extends Controller
                 $ticketTypes = json_decode($postData['ticket_types'], true);
                 if (empty($ticketTypes) || !is_array($ticketTypes)) {
                     $errors['ticket_types'] = 'Invalid ticket types data';
+                } elseif (count($ticketTypes) > 10) {
+                    $errors['ticket_types'] = 'You can only add a maximum of 10 ticket types';
                 } else {
                     foreach ($ticketTypes as $index => $ticket) {
                         if (empty($ticket['name'])) {

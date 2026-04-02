@@ -1,3 +1,54 @@
+<?php
+$universities = [
+    'university-of-colombo' => 'University of Colombo',
+    'university-of-peradeniya' => 'University of Peradeniya',
+    'university-of-sri-jayewardenepura' => 'University of Sri Jayewardenepura',
+    'university-of-kelaniya' => 'University of Kelaniya',
+    'university-of-moratuwa' => 'University of Moratuwa',
+    'university-of-jaffna' => 'University of Jaffna',
+    'university-of-ruhuna' => 'University of Ruhuna',
+    'eastern-university' => 'Eastern University, Sri Lanka',
+    'south-eastern-university' => 'South Eastern University of Sri Lanka',
+    'rajarata-university' => 'Rajarata University of Sri Lanka',
+    'sabaragamuwa-university' => 'Sabaragamuwa University of Sri Lanka',
+    'wayamba-university' => 'Wayamba University of Sri Lanka',
+    'uva-wellassa-university' => 'Uva Wellassa University',
+    'open-university' => 'Open University of Sri Lanka',
+    'buddhist-and-pali-university' => 'Buddhist and Pali University of Sri Lanka',
+    'sliit' => 'Sri Lanka Institute of Information Technology (SLIIT)',
+    'nsbm' => 'NSBM Green University',
+    'cinec' => 'CINEC Campus',
+    'apiit' => 'Asia Pacific Institute of Information Technology (APIIT)',
+    'kiu' => 'KIU (Kaatsu International University)',
+    'metropolitan-campus' => 'KIU (Kaatsu International University)',
+    'other' => 'Other'
+];
+
+$faculties = [
+    'ucsc' => 'University of Colombo School of Computing (UCSC)',
+    'faculty-of-engineering' => 'Faculty of Engineering',
+    'faculty-of-medicine' => 'Faculty of Medicine',
+    'faculty-of-science' => 'Faculty of Science',
+    'faculty-of-management' => 'Faculty of Management and Finance',
+    'faculty-of-arts' => 'Faculty of Arts',
+    'faculty-of-law' => 'Faculty of Law',
+    'faculty-of-information-technology' => 'Faculty of Information Technology',
+    'faculty-of-applied-sciences' => 'Faculty of Applied Sciences',
+    'faculty-of-agriculture' => 'Faculty of Agriculture',
+    'faculty-of-architecture' => 'Faculty of Architecture',
+    'faculty-of-education' => 'Faculty of Education',
+    'faculty-of-social-sciences' => 'Faculty of Social Sciences',
+    'faculty-of-allied-health-sciences' => 'Faculty of Allied Health Sciences',
+    'faculty-of-dental-sciences' => 'Faculty of Dental Sciences',
+    'other' => 'Other'
+];
+
+$pubUniversity = isset($publisherDetails->university) ? $publisherDetails->university : '';
+$pubFaculty = isset($publisherDetails->faculty) ? $publisherDetails->faculty : '';
+
+$displayUniversity = isset($universities[$pubUniversity]) ? $universities[$pubUniversity] : $pubUniversity;
+$displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pubFaculty;
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,8 +61,6 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
     <style>
         /* Dropdown with scroll - show 5 items */
-        select[name="selected_university"],
-        select[name="faculty_department"],
         select[name="event_category"],
         #fieldType {
             appearance: none;
@@ -19,16 +68,12 @@
             -moz-appearance: none;
         }
 
-        select[name="selected_university"] option,
-        select[name="faculty_department"] option,
         select[name="event_category"] option,
         #fieldType option {
             padding: 10px;
         }
 
         /* Set size attribute to show 5 visible items when opened */
-        select[name="selected_university"][size],
-        select[name="faculty_department"][size],
         select[name="event_category"][size],
         #fieldType[size] {
             height: auto;
@@ -293,56 +338,16 @@
                                     <div>
                                         <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">University</label>
-                                        <select name="selected_university" class="form-select" size="1">
-                                            <option value="">Select University</option>
-                                            <!-- State Universities (15) -->
-                                            <option value="university-of-colombo">University of Colombo</option>
-                                            <option value="university-of-peradeniya">University of Peradeniya</option>
-                                            <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
-                                            <option value="university-of-kelaniya">University of Kelaniya</option>
-                                            <option value="university-of-moratuwa">University of Moratuwa</option>
-                                            <option value="university-of-jaffna">University of Jaffna</option>
-                                            <option value="university-of-ruhuna">University of Ruhuna</option>
-                                            <option value="eastern-university">Eastern University, Sri Lanka</option>
-                                            <option value="south-eastern-university">South Eastern University of Sri Lanka</option>
-                                            <option value="rajarata-university">Rajarata University of Sri Lanka</option>
-                                            <option value="sabaragamuwa-university">Sabaragamuwa University of Sri Lanka</option>
-                                            <option value="wayamba-university">Wayamba University of Sri Lanka</option>
-                                            <option value="uva-wellassa-university">Uva Wellassa University</option>
-                                            <option value="open-university">Open University of Sri Lanka</option>
-                                            <option value="buddhist-and-pali-university">Buddhist and Pali University of Sri Lanka</option>
-                                            <!-- Private Universities (5 Main) -->
-                                            <option value="sliit">Sri Lanka Institute of Information Technology (SLIIT)</option>
-                                            <option value="nsbm">NSBM Green University</option>
-                                            <option value="cinec">CINEC Campus</option>
-                                            <option value="apiit">Asia Pacific Institute of Information Technology (APIIT)</option>
-                                            <option value="kiu">KIU (Kaatsu International University)</option>
-                                            <option value="other">Other</option>
-                                        </select>
+                                        <input type="text" name="selected_university" class="form-input" readonly
+                                            value="<?php echo htmlspecialchars($displayUniversity); ?>"
+                                            style="background-color: #f9fafb; cursor: not-allowed; color: #6b7280;">
                                     </div>
                                     <div>
                                         <label class="required"
                                             style="font-size: 12px; color: #666; margin-bottom: 5px; display: block;">Faculty/Department</label>
-                                        <select name="faculty_department" class="form-select" size="1">
-                                            <option value="">Select Faculty/Department</option>
-                                            <!-- Most Famous Faculties -->
-                                            <option value="ucsc">University of Colombo School of Computing (UCSC)</option>
-                                            <option value="faculty-of-engineering">Faculty of Engineering</option>
-                                            <option value="faculty-of-medicine">Faculty of Medicine</option>
-                                            <option value="faculty-of-science">Faculty of Science</option>
-                                            <option value="faculty-of-management">Faculty of Management and Finance</option>
-                                            <option value="faculty-of-arts">Faculty of Arts</option>
-                                            <option value="faculty-of-law">Faculty of Law</option>
-                                            <option value="faculty-of-information-technology">Faculty of Information Technology</option>
-                                            <option value="faculty-of-applied-sciences">Faculty of Applied Sciences</option>
-                                            <option value="faculty-of-agriculture">Faculty of Agriculture</option>
-                                            <option value="faculty-of-architecture">Faculty of Architecture</option>
-                                            <option value="faculty-of-education">Faculty of Education</option>
-                                            <option value="faculty-of-social-sciences">Faculty of Social Sciences</option>
-                                            <option value="faculty-of-allied-health-sciences">Faculty of Allied Health Sciences</option>
-                                            <option value="faculty-of-dental-sciences">Faculty of Dental Sciences</option>
-                                            <option value="other">Other</option>
-                                        </select>
+                                        <input type="text" name="faculty_department" class="form-input" readonly
+                                            value="<?php echo htmlspecialchars($displayFaculty); ?>"
+                                            style="background-color: #f9fafb; cursor: not-allowed; color: #6b7280;">
                                     </div>
                                 </div>
 
@@ -509,18 +514,18 @@
                                             <!-- Default ticket type -->
                                             <div class="ticket-type-item" data-ticket-id="1">
                                                 <div class="ticket-type-header">
-                                                    <input type="text" class="form-input ticket-type-name" value="General Admission" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                    <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
                                                     <button type="button" class="remove-ticket-type-btn">×</button>
                                                 </div>
                                                 <div class="ticket-type-details">
                                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                                         <div>
                                                             <label class="form-label required">Quantity Available</label>
-                                                            <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
+                                                            <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1">
                                                         </div>
                                                         <div>
                                                             <label class="form-label required">Price (LKR)</label>
-                                                            <input type="number" class="form-input ticket-price" value="10" placeholder="Enter price" min="0" step="0.01">
+                                                            <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01">
                                                         </div>
                                                     </div>
 
@@ -658,18 +663,18 @@
                                                 <!-- Default ticket type -->
                                                 <div class="ticket-type-item" data-ticket-id="1">
                                                     <div class="ticket-type-header">
-                                                        <input type="text" class="form-input ticket-type-name" value="General Admission" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
+                                                        <input type="text" class="form-input ticket-type-name" placeholder="Ticket Type Name" style="max-width: 250px; margin-bottom: 0;">
                                                         <button type="button" class="remove-ticket-type-btn">×</button>
                                                     </div>
                                                     <div class="ticket-type-details">
                                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                                                             <div>
                                                                 <label class="form-label required">Quantity Available</label>
-                                                                <input type="number" class="form-input ticket-quantity" value="100" placeholder="Enter quantity" min="1">
+                                                                <input type="number" class="form-input ticket-quantity" placeholder="Enter quantity" min="1">
                                                             </div>
                                                             <div>
                                                                 <label class="form-label required">Price (LKR)</label>
-                                                                <input type="number" class="form-input ticket-price" value="15" placeholder="Enter price" min="0" step="0.01">
+                                                                <input type="number" class="form-input ticket-price" placeholder="Enter price" min="0" step="0.01">
                                                             </div>
                                                         </div>
 
@@ -1137,39 +1142,7 @@
             console.log('Form element:', document.getElementById('create-event'));
             console.log('Publish button:', document.querySelector('.publish-btn'));
 
-            const universitySelect = document.querySelector('select[name="selected_university"]');
-            const facultySelect = document.querySelector('select[name="faculty_department"]');
             const categorySelect = document.querySelector('select[name="event_category"]');
-
-            if (universitySelect) {
-                universitySelect.addEventListener('focus', function() {
-                    this.size = 5;
-                });
-
-                universitySelect.addEventListener('blur', function() {
-                    this.size = 1;
-                });
-
-                universitySelect.addEventListener('change', function() {
-                    this.size = 1;
-                    this.blur();
-                });
-            }
-
-            if (facultySelect) {
-                facultySelect.addEventListener('focus', function() {
-                    this.size = 5;
-                });
-
-                facultySelect.addEventListener('blur', function() {
-                    this.size = 1;
-                });
-
-                facultySelect.addEventListener('change', function() {
-                    this.size = 1;
-                    this.blur();
-                });
-            }
 
             if (categorySelect) {
                 categorySelect.addEventListener('focus', function() {
@@ -1461,15 +1434,15 @@
 
                 if (locationType === 'inside-university') {
                     // Validate University
-                    const universitySelect = document.querySelector('select[name="selected_university"]');
-                    const university = universitySelect ? universitySelect.value : '';
+                    const universityInput = document.querySelector('input[name="selected_university"]');
+                    const university = universityInput ? universityInput.value : '';
                     if (!university) {
-                        errors.push('University selection is required for inside university events');
+                        errors.push('University is required for inside university events');
                     }
 
                     // Validate Faculty/Department
-                    const facultySelect = document.querySelector('select[name="faculty_department"]');
-                    const faculty = facultySelect ? facultySelect.value : '';
+                    const facultyInput = document.querySelector('input[name="faculty_department"]');
+                    const faculty = facultyInput ? facultyInput.value : '';
                     if (!faculty) {
                         errors.push('Faculty/Department is required for inside university events');
                     }
@@ -1733,6 +1706,11 @@
 
             if (ticketItems.length === 0) {
                 errors.push('At least one ticket type is required for paid events');
+                return;
+            }
+
+            if (ticketItems.length > 10) {
+                errors.push('You cannot add more than 10 ticket types');
                 return;
             }
 
@@ -2392,6 +2370,11 @@
 
         // Make function globally accessible
         window.handleProposalFileSelect = handleProposalFileSelect;
+
+        // Auto-fill university and faculty when inside-university is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown size listeners for university and faculty removed because they're now read-only text inputs
+        });
     </script>
 </body>
 

@@ -400,6 +400,7 @@ class UserDashboard extends Controller
                         'university' => $event->university_name,
                         'image_url' => $event->image_url,
                         'organizer' => $event->organizer,
+                        'order_number' => $event->order_number ?? null,
                         'max_participants' => $event->max_participants,
                         'current_participants' => $event->current_participants ?? 0
                     ];

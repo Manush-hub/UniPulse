@@ -1527,23 +1527,25 @@ function displayRegistrationTicketing(event) {
 
     } else if (ticketType === 'mixed') {
         // Scenario 3: Mixed - Free for uni students, Paid for others
-        mixedSection.style.display = 'block';
+        // We show BOTH the Free section (blue box) and Paid section (tickets list)
+        freeSection.style.display = 'block';
+        paidSection.style.display = 'block';
 
-        const studentRegRequired = document.getElementById('studentRegRequired');
-        const studentNoRegRequired = document.getElementById('studentNoRegRequired');
+        const freeRegRequired = document.getElementById('freeRegRequired');
+        const freeNoRegRequired = document.getElementById('freeNoRegRequired');
+        const freeEntrySubtitle = document.getElementById('freeEntrySubtitle');
 
         if (requiresRegistration) {
             // Free WITH registration for students
-            if (studentRegRequired) studentRegRequired.style.display = 'block';
-            if (studentNoRegRequired) studentNoRegRequired.style.display = 'none';
+            if (freeRegRequired) freeRegRequired.style.display = 'block';
+            if (freeNoRegRequired) freeNoRegRequired.style.display = 'none';
+            if (freeEntrySubtitle) freeEntrySubtitle.textContent = 'Free for University Students. Paid tickets are for public users.';
         } else {
             // Free WITHOUT registration for students (walk-in with student ID)
-            if (studentRegRequired) studentRegRequired.style.display = 'none';
-            if (studentNoRegRequired) studentNoRegRequired.style.display = 'block';
+            if (freeRegRequired) freeRegRequired.style.display = 'none';
+            if (freeNoRegRequired) freeNoRegRequired.style.display = 'block';
+            if (freeEntrySubtitle) freeEntrySubtitle.textContent = 'Free walk-in for University Students. Paid tickets are for public users.';
         }
-
-        // Display public tickets in the details card
-        displayMixedPublicTickets(event);
     }
 }
 

@@ -208,7 +208,14 @@ class UserPaymentgateway extends Controller
 
                     $ticketQuantity = max(1, (int)$quantity);
                     $totalAmount = (float)$amount;
-                    $unitPrice = round($totalAmount / $ticketQuantity, 2);
+
+                    $metadataArray = [
+                        'source' => 'user_paymentgateway_process_payment',
+                        'payment_type' => 'ticket'
+                    ];
+                    if (!empty($_SESSION['payment_tickets_metadata'])) {
+                        $metadataArray['ticket_breakdown'] = json_decode($_SESSION['payment_tickets_metadata'], true);
+                    }
 
                     $paidRegistrationModel->upsertByPaymentReference([
                         'event_id' => (int)$eventId,
@@ -220,9 +227,8 @@ class UserPaymentgateway extends Controller
                         'registered_user_name_snapshot' => (string)($_SESSION['user_name'] ?? ''),
                         'registered_user_email_snapshot' => (string)($_SESSION['user_email'] ?? ''),
                         'order_number' => substr('ORD-' . $eventId . '-' . $_SESSION['user_id'] . '-' . substr(md5($transactionId), 0, 8), 0, 40),
-                        'ticket_tier_name' => 'General',
+                        'ticket_tier_name' => $_POST['ticket_tier_name'] ?? $_SESSION['payment_ticket_tier'] ?? 'General',
                         'ticket_quantity' => $ticketQuantity,
-                        'unit_price' => $unitPrice,
                         'currency_code' => 'LKR',
                         'subtotal_amount' => $totalAmount,
                         'discount_amount' => 0.00,
@@ -236,10 +242,7 @@ class UserPaymentgateway extends Controller
                         'paid_at' => date('Y-m-d H:i:s'),
                         'registration_status' => 'confirmed',
                         'registration_source' => 'web',
-                        'metadata' => [
-                            'source' => 'user_paymentgateway_process_payment',
-                            'payment_type' => 'ticket'
-                        ]
+                        'metadata' => $metadataArray
                     ]);
                 } catch (Throwable $paidSyncError) {
                     error_log('Paid registration sync failed in UserPaymentgateway::processPayment: ' . $paidSyncError->getMessage());
