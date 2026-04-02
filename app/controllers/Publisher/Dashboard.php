@@ -46,6 +46,7 @@ class PublisherDashboard extends Controller
 
             $eventModel = new Event();
             $activityModel = new Activity();
+            $notificationModel = new Notification();
 
             $notifications = [];
             $unreadCount = 0;
@@ -70,16 +71,7 @@ class PublisherDashboard extends Controller
             ], $currentUser);
 
             if (!$events) {
-                usort($notifications, function ($a, $b) {
-                    return strtotime($b['created_at'] ?? '1970-01-01 00:00:00') <=> strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
-                });
-
-                echo json_encode([
-                    'success' => true,
-                    'notifications' => array_slice($notifications, 0, 10),
-                    'unread_count' => $unreadCount
-                ]);
-                return;
+                $events = [];
             }
 
             $otherPublisherEvents = [];
@@ -93,49 +85,75 @@ class PublisherDashboard extends Controller
                 }
             }
 
-            if (empty($otherPublisherEvents)) {
-                usort($notifications, function ($a, $b) {
-                    return strtotime($b['created_at'] ?? '1970-01-01 00:00:00') <=> strtotime($a['created_at'] ?? '1970-01-01 00:00:00');
+            if (!empty($otherPublisherEvents)) {
+                usort($otherPublisherEvents, function ($a, $b) {
+                    $aTime = strtotime($a->updated_at ?? $a->created_at ?? '1970-01-01 00:00:00');
+                    $bTime = strtotime($b->updated_at ?? $b->created_at ?? '1970-01-01 00:00:00');
+                    return $bTime <=> $aTime;
                 });
 
-                echo json_encode([
-                    'success' => true,
-                    'notifications' => array_slice($notifications, 0, 10),
-                    'unread_count' => $unreadCount
-                ]);
-                return;
+                foreach ($otherPublisherEvents as $event) {
+                    $notificationTime = $event->updated_at ?? $event->created_at ?? date('Y-m-d H:i:s');
+                    $eventId = (int)($event->id ?? 0);
+                    $notificationKey = 'event|' . $eventId . '|' . $notificationTime;
+
+                    $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
+                    $isMarkedIndividually = in_array($notificationKey, $readItems, true);
+                    $isUnread = !($isMarkedByTime || $isMarkedIndividually);
+
+                    if ($isUnread) {
+                        $unreadCount++;
+                    }
+
+                    $notifications[] = [
+                        'id' => $eventId,
+                        'title' => 'New Event Published',
+                        'message' => ($event->title ?? 'A new event') . ' is now available in All Events.',
+                        'time' => $this->formatRelativeTime($notificationTime),
+                        'read' => !$isUnread,
+                        'created_at' => $notificationTime,
+                        'notification_key' => $notificationKey,
+                        'notification_category' => 'new_event_published',
+                        'redirect_url' => '/unipulse/public/publisher/eventview?id=' . $eventId
+                    ];
+                }
             }
 
-            usort($otherPublisherEvents, function ($a, $b) {
-                $aTime = strtotime($a->updated_at ?? $a->created_at ?? '1970-01-01 00:00:00');
-                $bTime = strtotime($b->updated_at ?? $b->created_at ?? '1970-01-01 00:00:00');
-                return $bTime <=> $aTime;
-            });
+            // Include stored notifications (comments, volunteer applications, etc.).
+            $storedNotifications = $notificationModel->getUserNotifications($publisherId, 'publisher', 50);
+            foreach ($storedNotifications ?: [] as $notification) {
+                $relatedId = (int)($notification->related_id ?? 0);
+                $createdAt = $notification->created_at ?? date('Y-m-d H:i:s');
+                $notificationKey = 'db|' . (int)$notification->id;
+                $title = (string)($notification->title ?? 'Notification');
+                $notificationType = strtolower((string)($notification->type ?? 'notification'));
+                $isVolunteerNotification =
+                    stripos($title, 'volunteer application') !== false ||
+                    $notificationType === 'volunteer_registration';
 
-            foreach ($otherPublisherEvents as $event) {
-                $notificationTime = $event->updated_at ?? $event->created_at ?? date('Y-m-d H:i:s');
-                $eventId = (int)($event->id ?? 0);
-                $notificationKey = 'event|' . $eventId . '|' . $notificationTime;
-
-                $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
-                $isMarkedIndividually = in_array($notificationKey, $readItems, true);
-                $isUnread = !($isMarkedByTime || $isMarkedIndividually);
-
-                if ($isUnread) {
-                    $unreadCount++;
+                $redirectUrl = '/unipulse/public/publisher/dashboard';
+                if ($isVolunteerNotification) {
+                    $redirectUrl = '/unipulse/public/publisher/dashboard#volunteer-management';
+                } elseif ($relatedId > 0) {
+                    $redirectUrl = '/unipulse/public/publisher/eventview?id=' . $relatedId;
                 }
 
                 $notifications[] = [
-                    'id' => $eventId,
-                    'title' => 'New Event Published',
-                    'message' => ($event->title ?? 'A new event') . ' is now available in All Events.',
-                    'time' => $this->formatRelativeTime($notificationTime),
-                    'read' => !$isUnread,
-                    'created_at' => $notificationTime,
+                    'id' => $relatedId,
+                    'notification_id' => (int)$notification->id,
+                    'title' => $title,
+                    'message' => (string)($notification->message ?? ''),
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'read' => (bool)($notification->is_read ?? 0),
+                    'created_at' => $createdAt,
                     'notification_key' => $notificationKey,
-                    'notification_category' => 'new_event_published',
-                    'redirect_url' => '/unipulse/public/publisher/eventview?id=' . $eventId
+                    'notification_category' => (string)($notification->type ?? 'notification'),
+                    'redirect_url' => $redirectUrl
                 ];
+
+                if (!(bool)($notification->is_read ?? 0)) {
+                    $unreadCount++;
+                }
             }
 
             usort($notifications, function ($a, $b) {
@@ -172,7 +190,19 @@ class PublisherDashboard extends Controller
 
         $payload = json_decode(file_get_contents('php://input'), true) ?? [];
         $eventId = (int)($payload['event_id'] ?? 0);
+        $notificationId = (int)($payload['notification_id'] ?? 0);
         $createdAt = trim((string)($payload['created_at'] ?? ''));
+
+        if ($notificationId > 0) {
+            $notificationModel = new Notification();
+            $result = $notificationModel->markAsRead($notificationId, (int)$currentUser['id'], 'publisher');
+
+            echo json_encode([
+                'success' => (bool)$result,
+                'message' => $result ? 'Notification marked as read' : 'Failed to mark notification as read'
+            ]);
+            return;
+        }
 
         if ($eventId <= 0 || $createdAt === '') {
             echo json_encode(['success' => false, 'error' => 'Invalid notification payload']);
@@ -215,6 +245,9 @@ class PublisherDashboard extends Controller
         $sessionKey = 'publisher_event_notifications_last_read_at_' . (int)$currentUser['id'];
         $_SESSION[$sessionKey] = date('Y-m-d H:i:s');
         $_SESSION['publisher_event_notifications_read_items_' . (int)$currentUser['id']] = [];
+
+        $notificationModel = new Notification();
+        $notificationModel->markAllAsRead((int)$currentUser['id'], 'publisher');
 
         echo json_encode([
             'success' => true,
