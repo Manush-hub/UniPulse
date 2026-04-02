@@ -249,17 +249,32 @@ function displayUpcomingEvents(events) {
     const carousel = document.getElementById('upcomingEventsCarousel');
     if (!carousel) return;
 
-    if (!events || events.length === 0) {
+    const upcomingEvents = Array.isArray(events)
+        ? events.filter(isFutureEvent)
+        : [];
+
+    if (upcomingEvents.length === 0) {
         carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
         return;
     }
 
     carousel.innerHTML = '';
 
-    events.forEach(event => {
+    upcomingEvents.forEach(event => {
         const eventCard = createUpcomingEventCard(event);
         carousel.appendChild(eventCard);
     });
+}
+
+function isFutureEvent(event) {
+    if (!event || !event.date) return false;
+
+    const eventDateTime = new Date(`${event.date} ${event.time && String(event.time).trim() ? event.time : '23:59:59'}`);
+    if (Number.isNaN(eventDateTime.getTime())) {
+        return false;
+    }
+
+    return eventDateTime.getTime() >= Date.now();
 }
 
 // Create upcoming event card

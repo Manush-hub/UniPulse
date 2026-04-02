@@ -52,10 +52,25 @@
             text-transform: capitalize;
         }
 
-        .status-new { background: #dbeafe; color: #1e40af; }
-        .status-in_progress { background: #fef3c7; color: #92400e; }
-        .status-completed { background: #dcfce7; color: #166534; }
-        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-in_progress {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         .password-request-reply {
             margin-top: 0.45rem;
@@ -70,7 +85,7 @@
 
 <body>
     <!-- Header -->
-     <?php
+    <?php
     $pageConfig = ['activeNav' => 'dashboard'];
     include __DIR__ . '/components/header.php';
     ?>
@@ -128,7 +143,7 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Performance Overview</h2>
-                    <a href="analytics.html" class="view-all">Detailed Reports</a>
+                    <a href="/unipulse/public/sponsor/dashboard/monthlyEvaluation" class="view-all">Monthly Evaluation</a>
                 </div>
                 <div class="performance-cards">
                     <div class="performance-card">

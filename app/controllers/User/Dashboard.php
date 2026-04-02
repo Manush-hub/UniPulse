@@ -384,9 +384,8 @@ class UserDashboard extends Controller
             // Get user's registered events (upcoming only)
             $registeredEvents = $eventRegistration->getUserRegisteredEvents($userId, $userType, 'registered');
 
-            // Filter for upcoming events only (event_date >= today)
+            // Filter for upcoming events only (event datetime >= now)
             $upcomingEvents = [];
-            $allRegisteredEvents = [];
             if ($registeredEvents) {
                 foreach ($registeredEvents as $event) {
                     $mappedEvent = [
@@ -404,23 +403,23 @@ class UserDashboard extends Controller
                         'current_participants' => $event->current_participants ?? 0
                     ];
 
-                    $allRegisteredEvents[] = $mappedEvent;
-
-                    $eventDate = strtotime($event->event_date);
-                    if ($eventDate >= strtotime('today')) {
+                    $eventDateTime = trim((string)$event->event_date . ' ' . ((string)$event->event_time !== '' ? (string)$event->event_time : '23:59:59'));
+                    $eventTimestamp = strtotime($eventDateTime);
+                    if ($eventTimestamp !== false && $eventTimestamp >= time()) {
                         $upcomingEvents[] = $mappedEvent;
                     }
                 }
             }
 
-            // Fallback: if strict upcoming filter has no results, show registered events
-            if (empty($upcomingEvents) && !empty($allRegisteredEvents)) {
-                $upcomingEvents = $allRegisteredEvents;
-            }
-
-            // Sort by event date (earliest first)
+            // Sort by event datetime (earliest first)
             usort($upcomingEvents, function ($a, $b) {
-                return strtotime($a['date']) - strtotime($b['date']);
+                $aDateTime = trim((string)$a['date'] . ' ' . ((string)$a['time'] !== '' ? (string)$a['time'] : '23:59:59'));
+                $bDateTime = trim((string)$b['date'] . ' ' . ((string)$b['time'] !== '' ? (string)$b['time'] : '23:59:59'));
+
+                $aTimestamp = strtotime($aDateTime) ?: 0;
+                $bTimestamp = strtotime($bDateTime) ?: 0;
+
+                return $aTimestamp - $bTimestamp;
             });
 
             echo json_encode([
@@ -833,7 +832,7 @@ class UserDashboard extends Controller
             $eventReg = new EventRegistration();
 
             // Get data
-            $volunteering = $volunteerReg->getUserMonthlyVolunteering($userId, $userType, $month) ?? [];
+            $volunteering = $this->filterAcceptedVolunteering($volunteerReg->getUserMonthlyVolunteering($userId, $userType, $month) ?? []);
             $donations = $donation->getUserMonthlyDonations($userId, $userType, $month) ?? [];
             $participation = $eventReg->getUserMonthlyParticipation($userId, $userType, $month) ?? [];
             $donationTotal = floatval($donation->getUserMonthlyDonationTotal($userId, $userType, $month) ?? 0);
@@ -960,6 +959,8 @@ class UserDashboard extends Controller
         $headerBottom = 688;
         $headerHeight = 104;
 
+        $volunteering = $this->filterAcceptedVolunteering($volunteering);
+
         // Page background + branded top banner.
         $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, $pageBackground);
         $content .= $this->pdfLinearGradientRect(0, $headerBottom, $pageWidth, $headerHeight, $brandPrimary, $brandSecondary, 56);
@@ -1013,7 +1014,7 @@ class UserDashboard extends Controller
         $tableX = $marginX;
         $tableW = $contentWidth;
         $headerY = 532;
-        $rowH = 20;
+        $rowH = 18;
         $amountX = $tableX + $tableW - 205;
         $statusX = $tableX + $tableW - 70;
 
@@ -1024,13 +1025,13 @@ class UserDashboard extends Controller
         $content .= $this->pdfText($amountX, $headerY + 6, 'AMOUNT', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($statusX, $headerY + 6, 'STATUS', 'F2', 8.5, [255, 255, 255]);
 
-        $maxDonationRows = 6;
+        $maxDonationRows = 4;
         $donationRows = array_slice($donations, 0, $maxDonationRows);
         $rowY = $headerY - $rowH;
 
         if (empty($donationRows)) {
             $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
-            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No donations recorded for this month.', 'F1', 9, $textMuted);
+            $content .= $this->pdfText($tableX + 10, $rowY + 5, 'No donations recorded for this month.', 'F1', 8.5, $textMuted);
             $rowY -= $rowH;
         } else {
             foreach ($donationRows as $index => $donation) {
@@ -1044,26 +1045,26 @@ class UserDashboard extends Controller
                 $status = ($statusRaw === 'accepted' || $statusRaw === 'completed') ? 'Completed' : (($statusRaw === 'rejected' || $statusRaw === 'failed' || $statusRaw === 'refunded') ? 'Rejected' : 'Pending');
                 $statusColor = ($status === 'Completed') ? [22, 163, 74] : (($status === 'Rejected') ? [220, 38, 38] : [245, 158, 11]);
 
-                $content .= $this->pdfText($tableX + 10, $rowY + 6, (string)($index + 1), 'F1', 8.5, $textDark);
-                $content .= $this->pdfText($tableX + 34, $rowY + 6, $this->truncatePDFText($name, 32), 'F2', 8.5, $textDark);
-                $content .= $this->pdfText($tableX + 210, $rowY + 6, $date, 'F1', 8.5, $textMuted);
-                $content .= $this->pdfText($amountX, $rowY + 6, $amount, 'F2', 8.5, $textDark);
-                $content .= $this->pdfText($statusX, $rowY + 6, $status, 'F2', 8.5, $statusColor);
+                $content .= $this->pdfText($tableX + 10, $rowY + 5, (string)($index + 1), 'F1', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 34, $rowY + 5, $this->truncatePDFText($name, 32), 'F2', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 210, $rowY + 5, $date, 'F1', 8.0, $textMuted);
+                $content .= $this->pdfText($amountX, $rowY + 5, $amount, 'F2', 8.0, $textDark);
+                $content .= $this->pdfText($statusX, $rowY + 5, $status, 'F2', 8.0, $statusColor);
 
                 $rowY -= $rowH;
             }
         }
 
         $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 247, 237]);
-        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Total Donations', 'F2', 9.5, $brandPrimary);
-        $content .= $this->pdfText($tableX + $tableW - 130, $rowY + 6, 'LKR ' . number_format($donationTotal, 2), 'F2', 9.5, $brandPrimary);
+        $content .= $this->pdfText($tableX + 10, $rowY + 5, 'Total Donations', 'F2', 9.0, $brandPrimary);
+        $content .= $this->pdfText($tableX + $tableW - 130, $rowY + 5, 'LKR ' . number_format($donationTotal, 2), 'F2', 9.0, $brandPrimary);
 
         // Participation section.
-        $sectionTitleY = $rowY - 40;
+        $sectionTitleY = $rowY - 34;
         $content .= $this->pdfText($marginX, $sectionTitleY, 'Event Participation', 'F2', 13, $brandPrimary);
         $content .= $this->pdfLine($marginX, $sectionTitleY - 5, $contentRight, $sectionTitleY - 5, $lineColor, 1);
 
-        $pHeaderY = $sectionTitleY - 33;
+        $pHeaderY = $sectionTitleY - 30;
         $content .= $this->pdfLinearGradientRect($tableX, $pHeaderY, $tableW, $rowH, $brandPrimary, $brandSecondary, 22);
         $content .= $this->pdfText($tableX + 10, $pHeaderY + 6, '#', 'F2', 8.5, [255, 255, 255]);
         $content .= $this->pdfText($tableX + 34, $pHeaderY + 6, 'EVENT NAME', 'F2', 8.5, [255, 255, 255]);
@@ -1071,12 +1072,12 @@ class UserDashboard extends Controller
         $content .= $this->pdfText($tableX + 410, $pHeaderY + 6, 'AMOUNT PAID', 'F2', 8.5, [255, 255, 255]);
 
         $pRowY = $pHeaderY - $rowH;
-        $maxParticipationRows = 7;
+        $maxParticipationRows = 5;
         $participationRows = array_slice($participation, 0, $maxParticipationRows);
 
         if (empty($participationRows)) {
             $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
-            $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'No event participation for this month.', 'F1', 9, $textMuted);
+            $content .= $this->pdfText($tableX + 10, $pRowY + 5, 'No event participation for this month.', 'F1', 8.5, $textMuted);
         } else {
             foreach ($participationRows as $index => $event) {
                 $bg = (($index % 2) === 0) ? [255, 255, 255] : [248, 250, 252];
@@ -1088,10 +1089,10 @@ class UserDashboard extends Controller
                 $amountPaid = $amountPaidValue > 0 ? ('LKR ' . number_format($amountPaidValue, 2)) : 'FREE';
                 $amountColor = $amountPaidValue > 0 ? $textDark : [31, 151, 84];
 
-                $content .= $this->pdfText($tableX + 10, $pRowY + 6, (string)($index + 1), 'F1', 8.5, $textDark);
-                $content .= $this->pdfText($tableX + 34, $pRowY + 6, $this->truncatePDFText($eventName, 40), 'F2', 8.5, $textDark);
-                $content .= $this->pdfText($tableX + 290, $pRowY + 6, $this->truncatePDFText($ticketType, 14), 'F1', 8.5, $textMuted);
-                $content .= $this->pdfText($tableX + 410, $pRowY + 6, $amountPaid, 'F2', 8.5, $amountColor);
+                $content .= $this->pdfText($tableX + 10, $pRowY + 5, (string)($index + 1), 'F1', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 34, $pRowY + 5, $this->truncatePDFText($eventName, 40), 'F2', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 290, $pRowY + 5, $this->truncatePDFText($ticketType, 14), 'F1', 8.0, $textMuted);
+                $content .= $this->pdfText($tableX + 410, $pRowY + 5, $amountPaid, 'F2', 8.0, $amountColor);
 
                 $pRowY -= $rowH;
             }
@@ -1099,29 +1100,70 @@ class UserDashboard extends Controller
 
         // Total event spending row (matches donations summary row pattern).
         $content .= $this->pdfRect($tableX, $pRowY, $tableW, $rowH, [255, 247, 237]);
-        $content .= $this->pdfText($tableX + 10, $pRowY + 6, 'Total Event Spending', 'F2', 9.5, $brandPrimary);
-        $content .= $this->pdfText($tableX + $tableW - 130, $pRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9.5, $brandPrimary);
-        $pRowY -= 32;
+        $content .= $this->pdfText($tableX + 10, $pRowY + 5, 'Total Event Spending', 'F2', 9.0, $brandPrimary);
+        $content .= $this->pdfText($tableX + $tableW - 130, $pRowY + 5, 'LKR ' . number_format($eventSpending, 2), 'F2', 9.0, $brandPrimary);
+        $pRowY -= 28;
+
+        // Volunteering section.
+        $volunteerTitleY = $pRowY;
+        $content .= $this->pdfText($marginX, $volunteerTitleY, 'Accepted Volunteering', 'F2', 13, $brandPrimary);
+        $content .= $this->pdfLine($marginX, $volunteerTitleY - 5, $contentRight, $volunteerTitleY - 5, $lineColor, 1);
+
+        $content .= $this->pdfText($marginX, $volunteerTitleY - 18, 'Accepted records only', 'F1', 8.5, $textMuted);
+
+        $vHeaderY = $volunteerTitleY - 30;
+        $content .= $this->pdfLinearGradientRect($tableX, $vHeaderY, $tableW, $rowH, $brandPrimary, $brandSecondary, 22);
+        $content .= $this->pdfText($tableX + 10, $vHeaderY + 5, '#', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 34, $vHeaderY + 5, 'EVENT NAME', 'F2', 8.5, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 245, $vHeaderY + 5, 'POSITION', 'F2', 8.0, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 365, $vHeaderY + 5, 'DATE', 'F2', 8.0, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 452, $vHeaderY + 5, 'STATUS', 'F2', 8.0, [255, 255, 255]);
+
+        $vRowY = $vHeaderY - $rowH;
+        $maxVolunteerRows = 4;
+        $volunteerRows = array_slice($volunteering, 0, $maxVolunteerRows);
+
+        if (empty($volunteerRows)) {
+            $content .= $this->pdfRect($tableX, $vRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
+            $content .= $this->pdfText($tableX + 10, $vRowY + 5, 'No accepted volunteering activities this month.', 'F1', 8.5, $textMuted);
+        } else {
+            foreach ($volunteerRows as $index => $volunteer) {
+                $bg = (($index % 2) === 0) ? [255, 255, 255] : [248, 250, 252];
+                $content .= $this->pdfRect($tableX, $vRowY, $tableW, $rowH, $bg, $lineColor, 0.6);
+
+                $eventName = $volunteer->title ?? 'Volunteer Activity';
+                $position = $volunteer->volunteer_position ?? 'Volunteer';
+                $date = $this->formatPDFDate($volunteer->event_date ?? null);
+
+                $content .= $this->pdfText($tableX + 10, $vRowY + 5, (string)($index + 1), 'F1', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 34, $vRowY + 5, $this->truncatePDFText($eventName, 26), 'F2', 8.0, $textDark);
+                $content .= $this->pdfText($tableX + 245, $vRowY + 5, $this->truncatePDFText($position, 16), 'F1', 8.0, $textMuted);
+                $content .= $this->pdfText($tableX + 365, $vRowY + 5, $date, 'F1', 8.0, $textMuted);
+                $content .= $this->pdfText($tableX + 452, $vRowY + 5, 'Accepted', 'F2', 7.5, [22, 163, 74]);
+
+                $vRowY -= $rowH;
+            }
+        }
 
         // Total spendings section.
-        $spendingTitleY = $pRowY;
+        $spendingTitleY = $vRowY - 18;
         $content .= $this->pdfText($marginX, $spendingTitleY, 'Total Spendings', 'F2', 13, $brandPrimary);
         $content .= $this->pdfLine($marginX, $spendingTitleY - 5, $contentRight, $spendingTitleY - 5, $lineColor, 1);
 
-        $spendingRowY = $spendingTitleY - 28;
+        $spendingRowY = $spendingTitleY - 24;
         $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
-        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Donations', 'F1', 9, $textDark);
-        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($donationTotal, 2), 'F2', 9, $textDark);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 5, 'Donations', 'F1', 8.5, $textDark);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 5, 'LKR ' . number_format($donationTotal, 2), 'F2', 8.5, $textDark);
 
         $spendingRowY -= $rowH;
         $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 255, 255], $lineColor, 0.6);
-        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Event Spending', 'F1', 9, $textDark);
-        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($eventSpending, 2), 'F2', 9, $textDark);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 5, 'Event Spending', 'F1', 8.5, $textDark);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 5, 'LKR ' . number_format($eventSpending, 2), 'F2', 8.5, $textDark);
 
         $spendingRowY -= $rowH;
         $content .= $this->pdfRect($tableX, $spendingRowY, $tableW, $rowH, [255, 237, 213], $lineColor, 0.8);
-        $content .= $this->pdfText($tableX + 10, $spendingRowY + 6, 'Overall Spending', 'F2', 9.5, [194, 65, 12]);
-        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 6, 'LKR ' . number_format($spendingsTotal, 2), 'F2', 9.5, [194, 65, 12]);
+        $content .= $this->pdfText($tableX + 10, $spendingRowY + 5, 'Overall Spending', 'F2', 9.0, [194, 65, 12]);
+        $content .= $this->pdfText($tableX + $tableW - 130, $spendingRowY + 5, 'LKR ' . number_format($spendingsTotal, 2), 'F2', 9.0, [194, 65, 12]);
 
         // Footer band.
         $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 28, $brandPrimary, $brandSecondary, 36);
@@ -1416,6 +1458,18 @@ class UserDashboard extends Controller
         }
 
         return date('M d, Y', $timestamp);
+    }
+
+    private function filterAcceptedVolunteering($volunteering)
+    {
+        if (!is_array($volunteering)) {
+            return [];
+        }
+
+        return array_values(array_filter($volunteering, function ($volunteer) {
+            $status = strtolower((string)($volunteer->volunteer_status ?? $volunteer->status ?? ''));
+            return $status === 'accepted';
+        }));
     }
 
     /**
