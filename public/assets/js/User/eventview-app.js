@@ -16,6 +16,25 @@ const eventsData = [
         participants: 250,
         maxParticipants: 300,
         image: null,
+        ticketType: 'paid',
+        ticketTypes: [
+            {
+                id: 1,
+                name: 'General Admission',
+                price: 1000,
+                quantity: 200,
+                available: 150,
+                description: 'Standard entry ticket with access to all sessions.'
+            },
+            {
+                id: 2,
+                name: 'VIP Pass',
+                price: 2500,
+                quantity: 50,
+                available: 20,
+                description: 'Priority seating, exclusive networking dinner, and conference kit.'
+            }
+        ],
         schedule: [
             { time: "09:00 AM", activity: "Registration & Welcome Coffee" },
             { time: "10:00 AM", activity: "Keynote: Future of AI" },
@@ -48,6 +67,36 @@ const eventsData = [
         participants: 150,
         maxParticipants: 500,
         image: null,
+        ticketType: 'mixed',
+        ticketTypes: [
+            {
+                id: 1,
+                name: 'University Student (Free)',
+                price: 0,
+                quantity: 300,
+                available: 200,
+                description: 'Free entry for university students with valid student ID.',
+                audience: 'university'
+            },
+            {
+                id: 2,
+                name: 'General Public',
+                price: 500,
+                quantity: 150,
+                available: 120,
+                description: 'Standard spectator ticket for the general public.',
+                audience: 'public'
+            },
+            {
+                id: 3,
+                name: 'Premium Stand',
+                price: 1500,
+                quantity: 50,
+                available: 30,
+                description: 'Premium covered stand with the best views.',
+                audience: 'public'
+            }
+        ],
         schedule: [
             { time: "08:00 AM", activity: "Team Registration" },
             { time: "09:00 AM", activity: "Opening Ceremony" },
@@ -78,6 +127,33 @@ const eventsData = [
         participants: 180,
         maxParticipants: 400,
         image: null,
+        ticketType: 'paid',
+        ticketTypes: [
+            {
+                id: 1,
+                name: 'Standard',
+                price: 800,
+                quantity: 300,
+                available: 220,
+                description: 'General seating for all cultural performances.'
+            },
+            {
+                id: 2,
+                name: 'Front Row',
+                price: 1500,
+                quantity: 80,
+                available: 45,
+                description: 'Front row seating with the best view of all performances.'
+            },
+            {
+                id: 3,
+                name: 'Cultural Package',
+                price: 2000,
+                quantity: 20,
+                available: 8,
+                description: 'Includes front row seat, cultural food voucher, and souvenir package.'
+            }
+        ],
         schedule: [
             { time: "06:00 PM", activity: "Welcome & Cultural Exhibition" },
             { time: "06:30 PM", activity: "Traditional Dance Performances" },
@@ -159,6 +235,9 @@ function displayEventDetails(event) {
     
     // Requirements
     displayRequirements(event.requirements);
+
+    // Ticket types
+    displayTicketTypes(event);
     
     // Organizer info
     document.getElementById('organizerName').textContent = event.organizer;
@@ -177,6 +256,48 @@ function displayEventDetails(event) {
     
     // Update status styling
     updateStatusStyling(event.status);
+}
+
+// Display ticket types for an event
+function displayTicketTypes(event) {
+    const ticketsSection = document.getElementById('eventTicketsSection');
+    const ticketsContainer = document.getElementById('eventTickets');
+
+    if (!ticketsSection || !ticketsContainer) return;
+
+    if (!event.ticketTypes || event.ticketTypes.length === 0) {
+        ticketsSection.style.display = 'none';
+        return;
+    }
+
+    ticketsSection.style.display = 'block';
+    ticketsContainer.innerHTML = '';
+
+    event.ticketTypes.forEach(ticket => {
+        const isSoldOut = ticket.available <= 0;
+        const isFree = ticket.price === 0;
+
+        const ticketCard = document.createElement('div');
+        ticketCard.className = `ticket-type-card${isSoldOut ? ' sold-out' : ''}`;
+
+        ticketCard.innerHTML = `
+            <div class="ticket-type-info">
+                <div class="ticket-type-name">${ticket.name}</div>
+                ${ticket.description ? `<div class="ticket-type-desc">${ticket.description}</div>` : ''}
+                <div class="ticket-type-availability">
+                    ${isSoldOut
+                        ? '<span class="ticket-badge sold-out-badge">Sold Out</span>'
+                        : `<span class="ticket-badge available-badge">${ticket.available} available</span>`}
+                </div>
+            </div>
+            <div class="ticket-type-price">
+                <span class="price-amount">${isFree ? 'FREE' : `LKR ${ticket.price.toLocaleString()}`}</span>
+                <span class="price-label">per ticket</span>
+            </div>
+        `;
+
+        ticketsContainer.appendChild(ticketCard);
+    });
 }
 
 // Display event schedule
@@ -265,7 +386,33 @@ function viewEvent(eventId) {
 
 // Modal functions
 function openJoinModal() {
-    document.getElementById('joinModal').style.display = 'flex';
+    const modal = document.getElementById('joinModal');
+    const ticketSelectionSection = document.getElementById('ticketSelectionSection');
+    const ticketSelect = document.getElementById('ticketTypeSelect');
+    const ticketQtyGroup = document.getElementById('ticketQtyGroup');
+    const ticketQty = document.getElementById('ticketQty');
+    const orderSummary = document.getElementById('orderSummary');
+
+    // Populate ticket type selector for paid/mixed events
+    if (currentEvent && currentEvent.ticketTypes && currentEvent.ticketTypes.length > 0) {
+        ticketSelect.innerHTML = '<option value="">-- Select a ticket type --</option>';
+        currentEvent.ticketTypes.forEach(ticket => {
+            const disabled = ticket.available <= 0;
+            const label = ticket.price === 0
+                ? `${ticket.name} — FREE`
+                : `${ticket.name} — LKR ${ticket.price.toLocaleString()}`;
+            ticketSelect.innerHTML += `<option value="${ticket.id}" ${disabled ? 'disabled' : ''}>${label}${disabled ? ' (Sold Out)' : ''}</option>`;
+        });
+        ticketSelectionSection.style.display = 'block';
+        ticketQtyGroup.style.display = 'none';
+        orderSummary.style.display = 'none';
+        ticketQty.value = 1;
+    } else {
+        ticketSelectionSection.style.display = 'none';
+        orderSummary.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
 }
 
 function closeJoinModal() {
@@ -283,12 +430,49 @@ function closeShareModal() {
 // Event actions
 function confirmJoinEvent() {
     const notes = document.getElementById('participantNotes').value;
-    
-    // Simulate joining event
-    alert(`Successfully joined "${currentEvent.title}"!`);
-    
+    const ticketSelect = document.getElementById('ticketTypeSelect');
+    const ticketQty = document.getElementById('ticketQty');
+
+    if (currentEvent && currentEvent.ticketTypes && currentEvent.ticketTypes.length > 0) {
+        if (!ticketSelect.value) {
+            alert('Please select a ticket type.');
+            return;
+        }
+        const selectedId = parseInt(ticketSelect.value);
+
+        const selectedTicket = currentEvent.ticketTypes.find(t => t.id === selectedId);
+        if (!selectedTicket) {
+            alert('Invalid ticket type selected.');
+            return;
+        }
+
+        const qty = parseInt(ticketQty.value) || 1;
+        if (qty < 1) {
+            alert('Please enter a valid quantity.');
+            return;
+        }
+        if (qty > selectedTicket.available) {
+            alert(`Only ${selectedTicket.available} ticket(s) available for "${selectedTicket.name}".`);
+            return;
+        }
+
+        const total = selectedTicket.price * qty;
+        const priceText = selectedTicket.price === 0
+            ? 'FREE'
+            : `LKR ${total.toLocaleString()}`;
+
+        const confirmMsg = `Successfully registered for "${currentEvent.title}"!\n\nTicket: ${selectedTicket.name}\nQuantity: ${qty}\nTotal: ${priceText}`;
+        alert(confirmMsg);
+
+        // Update available count and participant count
+        selectedTicket.available -= qty;
+        currentEvent.participants += qty;
+    } else {
+        alert(`Successfully joined "${currentEvent.title}"!`);
+        currentEvent.participants++;
+    }
+
     // Update UI
-    currentEvent.participants++;
     document.getElementById('eventParticipants').textContent = `${currentEvent.participants}/${currentEvent.maxParticipants}`;
     document.getElementById('totalParticipants').textContent = currentEvent.participants;
     document.getElementById('availableSpots').textContent = currentEvent.maxParticipants - currentEvent.participants;
@@ -297,6 +481,9 @@ function confirmJoinEvent() {
     const percentage = Math.round((currentEvent.participants / currentEvent.maxParticipants) * 100);
     document.getElementById('participationPercentage').textContent = `${percentage}%`;
     document.getElementById('participationFill').style.width = `${percentage}%`;
+
+    // Refresh ticket display to reflect updated availability
+    displayTicketTypes(currentEvent);
     
     closeJoinModal();
 }
@@ -354,9 +541,52 @@ function showEventContainer() {
     document.getElementById('eventContainer').style.display = 'block';
 }
 
+// Update order summary when ticket type or quantity changes
+function updateOrderSummary() {
+    if (!currentEvent || !currentEvent.ticketTypes) return;
+
+    const ticketSelect = document.getElementById('ticketTypeSelect');
+    const ticketQtyGroup = document.getElementById('ticketQtyGroup');
+    const ticketQty = document.getElementById('ticketQty');
+    const orderSummary = document.getElementById('orderSummary');
+    const orderTicketName = document.getElementById('orderTicketName');
+    const orderQty = document.getElementById('orderQty');
+    const orderTotal = document.getElementById('orderTotal');
+
+    const selectedId = parseInt(ticketSelect.value);
+    if (!ticketSelect.value || isNaN(selectedId)) {
+        ticketQtyGroup.style.display = 'none';
+        orderSummary.style.display = 'none';
+        return;
+    }
+
+    const selectedTicket = currentEvent.ticketTypes.find(t => t.id === selectedId);
+    if (!selectedTicket) return;
+
+    // Update max quantity allowed
+    ticketQty.max = selectedTicket.available;
+    const currentQty = parseInt(ticketQty.value);
+    if (!isNaN(currentQty) && currentQty > selectedTicket.available) {
+        ticketQty.value = selectedTicket.available;
+    }
+
+    ticketQtyGroup.style.display = 'block';
+
+    const qty = parseInt(ticketQty.value) || 1;
+    const total = selectedTicket.price * qty;
+
+    orderTicketName.textContent = selectedTicket.name;
+    orderQty.textContent = qty;
+    orderTotal.textContent = selectedTicket.price === 0 ? 'FREE' : `LKR ${total.toLocaleString()}`;
+    orderSummary.style.display = 'block';
+}
+
 // Event listeners
 document.getElementById('joinBtn').addEventListener('click', openJoinModal);
 document.getElementById('shareBtn').addEventListener('click', openShareModal);
+
+document.getElementById('ticketTypeSelect').addEventListener('change', updateOrderSummary);
+document.getElementById('ticketQty').addEventListener('input', updateOrderSummary);
 
 // Close modals when clicking outside
 window.addEventListener('click', function(event) {
