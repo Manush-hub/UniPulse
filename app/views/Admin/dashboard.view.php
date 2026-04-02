@@ -325,6 +325,22 @@
                                                     <button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>')">
                                                         <i class="fas fa-check-circle"></i>
                                                     </button>
+                                                    <?php if (!empty($registration->has_pending_appeal)): ?>
+                                                        <button
+                                                            class="btn-icon"
+                                                            title="Review Appeal"
+                                                            onclick="openAppealModalFromButton(this)"
+                                                            data-appeal-id="<?php echo (int)($registration->pending_appeal_id ?? 0); ?>"
+                                                            data-user-id="<?php echo (int)$registration->id; ?>"
+                                                            data-user-type="<?php echo htmlspecialchars($registration->user_type ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                            data-user-name="<?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?>"
+                                                            data-suspension-reason="<?php echo htmlspecialchars($registration->suspension_reason ?? 'No reason provided', ENT_QUOTES, 'UTF-8'); ?>"
+                                                            data-appeal-message="<?php echo htmlspecialchars($registration->pending_appeal_message ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                                            data-submitted-at="<?php echo htmlspecialchars(date('M j, Y g:i A', strtotime($registration->pending_appeal_submitted_at ?? 'now')), ENT_QUOTES, 'UTF-8'); ?>"
+                                                        >
+                                                            <i class="fas fa-envelope-open-text"></i>
+                                                        </button>
+                                                    <?php endif; ?>
                                                 <?php elseif ($status !== 'Rejected'): ?>
                                                     <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(<?php echo $registration->id; ?>, '<?php echo $registration->user_type; ?>', '<?php echo htmlspecialchars($name); ?>')">
                                                         <i class="fas fa-ban"></i>
@@ -373,6 +389,34 @@
                 <div style="margin-top: 20px; text-align: right;">
                     <button onclick="closeSuspensionModal()" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
                     <button onclick="confirmSuspension()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Suspend Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appeal Review Modal -->
+    <div id="appealModal" class="modal">
+        <div class="modal-content" style="max-width: 680px; width: 92%;">
+            <span class="close-button" onclick="closeAppealModal()">&times;</span>
+            <h3>Review Suspension Appeal</h3>
+            <div class="modal-body">
+                <p><strong>User:</strong> <span id="appealUserName">-</span></p>
+                <p><strong>User Type:</strong> <span id="appealUserType">-</span></p>
+                <p><strong>Suspension Reason:</strong></p>
+                <div id="appealSuspensionReason" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; margin-bottom: 12px;"></div>
+
+                <p><strong>Appeal Message:</strong></p>
+                <div id="appealMessageBody" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; margin-bottom: 12px;"></div>
+
+                <p><strong>Submitted At:</strong> <span id="appealSubmittedAt">-</span></p>
+
+                <label for="appealAdminResponse" style="display: block; margin-top: 15px; margin-bottom: 6px;"><strong>Admin Response (required if rejecting):</strong></label>
+                <textarea id="appealAdminResponse" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" placeholder="Write your response to this appeal..."></textarea>
+
+                <div style="margin-top: 20px; text-align: right;">
+                    <button onclick="closeAppealModal()" style="padding: 10px 20px; margin-right: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button onclick="submitAppealDecision('rejected')" style="padding: 10px 20px; margin-right: 10px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Reject Appeal</button>
+                    <button onclick="submitAppealDecision('approved')" style="padding: 10px 20px; background: #198754; color: white; border: none; border-radius: 4px; cursor: pointer;">Approve Appeal</button>
                 </div>
             </div>
         </div>
@@ -438,6 +482,20 @@
 
     <script src="/unipulse/public/assets/js/Admin/dashboard-app.js?v=<?= time() ?>"></script>
     <script>
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeHtmlAttribute(value) {
+            return escapeHtml(value).replace(/`/g, '&#96;');
+        }
+
         // Toggle Activity Log - show/hide additional activity items
         function toggleActivityLog() {
             const activityList = document.getElementById('activityList');
@@ -559,7 +617,21 @@
                             ${user.isSuspended ? 
                                 `<button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${user.id}, '${user.userType.toLowerCase()}')">
                                     <i class="fas fa-check-circle"></i>
-                                </button>` : 
+                                </button>
+                                ${user.hasPendingAppeal ? `<button
+                                    class="btn-icon"
+                                    title="Review Appeal"
+                                    onclick="openAppealModalFromButton(this)"
+                                    data-appeal-id="${user.pendingAppealId}"
+                                    data-user-id="${user.id}"
+                                    data-user-type="${escapeHtmlAttribute(user.userType.toLowerCase())}"
+                                    data-user-name="${escapeHtmlAttribute(user.name)}"
+                                    data-suspension-reason="${escapeHtmlAttribute(user.suspensionReason || 'No reason provided')}"
+                                    data-appeal-message="${escapeHtmlAttribute(user.pendingAppealMessage || '')}"
+                                    data-submitted-at="${escapeHtmlAttribute(user.pendingAppealSubmittedAt || '')}"
+                                >
+                                    <i class="fas fa-envelope-open-text"></i>
+                                </button>` : ''}` : 
                                 user.status !== 'Rejected' ?
                                 `<button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${user.id}, '${user.userType.toLowerCase()}', '${user.name.replace(/'/g, "\\'")}')">
                                     <i class="fas fa-ban"></i>
@@ -607,6 +679,7 @@
     <script>
         // Suspension system
         let pendingSuspension = { userId: null, userType: null };
+        let pendingAppealReview = { appealId: null, userId: null, userType: null };
         
         function suspendAccount(userId, userType, userName) {
             pendingSuspension = { userId, userType };
@@ -618,6 +691,72 @@
             document.getElementById('suspensionModal').style.display = 'none';
             document.getElementById('suspensionReason').value = '';
             pendingSuspension = { userId: null, userType: null };
+        }
+
+        function openAppealModalFromButton(button) {
+            pendingAppealReview = {
+                appealId: parseInt(button.dataset.appealId, 10),
+                userId: parseInt(button.dataset.userId, 10),
+                userType: button.dataset.userType || ''
+            };
+
+            document.getElementById('appealUserName').textContent = button.dataset.userName || '-';
+            document.getElementById('appealUserType').textContent = (button.dataset.userType || '-').toUpperCase();
+            document.getElementById('appealSuspensionReason').textContent = button.dataset.suspensionReason || 'No reason provided';
+            document.getElementById('appealMessageBody').textContent = button.dataset.appealMessage || 'No appeal message';
+            document.getElementById('appealSubmittedAt').textContent = button.dataset.submittedAt || '-';
+            document.getElementById('appealAdminResponse').value = '';
+            document.getElementById('appealModal').style.display = 'flex';
+        }
+
+        function closeAppealModal() {
+            document.getElementById('appealModal').style.display = 'none';
+            document.getElementById('appealAdminResponse').value = '';
+            pendingAppealReview = { appealId: null, userId: null, userType: null };
+        }
+
+        function submitAppealDecision(decision) {
+            if (!pendingAppealReview.appealId) {
+                alert('No appeal selected');
+                return;
+            }
+
+            const adminResponse = document.getElementById('appealAdminResponse').value.trim();
+            if (decision === 'rejected' && !adminResponse) {
+                alert('Please provide a response when rejecting an appeal');
+                return;
+            }
+
+            fetch('/unipulse/public/admin/dashboard/reviewAppeal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appeal_id: pendingAppealReview.appealId,
+                    decision: decision,
+                    admin_response: adminResponse
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Appeal reviewed successfully');
+                    closeAppealModal();
+
+                    if (decision === 'approved' && pendingAppealReview.userId && pendingAppealReview.userType) {
+                        updateDashboardRow(pendingAppealReview.userId, pendingAppealReview.userType, false);
+                    }
+
+                    refreshAllUsersModal();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to review appeal'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while reviewing the appeal');
+            });
         }
         
         // Check if All Users Modal is currently open
@@ -784,9 +923,14 @@
         window.onclick = function(event) {
             const suspensionModal = document.getElementById('suspensionModal');
             const allUsersModal = document.getElementById('allUsersModal');
+            const appealModal = document.getElementById('appealModal');
             
             if (event.target == suspensionModal) {
                 closeSuspensionModal();
+            }
+
+            if (event.target == appealModal) {
+                closeAppealModal();
             }
             
             if (event.target == allUsersModal) {

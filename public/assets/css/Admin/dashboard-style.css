@@ -992,6 +992,16 @@ body {
     z-index: 10001;
 }
 
+/* Keep the All Users table modal below suspension/appeal overlays */
+#allUsersModal {
+    z-index: 10000;
+}
+
+/* Appeal review must appear above the All Users modal */
+#appealModal {
+    z-index: 10020;
+}
+
 .modal-content {
     background: white;
     padding: 2rem;

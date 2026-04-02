@@ -61,7 +61,7 @@
                                 return;
                             }
                             
-                            fetch('/unipulse/public/submit_appeal.php', {
+                            fetch('/unipulse/public/signin/submitAppeal', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',

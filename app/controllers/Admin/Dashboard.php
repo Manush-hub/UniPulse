@@ -89,8 +89,43 @@ class AdminDashboard extends Controller {
         
         // Get only top 10
         $recentRegistrations = array_slice($recentRegistrations, 0, 10);
+
+        $pendingAppealsMap = $this->getLatestPendingAppealsByUser();
+        foreach ($recentRegistrations as &$registration) {
+            if (is_object($registration)) {
+                $rowUserType = strtolower((string)($registration->user_type ?? ''));
+                $rowUserId = (int)($registration->id ?? 0);
+                $appealKey = $rowUserType . ':' . $rowUserId;
+
+                if (isset($pendingAppealsMap[$appealKey])) {
+                    $appeal = $pendingAppealsMap[$appealKey];
+                    $registration->has_pending_appeal = true;
+                    $registration->pending_appeal_id = (int)$appeal['id'];
+                    $registration->pending_appeal_message = $appeal['appeal_message'];
+                    $registration->pending_appeal_submitted_at = $appeal['created_at'];
+                } else {
+                    $registration->has_pending_appeal = false;
+                }
+            } else {
+                $rowUserType = strtolower((string)($registration['user_type'] ?? ''));
+                $rowUserId = (int)($registration['id'] ?? 0);
+                $appealKey = $rowUserType . ':' . $rowUserId;
+
+                if (isset($pendingAppealsMap[$appealKey])) {
+                    $appeal = $pendingAppealsMap[$appealKey];
+                    $registration['has_pending_appeal'] = true;
+                    $registration['pending_appeal_id'] = (int)$appeal['id'];
+                    $registration['pending_appeal_message'] = $appeal['appeal_message'];
+                    $registration['pending_appeal_submitted_at'] = $appeal['created_at'];
+                } else {
+                    $registration['has_pending_appeal'] = false;
+                }
+            }
+        }
+        unset($registration);
         
         $data['recent_registrations'] = $recentRegistrations;
+        $data['pending_appeals_count'] = count($pendingAppealsMap);
         
         // Get pending publisher approvals from all universities
         $pendingPublishers = $publisher->getAllPending();
@@ -824,6 +859,8 @@ class AdminDashboard extends Controller {
                     return $timeB - $timeA;
                 });
             }
+
+            $pendingAppealsMap = $this->getLatestPendingAppealsByUser();
             
             // Format users for response
             $formattedUsers = [];
@@ -838,6 +875,10 @@ class AdminDashboard extends Controller {
                     $createdAt = date('M j, Y', strtotime($user->created_at));
                     $userId = $user->id ?? 0;
                     $isSuspended = isset($user->is_suspended) ? $user->is_suspended : false;
+                    $suspensionReason = $user->suspension_reason ?? null;
+                    $rawUserType = strtolower((string)($user->user_type ?? ''));
+                    $appealKey = $rawUserType . ':' . (int)$userId;
+                    $pendingAppeal = $pendingAppealsMap[$appealKey] ?? null;
                     
                     // Check status based on user type
                     if ($user->user_type === 'publisher' && isset($user->approval_status)) {
@@ -872,6 +913,10 @@ class AdminDashboard extends Controller {
                     $createdAt = date('M j, Y', strtotime($user['created_at']));
                     $userId = $user['id'] ?? 0;
                     $isSuspended = isset($user['is_suspended']) ? $user['is_suspended'] : false;
+                    $suspensionReason = $user['suspension_reason'] ?? null;
+                    $rawUserType = strtolower((string)($user['user_type'] ?? ''));
+                    $appealKey = $rawUserType . ':' . (int)$userId;
+                    $pendingAppeal = $pendingAppealsMap[$appealKey] ?? null;
                     
                     if ($isSuspended) {
                         $status = 'Suspended';
@@ -887,7 +932,12 @@ class AdminDashboard extends Controller {
                     'createdAt' => $createdAt,
                     'status' => $status,
                     'statusClass' => $statusClass,
-                    'isSuspended' => $isSuspended
+                    'isSuspended' => $isSuspended,
+                    'suspensionReason' => $suspensionReason,
+                    'hasPendingAppeal' => !empty($pendingAppeal),
+                    'pendingAppealId' => !empty($pendingAppeal) ? (int)$pendingAppeal['id'] : null,
+                    'pendingAppealMessage' => !empty($pendingAppeal) ? $pendingAppeal['appeal_message'] : null,
+                    'pendingAppealSubmittedAt' => !empty($pendingAppeal) ? date('M j, Y g:i A', strtotime($pendingAppeal['created_at'])) : null
                 ];
             }
             
@@ -900,6 +950,169 @@ class AdminDashboard extends Controller {
             error_log("Error fetching all users: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to fetch users']);
         }
+    }
+
+    /**
+     * Approve/reject a pending suspension appeal.
+     */
+    public function reviewAppeal() {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true);
+        $appealId = isset($payload['appeal_id']) ? (int)$payload['appeal_id'] : 0;
+        $decision = strtolower(trim((string)($payload['decision'] ?? '')));
+        $adminResponse = trim((string)($payload['admin_response'] ?? ''));
+
+        if ($appealId <= 0 || !in_array($decision, ['approved', 'rejected'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid request']);
+            return;
+        }
+
+        if ($decision === 'rejected' && $adminResponse === '') {
+            echo json_encode(['success' => false, 'message' => 'Please provide a response when rejecting an appeal']);
+            return;
+        }
+
+        try {
+            $appealRows = $this->query(
+                "SELECT id, user_id, user_type, appeal_message, status
+                 FROM suspension_appeals
+                 WHERE id = ? LIMIT 1",
+                [$appealId]
+            );
+
+            if (!$appealRows) {
+                echo json_encode(['success' => false, 'message' => 'Appeal not found']);
+                return;
+            }
+
+            $appeal = $appealRows[0];
+            if ($appeal->status !== 'pending') {
+                echo json_encode(['success' => false, 'message' => 'This appeal has already been reviewed']);
+                return;
+            }
+
+            $targetTable = $this->getUserTable($appeal->user_type);
+            if (!$targetTable) {
+                echo json_encode(['success' => false, 'message' => 'Invalid appeal user type']);
+                return;
+            }
+
+            $admin = AuthService::getCurrentUser();
+            $nameField = in_array($appeal->user_type, ['publisher']) ? 'society_name' : (in_array($appeal->user_type, ['sponsor']) ? 'company_name' : 'full_name');
+            $nameRow = $this->query("SELECT {$nameField} as display_name FROM {$targetTable} WHERE id = ? LIMIT 1", [$appeal->user_id]);
+            $displayName = $nameRow ? $nameRow[0]->display_name : 'Unknown';
+
+            $conn = $this->connect();
+            $conn->beginTransaction();
+
+            if ($decision === 'approved') {
+                $unsuspendStmt = $conn->prepare(
+                    "UPDATE {$targetTable}
+                     SET is_suspended = 0,
+                         suspension_reason = NULL,
+                         suspended_at = NULL,
+                         suspended_by = NULL
+                     WHERE id = :user_id"
+                );
+                $unsuspendStmt->execute(['user_id' => (int)$appeal->user_id]);
+            }
+
+            $reviewStmt = $conn->prepare(
+                "UPDATE suspension_appeals
+                 SET status = :status,
+                     admin_response = :admin_response,
+                     reviewed_by = :reviewed_by,
+                     reviewed_at = NOW()
+                 WHERE id = :appeal_id"
+            );
+            $reviewStmt->execute([
+                'status' => $decision,
+                'admin_response' => $adminResponse !== '' ? $adminResponse : null,
+                'reviewed_by' => (int)$admin['id'],
+                'appeal_id' => $appealId,
+            ]);
+
+            $conn->commit();
+
+            if ($decision === 'approved') {
+                AdminActivity::log(
+                    $admin['id'],
+                    $admin['name'],
+                    'appeal_approved',
+                    $appeal->user_type,
+                    (int)$appeal->user_id,
+                    $displayName,
+                    'Approved suspension appeal for ' . ucfirst($appeal->user_type) . ': ' . $displayName,
+                    'check-circle'
+                );
+            } else {
+                AdminActivity::log(
+                    $admin['id'],
+                    $admin['name'],
+                    'appeal_rejected',
+                    $appeal->user_type,
+                    (int)$appeal->user_id,
+                    $displayName,
+                    'Rejected suspension appeal for ' . ucfirst($appeal->user_type) . ': ' . $displayName,
+                    'times-circle'
+                );
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => $decision === 'approved' ? 'Appeal approved and account reactivated' : 'Appeal rejected',
+                'user_id' => (int)$appeal->user_id,
+                'user_type' => strtolower((string)$appeal->user_type),
+            ]);
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            error_log('Review appeal error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error']);
+        }
+    }
+
+    /**
+     * Returns map like "user_type:user_id" => latest pending appeal row.
+     */
+    private function getLatestPendingAppealsByUser() {
+        $rows = $this->query(
+            "SELECT sa.id, sa.user_id, sa.user_type, sa.appeal_message, sa.created_at
+             FROM suspension_appeals sa
+             INNER JOIN (
+                 SELECT user_id, user_type, MAX(created_at) AS latest_created_at
+                 FROM suspension_appeals
+                 WHERE status = 'pending'
+                 GROUP BY user_id, user_type
+             ) latest
+             ON sa.user_id = latest.user_id
+             AND sa.user_type = latest.user_type
+             AND sa.created_at = latest.latest_created_at
+             WHERE sa.status = 'pending'"
+        );
+
+        $map = [];
+        if ($rows) {
+            foreach ($rows as $row) {
+                $key = strtolower((string)$row->user_type) . ':' . (int)$row->user_id;
+                $map[$key] = [
+                    'id' => (int)$row->id,
+                    'user_id' => (int)$row->user_id,
+                    'user_type' => strtolower((string)$row->user_type),
+                    'appeal_message' => (string)$row->appeal_message,
+                    'created_at' => (string)$row->created_at,
+                ];
+            }
+        }
+
+        return $map;
     }
 
     /**

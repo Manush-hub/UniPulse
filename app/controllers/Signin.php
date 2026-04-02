@@ -2,6 +2,8 @@
 
 class Signin extends Controller{
 
+    use Database;
+
     private $authService;
 
     public function __construct() {
@@ -124,5 +126,100 @@ class Signin extends Controller{
         } catch (Exception $e) {
             $this->view('signin', ['error' => 'Login error: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Submit suspension appeal from suspended-account sign-in view.
+     */
+    public function submitAppeal() {
+        header('Content-Type: application/json');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            return;
+        }
+
+        try {
+            $payload = json_decode(file_get_contents('php://input'), true);
+            $userId = isset($payload['user_id']) ? (int)$payload['user_id'] : 0;
+            $userType = $this->normalizeAppealUserType($payload['user_type'] ?? '');
+            $appealMessage = trim((string)($payload['appeal_message'] ?? ''));
+
+            if ($userId <= 0 || !$userType || $appealMessage === '') {
+                echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+                return;
+            }
+
+            if (strlen($appealMessage) > 3000) {
+                echo json_encode(['success' => false, 'message' => 'Appeal message is too long']);
+                return;
+            }
+
+            $userTable = $this->getAppealUserTable($userType);
+            if (!$userTable) {
+                echo json_encode(['success' => false, 'message' => 'Invalid user type']);
+                return;
+            }
+
+            $userRows = $this->query("SELECT id, is_suspended FROM {$userTable} WHERE id = ? LIMIT 1", [$userId]);
+            if (!$userRows) {
+                echo json_encode(['success' => false, 'message' => 'User not found']);
+                return;
+            }
+
+            if (!(int)$userRows[0]->is_suspended) {
+                echo json_encode(['success' => false, 'message' => 'Only suspended accounts can submit appeals']);
+                return;
+            }
+
+            $existingPending = $this->query(
+                "SELECT id FROM suspension_appeals WHERE user_id = ? AND user_type = ? AND status = 'pending' LIMIT 1",
+                [$userId, $userType]
+            );
+
+            if ($existingPending) {
+                echo json_encode(['success' => false, 'message' => 'You already have a pending appeal']);
+                return;
+            }
+
+            $conn = $this->connect();
+            $stmt = $conn->prepare(
+                "INSERT INTO suspension_appeals (user_id, user_type, appeal_message, status, created_at)
+                 VALUES (:user_id, :user_type, :appeal_message, 'pending', NOW())"
+            );
+
+            $ok = $stmt->execute([
+                'user_id' => $userId,
+                'user_type' => $userType,
+                'appeal_message' => $appealMessage,
+            ]);
+
+            if ($ok) {
+                echo json_encode(['success' => true, 'message' => 'Appeal submitted successfully. Admins will review it soon.']);
+                return;
+            }
+
+            echo json_encode(['success' => false, 'message' => 'Failed to submit appeal']);
+        } catch (Exception $e) {
+            error_log('Submit appeal error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Server error while submitting appeal']);
+        }
+    }
+
+    private function normalizeAppealUserType($rawType) {
+        $type = strtolower(trim((string)$rawType));
+        return str_replace('_users', '', $type);
+    }
+
+    private function getAppealUserTable($userType) {
+        $tables = [
+            'university' => 'university_users',
+            'public' => 'public_users',
+            'publisher' => 'publishers',
+            'sponsor' => 'sponsors'
+        ];
+
+        return $tables[$userType] ?? null;
     }
 }
