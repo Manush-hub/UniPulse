@@ -11,6 +11,22 @@
 </head>
 
 <body>
+    <?php
+    $safeConversations = [];
+    if (!empty($conversations) && is_array($conversations)) {
+        foreach ($conversations as $conv) {
+            $cid = isset($conv->contact_id) ? (int)$conv->contact_id : 0;
+            $ctype = trim((string)($conv->contact_type ?? ''));
+            if ($cid <= 0 || $ctype === '') {
+                continue;
+            }
+            $safeConversations[] = $conv;
+        }
+    }
+
+    $initialConversation = !empty($safeConversations) ? $safeConversations[0] : null;
+    ?>
+
     <!-- Navigation -->
     <?php
     $pageConfig = ['activeNav' => 'messages'];
@@ -28,7 +44,7 @@
                 </div>
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <span class="stat-number"><?= count($conversations) ?></span>
+                        <span class="stat-number"><?= count($safeConversations) ?></span>
                         <span class="stat-label">Conversations</span>
                     </div>
                     <div class="stat-item unread">
@@ -50,25 +66,33 @@
                         </div>
                         
                         <div class="conversations-list" id="conversationsList">
-                            <?php if (!empty($conversations)): ?>
-                                <?php foreach ($conversations as $index => $conv): ?>
+                            <?php if (!empty($safeConversations)): ?>
+                                <?php foreach ($safeConversations as $index => $conv): ?>
+                                    <?php
+                                    $convContactId = (int)($conv->contact_id ?? 0);
+                                    $convContactType = trim((string)($conv->contact_type ?? ''));
+                                    $convContactName = trim((string)($conv->contact_name ?? ''));
+                                    if ($convContactName === '') {
+                                        $convContactName = ucfirst($convContactType) . ' #' . $convContactId;
+                                    }
+                                    ?>
                                     <div class="conversation-item <?= $conv->unread_count > 0 ? 'has-unread' : '' ?> <?= $index === 0 ? 'active' : '' ?>" 
-                                         data-contact-id="<?= $conv->contact_id ?>"
-                                         data-contact-type="<?= $conv->contact_type ?>"
-                                         data-contact-name="<?= htmlspecialchars($conv->contact_name ?? '') ?>"
+                                         data-contact-id="<?= $convContactId ?>"
+                                         data-contact-type="<?= htmlspecialchars($convContactType) ?>"
+                                         data-contact-name="<?= htmlspecialchars($convContactName) ?>"
                                          data-contact-photo="<?= htmlspecialchars($conv->contact_photo ?? '') ?>"
                                          onclick="selectConversation(this)">
                                         <div class="conversation-avatar">
                                             <?php if (!empty($conv->contact_photo)): ?>
-                                                <img src="<?= htmlspecialchars($conv->contact_photo ?? '') ?>" alt="<?= htmlspecialchars($conv->contact_name ?? '') ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                                <img src="<?= htmlspecialchars($conv->contact_photo ?? '') ?>" alt="<?= htmlspecialchars($convContactName) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                                             <?php else: ?>
-                                                <?= strtoupper(substr($conv->contact_name ?? '', 0, 2)) ?>
+                                                <?= strtoupper(substr($convContactName, 0, 2)) ?>
                                             <?php endif; ?>
                                         </div>
                                         <div class="conversation-info">
-                                            <h4 class="conversation-name"><?= htmlspecialchars($conv->contact_name ?? '') ?></h4>
+                                            <h4 class="conversation-name"><?= htmlspecialchars($convContactName) ?></h4>
                                             <p class="conversation-last-message">
-                                                <?= htmlspecialchars(substr($conv->last_message ?? '', 0, 40)) ?>...
+                                                <?= htmlspecialchars(substr((string)($conv->last_message ?? ''), 0, 40)) ?>...
                                             </p>
                                         </div>
                                         <div class="conversation-meta">
@@ -116,7 +140,7 @@
                                              data-contact-type="sponsor"
                                              data-contact-name="<?= htmlspecialchars($sponsor->company_name) ?>"
                                              data-contact-photo="<?= htmlspecialchars($sponsor->logo_url ?? '') ?>"
-                                             onclick="startConversation(<?= $sponsor->id ?>, 'sponsor', '<?= htmlspecialchars($sponsor->company_name) ?>', '<?= htmlspecialchars($sponsor->logo_url ?? '') ?>')">
+                                            onclick="startConversation(<?= (int)$sponsor->id ?>, <?= htmlspecialchars(json_encode('sponsor'), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode((string)($sponsor->company_name ?? '')), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode((string)($sponsor->logo_url ?? '')), ENT_QUOTES, 'UTF-8') ?>)">
                                             <div class="contact-avatar">
                                                 <?php if (!empty($sponsor->logo_url)): ?>
                                                     <img src="<?= htmlspecialchars($sponsor->logo_url) ?>" alt="<?= htmlspecialchars($sponsor->company_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
@@ -144,7 +168,7 @@
                                              data-contact-id="<?= $moderator->id ?>"
                                              data-contact-type="moderator"
                                              data-contact-name="<?= htmlspecialchars($moderator->full_name) ?>"
-                                             onclick="startConversation(<?= $moderator->id ?>, 'moderator', '<?= htmlspecialchars($moderator->full_name) ?>')">
+                                            onclick="startConversation(<?= (int)$moderator->id ?>, <?= htmlspecialchars(json_encode('moderator'), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode((string)($moderator->full_name ?? '')), ENT_QUOTES, 'UTF-8') ?>)">
                                             <div class="contact-avatar">
                                                 <?= strtoupper(substr($moderator->full_name, 0, 2)) ?>
                                             </div>
@@ -161,21 +185,21 @@
 
                     <!-- Chat Panel (Right Panel) -->
                     <div class="chat-panel">
-                        <?php if (!empty($conversations)): ?>
+                        <?php if ($initialConversation): ?>
                             <!-- Chat Header -->
                             <div class="chat-header">
                                 <div class="chat-contact-info">
                                     <div class="chat-avatar" id="chatAvatar">
-                                        <?php if (!empty($conversations[0]->contact_photo)): ?>
-                                            <img src="<?= htmlspecialchars($conversations[0]->contact_photo) ?>" alt="<?= htmlspecialchars($conversations[0]->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                        <?php if (!empty($initialConversation->contact_photo)): ?>
+                                            <img src="<?= htmlspecialchars($initialConversation->contact_photo) ?>" alt="<?= htmlspecialchars($initialConversation->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                                         <?php else: ?>
-                                            <?= strtoupper(substr($conversations[0]->contact_name, 0, 2)) ?>
+                                            <?= strtoupper(substr((string)($initialConversation->contact_name ?? ''), 0, 2)) ?>
                                         <?php endif; ?>
                                     </div>
                                     <div class="chat-contact-details">
-                                        <h3 id="chatContactName"><?= htmlspecialchars($conversations[0]->contact_name) ?></h3>
+                                        <h3 id="chatContactName"><?= htmlspecialchars($initialConversation->contact_name ?? '') ?></h3>
                                         <span class="contact-type" id="chatContactType">
-                                            <?= ucfirst($conversations[0]->contact_type) ?>
+                                            <?= ucfirst((string)($initialConversation->contact_type ?? '')) ?>
                                         </span>
                                     </div>
                                 </div>
@@ -197,8 +221,8 @@
                             <!-- Chat Input -->
                             <div class="chat-input-container">
                                 <form id="chatForm" onsubmit="sendMessage(event)">
-                                    <input type="hidden" id="recipientId" value="<?= $conversations[0]->contact_id ?>">
-                                    <input type="hidden" id="recipientType" value="<?= $conversations[0]->contact_type ?>">
+                                    <input type="hidden" id="recipientId" value="<?= (int)($initialConversation->contact_id ?? 0) ?>">
+                                    <input type="hidden" id="recipientType" value="<?= htmlspecialchars((string)($initialConversation->contact_type ?? '')) ?>">
                                     <div class="chat-input-wrapper">
                                         <textarea 
                                             id="messageInput" 

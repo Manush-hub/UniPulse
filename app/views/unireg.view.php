@@ -12,7 +12,7 @@
             margin-left: 3px;
             font-weight: bold;
         }
-        
+
         /* Dropdown with scroll - show 5 items */
         select#university,
         select#faculty,
@@ -23,7 +23,7 @@
             -webkit-appearance: none;
             -moz-appearance: none;
         }
-        
+
         select#university option,
         select#faculty option,
         select#gender option,
@@ -31,7 +31,7 @@
         select#country-code option {
             padding: 10px;
         }
-        
+
         /* Set size attribute to show 5 visible items when opened */
         select#university[size],
         select#faculty[size],
@@ -90,14 +90,15 @@
 
             <!--Registration Form-->
             <form method="POST" action=""><?php
-                function getValue($key, $formData = null) {
-                    if ($formData && isset($formData[$key])) {
-                        return htmlspecialchars($formData[$key]);
-                    }
-                    return '';
-                }
-                $formData = isset($form_data) ? $form_data : null;
-            ?>
+                                            function getValue($key, $formData = null)
+                                            {
+                                                if ($formData && isset($formData[$key])) {
+                                                    return htmlspecialchars($formData[$key]);
+                                                }
+                                                return '';
+                                            }
+                                            $formData = isset($form_data) ? $form_data : null;
+                                            ?>
                 <h3 class="section-header">Personal Information</h3>
 
                 <div class="form-group">
@@ -271,31 +272,93 @@
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             const termsCheckbox = document.getElementById('terms');
-            
+            const universitySelect = document.getElementById('university');
+            const emailInput = document.getElementById('email');
+            const universityDomains = {
+                'university-of-colombo': 'cmb.ac.lk',
+                'university-of-peradeniya': 'pdn.ac.lk',
+                'university-of-sri-jayewardenepura': 'sjp.ac.lk',
+                'university-of-kelaniya': 'kln.ac.lk',
+                'university-of-moratuwa': 'uom.lk',
+                'university-of-jaffna': 'jfn.ac.lk',
+                'university-of-ruhuna': 'ruh.ac.lk',
+                'eastern-university': 'esn.ac.lk',
+                'south-eastern-university': 'seu.ac.lk',
+                'rajarata-university': 'rjt.ac.lk',
+                'sabaragamuwa-university': 'sab.ac.lk',
+                'wayamba-university': 'wyb.ac.lk',
+                'uva-wellassa-university': 'uwu.ac.lk',
+                'open-university': 'ou.ac.lk',
+                'buddhist-and-pali-university': 'bpuls.ac.lk',
+                'sliit': 'sliit.lk',
+                'nsbm': 'nsbm.ac.lk',
+                'cinec': 'cinec.edu',
+                'apiit': 'apiit.lk',
+                'metropolitan-campus': 'kiu.ac.lk'
+            };
+
+            function isUniversityEmailMatch() {
+                const university = universitySelect.value;
+                const email = emailInput.value.trim().toLowerCase();
+
+                if (!university || !email || !email.includes('@')) {
+                    emailInput.setCustomValidity('');
+                    return true;
+                }
+
+                const expectedDomain = universityDomains[university];
+                if (!expectedDomain) {
+                    emailInput.setCustomValidity('');
+                    return true;
+                }
+
+                const emailDomain = email.split('@').pop();
+                const isMatch = emailDomain === expectedDomain || emailDomain.endsWith('.' + expectedDomain);
+
+                if (!isMatch) {
+                    emailInput.setCustomValidity('University and Email Address mismatch.');
+                    return false;
+                }
+
+                emailInput.setCustomValidity('');
+                return true;
+            }
+
+            emailInput.addEventListener('input', isUniversityEmailMatch);
+            universitySelect.addEventListener('change', isUniversityEmailMatch);
+
             // Add event listener to form submission
             form.addEventListener('submit', function(e) {
+                if (!isUniversityEmailMatch()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    emailInput.reportValidity();
+                    emailInput.focus();
+                    return false;
+                }
+
                 if (!termsCheckbox.checked) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
+
                     // Add visual feedback
                     termsCheckbox.style.border = '2px solid #dc3545';
-                    
+
                     // Show alert
                     alert('Please agree to the Terms & Conditions and Privacy Policy to continue.');
-                    
+
                     // Focus on checkbox
                     termsCheckbox.focus();
-                    
+
                     // Remove visual feedback after 3 seconds
                     setTimeout(() => {
                         termsCheckbox.style.border = '2px solid #ccc';
                     }, 3000);
-                    
+
                     return false;
                 }
             });
-            
+
             // Remove error styling when checkbox is checked
             termsCheckbox.addEventListener('change', function() {
                 if (this.checked) {
@@ -307,4 +370,5 @@
 
     <script src="university-student-registration.js"></script>
 </body>
+
 </html>

@@ -50,7 +50,6 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         <!-- <a href="profile.html"><i class="fas fa-user-cog"></i> Profile Settings</a>
                         <a href="auditlog.html"><i class="fas fa-clipboard-list"></i> Audit Log</a>
                         <a href="help.html"><i class="fas fa-question-circle"></i> Help & Support</a> -->
-                        <hr>
                         <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                     </div>
                 </div>

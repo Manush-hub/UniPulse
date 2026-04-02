@@ -217,6 +217,8 @@ body {
 }
 
 .event-status {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -242,6 +244,12 @@ body {
     color: #6b7280;
 }
 
+.event-status.hidden{
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+
+
 .event-content {
     padding: 1.5rem;
 }
@@ -265,6 +273,17 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+.hidden-event-note {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.9rem;
+    color: #9a3412;
+    font-size: 0.82rem;
+    line-height: 1.4;
 }
 
 .event-meta {

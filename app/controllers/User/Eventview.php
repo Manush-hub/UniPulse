@@ -90,6 +90,7 @@ class UserEventview extends Controller
                             'serverData' => [
                                 'event' => $event,
                                 'similarEvents' => $similarEvents,
+                                'currentUserType' => $_SESSION['user_type'] ?? null,
                                 'isRegistered' => $isRegistered,
                                 'isVolunteerApplied' => $isVolunteerApplied,
                                 'volunteerApplication' => $volunteerApplication,

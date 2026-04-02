@@ -41,6 +41,7 @@ class AdminAllevents extends Controller{
             
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
+            $filters['include_deleted'] = true;
             
             // Get current user for visibility filtering
             $currentUser = AuthService::getCurrentUser();
@@ -49,7 +50,7 @@ class AdminAllevents extends Controller{
             $events = $this->eventModel->getAllEvents($filters, $currentUser);
             
             // Get total count for pagination (without limit)
-            $totalEvents = $this->eventModel->getAllEvents([], $currentUser);
+            $totalEvents = $this->eventModel->getAllEvents(['include_deleted' => true], $currentUser);
             $totalCount = is_array($totalEvents) ? count($totalEvents) : 0;
             $totalPages = $totalCount > 0 ? ceil($totalCount / $limit) : 1;
             
@@ -117,6 +118,7 @@ class AdminAllevents extends Controller{
             
             $filters['limit'] = $limit;
             $filters['offset'] = $offset;
+            $filters['include_deleted'] = true;
             
             // Get current user for visibility filtering
             $currentUser = AuthService::getCurrentUser();

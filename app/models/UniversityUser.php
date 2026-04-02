@@ -30,6 +30,29 @@ class UniversityUser
         'nic'
     ];
 
+    private const UNIVERSITY_EMAIL_DOMAINS = [
+        'university-of-colombo' => 'cmb.ac.lk',
+        'university-of-peradeniya' => 'pdn.ac.lk',
+        'university-of-sri-jayewardenepura' => 'sjp.ac.lk',
+        'university-of-kelaniya' => 'kln.ac.lk',
+        'university-of-moratuwa' => 'uom.lk',
+        'university-of-jaffna' => 'jfn.ac.lk',
+        'university-of-ruhuna' => 'ruh.ac.lk',
+        'eastern-university' => 'esn.ac.lk',
+        'south-eastern-university' => 'seu.ac.lk',
+        'rajarata-university' => 'rjt.ac.lk',
+        'sabaragamuwa-university' => 'sab.ac.lk',
+        'wayamba-university' => 'wyb.ac.lk',
+        'uva-wellassa-university' => 'uwu.ac.lk',
+        'open-university' => 'ou.ac.lk',
+        'buddhist-and-pali-university' => 'bpuls.ac.lk',
+        'sliit' => 'sliit.lk',
+        'nsbm' => 'nsbm.ac.lk',
+        'cinec' => 'cinec.edu',
+        'apiit' => 'apiit.lk',
+        'metropolitan-campus' => 'kiu.ac.lk'
+    ];
+
     public function create($data)
     {
         $query = "INSERT INTO university_users (
@@ -80,8 +103,9 @@ class UniversityUser
         $user = $this->findByNIC($nic);
         return $user !== false;
     }
-    
-    public function getRecentRegistrations($limit = 10) {
+
+    public function getRecentRegistrations($limit = 10)
+    {
         $limit = (int)$limit; // Ensure it's an integer
         $query = "SELECT 
             id,
@@ -94,11 +118,12 @@ class UniversityUser
         FROM university_users 
         ORDER BY created_at DESC 
         LIMIT {$limit}";
-        
+
         return $this->query($query, []);
     }
-    
-    public function studentStaffIdExists($student_staff_id) {
+
+    public function studentStaffIdExists($student_staff_id)
+    {
         $user = $this->findByStudentStaffId($student_staff_id);
         return $user !== false;
     }
@@ -130,6 +155,19 @@ class UniversityUser
         // Email validation
         if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = "Please enter a valid email address";
+        }
+
+        // University and email domain matching validation
+        if (!empty($data['university']) && !empty($data['email']) && filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            if (!$this->isUniversityEmailMatch($data['university'], $data['email'])) {
+                $expectedDomain = self::UNIVERSITY_EMAIL_DOMAINS[$data['university']] ?? null;
+
+                if ($expectedDomain) {
+                    $errors[] = "University and Email Address mismatch. Please use your university email domain (@{$expectedDomain}) for the selected university.";
+                } else {
+                    $errors[] = "University and Email Address mismatch. Please use your official university email address.";
+                }
+            }
         }
 
         // Password validation
@@ -170,6 +208,23 @@ class UniversityUser
         }
 
         return $errors;
+    }
+
+    private function isUniversityEmailMatch($university, $email)
+    {
+        if (empty(self::UNIVERSITY_EMAIL_DOMAINS[$university])) {
+            return true;
+        }
+
+        $emailDomain = strtolower(substr(strrchr(trim($email), '@'), 1));
+        $expectedDomain = strtolower(self::UNIVERSITY_EMAIL_DOMAINS[$university]);
+
+        if ($emailDomain === $expectedDomain) {
+            return true;
+        }
+
+        // Allow valid subdomains such as student.cmb.ac.lk
+        return str_ends_with($emailDomain, '.' . $expectedDomain);
     }
 
     public function prepareDataForInsert($data)

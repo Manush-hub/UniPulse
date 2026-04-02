@@ -246,7 +246,11 @@
                 </div>
                 <div class="summary-row">
                     <span>Quantity:</span>
-                    <span>1</span>
+                    <span id="ticketQuantity">1</span>
+                </div>
+                <div class="summary-row" id="savingsRow" style="display: none;">
+                    <span style="color: #15803d; font-weight: 600;">You saved:</span>
+                    <span id="savingsAmount" style="color: #15803d; font-weight: 700;">LKR 0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>Total Amount:</span>
@@ -262,10 +266,10 @@
 
                 <div class="payment-methods">
                     <div class="payment-method active" data-method="payhere" style="cursor: default; background: #f0f9ff; border: 2px solid #00457C;">
-                        <img src="https://www.payhere.lk/downloads/images/payhere_short_logo.png" 
-                             alt="PayHere" 
-                             style="height: 24px; vertical-align: middle;"
-                             onerror="this.style.display='none'">
+                        <img src="https://www.payhere.lk/downloads/images/payhere_short_logo.png"
+                            alt="PayHere"
+                            style="height: 24px; vertical-align: middle;"
+                            onerror="this.style.display='none'">
                         <span style="margin-left: 10px; color: #00457C; font-weight: 600;">PayHere</span>
                     </div>
                 </div>
@@ -305,6 +309,8 @@
         // Get event ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const eventId = urlParams.get('event_id');
+        let currentEventDetails = null;
+        let currentPaymentData = null;
 
         // Load event details
         document.addEventListener('DOMContentLoaded', function() {
@@ -315,7 +321,7 @@
 
             loadEventDetails();
             setupCancelButton();
-            
+
             // Setup form submission for PayHere redirect
             document.getElementById('paymentForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -329,6 +335,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.event) {
+                        currentEventDetails = data.event;
                         displayEventDetails(data.event);
                     } else {
                         showError('Event not found');
@@ -341,25 +348,104 @@
         }
 
         function displayEventDetails(event) {
-            document.getElementById('eventName').textContent = event.title || event.name;
-            document.getElementById('eventDate').textContent = formatDate(event.date);
-            
+            const paymentData = getStoredPaymentData();
+
+            document.getElementById('eventName').textContent =
+                paymentData?.eventTitle || event.title || event.name || 'Event';
+            document.getElementById('eventDate').textContent = event.date ? formatDate(event.date) : 'N/A';
+
+            if (paymentData && Array.isArray(paymentData.tickets) && paymentData.tickets.length > 0) {
+                currentPaymentData = paymentData;
+
+                const totalQuantity = paymentData.tickets.reduce((sum, ticket) => {
+                    return sum + (parseInt(ticket.quantity, 10) || 0);
+                }, 0);
+
+                const ticketTypeLabel = paymentData.tickets.length === 1 ?
+                    paymentData.tickets[0].name :
+                    `Multiple (${paymentData.tickets.length} types)`;
+
+                document.getElementById('ticketType').textContent = ticketTypeLabel;
+                document.getElementById('ticketQuantity').textContent = String(totalQuantity || 1);
+                document.getElementById('totalAmount').textContent = `LKR ${Number(paymentData.totalAmount || 0).toFixed(2)}`;
+                updateSavingsDisplay(paymentData);
+                return;
+            }
+
+            // Fallback for direct page access without event selection state.
             const ticketType = event.ticket_type || 'Standard';
             document.getElementById('ticketType').textContent = formatTicketType(ticketType);
-            
-            // Get actual ticket price from ticket_types
-            let amount = 100; // Default
-            if (event.ticket_types && event.ticket_types.length > 0) {
+
+            let amount = 100;
+            if (Array.isArray(event.ticket_types) && event.ticket_types.length > 0) {
                 const firstTicket = event.ticket_types[0];
-                amount = firstTicket.discounted_price || firstTicket.price || 100;
-                window.currentEventPrice = amount; // Store for later use
+                amount = Number(firstTicket.discounted_price || firstTicket.price || 100);
             }
-            
+
+            document.getElementById('ticketQuantity').textContent = '1';
             document.getElementById('totalAmount').textContent = `LKR ${amount.toFixed(2)}`;
+            updateSavingsDisplay(null);
+        }
+
+        function updateSavingsDisplay(paymentData) {
+            const savingsRow = document.getElementById('savingsRow');
+            const savingsAmount = document.getElementById('savingsAmount');
+            if (!savingsRow || !savingsAmount) {
+                return;
+            }
+
+            let savings = 0;
+
+            if (paymentData && Array.isArray(paymentData.tickets)) {
+                savings = paymentData.tickets.reduce((sum, ticket) => {
+                    if (ticket && typeof ticket.discountAmount !== 'undefined') {
+                        return sum + (Number(ticket.discountAmount) || 0);
+                    }
+
+                    const qty = Number(ticket?.quantity) || 0;
+                    const originalPrice = Number(ticket?.originalPrice) || 0;
+                    const payablePrice = Number(ticket?.price) || 0;
+                    const lineSaving = Math.max(0, (originalPrice - payablePrice) * qty);
+                    return sum + lineSaving;
+                }, 0);
+            }
+
+            if (savings > 0) {
+                savingsAmount.textContent = `LKR ${savings.toFixed(2)}`;
+                savingsRow.style.display = 'flex';
+            } else {
+                savingsAmount.textContent = 'LKR 0.00';
+                savingsRow.style.display = 'none';
+            }
+        }
+
+        function getStoredPaymentData() {
+            try {
+                const raw = sessionStorage.getItem('paymentData');
+                if (!raw) {
+                    return null;
+                }
+
+                const parsed = JSON.parse(raw);
+                const parsedEventId = parsed?.eventId != null ? String(parsed.eventId) : null;
+
+                if (!parsedEventId || parsedEventId !== String(eventId)) {
+                    return null;
+                }
+
+                return parsed;
+            } catch (error) {
+                console.warn('Unable to parse paymentData from sessionStorage', error);
+                return null;
+            }
         }
 
         function formatDate(dateString) {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
             return new Date(dateString).toLocaleDateString('en-US', options);
         }
 
@@ -402,17 +488,44 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting to PayHere...';
             submitBtn.disabled = true;
 
-            // Get payment data
-            const totalAmountText = document.getElementById('totalAmount').textContent;
-            const amount = parseFloat(totalAmountText.replace('LKR', '').trim());
+            const paymentData = currentPaymentData || getStoredPaymentData();
+
+            let amount = 0;
+            let quantity = 1;
+            let description = 'Event Ticket';
+
+            if (paymentData && Array.isArray(paymentData.tickets) && paymentData.tickets.length > 0) {
+                amount = Number(paymentData.totalAmount || 0);
+                quantity = paymentData.tickets.reduce((sum, ticket) => {
+                    return sum + (parseInt(ticket.quantity, 10) || 0);
+                }, 0) || 1;
+
+                if (paymentData.tickets.length === 1) {
+                    description = `Event Ticket - ${paymentData.tickets[0].name}`;
+                } else {
+                    description = `Event Tickets - ${paymentData.tickets.length} types`;
+                }
+            } else {
+                const totalAmountText = document.getElementById('totalAmount').textContent;
+                amount = parseFloat(totalAmountText.replace('LKR', '').trim()) || 0;
+            }
+
+            if (amount <= 0) {
+                showError('Invalid payment amount. Please go back and select at least one ticket.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
 
             // Redirect to PayHere payment with session setup
             // The Payment controller expects these params
-            const paymentUrl = `/unipulse/public/payment?amount=${amount}&type=ticket&event_id=${eventId}&description=Event Ticket`;
-            
+            const paymentUrl = `/unipulse/public/payment?amount=${encodeURIComponent(amount.toFixed(2))}&type=ticket&event_id=${encodeURIComponent(eventId)}&quantity=${encodeURIComponent(quantity)}&description=${encodeURIComponent(description)}`;
+
             console.log('Redirecting to PayHere:', {
                 event_id: eventId,
                 amount: amount,
+                quantity: quantity,
+                description: description,
                 url: paymentUrl
             });
 
@@ -424,7 +537,7 @@
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
-            
+
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);

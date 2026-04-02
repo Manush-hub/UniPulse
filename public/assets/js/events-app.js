@@ -33,7 +33,7 @@ const roleConfig = {
         searchInputId: 'searchInput',
         eventDetailsUrl: '/unipulse/public/admin/eventview/',
         showCategoryHeader: false,
-        showHideButton: true
+        showHideButton: false
     }
 };
 
@@ -57,6 +57,15 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Initial events count:', allEvents.length);
     loadEvents();
     setupEventListeners();
+
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            loadMoreEvents();
+        });
+    }
 });
 
 // Setup event listeners
@@ -162,17 +171,19 @@ function fetchAllEventsForCounting() {
 }
 
 // Load events
-function loadEvents(useAjax = false) {
+function loadEvents(useAjax = false, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
     loadingSpinner.style.display = 'flex';
-    noEvents.style.display = 'none';
+    if (!append) {
+        noEvents.style.display = 'none';
+    }
 
     if (!useAjax && allEvents.length > 0) {
-        displayEvents(allEvents);
+        displayEvents(allEvents, false);
         loadingSpinner.style.display = 'none';
         updatePagination();
         if (config.showCategoryHeader) {
@@ -198,9 +209,16 @@ function loadEvents(useAjax = false) {
             loadingSpinner.style.display = 'none';
 
             if (data.success && data.events && data.events.length > 0) {
-                allEvents = data.events;
-                displayEvents(allEvents);
+                if (append) {
+                    allEvents = [...allEvents, ...data.events];
+                    displayEvents(data.events, true);
+                } else {
+                    allEvents = data.events;
+                    displayEvents(allEvents, false);
+                }
                 updatePagination(data.pagination);
+            } else if (append) {
+                currentPage = Math.max(1, currentPage - 1);
             } else {
                 displayNoEvents();
             }
@@ -216,9 +234,11 @@ function loadEvents(useAjax = false) {
         });
 }
 
-function displayEvents(events) {
+function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
-    eventsGrid.innerHTML = '';
+    if (!append) {
+        eventsGrid.innerHTML = '';
+    }
 
     const sortedEvents = config.showCategoryHeader ? sortEventsByStatus(events) : events;
 
@@ -247,7 +267,11 @@ function updatePagination(pagination = null) {
 
     const loadMoreSection = document.getElementById('loadMoreSection');
     if (loadMoreSection) {
-        loadMoreSection.style.display = (currentPage < totalPages) ? 'block' : 'none';
+        if (pagination && typeof pagination.hasMore === 'boolean') {
+            loadMoreSection.style.display = pagination.hasMore ? 'block' : 'none';
+        } else {
+            loadMoreSection.style.display = (currentPage < totalPages) ? 'block' : 'none';
+        }
     }
 }
 
@@ -271,20 +295,128 @@ function createEventCard(event) {
     const eventDate = event.event_date || event.date;
     const eventTime = event.event_time || event.time;
     const eventStatus = getEventStatus(eventDate, eventTime, event.event_end_time);
-    
-    // Handle multiple possible image field names and ensure valid path
+
+    // Resolve image path before any role-specific rendering uses it.
     let imageUrl = event.featured_image || event.cover_image || event.image_url || '';
-    
-    // If image URL is relative, ensure it has proper path
+
     if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
         imageUrl = '/unipulse/public/' + imageUrl;
     }
-    
-    // Use default if no image
+
     if (!imageUrl) {
         imageUrl = '/unipulse/public/assets/images/default-event.jpg';
     }
 
+    // Admin should see the same detail density as user-facing event cards.
+    if (currentRole === 'Admin') {
+        const universityName = event.university_name || event.universityName;
+        const maxParticipants = event.max_participants || event.maxParticipants;
+        const currentParticipants = event.current_participants || event.currentParticipants || 0;
+        const isHiddenEvent = event.is_hidden_event == 1 || event.is_deleted == 1 || event.status === 'hidden';
+        const locationType = event.location_type || 'inside-university';
+        const facultyDepartment = event.faculty_department || event.facultyDepartment;
+        const exactLocation = event.location || event.exact_location;
+        const venueName = event.venue_name || event.venueName;
+        const city = event.city;
+
+        let locationDisplay = '';
+        let secondaryInfo = '';
+
+        if (locationType === 'outside-university') {
+            if (venueName && city) {
+                locationDisplay = `${venueName}, ${city}`;
+            } else if (venueName) {
+                locationDisplay = venueName;
+            } else if (city) {
+                locationDisplay = city;
+            } else {
+                locationDisplay = 'Location TBA';
+            }
+        } else {
+            if (exactLocation && universityName) {
+                locationDisplay = `${exactLocation}, ${universityName}`;
+            } else if (exactLocation) {
+                locationDisplay = exactLocation;
+            } else if (universityName) {
+                locationDisplay = universityName;
+            } else {
+                locationDisplay = 'Location TBA';
+            }
+
+            if (facultyDepartment && universityName) {
+                secondaryInfo = `${facultyDepartment}, ${universityName}`;
+            } else if (facultyDepartment) {
+                secondaryInfo = facultyDepartment;
+            } else if (universityName) {
+                secondaryInfo = universityName;
+            }
+        }
+
+        card.innerHTML = `
+            <div class="event-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
+                <div class="event-category">${capitalizeFirstLetter(event.category || 'Event')}</div>
+                <div class="event-status ${isHiddenEvent ? 'hidden' : eventStatus}">${isHiddenEvent ? 'Hidden' : capitalizeFirstLetter(eventStatus)}</div>
+                ${event.is_boosted == 1 ? '<div class="boosted-badge">⭐ Boosted</div>' : ''}
+            </div>
+            <div class="event-content">
+                <h3 class="event-title">${event.title}</h3>
+                <p class="event-description">${event.description || ''}</p>
+                ${isHiddenEvent ? `
+                    <div class="hidden-event-note">
+                        <strong>Hidden by:</strong> ${escapeHtml(event.hidden_by_name || 'Unknown')} (${escapeHtml(event.hidden_by_role || 'moderator/admin')})<br>
+                        <strong>Reason:</strong> ${escapeHtml(event.hidden_reason || 'No reason provided')}
+                    </div>
+                ` : ''}
+                <div class="event-meta">
+                    <div class="meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>${formatDate(eventDate)} at ${eventTime || 'TBA'}</span>
+                    </div>
+                    <div class="meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>${locationDisplay}</span>
+                    </div>
+                    ${secondaryInfo ? `
+                    <div class="meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                            <polyline points="9,22 9,12 15,12 15,22"></polyline>
+                        </svg>
+                        <span>${secondaryInfo}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="event-footer">
+                    <div class="event-organizer">
+                        <span>By ${event.organizer_name || event.created_by_name || 'Organizer'}</span>
+                    </div>
+                    <div class="event-footer-right">
+                        <span class="event-price">${getTicketPriceDisplay(event)}</span>
+                        <div class="event-participants">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>${currentParticipants}/${maxParticipants || 100}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return card;
+    }
+    
     card.innerHTML = `
         <div class="event-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
             <div class="event-category">${capitalizeFirstLetter(event.category || 'Event')}</div>
@@ -442,7 +574,7 @@ function clearFilters() {
 // Load more events
 function loadMoreEvents() {
     currentPage++;
-    loadEvents(true);
+    loadEvents(true, true);
 }
 
 // View event details - redirect to event view page
@@ -460,6 +592,16 @@ function formatDate(dateString) {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', options);
+}
+
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 // Add some animation effects

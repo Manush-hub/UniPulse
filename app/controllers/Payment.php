@@ -61,6 +61,7 @@ class Payment extends Controller
         $data['payment_type'] = $_GET['type']         ?? $_SESSION['payment_type']         ?? 'ticket';
         $data['event_id']     = $_GET['event_id']     ?? $_SESSION['payment_event_id']     ?? '';
         $data['publisher_id'] = $_GET['publisher_id'] ?? $_SESSION['payment_publisher_id'] ?? '';
+        $data['quantity']     = $_GET['quantity']     ?? $_SESSION['payment_quantity']     ?? 1;
 
         // Set item description based on payment type
         if ($data['payment_type'] === 'boost') {
@@ -75,6 +76,7 @@ class Payment extends Controller
         if ($data['payment_type'])        $_SESSION['payment_type']        = $data['payment_type'];
         if ($data['event_id'] !== '')     $_SESSION['payment_event_id']    = $data['event_id'];
         if ($data['publisher_id'] !== '') $_SESSION['payment_publisher_id'] = $data['publisher_id'];
+        $_SESSION['payment_quantity'] = max(1, (int)$data['quantity']);
         $_SESSION['payment_description'] = $data['item_description'];
 
         // Calculate commission for ticket sales only (5%)

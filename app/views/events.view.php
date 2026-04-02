@@ -51,6 +51,8 @@ $roleConfig = [
 // Get current role from data or default to 'User'
 $currentRole = $userRole ?? 'User';
 $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
+$cssFilePath = $_SERVER['DOCUMENT_ROOT'] . $config['cssFile'];
+$cssVersion = file_exists($cssFilePath) ? filemtime($cssFilePath) : time();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +62,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $config['pageTitle']; ?></title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
-    <link rel="stylesheet" href="<?php echo $config['cssFile']; ?>">
+    <link rel="stylesheet" href="<?php echo $config['cssFile'] . '?v=' . $cssVersion; ?>">
     <?php if ($config['additionalCss']): ?>
     <link rel="stylesheet" href="<?php echo $config['additionalCss']; ?>">
     <?php endif; ?>
@@ -362,17 +364,17 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     
     <!-- Load role-specific JavaScript -->
     <?php if ($currentRole === 'Publisher'): ?>
-    <script src="/unipulse/public/assets/js/Publisher/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/events-app.js?v=<?= time() ?>"></script>
     <?php elseif ($currentRole === 'User'): ?>
-    <script src="/unipulse/public/assets/js/User/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/User/events-app.js?v=<?= time() ?>"></script>
     <?php elseif ($currentRole === 'Moderator'): ?>
-    <script src="/unipulse/public/assets/js/Moderator/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/events-app.js?v=<?= time() ?>"></script>
     <?php elseif ($currentRole === 'Sponsor'): ?>
-    <script src="/unipulse/public/assets/js/Sponsor/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/Sponsor/events-app.js?v=<?= time() ?>"></script>
     <?php elseif ($currentRole === 'Admin'): ?>
-    <script src="/unipulse/public/assets/js/Admin/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/events-app.js?v=<?= time() ?>"></script>
     <?php else: ?>
-    <script src="/unipulse/public/assets/js/events-app.js"></script>
+    <script src="/unipulse/public/assets/js/events-app.js?v=<?= time() ?>"></script>
     <?php endif; ?>
 </body>
 

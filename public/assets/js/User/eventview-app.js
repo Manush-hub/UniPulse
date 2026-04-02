@@ -9,6 +9,11 @@ const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/user/eve
 const joinEndpoint = window.serverData?.joinEndpoint || '/unipulse/public/user/eventview/joinEvent';
 const volunteerApplyEndpoint = window.serverData?.volunteerApplyEndpoint || '/unipulse/public/user/eventview/applyVolunteer';
 const donationSubmitEndpoint = window.serverData?.donationSubmitEndpoint || '/unipulse/public/user/eventview/submitDonation';
+const currentUserType = String(window.serverData?.currentUserType || '').toLowerCase();
+
+function isUniversityUser() {
+    return currentUserType === 'university' || currentUserType === 'student' || currentUserType === 'university_user';
+}
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
@@ -1266,16 +1271,33 @@ function renderPaidTickets(event) {
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
 
     ticketTypes.forEach((ticket, index) => {
+        const originalPrice = Number(ticket.price) || 0;
+        const discountedPrice = Number(ticket.discounted_price) || 0;
+        const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+        const payablePrice = hasDiscount ? discountedPrice : originalPrice;
+        const discountPercent = Number(ticket.discount_percent) || 0;
+        const priceHTML = hasDiscount
+            ? `<div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                        <span style="margin: 0; color: #94a3b8; font-size: 0.95rem; text-decoration: line-through;">LKR ${originalPrice.toFixed(2)}</span>
+                        <span style="padding: 2px 8px; background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; border-radius: 999px;">${discountPercent > 0 ? `${discountPercent}% OFF` : 'DISCOUNT'}</span>
+                    </div>
+                    <span style="margin: 0.1rem 0 0 0; color: #16a34a; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</span>
+                    <span style="color: #64748b; font-size: 0.78rem;">You pay discounted price</span>
+               </div>`
+            : `<p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</p>`;
+
         ticketsHTML += `
             <div class="ticket-option" 
                  data-ticket-index="${index}" 
                  data-ticket-name="${ticket.name}" 
-                 data-ticket-price="${ticket.price}"
+                 data-ticket-price="${payablePrice}"
+                 data-original-price="${originalPrice}"
                  style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
                 <div class="ticket-info" style="flex: 1;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
                     ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
-                    <p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${parseFloat(ticket.price).toFixed(2)}</p>
+                    ${priceHTML}
                     <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
                 </div>
                 <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
@@ -1306,6 +1328,11 @@ function renderMixedTickets(event) {
         return;
     }
 
+    if (isUniversityUser()) {
+        renderMixedAsFreeForUniversityUser(event);
+        return;
+    }
+
     const mixedSection = document.getElementById('mixedTicketingSection');
     if (!mixedSection) return;
 
@@ -1326,16 +1353,33 @@ function renderMixedTickets(event) {
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
 
     ticketTypes.forEach((ticket, index) => {
+        const originalPrice = Number(ticket.price) || 0;
+        const discountedPrice = Number(ticket.discounted_price) || 0;
+        const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+        const payablePrice = hasDiscount ? discountedPrice : originalPrice;
+        const discountPercent = Number(ticket.discount_percent) || 0;
+        const priceHTML = hasDiscount
+            ? `<div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    <div style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+                        <span style="margin: 0; color: #94a3b8; font-size: 0.95rem; text-decoration: line-through;">LKR ${originalPrice.toFixed(2)}</span>
+                        <span style="padding: 2px 8px; background: #dcfce7; color: #166534; font-size: 0.72rem; font-weight: 700; border-radius: 999px;">${discountPercent > 0 ? `${discountPercent}% OFF` : 'DISCOUNT'}</span>
+                    </div>
+                    <span style="margin: 0.1rem 0 0 0; color: #16a34a; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</span>
+                    <span style="color: #64748b; font-size: 0.78rem;">You pay discounted price</span>
+               </div>`
+            : `<p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</p>`;
+
         ticketsHTML += `
             <div class="ticket-option" 
                  data-ticket-index="${index}" 
                  data-ticket-name="${ticket.name}" 
-                 data-ticket-price="${ticket.price}"
+                 data-ticket-price="${payablePrice}"
+                 data-original-price="${originalPrice}"
                  style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
                 <div class="ticket-info" style="flex: 1;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
                     ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
-                    <p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${parseFloat(ticket.price).toFixed(2)}</p>
+                    ${priceHTML}
                     <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
                 </div>
                 <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
@@ -1367,6 +1411,32 @@ function renderMixedTickets(event) {
     }
 
     setupTicketQuantityListeners();
+}
+
+function renderMixedAsFreeForUniversityUser(event) {
+    const freeSection = document.getElementById('freeRegistrationSection');
+    const mixedSection = document.getElementById('mixedTicketingSection');
+    const paidSection = document.getElementById('paidTicketingSection');
+
+    if (mixedSection) mixedSection.style.display = 'none';
+    if (paidSection) paidSection.style.display = 'none';
+    if (!freeSection) return;
+
+    const freeHeader = freeSection.querySelector('.registration-header-modern h3');
+    const freeSubtitle = document.getElementById('freeEntrySubtitle');
+    const freeBtn = freeSection.querySelector('.btn-register-modern');
+
+    if (freeHeader) {
+        freeHeader.textContent = 'Free for University Students';
+    }
+    if (freeSubtitle) {
+        freeSubtitle.textContent = 'You can register for free. Paid tickets are for public users only.';
+    }
+    if (freeBtn) {
+        freeBtn.innerHTML = '<i class="fas fa-user-plus"></i> Register for Free';
+    }
+
+    freeSection.style.display = 'block';
 }
 
 function setupTicketQuantityListeners() {
@@ -1434,15 +1504,20 @@ function buyTickets() {
 
         if (quantity > 0) {
             const ticketName = ticket.dataset.ticketName;
-            const ticketPrice = parseFloat(ticket.dataset.ticketPrice);
+            const ticketPrice = parseFloat(ticket.dataset.ticketPrice) || 0;
+            const originalPrice = parseFloat(ticket.dataset.originalPrice) || ticketPrice;
             const subtotal = ticketPrice * quantity;
+            const originalSubtotal = originalPrice * quantity;
+            const discountAmount = Math.max(0, originalSubtotal - subtotal);
 
             ticketSelections.push({
                 index: index,
                 name: ticketName,
+                originalPrice: originalPrice,
                 price: ticketPrice,
                 quantity: quantity,
-                subtotal: subtotal
+                subtotal: subtotal,
+                discountAmount: discountAmount
             });
 
             totalPrice += subtotal;
