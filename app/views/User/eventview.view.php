@@ -122,6 +122,17 @@
                                 </div>
                             </div>
 
+                            <!-- Ticket Types -->
+                            <div class="content-card" id="eventTicketsSection" style="display: none;">
+                                <h3>
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Tickets
+                                </h3>
+                                <div id="eventTickets" class="event-tickets">
+                                    Loading tickets...
+                                </div>
+                            </div>
+
                             <!-- Event Schedule -->
                             <div class="content-card">
                                 <h3>
@@ -222,6 +233,35 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to join this event?</p>
+
+                <!-- Ticket Selection (shown for paid/mixed events) -->
+                <div id="ticketSelectionSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="ticketTypeSelect">Select Ticket Type</label>
+                        <select id="ticketTypeSelect" class="form-select">
+                            <option value="">-- Select a ticket type --</option>
+                        </select>
+                    </div>
+                    <div id="ticketQtyGroup" class="form-group" style="display: none;">
+                        <label for="ticketQty">Quantity</label>
+                        <input type="number" id="ticketQty" class="form-input-modal" min="1" value="1">
+                    </div>
+                    <div id="orderSummary" class="order-summary" style="display: none;">
+                        <div class="order-summary-row">
+                            <span>Ticket:</span>
+                            <span id="orderTicketName">—</span>
+                        </div>
+                        <div class="order-summary-row">
+                            <span>Quantity:</span>
+                            <span id="orderQty">—</span>
+                        </div>
+                        <div class="order-summary-row order-total-row">
+                            <span>Total:</span>
+                            <span id="orderTotal">—</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="participantNotes">Additional Notes (Optional)</label>
                     <textarea id="participantNotes" placeholder="Any special requirements or notes..."></textarea>
@@ -231,7 +271,7 @@
                 <button class="btn btn-secondary" onclick="closeJoinModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="confirmJoinEvent()">
                     <i class="fas fa-check"></i>
-                    Confirm Join
+                    Confirm
                 </button>
             </div>
         </div>
