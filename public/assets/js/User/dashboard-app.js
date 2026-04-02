@@ -250,7 +250,11 @@ function displayUpcomingEvents(events) {
     const ticketsCarousel = document.getElementById('myTicketsCarousel');
     if (!carousel) return;
 
-    if (!events || events.length === 0) {
+    const upcomingEvents = Array.isArray(events)
+        ? events.filter(isFutureEvent)
+        : [];
+
+    if (upcomingEvents.length === 0) {
         carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
         if (ticketsCarousel) {
             ticketsCarousel.innerHTML = '<div class="no-data">You have no tickets yet.</div>';
@@ -367,6 +371,17 @@ function createTicketCard(event) {
     }
 
     return card;
+}
+
+function isFutureEvent(event) {
+    if (!event || !event.date) return false;
+
+    const eventDateTime = new Date(`${event.date} ${event.time && String(event.time).trim() ? event.time : '23:59:59'}`);
+    if (Number.isNaN(eventDateTime.getTime())) {
+        return false;
+    }
+
+    return eventDateTime.getTime() >= Date.now();
 }
 
 // Create upcoming event card

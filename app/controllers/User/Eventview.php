@@ -8,6 +8,7 @@ class UserEventview extends Controller
     private $freeRegistrationModel;
     private $volunteerRegistrationModel;
     private $donationModel;
+    private $notificationModel;
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class UserEventview extends Controller
         $this->freeRegistrationModel = new FreeEventRegistration();
         $this->volunteerRegistrationModel = new VolunteerRegistration();
         $this->donationModel = new Donation();
+        $this->notificationModel = new Notification();
     }
 
     public function index($id = null)
@@ -539,6 +541,8 @@ class UserEventview extends Controller
                 exit;
             }
 
+            $this->sendVolunteerApplicationNotification($event, $userType);
+
             $savedApplication = $this->volunteerRegistrationModel->getRegistration($eventId, $userId, $userType);
 
             echo json_encode([
@@ -556,6 +560,39 @@ class UserEventview extends Controller
         }
 
         exit;
+    }
+
+    /**
+     * Notify event owner when someone applies as a volunteer.
+     */
+    private function sendVolunteerApplicationNotification($event, $applicantType)
+    {
+        if (!$event || ($event->created_by_type ?? '') !== 'publisher' || empty($event->created_by)) {
+            return;
+        }
+
+        $applicantLabel = strtolower((string)$applicantType) === 'publisher'
+            ? 'A publisher'
+            : 'A user';
+
+        $eventTitle = trim((string)($event->title ?? 'your event'));
+        if ($eventTitle === '') {
+            $eventTitle = 'your event';
+        }
+
+        try {
+            $this->notificationModel->sendNotification([
+                'recipient_id' => (int)$event->created_by,
+                'recipient_type' => 'publisher',
+                'type' => 'event_comment',
+                'title' => 'New Volunteer Application',
+                'message' => $applicantLabel . " applied as a volunteer for \"" . $eventTitle . "\".",
+                'related_id' => (int)($event->id ?? 0),
+                'related_type' => 'event'
+            ]);
+        } catch (Throwable $e) {
+            error_log('UserEventview volunteer notification error: ' . $e->getMessage());
+        }
     }
 
     /**

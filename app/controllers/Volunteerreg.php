@@ -2,6 +2,14 @@
 
 class Volunteerreg extends Controller
 {
+    private $notificationModel;
+    private $eventModel;
+
+    public function __construct()
+    {
+        $this->notificationModel = new Notification();
+        $this->eventModel = new Event();
+    }
 
     public function index($a = '', $b = '', $c = '')
     {
@@ -63,6 +71,7 @@ class Volunteerreg extends Controller
             if ($result) {
                 // Log activity
                 $this->logVolunteerActivity($userId, $userType, $eventId);
+                $this->sendVolunteerApplicationNotification((int)$eventId, (string)$userType);
 
                 $data['success'] = 'Thank you! Your volunteer registration has been submitted successfully!';
                 $data['redirect'] = '/unipulse/public/user/dashboard';
@@ -140,6 +149,40 @@ class Volunteerreg extends Controller
         } catch (Exception $e) {
             // Don't fail if activity logging fails
             error_log("Volunteer activity logging failed: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify publisher owner about a new volunteer application.
+     */
+    private function sendVolunteerApplicationNotification($eventId, $applicantType)
+    {
+        try {
+            $event = $this->eventModel->getEventById($eventId);
+            if (!$event || ($event->created_by_type ?? '') !== 'publisher' || empty($event->created_by)) {
+                return;
+            }
+
+            $applicantLabel = strtolower((string)$applicantType) === 'publisher'
+                ? 'A publisher'
+                : 'A user';
+
+            $eventTitle = trim((string)($event->title ?? 'your event'));
+            if ($eventTitle === '') {
+                $eventTitle = 'your event';
+            }
+
+            $this->notificationModel->sendNotification([
+                'recipient_id' => (int)$event->created_by,
+                'recipient_type' => 'publisher',
+                'type' => 'event_comment',
+                'title' => 'New Volunteer Application',
+                'message' => $applicantLabel . " applied as a volunteer for \"" . $eventTitle . "\".",
+                'related_id' => (int)$eventId,
+                'related_type' => 'event'
+            ]);
+        } catch (Throwable $e) {
+            error_log('Volunteerreg notification error: ' . $e->getMessage());
         }
     }
 }

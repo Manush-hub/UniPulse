@@ -44,7 +44,17 @@ $roleConfig = [
 ];
 
 // Get current role from data or default to 'User'
-$currentRole = $userRole ?? 'User';
+$currentRoleRaw = strtolower((string)($userRole ?? 'User'));
+$roleMap = [
+    'admin' => 'Admin',
+    'moderator' => 'Moderator',
+    'publisher' => 'Publisher',
+    'sponsor' => 'Sponsor',
+    'public' => 'User',
+    'university' => 'User',
+    'user' => 'User'
+];
+$currentRole = $roleMap[$currentRoleRaw] ?? 'User';
 $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 ?>
 <!DOCTYPE html>
@@ -54,7 +64,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $config['pageTitle']; ?></title>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/landing-style.css">
 </head>
 
@@ -141,7 +151,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     </section>
 
     <!-- Footer -->
-    <?php include __DIR__ . '/components/footer.php'; ?>
+    <?php include __DIR__ . '/Components/footer.php'; ?>
 
     <!-- Pass PHP data to JavaScript -->
     <script>

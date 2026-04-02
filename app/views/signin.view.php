@@ -61,7 +61,7 @@
                                 return;
                             }
                             
-                            fetch('/unipulse/public/submit_appeal.php', {
+                            fetch('/unipulse/public/signin/submitAppeal', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -149,9 +149,9 @@
                     </div>
 
                     <!-- Forgot Password Link -->
-                    <div class="forgot-password">
+                    <!-- <div class="forgot-password">
                         <a href="/unipulse/public/forgotpassword">Forgot password?</a>
-                    </div>
+                    </div> -->
 
                     <!-- Sign In Button -->
                     <button type="submit" class="signin-btn">

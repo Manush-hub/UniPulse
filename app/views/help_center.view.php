@@ -13,22 +13,7 @@
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="/unipulse/public/">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="top-nav">
-                <a href="/unipulse/public/">Home</a>
-                <a href="/UniPulse/find-events">Find Events</a>
-                <a href="/UniPulse/about">About</a>
-                <a href="/UniPulse/help-center">Help Center</a>
-                <a href="/UniPulse/contact">Contact</a>
-            </nav>
-        </div>
-    </header>
+    <?php include __DIR__ . '/Components/role_header.php'; ?>
 
     <div class="container">
         <!-- Hero Section -->
@@ -400,7 +385,7 @@
     </div>
 
     <!-- Footer -->
-    <?php include 'footer.php'; ?>
+    <?php include __DIR__ . '/Components/footer.php'; ?>
 
     <script>
         // Category click handlers

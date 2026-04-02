@@ -7,18 +7,7 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/about_us-style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-container">
-      <div class="logo">
-        <a href="/unipulse/public/">
-          <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-        </a>
-      </div>
-      <nav class="top-nav">
-        <a href="/unipulse/public/">Home</a>
-      </nav>
-    </div>
-  </header>
+  <?php include __DIR__ . '/Components/role_header.php'; ?>
 
   <main class="about-main">
     <section class="hero" id="about">

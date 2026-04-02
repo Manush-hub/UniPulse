@@ -49,7 +49,17 @@ $roleConfig = [
 ];
 
 // Get current role from data or default to 'User'
-$currentRole = $userRole ?? 'User';
+$currentRoleRaw = strtolower((string)($userRole ?? 'User'));
+$roleMap = [
+    'admin' => 'Admin',
+    'moderator' => 'Moderator',
+    'publisher' => 'Publisher',
+    'sponsor' => 'Sponsor',
+    'public' => 'User',
+    'university' => 'User',
+    'user' => 'User'
+];
+$currentRole = $roleMap[$currentRoleRaw] ?? 'User';
 $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 $cssFilePath = $_SERVER['DOCUMENT_ROOT'] . $config['cssFile'];
 $cssVersion = file_exists($cssFilePath) ? filemtime($cssFilePath) : time();
@@ -73,7 +83,7 @@ $cssVersion = file_exists($cssFilePath) ? filemtime($cssFilePath) : time();
 <body>
     <!-- Header -->
     <?php
-    $pageConfig = ['activeNav' => 'events'];
+    $pageConfig = ['activeNav' => $currentRole === 'Admin' ? 'allevents' : 'events'];
     if ($currentRole === 'Moderator') {
         $headerCssLoaded = true;
     }

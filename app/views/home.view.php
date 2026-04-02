@@ -81,50 +81,45 @@
             <h2>Upcoming Events</h2>
             <p class="section-subtitle">Discover the most spectacular events happening at top universities.</p>
             <div class="events-grid">
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=300&h=200&fit=crop" alt="Tech Innovation Summit">
+                <?php if (!empty($upcoming_events)): ?>
+                    <?php foreach ($upcoming_events as $event): ?>
+                        <?php
+                            $eventImage = $event->cover_image ?: $event->image_url;
+                            if ($eventImage && (strpos($eventImage, '/uploads/') === 0 || strpos($eventImage, 'uploads/') === 0)) {
+                                $eventImage = '/unipulse/public' . (strpos($eventImage, '/') === 0 ? $eventImage : '/' . $eventImage);
+                            }
+                            if (empty($eventImage)) {
+                                $eventImage = 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=300&h=200&fit=crop';
+                            }
+                        ?>
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="<?= htmlspecialchars($eventImage) ?>" alt="<?= htmlspecialchars($event->title) ?>">
+                            </div>
+                            <div class="event-info">
+                                <h3><?= htmlspecialchars($event->title) ?></h3>
+                                <p class="event-date">
+                                    <i class="fas fa-calendar"></i>
+                                    <?= date('M d, Y', strtotime($event->event_date)) ?> - <?= date('h:i A', strtotime($event->event_time)) ?>
+                                </p>
+                                <p class="event-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <?= htmlspecialchars($event->location ?: $event->university_name) ?>
+                                </p>
+                                <button class="btn btn-outline" onclick="location.href='/unipulse/public/signin'">View Details</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="event-card">
+                        <div class="event-info">
+                            <h3>No upcoming public events right now</h3>
+                            <p class="event-date"><i class="fas fa-calendar"></i> Check back soon for new events.</p>
+                            <p class="event-location"><i class="fas fa-map-marker-alt"></i> UniPulse</p>
+                            <button class="btn btn-outline" onclick="location.href='/unipulse/public/signin'">Sign In</button>
+                        </div>
                     </div>
-                    <div class="event-info">
-                        <h3>Tech Innovation Summit</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Dec 15, 2024 - 09:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Colombo</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300&h=200&fit=crop" alt="Cultural Festival">
-                    </div>
-                    <div class="event-info">
-                        <h3>Cultural Festival</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Dec 20, 2024 - 06:00 PM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Peradeniya</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop" alt="Sports Championship">
-                    </div>
-                    <div class="event-info">
-                        <h3>Sports Championship</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Jan 5, 2025 - 08:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Moratuwa</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=300&h=200&fit=crop" alt="Academic Conference">
-                    </div>
-                    <div class="event-info">
-                        <h3>Academic Conference</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Jan 10, 2025 - 10:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Kelaniya</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
             <div class="pagination">
                 <span class="dot active"></span>
@@ -269,20 +264,12 @@
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <h3 class="stat-number">2500+</h3>
+                    <h3 class="stat-number"><?= number_format((int)($stats['total_events'] ?? 0)) ?></h3>
                     <p>Total Events</p>
                 </div>
                 <div class="stat-item">
-                    <h3 class="stat-number">20+</h3>
-                    <p>Universities</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="stat-number">1000+</h3>
-                    <p>Active Users</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="stat-number">500+</h3>
-                    <p>Success Stories</p>
+                    <h3 class="stat-number"><?= number_format((int)($stats['total_users'] ?? 0)) ?></h3>
+                    <p>Total Users</p>
                 </div>
             </div>
         </div>

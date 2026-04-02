@@ -7,16 +7,7 @@
   <link rel="stylesheet" href="/unipulse/public/assets/css/privacy_policy-style.css">
 </head>
 <body>
-
-<header class="header">
-  <div class="header-container">
-    <div class="logo">
-      <a href="/unipulse/public/">
-        <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-      </a>
-    </div>
-  </div>
-</header>
+<?php include __DIR__ . '/Components/role_header.php'; ?>
 
   <main>
     <h1>UniPulse Privacy Policy</h1>
@@ -276,7 +267,7 @@
     </section>
   </main>
 
-  <?php include 'footer.php'; ?>
+  <?php include __DIR__ . '/Components/footer.php'; ?>
 
 </body>
 </html>
