@@ -5,6 +5,8 @@ class PublisherDashboard extends Controller
 
     use Database;
 
+    private $notificationReadScope = 'publisher_dashboard';
+
     public function index($a = '', $b = '', $c = '')
     {
         // Allow publishers, admins, and moderators
@@ -47,21 +49,18 @@ class PublisherDashboard extends Controller
             $eventModel = new Event();
             $activityModel = new Activity();
             $notificationModel = new Notification();
+            $notificationReadStateModel = new NotificationReadState();
 
             $notifications = [];
             $unreadCount = 0;
 
             $publisherId = (int)($currentUser['id'] ?? 0);
-            $sessionKey = 'publisher_event_notifications_last_read_at_' . $publisherId;
-            $readItemsKey = 'publisher_event_notifications_read_items_' . $publisherId;
-            if (empty($_SESSION[$sessionKey])) {
-                $_SESSION[$sessionKey] = '1970-01-01 00:00:00';
-            }
-            if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
-                $_SESSION[$readItemsKey] = [];
-            }
-            $lastReadAt = $_SESSION[$sessionKey];
-            $readItems = $_SESSION[$readItemsKey];
+            $lastReadAt = $notificationReadStateModel->getLastReadAt(
+                $publisherId,
+                'publisher',
+                $this->notificationReadScope
+            );
+            $readItemsMap = $notificationReadStateModel->getReadItemsMap($publisherId, 'publisher');
 
             // Match visibility used by Publisher All Events page.
             $events = $eventModel->getAllEvents([
@@ -98,7 +97,7 @@ class PublisherDashboard extends Controller
                     $notificationKey = 'event|' . $eventId . '|' . $notificationTime;
 
                     $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
-                    $isMarkedIndividually = in_array($notificationKey, $readItems, true);
+                    $isMarkedIndividually = isset($readItemsMap[$notificationKey]);
                     $isUnread = !($isMarkedByTime || $isMarkedIndividually);
 
                     if ($isUnread) {
@@ -192,6 +191,7 @@ class PublisherDashboard extends Controller
         $eventId = (int)($payload['event_id'] ?? 0);
         $notificationId = (int)($payload['notification_id'] ?? 0);
         $createdAt = trim((string)($payload['created_at'] ?? ''));
+        $notificationReadStateModel = new NotificationReadState();
 
         if ($notificationId > 0) {
             $notificationModel = new Notification();
@@ -209,23 +209,16 @@ class PublisherDashboard extends Controller
             return;
         }
 
-        $publisherId = (int)($currentUser['id'] ?? 0);
-        $readItemsKey = 'publisher_event_notifications_read_items_' . $publisherId;
-        if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
-            $_SESSION[$readItemsKey] = [];
-        }
-
-        $notificationKey = $eventId . '|' . $createdAt;
+        $notificationKey = 'event|' . $eventId . '|' . $createdAt;
         if (!empty($payload['notification_key'])) {
             $notificationKey = trim((string)$payload['notification_key']);
         }
-        if (!in_array($notificationKey, $_SESSION[$readItemsKey], true)) {
-            $_SESSION[$readItemsKey][] = $notificationKey;
-        }
+
+        $result = $notificationReadStateModel->markRead((int)$currentUser['id'], 'publisher', $notificationKey);
 
         echo json_encode([
-            'success' => true,
-            'message' => 'Notification marked as read'
+            'success' => (bool)$result,
+            'message' => $result ? 'Notification marked as read' : 'Failed to mark notification as read'
         ]);
     }
 
@@ -242,9 +235,8 @@ class PublisherDashboard extends Controller
             return;
         }
 
-        $sessionKey = 'publisher_event_notifications_last_read_at_' . (int)$currentUser['id'];
-        $_SESSION[$sessionKey] = date('Y-m-d H:i:s');
-        $_SESSION['publisher_event_notifications_read_items_' . (int)$currentUser['id']] = [];
+        $notificationReadStateModel = new NotificationReadState();
+        $notificationReadStateModel->markAllRead((int)$currentUser['id'], 'publisher', $this->notificationReadScope);
 
         $notificationModel = new Notification();
         $notificationModel->markAllAsRead((int)$currentUser['id'], 'publisher');
@@ -830,6 +822,7 @@ class PublisherDashboard extends Controller
             }
 
             $volunteerReg = new VolunteerRegistration();
+            $eventModel = new Event();
             $db = $this->connect();
             $db->beginTransaction();
 
@@ -848,10 +841,10 @@ class PublisherDashboard extends Controller
 
                 if ($isChangingToAccepted) {
                     $currentNeeded = max(0, $currentNeeded - 1);
-                    $this->eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
+                    $eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
                 } elseif ($isChangingFromAccepted) {
                     $currentNeeded = $currentNeeded + 1;
-                    $this->eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
+                    $eventModel->update((int)$owned->event_id, ['volunteers_needed' => $currentNeeded]);
                 }
             }
 
