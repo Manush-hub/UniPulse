@@ -107,11 +107,25 @@ class SponsorDashboard extends Controller
                 exit;
             }
 
-            // For now, return empty notifications
-            // TODO: Implement notification system for sponsors
+            $notificationModel = new Notification();
+            $rows = $notificationModel->getUserNotifications((int)$currentUser['id'], 'sponsor', 30);
+
+            $notifications = [];
+            foreach ($rows ?: [] as $row) {
+                $createdAt = $row->created_at ?? date('Y-m-d H:i:s');
+                $notifications[] = [
+                    'id' => (int)($row->id ?? 0),
+                    'title' => (string)($row->title ?? 'Notification'),
+                    'message' => (string)($row->message ?? ''),
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'created_at' => $createdAt,
+                    'unread' => !((bool)($row->is_read ?? 0)),
+                ];
+            }
+
             echo json_encode([
                 'success' => true,
-                'notifications' => []
+                'notifications' => $notifications
             ]);
         } catch (Exception $e) {
             error_log("Error in getNotifications: " . $e->getMessage());
@@ -122,6 +136,62 @@ class SponsorDashboard extends Controller
             ]);
         }
 
+        exit;
+    }
+
+    /**
+     * API endpoint to mark a single sponsor notification as read
+     */
+    public function markNotificationRead()
+    {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'sponsor') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true) ?: [];
+        $notificationId = (int)($payload['notificationId'] ?? 0);
+
+        if ($notificationId <= 0) {
+            echo json_encode(['success' => false, 'error' => 'Invalid notification id']);
+            exit;
+        }
+
+        $notificationModel = new Notification();
+        $result = $notificationModel->markAsRead($notificationId, (int)$currentUser['id'], 'sponsor');
+
+        echo json_encode([
+            'success' => (bool)$result,
+            'message' => $result ? 'Notification marked as read' : 'Failed to mark notification as read'
+        ]);
+        exit;
+    }
+
+    /**
+     * API endpoint to mark all sponsor notifications as read
+     */
+    public function markAllNotificationsRead()
+    {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'sponsor') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $notificationModel = new Notification();
+        $result = $notificationModel->markAllAsRead((int)$currentUser['id'], 'sponsor');
+
+        echo json_encode([
+            'success' => (bool)$result,
+            'message' => $result ? 'All notifications marked as read' : 'Failed to update notifications'
+        ]);
         exit;
     }
 
@@ -532,6 +602,33 @@ class SponsorDashboard extends Controller
         $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
 
         return $pdf;
+    }
+
+    private function formatRelativeTime($timestamp)
+    {
+        $time = strtotime((string)$timestamp);
+        if (!$time) {
+            return 'Just now';
+        }
+
+        $diff = time() - $time;
+        if ($diff < 60) {
+            return 'Just now';
+        }
+        if ($diff < 3600) {
+            $mins = (int)floor($diff / 60);
+            return $mins . ' minute' . ($mins === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 86400) {
+            $hours = (int)floor($diff / 3600);
+            return $hours . ' hour' . ($hours === 1 ? '' : 's') . ' ago';
+        }
+        if ($diff < 604800) {
+            $days = (int)floor($diff / 86400);
+            return $days . ' day' . ($days === 1 ? '' : 's') . ' ago';
+        }
+
+        return date('M j, Y', $time);
     }
 
     /**

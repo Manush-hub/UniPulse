@@ -134,7 +134,11 @@ class Event
             $sql .= ' WHERE ' . implode(' AND ', $whereClause);
         }
 
-        $sql .= ' ORDER BY event_status_order ASC, e.event_date ASC, e.event_time ASC';
+        $sql .= " ORDER BY event_status_order ASC,
+                CASE WHEN ({$computedStatusSql}) = 'completed' THEN e.event_date END DESC,
+                CASE WHEN ({$computedStatusSql}) = 'completed' THEN e.event_time END DESC,
+                CASE WHEN ({$computedStatusSql}) != 'completed' THEN e.event_date END ASC,
+                CASE WHEN ({$computedStatusSql}) != 'completed' THEN e.event_time END ASC";
 
         // Add pagination if specified
         if (isset($filters['limit'])) {
