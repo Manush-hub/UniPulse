@@ -4,11 +4,13 @@ class PublisherCreateevent extends Controller
 {
 
     private $eventModel;
+    private $notificationModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->eventModel = new Event();
+        $this->notificationModel = new Notification();
     }
 
     public function index($a = '', $b = '', $c = '')
@@ -332,6 +334,11 @@ class PublisherCreateevent extends Controller
                     }
                 }
 
+                // Notify all registered sponsors about newly posted sponsorship opportunities.
+                if (!empty($formData['accepts_sponsorships'])) {
+                    $this->notifyAllSponsorsAboutNewSponsorshipEvent($eventId, $formData, $user);
+                }
+
                 // Return JSON response for AJAX requests
                 if ($isAjax) {
                     // Ensure no output before JSON
@@ -386,6 +393,47 @@ class PublisherCreateevent extends Controller
                 ];
                 $this->view('createevent', $data);
             }
+        }
+    }
+
+    private function notifyAllSponsorsAboutNewSponsorshipEvent($eventId, $formData, $user)
+    {
+        try {
+            $sponsorModel = new Sponsor();
+            $sponsors = $sponsorModel->getAllSponsors();
+
+            if (empty($sponsors)) {
+                return;
+            }
+
+            $eventTitle = trim((string)($formData['title'] ?? 'a new event'));
+            if ($eventTitle === '') {
+                $eventTitle = 'a new event';
+            }
+
+            $organizerName = trim((string)($user['name'] ?? $user['full_name'] ?? $user['company_name'] ?? 'A publisher'));
+            if ($organizerName === '') {
+                $organizerName = 'A publisher';
+            }
+
+            foreach ($sponsors as $sponsor) {
+                $sponsorId = (int)($sponsor->id ?? 0);
+                if ($sponsorId <= 0) {
+                    continue;
+                }
+
+                $this->notificationModel->sendNotification([
+                    'recipient_id' => $sponsorId,
+                    'recipient_type' => 'sponsor',
+                    'type' => 'event_comment',
+                    'title' => 'New Sponsorship Opportunity',
+                    'message' => $organizerName . " posted a sponsorship-requested event: '" . $eventTitle . "'.",
+                    'related_id' => (int)$eventId,
+                    'related_type' => 'event'
+                ]);
+            }
+        } catch (Throwable $e) {
+            error_log('Createevent sponsor notification error: ' . $e->getMessage());
         }
     }
 
