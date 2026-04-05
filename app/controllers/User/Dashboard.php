@@ -3,6 +3,8 @@
 class UserDashboard extends Controller
 {
 
+    private $notificationReadScope = 'user_dashboard';
+
     public function index($a = '', $b = '', $c = '')
     {
         // Require authentication - allow both public and university users
@@ -92,20 +94,15 @@ class UserDashboard extends Controller
         try {
             $activityModel = new Activity();
             $eventModel = new Event();
+            $notificationReadStateModel = new NotificationReadState();
 
             $userId = (int)($currentUser['id'] ?? 0);
-            $sessionKey = 'user_event_notifications_last_read_at_' . $userId;
-            $readItemsKey = 'user_event_notifications_read_items_' . $userId;
-
-            if (empty($_SESSION[$sessionKey])) {
-                $_SESSION[$sessionKey] = '1970-01-01 00:00:00';
-            }
-            if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
-                $_SESSION[$readItemsKey] = [];
-            }
-
-            $lastReadAt = $_SESSION[$sessionKey];
-            $readItems = $_SESSION[$readItemsKey];
+            $lastReadAt = $notificationReadStateModel->getLastReadAt(
+                $userId,
+                (string)$currentUser['type'],
+                $this->notificationReadScope
+            );
+            $readItemsMap = $notificationReadStateModel->getReadItemsMap($userId, (string)$currentUser['type']);
 
             $activities = $activityModel->getRecentActivities($userId, $currentUser['type'], 50);
 
@@ -248,7 +245,7 @@ class UserDashboard extends Controller
                 $notificationKey = $notification['notification_key'] ?? '';
 
                 $isMarkedByTime = strtotime($notificationTime) <= strtotime($lastReadAt);
-                $isMarkedIndividually = in_array($notificationKey, $readItems, true);
+                $isMarkedIndividually = isset($readItemsMap[$notificationKey]);
                 $isUnread = !($isMarkedByTime || $isMarkedIndividually);
 
                 $notification['read'] = !$isUnread;
@@ -300,25 +297,18 @@ class UserDashboard extends Controller
             return;
         }
 
-        $userId = (int)($currentUser['id'] ?? 0);
-        $readItemsKey = 'user_event_notifications_read_items_' . $userId;
-        if (empty($_SESSION[$readItemsKey]) || !is_array($_SESSION[$readItemsKey])) {
-            $_SESSION[$readItemsKey] = [];
-        }
-
         $source = trim((string)($payload['source'] ?? 'activity'));
         if (!in_array($source, ['activity', 'publish'], true)) {
             $source = 'activity';
         }
 
         $notificationKey = $source . '|' . $eventId . '|' . $createdAt;
-        if (!in_array($notificationKey, $_SESSION[$readItemsKey], true)) {
-            $_SESSION[$readItemsKey][] = $notificationKey;
-        }
+        $notificationReadStateModel = new NotificationReadState();
+        $result = $notificationReadStateModel->markRead((int)$currentUser['id'], (string)$currentUser['type'], $notificationKey);
 
         echo json_encode([
-            'success' => true,
-            'message' => 'Notification marked as read'
+            'success' => (bool)$result,
+            'message' => $result ? 'Notification marked as read' : 'Failed to mark notification as read'
         ]);
     }
 
@@ -340,13 +330,16 @@ class UserDashboard extends Controller
             return;
         }
 
-        $userId = (int)($currentUser['id'] ?? 0);
-        $_SESSION['user_event_notifications_last_read_at_' . $userId] = date('Y-m-d H:i:s');
-        $_SESSION['user_event_notifications_read_items_' . $userId] = [];
+        $notificationReadStateModel = new NotificationReadState();
+        $result = $notificationReadStateModel->markAllRead(
+            (int)$currentUser['id'],
+            (string)$currentUser['type'],
+            $this->notificationReadScope
+        );
 
         echo json_encode([
-            'success' => true,
-            'message' => 'All notifications marked as read'
+            'success' => (bool)$result,
+            'message' => $result ? 'All notifications marked as read' : 'Failed to mark notifications as read'
         ]);
     }
 
