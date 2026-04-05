@@ -1,0 +1,24 @@
+.required {
+            color: #dc3545;
+            margin-left: 3px;
+            font-weight: bold;
+        }
+        
+        /* Dropdown with scroll - show 5 items */
+        select#gender,
+        select#country-code {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select#gender option,
+        select#country-code option {
+            padding: 10px;
+        }
+        
+        /* Set size attribute to show 5 visible items when opened */
+        select#gender[size],
+        select#country-code[size] {
+            height: auto;
+        }

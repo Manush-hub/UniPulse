@@ -72,24 +72,4 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
         </div>
     </header>
 <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
-<script>
-(function () {
-    function updateModeratorMsgBadge() {
-        fetch('/unipulse/public/moderator/messages/unreadCount')
-            .then(r => r.json())
-            .then(data => {
-                const badge = document.getElementById('moderatorMsgBadge');
-                if (!badge) return;
-                if (data.success && data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.style.display = 'inline-block';
-                } else {
-                    badge.style.display = 'none';
-                }
-            })
-            .catch(() => {});
-    }
-    updateModeratorMsgBadge();
-    setInterval(updateModeratorMsgBadge, 30000);
-})();
-</script>
+<script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_components_header.js"></script>

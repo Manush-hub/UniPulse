@@ -8,42 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/sponsorships-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .donation-table-wrap {
-            width: 100%;
-            overflow-x: auto;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: #fff;
-        }
-
-        .donation-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 980px;
-        }
-
-        .donation-table th,
-        .donation-table td {
-            padding: 12px;
-            border-bottom: 1px solid #f1f5f9;
-            text-align: left;
-            vertical-align: top;
-            font-size: 14px;
-            color: #334155;
-        }
-
-        .donation-table th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: #0f172a;
-            white-space: nowrap;
-        }
-
-        .donation-table tbody tr:hover {
-            background: #f8fafc;
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_donations.css">
 </head>
 
 <body>
