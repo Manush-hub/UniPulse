@@ -62,6 +62,7 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
                 </button>
                 <div class="user-dropdown" id="userDropdown">
                     <a href="/unipulse/public/sponsor/profile">Profile Settings</a>
+                    <a href="#" id="openRegisteredEventsCalendar">Calendar</a>
                     <hr>
                     <a href="/unipulse/public/logout" class="logout">Logout</a>
                 </div>
@@ -69,5 +70,6 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
         </div>
     </div>
 </header>
+<script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
 <script src="/unipulse/public/assets/js/Sponsor/header-app.js"></script>
 <script src="<?php echo ROOT ?>/assets/js/extracted/Sponsor_components_header.js"></script>

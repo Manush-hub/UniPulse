@@ -1,7 +1,16 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadSponsorData();
     loadNotifications();
     setupEventListeners();
+    if (typeof initializeRegisteredEventsCalendar === 'function') {
+        initializeRegisteredEventsCalendar({
+            apiEndpoint: '/unipulse/public/sponsor/dashboard/getUpcomingEvents',
+            eventDetailsBasePath: '/unipulse/public/sponsor/eventview?id=',
+            fallbackEventsPath: '/unipulse/public/sponsor/events',
+            modalTitle: 'My Registered Events Calendar',
+            emptyMessage: 'No future registered events found.'
+        });
+    }
 });
 
 function formatDisplayName(name) {
@@ -31,7 +40,7 @@ function loadSponsorData() {
                 const usernameElement = document.getElementById('username');
                 const userRoleElement = document.getElementById('userRole');
                 const apiName = formatDisplayName(data.displayName || data.companyName || data.name || '');
-                
+
                 if (usernameElement) {
                     const currentName = formatDisplayName(usernameElement.textContent || '');
                     const isPlaceholder = !currentName || currentName === 'Sponsor' || currentName === 'TechCorp Ltd';
@@ -42,7 +51,7 @@ function loadSponsorData() {
                         usernameElement.textContent = apiName;
                     }
                 }
-                
+
                 if (userRoleElement) {
                     userRoleElement.textContent = 'Sponsor';
                 }
@@ -156,15 +165,15 @@ function markNotificationAsRead(notificationId) {
         },
         body: JSON.stringify({ notificationId: notificationId })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadNotifications();
-        }
-    })
-    .catch(error => {
-        console.error('Error marking notification as read:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
+        });
 }
 
 // Mark all notifications as read
@@ -175,13 +184,13 @@ function markAllAsRead() {
             'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadNotifications();
-        }
-    })
-    .catch(error => {
-        console.error('Error marking all notifications as read:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadNotifications();
+            }
+        })
+        .catch(error => {
+            console.error('Error marking all notifications as read:', error);
+        });
 }

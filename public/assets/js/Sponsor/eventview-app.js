@@ -1611,7 +1611,62 @@ function getEventStatus(eventDate, eventTime, eventEndTime) {
 
 // Buy Tickets - redirect to payment page
 function buyTickets() {
-    // Sponsors cannot buy tickets - show message
-    alert('Sponsors cannot purchase tickets. Only university and public users can buy tickets.');
+    // Sponsors cannot buy tickets - they should log in as regular users
+    showOrganizerIneligibilityModal(
+        'Cannot Purchase Tickets as Organizer',
+        'As a sponsor, you cannot purchase tickets using your sponsor account. ' +
+        'Tickets are available only for university and public users. ' +
+        'Please log out and sign in with a regular user account to purchase tickets for this event.',
+        'signin'
+    );
     return;
+}
+
+// Helper function to show modal for organizers who try to register/buy tickets
+function showOrganizerIneligibilityModal(title, message, actionType) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="organizerIneligibilityModal" class="modal-overlay">
+            <div class="modal-content" style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+                    <h2 style="color: #1f2937; margin-bottom: 15px; font-size: 20px; font-weight: 600;">${title}</h2>
+                    <p style="color: #6b7280; margin: 20px 0; line-height: 1.6; font-size: 14px;">${message}</p>
+                    <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="document.getElementById('organizerIneligibilityModal').remove();" 
+                                style="padding: 10px 20px; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #374151; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                            Close
+                        </button>
+                        <button onclick="window.location.href='/unipulse/public/logout';" 
+                                style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                            Logout & Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal styling if not already present
+    if (!document.getElementById('organizerIneligibilityModal')) {
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 }

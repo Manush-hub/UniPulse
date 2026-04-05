@@ -65,6 +65,7 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
                 </button>
                 <div class="user-dropdown" id="userDropdown">
                     <a href="/unipulse/public/user/profile">Profile Settings</a>
+                    <a href="#" id="openRegisteredEventsCalendar">Calendar</a>
                     <!-- <a href="/unipulse/public/user/preferences">Preferences</a>
                         <a href="/unipulse/public/user/help">Help & Support</a>
                         <hr> -->
@@ -74,4 +75,5 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
         </div>
     </div>
 </header>
+<script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
 <script src="/unipulse/public/assets/js/User/header-app.js"></script>

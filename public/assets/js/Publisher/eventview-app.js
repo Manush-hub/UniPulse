@@ -1733,8 +1733,15 @@ function displayTicketTypeBreakdown(event, currentParticipants, maxParticipants)
 
 // Functions for registration and ticket purchase
 function registerForEvent() {
-    alert('Registration functionality will be implemented here');
-    // You can redirect to registration page or open a modal
+    // Publishers cannot register for events using their organizer account
+    // They should log in as regular users
+    showOrganizerIneligibilityModal(
+        'Cannot Register as Organizer',
+        'As an event organizer, you cannot register for events using your organizer account. ' +
+        'You must log in as a regular university or public user to register for this event. ' +
+        'Please log out and sign in with a user account.',
+        'signin'
+    );
 }
 
 function selectTicket(index) {
@@ -2656,9 +2663,9 @@ function submitCommentReport() {
     if (!reportingCommentId) return;
 
     const moderatorId = document.getElementById('reportModeratorSelect').value;
-    const reason      = document.getElementById('reportReason').value.trim();
-    const errorEl     = document.getElementById('reportCommentError');
-    const submitBtn   = document.getElementById('reportSubmitBtn');
+    const reason = document.getElementById('reportReason').value.trim();
+    const errorEl = document.getElementById('reportCommentError');
+    const submitBtn = document.getElementById('reportSubmitBtn');
 
     if (!moderatorId) {
         errorEl.textContent = 'Please select a moderator.';
@@ -2679,31 +2686,31 @@ function submitCommentReport() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            comment_id:   reportingCommentId,
+            comment_id: reportingCommentId,
             moderator_id: moderatorId,
-            reason:       reason
+            reason: reason
         })
     })
-    .then(r => r.json())
-    .then(data => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
-        if (data.success) {
-            closeReportCommentModal();
-            // Redirect to messages with the moderator chat pre-opened
-            window.location.href =
-                '/unipulse/public/publisher/messages?open_contact=' + data.moderator_id + '&contact_type=moderator';
-        } else {
-            errorEl.textContent = data.error || 'Failed to submit report.';
+        .then(r => r.json())
+        .then(data => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+            if (data.success) {
+                closeReportCommentModal();
+                // Redirect to messages with the moderator chat pre-opened
+                window.location.href =
+                    '/unipulse/public/publisher/messages?open_contact=' + data.moderator_id + '&contact_type=moderator';
+            } else {
+                errorEl.textContent = data.error || 'Failed to submit report.';
+                errorEl.style.display = 'block';
+            }
+        })
+        .catch(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
+            errorEl.textContent = 'Network error. Please try again.';
             errorEl.style.display = 'block';
-        }
-    })
-    .catch(() => {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-flag"></i> Submit Report';
-        errorEl.textContent = 'Network error. Please try again.';
-        errorEl.style.display = 'block';
-    });
+        });
 }
 
 // Format comment date
@@ -2877,9 +2884,64 @@ function closeDeleteCommentModal() {
 
 // Ticket Purchase Function
 function buyTickets() {
-    // Publishers cannot buy tickets - show message
-    alert('Publishers cannot purchase tickets. Only university and public users can buy tickets.');
+    // Publishers cannot buy tickets - they should log in as regular users
+    showOrganizerIneligibilityModal(
+        'Cannot Purchase Tickets as Organizer',
+        'As an event organizer, you cannot purchase tickets using your organizer account. ' +
+        'Tickets are available only for university and public users. ' +
+        'Please log out and sign in with a regular user account to purchase tickets for this event.',
+        'signin'
+    );
     return;
+}
+
+// Helper function to show modal for organizers who try to register/buy tickets
+function showOrganizerIneligibilityModal(title, message, actionType) {
+    // Create modal HTML
+    const modalHTML = `
+        <div id="organizerIneligibilityModal" class="modal-overlay">
+            <div class="modal-content" style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+                    <h2 style="color: #1f2937; margin-bottom: 15px; font-size: 20px; font-weight: 600;">${title}</h2>
+                    <p style="color: #6b7280; margin: 20px 0; line-height: 1.6; font-size: 14px;">${message}</p>
+                    <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="document.getElementById('organizerIneligibilityModal').remove();" 
+                                style="padding: 10px 20px; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #374151; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                            Close
+                        </button>
+                        <button onclick="window.location.href='/unipulse/public/logout';" 
+                                style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s;">
+                            Logout & Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add modal styling if not already present
+    if (!document.getElementById('organizerIneligibilityModal')) {
+        const style = document.createElement('style');
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Add modal to DOM
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
 // Expose functions globally for inline event handlers
