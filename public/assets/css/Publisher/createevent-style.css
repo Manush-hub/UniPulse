@@ -1,0 +1,49 @@
+
+/* Extracted from Publisher/createevent.view.php */
+
+        /* Dropdown with scroll - show 5 items */
+        select[name="event_category"],
+        #fieldType {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select[name="event_category"] option,
+        #fieldType option {
+            padding: 10px;
+        }
+
+        /* Set size attribute to show 5 visible items when opened */
+        select[name="event_category"][size],
+        #fieldType[size] {
+            height: auto;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Required field indicator */
+        .form-label.required::after,
+        label.required::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: bold;
+        }
+    

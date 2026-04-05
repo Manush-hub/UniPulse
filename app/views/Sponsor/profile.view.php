@@ -324,10 +324,7 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
     
-    <script>
-        // Pass sponsor data from PHP to JavaScript
-        const sponsorData = <?= $sponsorJson ?? '{}' ?>;
-    </script>
-    <script src="/UniPulse/public/assets/js/sponsorprofile-app.js"></script>
+        <script src="/UniPulse/public/assets/js/sponsorprofile-app.js"></script>
+    <script src="/unipulse/public/assets/js/Sponsor/profile-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

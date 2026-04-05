@@ -706,3 +706,15 @@ function setupScrollAnimations() {
         observer.observe(el);
     });
 }
+
+/* Extracted from landing.view.php */
+
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+        // Convert PHP upcoming 24h events data to JavaScript
+        const upcoming24hEventsFromDB = <?php echo json_encode($upcoming_24h_events ?? []); ?>;
+        // Convert PHP more events data to JavaScript
+        const moreEventsFromDB = <?php echo json_encode($more_events ?? []); ?>;
+        // Pass user role to JavaScript
+        const userRole = '<?php echo $currentRole; ?>';
+    

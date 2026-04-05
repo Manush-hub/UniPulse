@@ -773,3 +773,13 @@ function escapeHtmlDash(text) {
 function escapeAttr(text) {
     return (text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
+/* Extracted from User/dashboard.view.php */
+
+        window.userData = <?php echo json_encode([
+                                'name' => $user['name'] ?? 'User',
+                                'email' => $user['email'] ?? '',
+                                'type' => $user['type'] ?? 'user',
+                                'university' => $user['university'] ?? ''
+                            ]); ?>;
+    

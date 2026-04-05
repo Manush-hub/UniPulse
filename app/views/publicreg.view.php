@@ -6,32 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Public User Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/userreg-style.css">
-    <style>
-        .required {
-            color: #dc3545;
-            margin-left: 3px;
-            font-weight: bold;
-        }
-        
-        /* Dropdown with scroll - show 5 items */
-        select#gender,
-        select#country-code {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-        }
-        
-        select#gender option,
-        select#country-code option {
-            padding: 10px;
-        }
-        
-        /* Set size attribute to show 5 visible items when opened */
-        select#gender[size],
-        select#country-code[size] {
-            height: auto;
-        }
-    </style>
+        <link rel="stylesheet" href="/unipulse/public/assets/css/publicreg-style.css">
 </head>
 
 <body>
@@ -181,45 +156,7 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script>
-        // Terms validation with improved feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const termsCheckbox = document.getElementById('terms');
-            
-            // Add event listener to form submission
-            form.addEventListener('submit', function(e) {
-                if (!termsCheckbox.checked) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Add visual feedback
-                    termsCheckbox.style.border = '2px solid #dc3545';
-                    
-                    // Show alert
-                    alert('Please agree to the Terms & Conditions and Privacy Policy to continue.');
-                    
-                    // Focus on checkbox
-                    termsCheckbox.focus();
-                    
-                    // Remove visual feedback after 3 seconds
-                    setTimeout(() => {
-                        termsCheckbox.style.border = '2px solid #ccc';
-                    }, 3000);
-                    
-                    return false;
-                }
-            });
-            
-            // Remove error styling when checkbox is checked
-            termsCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    this.style.border = '2px solid #ccc';
-                }
-            });
-        });
-    </script>
-
-    <!-- <script src="public-user-registration.js"></script> -->
+        <!-- <script src="public-user-registration.js"></script> -->
+    <script src="/unipulse/public/assets/js/publicreg-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

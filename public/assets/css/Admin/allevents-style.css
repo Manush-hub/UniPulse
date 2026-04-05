@@ -1,0 +1,89 @@
+
+/* Extracted from Admin/allevents.view.php */
+
+        /* Admin-specific styles */
+        .hidden-event {
+            opacity: 0.6;
+            border: 2px dashed #fbbf24;
+            background: #fef3c7;
+        }
+        
+        .hidden-event .event-title::after {
+            content: " (Hidden)";
+            color: #f59e0b;
+            font-size: 0.8em;
+            font-weight: normal;
+        }
+        
+        .event-actions {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f3f4f6;
+            flex-wrap: wrap;
+        }
+        
+        .event-actions button {
+            flex: 1;
+            min-width: 60px;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            border: none;
+        }
+        
+        .view-btn {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .view-btn:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        
+        .hide-btn {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+        
+        .hide-btn:hover {
+            background: #fde68a;
+            color: #d97706;
+        }
+        
+        .show-btn {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .show-btn:hover {
+            background: #bbf7d0;
+            color: #15803d;
+        }
+        
+        .delete-btn {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        
+        .delete-btn:hover {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .delete-btn:disabled,
+        .hide-btn:disabled,
+        .show-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    

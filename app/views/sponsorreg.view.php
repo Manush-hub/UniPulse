@@ -6,30 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Sponsor Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/sponsorreg-style.css">
-    <style>
-        .required {
-            color: #dc3545;
-            margin-left: 3px;
-            font-weight: bold;
-        }
-        
-        /* Dropdown with scroll - show 4 items */
-        select#country-code {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-        }
-        
-        select#country-code option {
-            padding: 10px;
-        }
-        
-        /* Set size attribute to show visible items when opened */
-        select#country-code[size] {
-            height: auto;
-        }
-    </style>
-</head>
+    </head>
 
 <body>
     <!-- Header -->
@@ -135,44 +112,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script>
-        // Terms validation with improved feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const termsCheckbox = document.getElementById('terms');
-            const submitButton = document.querySelector('.button');
-            
-            // Add event listener to form submission
-            form.addEventListener('submit', function(e) {
-                if (!termsCheckbox.checked) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Add visual feedback
-                    termsCheckbox.style.border = '2px solid #dc3545';
-                    
-                    // Show alert
-                    alert('Please agree to the Terms & Conditions and Privacy Policy to continue.');
-                    
-                    // Focus on checkbox
-                    termsCheckbox.focus();
-                    
-                    // Remove visual feedback after 3 seconds
-                    setTimeout(() => {
-                        termsCheckbox.style.border = '2px solid #ccc';
-                    }, 3000);
-                    
-                    return false;
-                }
-            });
-            
-            // Remove error styling when checkbox is checked
-            termsCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    this.style.border = '2px solid #ccc';
-                }
-            });
-        });
-    </script>
+        <script src="/unipulse/public/assets/js/sponsorreg-app.js?v=<?= time() ?>"></script>
 </body>
 </html>

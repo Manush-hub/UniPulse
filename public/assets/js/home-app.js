@@ -752,3 +752,8 @@ window.addEventListener('error', function(e) {
 // Console welcome message
 console.log('%c🎉 Welcome to UniPulse!', 'color: #FF6B35; font-size: 20px; font-weight: bold;');
 console.log('%cBuilt with ❤️ by Manush-hub', 'color: #4A5BCC; font-size: 14px;');
+/* Extracted from home.view.php */
+
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+    

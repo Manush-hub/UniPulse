@@ -310,11 +310,8 @@
     <?php include __DIR__ . '/components/footer.php'; ?>
 
     <!-- Pass PHP data to JavaScript -->
-    <script>
-        // Convert PHP boosted events data to JavaScript
-        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
-    </script>
-    <script src="/unipulse/public/assets/js/home-app.js"></script>
+        <script src="/unipulse/public/assets/js/home-app.js"></script>
+    <script src="/unipulse/public/assets/js/home-app.js?v=<?= time() ?>"></script>
 </body>
 
 </html>

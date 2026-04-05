@@ -239,3 +239,13 @@ function formatFullDate(dateString) {
 function capitalizeFirst(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+/* Extracted from User/monthly-evolution.view.php */
+
+        window.userData = <?php echo json_encode([
+                                'name' => $user['name'] ?? 'User',
+                                'email' => $user['email'] ?? '',
+                                'type' => $user['type'] ?? 'user',
+                                'university' => $user['university'] ?? ''
+                            ]); ?>;
+    
