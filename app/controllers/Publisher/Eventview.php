@@ -1,35 +1,38 @@
 <?php
 
-class PublisherEventview extends Controller {
-    
+class PublisherEventview extends Controller
+{
+
     private $eventModel;
     private $registrationModel;
     private $volunteerRegistrationModel;
     private $notificationModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         // Initialize Event model
         $this->eventModel = new Event();
         $this->registrationModel = new EventRegistration();
         $this->volunteerRegistrationModel = new VolunteerRegistration();
         $this->notificationModel = new Notification();
     }
-    
-    public function index($id = null) {
-        
+
+    public function index($id = null)
+    {
+
         // Get event ID from URL parameter or GET request
         $eventId = $id;
         if (!$eventId && isset($_GET['id'])) {
             $eventId = $_GET['id'];
         }
-        
+
         // Debug logging
         error_log("PublisherEventview::index - Event ID: " . ($eventId ?? 'NULL'));
         error_log("PublisherEventview::index - URL param id: " . ($id ?? 'NULL'));
         error_log("PublisherEventview::index - GET param id: " . ($_GET['id'] ?? 'NULL'));
-        
+
         $data = [];
-        
+
         if ($eventId) {
             try {
                 // Validate event ID is numeric
@@ -44,26 +47,26 @@ class PublisherEventview extends Controller {
                     // Get specific event from database
                     error_log("PublisherEventview::index - Fetching event with ID: " . $eventId);
                     $event = $this->eventModel->getEventById($eventId);
-                    
+
                     if ($event) {
                         error_log("PublisherEventview::index - Event found: " . $event->title);
                         // Get current user for visibility filtering
                         $currentUser = AuthService::getCurrentUser();
-                        
+
                         // Get similar events from database
                         $similarEvents = $this->eventModel->getSimilarEvents(
-                            $event->id, 
-                            $event->category, 
-                            $event->university, 
+                            $event->id,
+                            $event->category,
+                            $event->university,
                             3,
                             $currentUser
                         );
-                        
+
                         // Check if current publisher owns this event
                         $currentUser = AuthService::getCurrentUser();
                         $currentPublisherId = ($currentUser && $currentUser['type'] === 'publisher') ? $currentUser['id'] : null;
                         $isOwner = ($currentPublisherId && $event->created_by == $currentPublisherId && $event->created_by_type == 'publisher');
-                        
+
                         // Check if publisher is already registered
                         $isRegistered = false;
                         $isVolunteerApplied = false;
@@ -77,7 +80,7 @@ class PublisherEventview extends Controller {
                                 $volunteerApplication = $this->formatVolunteerApplicationForResponse($registration);
                             }
                         }
-                        
+
                         // Pass server data to view for JavaScript (use raw event object, not formatted)
                         $data = [
                             'event' => $event,
@@ -124,22 +127,23 @@ class PublisherEventview extends Controller {
                 'error' => 'No event ID provided'
             ];
         }
-        
+
         $this->view('eventview', $data);
     }
-    
+
     /**
      * API endpoint to get event details as JSON
      */
-    public function getEvent($id = null) {
+    public function getEvent($id = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Get event ID from parameter or GET request
         $eventId = $id;
         if (!$eventId && isset($_GET['id'])) {
             $eventId = $_GET['id'];
         }
-        
+
         if (!$eventId) {
             echo json_encode([
                 'success' => false,
@@ -147,7 +151,7 @@ class PublisherEventview extends Controller {
             ]);
             exit;
         }
-        
+
         // Validate event ID is numeric
         if (!is_numeric($eventId)) {
             echo json_encode([
@@ -156,11 +160,11 @@ class PublisherEventview extends Controller {
             ]);
             exit;
         }
-        
+
         try {
             // Get event from database
             $event = $this->eventModel->getEventById($eventId);
-            
+
             if (!$event) {
                 echo json_encode([
                     'success' => false,
@@ -168,19 +172,19 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Get current user for visibility filtering
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Get similar events from database
             $similarEvents = $this->eventModel->getSimilarEvents(
-                $event->id, 
-                $event->category, 
-                $event->university, 
+                $event->id,
+                $event->category,
+                $event->university,
                 3,
                 $currentUser
             );
-            
+
             // Format event data for JSON response
             $eventData = $this->formatEventForResponse($event);
 
@@ -199,13 +203,13 @@ class PublisherEventview extends Controller {
                     $volunteerApplication = $this->formatVolunteerApplicationForResponse($registration);
                 }
             }
-            
+
             // Format similar events
             $formattedSimilarEvents = [];
             foreach ($similarEvents as $similarEvent) {
                 $formattedSimilarEvents[] = $this->formatEventForResponse($similarEvent);
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'event' => $eventData,
@@ -213,7 +217,6 @@ class PublisherEventview extends Controller {
                 'isVolunteerApplied' => $isVolunteerApplied,
                 'volunteerApplication' => $volunteerApplication
             ]);
-            
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in PublisherEventview::getEvent: " . $e->getMessage());
@@ -222,22 +225,23 @@ class PublisherEventview extends Controller {
                 'error' => 'Unable to retrieve event data. Please try again later.'
             ]);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Join event endpoint
      */
-    public function joinEvent($id = null) {
+    public function joinEvent($id = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Get event ID from parameter or POST request
         $eventId = $id;
         if (!$eventId && isset($_POST['id'])) {
             $eventId = $_POST['id'];
         }
-        
+
         if (!$eventId) {
             echo json_encode([
                 'success' => false,
@@ -245,7 +249,7 @@ class PublisherEventview extends Controller {
             ]);
             exit;
         }
-        
+
         // Check if publisher is logged in
         $currentUser = AuthService::getCurrentUser();
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
@@ -255,9 +259,9 @@ class PublisherEventview extends Controller {
             ]);
             exit;
         }
-        
+
         $publisherId = $currentUser['id'];
-        
+
         // Validate event ID is numeric
         if (!is_numeric($eventId)) {
             echo json_encode([
@@ -266,7 +270,7 @@ class PublisherEventview extends Controller {
             ]);
             exit;
         }
-        
+
         try {
             // Check if publisher is already registered
             if ($this->registrationModel->isUserRegistered($eventId, $publisherId, 'publisher')) {
@@ -277,10 +281,10 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Check if event exists
             $event = $this->eventModel->getEventById($eventId);
-            
+
             if (!$event) {
                 echo json_encode([
                     'success' => false,
@@ -288,7 +292,7 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Check if event has available spots (only if max_participants is set)
             if ($event->max_participants !== null) {
                 if ($event->current_participants >= $event->max_participants) {
@@ -299,7 +303,7 @@ class PublisherEventview extends Controller {
                     exit;
                 }
             }
-            
+
             if ($event->status === 'completed' || $event->status === 'cancelled') {
                 echo json_encode([
                     'success' => false,
@@ -307,7 +311,7 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Create registration record
             $registrationData = [
                 'event_id' => $eventId,
@@ -316,7 +320,7 @@ class PublisherEventview extends Controller {
                 'notes' => $_POST['notes'] ?? '',
                 'status' => 'registered'
             ];
-            
+
             if (!$this->registrationModel->registerUser($registrationData)) {
                 echo json_encode([
                     'success' => false,
@@ -324,18 +328,18 @@ class PublisherEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Join the event by incrementing current participants
             if ($this->eventModel->incrementParticipants($eventId)) {
                 // Get updated event data from database
                 $updatedEvent = $this->eventModel->getEventById($eventId);
-                
+
                 // Calculate available spots (null if unlimited)
                 $availableSpots = null;
                 if ($updatedEvent->max_participants !== null) {
                     $availableSpots = $updatedEvent->max_participants - $updatedEvent->current_participants;
                 }
-                
+
                 echo json_encode([
                     'success' => true,
                     'message' => 'Successfully joined the event',
@@ -352,7 +356,6 @@ class PublisherEventview extends Controller {
                     'error' => 'Failed to join event. Event may be full or an error occurred.'
                 ]);
             }
-            
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in PublisherEventview::joinEvent: " . $e->getMessage());
@@ -361,38 +364,39 @@ class PublisherEventview extends Controller {
                 'error' => 'Unable to join event. Please try again later.'
             ]);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Helper method to format event data for API responses
      */
-    private function formatEventForResponse($event) {
+    private function formatEventForResponse($event)
+    {
         $eventData = (array) $event;
-        
+
         // Format date and time for frontend display
         if (isset($eventData['event_date'])) {
             $eventData['date'] = $eventData['event_date'];
         }
-        
+
         if (isset($eventData['event_time'])) {
             $eventData['time'] = date('h:i A', strtotime($eventData['event_time']));
         }
-        
+
         // Ensure JSON fields are properly decoded
         if (isset($eventData['requirements']) && is_string($eventData['requirements'])) {
             $eventData['requirements'] = json_decode($eventData['requirements'], true) ?: [];
         }
-        
+
         if (isset($eventData['schedule']) && is_string($eventData['schedule'])) {
             $eventData['schedule'] = json_decode($eventData['schedule'], true) ?: [];
         }
-        
+
         // Fetch organizer profile photo and phone if event is created by publisher
         if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
             $publisherModel = new Publisher();
-            
+
             // Get publisher basic info (includes phone and current organization name)
             $publisherInfo = $publisherModel->where(['id' => $eventData['created_by']]);
             if ($publisherInfo && count($publisherInfo) > 0) {
@@ -405,7 +409,7 @@ class PublisherEventview extends Controller {
                     $eventData['organizer'] = $publisher->society_name;
                 }
             }
-            
+
             // Get publisher profile (includes logo)
             $publisherProfile = $publisherModel->getProfileData($eventData['created_by']);
             if ($publisherProfile) {
@@ -419,14 +423,15 @@ class PublisherEventview extends Controller {
                 }
             }
         }
-        
+
         return $eventData;
     }
 
     /**
      * Helper method to format volunteer application data for API responses.
      */
-    private function formatVolunteerApplicationForResponse($registration) {
+    private function formatVolunteerApplicationForResponse($registration)
+    {
         if (!$registration) {
             return null;
         }
@@ -452,7 +457,8 @@ class PublisherEventview extends Controller {
     /**
      * Quick volunteer apply endpoint
      */
-    public function applyVolunteer($id = null) {
+    public function applyVolunteer($id = null)
+    {
         header('Content-Type: application/json');
 
         if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {

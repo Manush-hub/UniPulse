@@ -196,6 +196,75 @@ class SponsorDashboard extends Controller
     }
 
     /**
+     * API endpoint to get sponsor user's registered upcoming events.
+     */
+    public function getUpcomingEvents()
+    {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'sponsor') {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        try {
+            $eventRegistration = new EventRegistration();
+            $registeredEvents = $eventRegistration->getUserRegisteredEvents((int)$currentUser['id'], 'sponsor', 'registered');
+
+            $upcomingEvents = [];
+            foreach ($registeredEvents ?: [] as $event) {
+                $eventDateTime = trim((string)$event->event_date . ' ' . ((string)$event->event_time !== '' ? (string)$event->event_time : '23:59:59'));
+                $eventTimestamp = strtotime($eventDateTime);
+                if ($eventTimestamp === false || $eventTimestamp < time()) {
+                    continue;
+                }
+
+                $upcomingEvents[] = [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'description' => isset($event->description) ? substr((string)$event->description, 0, 100) . '...' : '',
+                    'date' => $event->event_date,
+                    'time' => $event->event_time,
+                    'location' => $event->location,
+                    'category' => $event->category,
+                    'university' => $event->university_name,
+                    'image_url' => $event->image_url,
+                    'organizer' => $event->organizer,
+                    'order_number' => $event->order_number ?? null,
+                    'max_participants' => $event->max_participants,
+                    'current_participants' => $event->current_participants ?? 0
+                ];
+            }
+
+            usort($upcomingEvents, function ($a, $b) {
+                $aDateTime = trim((string)$a['date'] . ' ' . ((string)$a['time'] !== '' ? (string)$a['time'] : '23:59:59'));
+                $bDateTime = trim((string)$b['date'] . ' ' . ((string)$b['time'] !== '' ? (string)$b['time'] : '23:59:59'));
+
+                $aTimestamp = strtotime($aDateTime) ?: 0;
+                $bTimestamp = strtotime($bDateTime) ?: 0;
+
+                return $aTimestamp <=> $bTimestamp;
+            });
+
+            echo json_encode([
+                'success' => true,
+                'events' => $upcomingEvents,
+                'count' => count($upcomingEvents)
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in SponsorDashboard::getUpcomingEvents: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load upcoming events'
+            ]);
+        }
+
+        exit;
+    }
+
+    /**
      * API endpoint to get sponsor statistics
      */
     public function getStats()

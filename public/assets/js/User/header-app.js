@@ -2,6 +2,15 @@ document.addEventListener('DOMContentLoaded', function () {
     loadUserData();
     loadNotifications();
     setupEventListeners();
+    if (typeof initializeRegisteredEventsCalendar === 'function') {
+        initializeRegisteredEventsCalendar({
+            apiEndpoint: '/unipulse/public/user/dashboard/getUpcomingEvents',
+            eventDetailsBasePath: '/unipulse/public/user/eventview?id=',
+            fallbackEventsPath: '/unipulse/public/user/events',
+            modalTitle: 'My Registered Events Calendar',
+            emptyMessage: 'No future registered events found.'
+        });
+    }
     startNotificationPolling();
 });
 

@@ -96,6 +96,7 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
                 </button>
                 <div class="user-dropdown" id="userDropdown">
                     <a href="/unipulse/public/publisher/profile">Profile Settings</a>
+                    <a href="#" id="openRegisteredEventsCalendar">Calendar</a>
                     <!-- <a href="preferences.html">Preferences</a>
                         <a href="help.html">Help & Support</a>
                         <hr> -->
@@ -105,4 +106,5 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
         </div>
     </div>
 </header>
+<script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
 <script src="/unipulse/public/assets/js/Publisher/header-app.js"></script>
