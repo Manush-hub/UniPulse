@@ -9,7 +9,8 @@
         eventDetailsBasePath: '/unipulse/public/user/eventview?id=',
         fallbackEventsPath: '/unipulse/public/user/events',
         modalTitle: 'My Registered Events Calendar',
-        emptyMessage: 'No future registered events found.'
+        emptyMessage: 'No future registered events found.',
+        noEventsOnDateMessage: 'No events on this date.'
     };
 
     const state = {
@@ -303,7 +304,7 @@
         const eventsForDate = state.events.filter(event => normalizeDateString(event.date) === selectedKey);
 
         if (eventsForDate.length === 0) {
-            eventsList.innerHTML = '<p class="calendar-message">No registered events on this date.</p>';
+            eventsList.innerHTML = `<p class="calendar-message">${escapeHtml(state.config.noEventsOnDateMessage)}</p>`;
             return;
         }
 

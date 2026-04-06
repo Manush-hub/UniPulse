@@ -248,7 +248,7 @@ class PublisherDashboard extends Controller
     }
 
     /**
-     * API endpoint to get publisher user's registered upcoming events.
+     * API endpoint to get all upcoming events visible to publisher users.
      */
     public function getUpcomingEvents()
     {
@@ -261,11 +261,15 @@ class PublisherDashboard extends Controller
         }
 
         try {
-            $eventRegistration = new EventRegistration();
-            $registeredEvents = $eventRegistration->getUserRegisteredEvents((int)$currentUser['id'], 'publisher', 'registered');
+            $eventModel = new Event();
+            $upcoming = $eventModel->getAllEvents([
+                'status' => 'upcoming',
+                'limit' => 300,
+                'offset' => 0
+            ], $currentUser);
 
             $upcomingEvents = [];
-            foreach ($registeredEvents ?: [] as $event) {
+            foreach ($upcoming ?: [] as $event) {
                 $eventDateTime = trim((string)$event->event_date . ' ' . ((string)$event->event_time !== '' ? (string)$event->event_time : '23:59:59'));
                 $eventTimestamp = strtotime($eventDateTime);
                 if ($eventTimestamp === false || $eventTimestamp < time()) {
@@ -278,12 +282,11 @@ class PublisherDashboard extends Controller
                     'description' => isset($event->description) ? substr((string)$event->description, 0, 100) . '...' : '',
                     'date' => $event->event_date,
                     'time' => $event->event_time,
-                    'location' => $event->location,
+                    'location' => $event->location ?: ($event->venue_name ?: ($event->city ?? '')),
                     'category' => $event->category,
                     'university' => $event->university_name,
                     'image_url' => $event->image_url,
-                    'organizer' => $event->organizer,
-                    'order_number' => $event->order_number ?? null,
+                    'organizer' => $event->organizer_name ?? ($event->organizer ?? ''),
                     'max_participants' => $event->max_participants,
                     'current_participants' => $event->current_participants ?? 0
                 ];
