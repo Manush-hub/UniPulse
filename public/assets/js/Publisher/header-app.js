@@ -6,8 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
             apiEndpoint: '/unipulse/public/publisher/dashboard/getUpcomingEvents',
             eventDetailsBasePath: '/unipulse/public/publisher/eventview?id=',
             fallbackEventsPath: '/unipulse/public/publisher/events',
-            modalTitle: 'My Registered Events Calendar',
-            emptyMessage: 'No future registered events found.'
+            modalTitle: 'Upcoming Events Calendar',
+            emptyMessage: 'No upcoming events found.',
+            noEventsOnDateMessage: 'No upcoming events on this date.'
         });
     }
     startNotificationPolling();
