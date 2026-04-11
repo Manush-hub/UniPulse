@@ -813,6 +813,75 @@ body {
     font-size: 0.9rem;
 }
 
+/* Monthly Evolution Button Section on Dashboard */
+.monthly-evolution-btn-section {
+    padding: 2rem 0 4rem;
+    background: #f8fafc;
+}
+
+.evolution-btn {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.2);
+    color: white;
+}
+
+.evolution-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+}
+
+.evolution-btn-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.evolution-btn-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.evolution-btn-content {
+    flex: 1;
+}
+
+.evolution-btn-content h3 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.evolution-btn-content p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    color: #ffffff;
+}
+
+.evolution-btn-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: transform 0.3s ease;
+}
+
+.evolution-btn:hover .evolution-btn-arrow {
+    transform: translateX(4px);
+}
+
 /* Status colors */
 .status-active {
     color: #059669;
@@ -934,6 +1003,16 @@ body {
 
     .performance-cards {
         grid-template-columns: 1fr;
+    }
+
+    .evolution-btn {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .evolution-btn-content h3 {
+        font-size: 1.25rem;
     }
 
     .footer-container {
