@@ -2267,10 +2267,10 @@ class PublisherDashboard extends Controller
 
         $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [17, 94, 89], [249, 115, 22], 30);
         $content .= $this->pdfText($tableX + 10, $rowY + 6, 'EVENT', 'F2', 7.8, [255, 255, 255]);
-        $content .= $this->pdfText($tableX + 262, $rowY + 6, 'TICKETS', 'F2', 7.8, [255, 255, 255]);
-        $content .= $this->pdfText($tableX + 328, $rowY + 6, 'GROSS', 'F2', 7.8, [255, 255, 255]);
-        $content .= $this->pdfText($tableX + 404, $rowY + 6, 'COMMISSION', 'F2', 7.8, [255, 255, 255]);
-        $content .= $this->pdfText($tableX + 500, $rowY + 6, 'PROFIT', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 252, $rowY + 6, 'TICKETS', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 316, $rowY + 6, 'GROSS', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 392, $rowY + 6, 'COMMISSION', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 468, $rowY + 6, 'PROFIT', 'F2', 7.8, [255, 255, 255]);
         $rowY -= $rowH;
 
         if (empty($events)) {
@@ -2287,15 +2287,15 @@ class PublisherDashboard extends Controller
                 $content .= $this->pdfText(
                     $tableX + 10,
                     $rowY + 6,
-                    $this->truncatePDFText((string)($event['event_name'] ?? '-'), 34),
+                    $this->truncatePDFText((string)($event['event_name'] ?? '-'), 32),
                     'F2',
                     7.8,
                     [30, 41, 59]
                 );
-                $content .= $this->pdfText($tableX + 262, $rowY + 6, number_format((int)($event['total_tickets_sold'] ?? 0)), 'F2', 7.8, [30, 41, 59]);
-                $content .= $this->pdfText($tableX + 328, $rowY + 6, number_format((float)($event['gross_sales'] ?? 0), 2), 'F2', 7.8, [51, 65, 85]);
-                $content .= $this->pdfText($tableX + 404, $rowY + 6, number_format((float)($event['commission_total'] ?? 0), 2), 'F2', 7.8, [217, 119, 6]);
-                $content .= $this->pdfText($tableX + 500, $rowY + 6, number_format((float)($event['profit_total'] ?? 0), 2), 'F2', 7.8, [6, 95, 70]);
+                $content .= $this->pdfText($tableX + 252, $rowY + 6, number_format((int)($event['total_tickets_sold'] ?? 0)), 'F2', 7.8, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 316, $rowY + 6, number_format((float)($event['gross_sales'] ?? 0), 2), 'F2', 7.8, [51, 65, 85]);
+                $content .= $this->pdfText($tableX + 392, $rowY + 6, number_format((float)($event['commission_total'] ?? 0), 2), 'F2', 7.8, [217, 119, 6]);
+                $content .= $this->pdfText($tableX + 468, $rowY + 6, number_format((float)($event['profit_total'] ?? 0), 2), 'F2', 7.8, [6, 95, 70]);
                 $rowY -= $rowH;
             }
         }
@@ -2315,7 +2315,7 @@ class PublisherDashboard extends Controller
             $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
             $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
             $content .= $this->pdfText($tableX + 10, $rowY + 6, $row['label'], 'F2', 8.4, [30, 41, 59]);
-            $content .= $this->pdfText($tableX + 500, $rowY + 6, $row['value'], 'F2', 8.4, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 446, $rowY + 6, $row['value'], 'F2', 8.4, [30, 41, 59]);
             $rowY -= $rowH;
         }
 
@@ -2425,7 +2425,7 @@ class PublisherDashboard extends Controller
 
         $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [17, 94, 89], [249, 115, 22], 30);
         $content .= $this->pdfText($tableX + 10, $rowY + 8, 'METRIC', 'F2', 8.4, [255, 255, 255]);
-        $content .= $this->pdfText($tableX + 470, $rowY + 8, 'VALUE', 'F2', 8.4, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 446, $rowY + 8, 'VALUE', 'F2', 8.4, [255, 255, 255]);
         $rowY -= $rowH;
 
         $rows = [
@@ -2442,7 +2442,7 @@ class PublisherDashboard extends Controller
             $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
             $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
             $content .= $this->pdfText($tableX + 10, $rowY + 8, $row['label'], 'F2', 8.8, [30, 41, 59]);
-            $content .= $this->pdfText($tableX + 470, $rowY + 8, $row['value'], 'F2', 8.8, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 446, $rowY + 8, $row['value'], 'F2', 8.8, [30, 41, 59]);
             $rowY -= $rowH;
         }
 
