@@ -27,6 +27,48 @@ class PublisherDashboard extends Controller
     }
 
     /**
+     * Display publisher monthly evolution report page.
+     */
+    public function monthlyEvolution($a = '', $b = '', $c = '')
+    {
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+
+        $data = [
+            'user' => $currentUser,
+            'page_title' => 'Monthly Evolution'
+        ];
+
+        $this->view('Publisher/monthly-evolution', $data);
+    }
+
+    /**
+     * Display completed-event profit report page.
+     */
+    public function eventProfitReport($a = '', $b = '', $c = '')
+    {
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            header('Location: /unipulse/public/signin');
+            exit();
+        }
+
+        $data = [
+            'user' => $currentUser,
+            'page_title' => 'Completed Event Profit Report'
+        ];
+
+        $this->view('Publisher/event-profit-report', $data);
+    }
+
+    /**
      * Get header notifications for publisher users.
      * Source: newly visible events published by other publishers.
      */
@@ -695,6 +737,119 @@ class PublisherDashboard extends Controller
         }
     }
 
+    /**
+     * Get event-wise ticket totals and net revenue for publisher dashboard.
+     */
+    public function getEventRevenue()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $params = [];
+            $whereClause = '';
+
+            if (($currentUser['type'] ?? '') === 'publisher') {
+                $whereClause = "WHERE e.created_by_type = 'publisher' AND e.created_by = :publisher_id";
+                $params['publisher_id'] = (int)$currentUser['id'];
+            }
+
+            $upcomingCondition = "e.event_date >= CURDATE() AND e.is_deleted = 0 AND (e.status IS NULL OR e.status NOT IN ('completed', 'cancelled'))";
+            $eventsWhere = trim($whereClause) === ''
+                ? "WHERE {$upcomingCondition}"
+                : $whereClause . " AND {$upcomingCondition}";
+
+            $eventsQuery = "
+                SELECT e.id, e.title, e.event_date
+                FROM events e
+                {$eventsWhere}
+                ORDER BY e.event_date ASC, e.id DESC
+                LIMIT 100
+            ";
+
+            $eventStmt = $this->connect()->prepare($eventsQuery);
+            $eventStmt->execute($params);
+            $events = $eventStmt->fetchAll(PDO::FETCH_OBJ);
+
+            $result = [];
+
+            foreach ($events as $event) {
+                $eventId = (int)$event->id;
+                $freeTickets = 0;
+                $paidTicketCount = 0;
+                $netRevenue = 0.0;
+
+                try {
+                    $freeCountQuery = "
+                        SELECT COUNT(*) AS free_ticket_count
+                        FROM free_event_registrations fr
+                        WHERE fr.event_id = :event_id
+                          AND fr.status IN ('registered', 'checked_in')
+                    ";
+
+                    $freeCountStmt = $this->connect()->prepare($freeCountQuery);
+                    $freeCountStmt->execute(['event_id' => $eventId]);
+                    $freeData = $freeCountStmt->fetch(PDO::FETCH_ASSOC);
+                    $freeTickets = (int)($freeData['free_ticket_count'] ?? 0);
+                } catch (Throwable $freeTableError) {
+                    error_log('Event revenue free table query warning: ' . $freeTableError->getMessage());
+                }
+
+                try {
+                    $paidSummaryQuery = "
+                        SELECT
+                            COALESCE(SUM(pr.ticket_quantity), 0) AS paid_ticket_count,
+                            COALESCE(SUM(
+                                CASE
+                                    WHEN pr.payment_status IN ('paid', 'partially_refunded', 'refunded')
+                                        THEN GREATEST(COALESCE(pr.total_amount, 0) - COALESCE(pr.refund_amount, 0), 0)
+                                    ELSE 0
+                                END
+                            ), 0) AS net_revenue
+                        FROM paid_event_registrations pr
+                        WHERE pr.event_id = :event_id
+                          AND pr.registration_status IN ('confirmed', 'checked_in')
+                    ";
+
+                    $paidSummaryStmt = $this->connect()->prepare($paidSummaryQuery);
+                    $paidSummaryStmt->execute(['event_id' => $eventId]);
+                    $paidData = $paidSummaryStmt->fetch(PDO::FETCH_ASSOC);
+
+                    $paidTicketCount = (int)($paidData['paid_ticket_count'] ?? 0);
+                    $netRevenue = (float)($paidData['net_revenue'] ?? 0);
+                } catch (Throwable $paidTableError) {
+                    error_log('Event revenue paid table query warning: ' . $paidTableError->getMessage());
+                }
+
+                $result[] = [
+                    'event_id' => $eventId,
+                    'event_title' => (string)$event->title,
+                    'event_date' => $event->event_date,
+                    'ticket_amount' => $freeTickets + $paidTicketCount,
+                    'total_revenue' => round($netRevenue, 2)
+                ];
+            }
+
+            echo json_encode([
+                'success' => true,
+                'events' => $result
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::getEventRevenue: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load event revenue data'
+            ]);
+        }
+    }
+
     private function tableExists($tableName)
     {
         try {
@@ -1326,5 +1481,1083 @@ class PublisherDashboard extends Controller
             error_log("Error cancelling boost: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to cancel boost']);
         }
+    }
+
+    /**
+     * API endpoint to get publisher monthly ticket-sales evolution.
+     */
+    public function getMonthlyEvolution()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid month format']);
+            return;
+        }
+
+        try {
+            $publisherId = (int)($currentUser['id'] ?? 0);
+            $reportData = $this->getPublisherMonthlyReportData($publisherId, $month);
+
+            echo json_encode([
+                'success' => true,
+                'month' => $month,
+                'data' => $reportData
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::getMonthlyEvolution: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load monthly evolution data']);
+        }
+    }
+
+    /**
+     * Download publisher monthly evolution report as PDF.
+     */
+    public function downloadMonthlyReport()
+    {
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', $month)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid month format']);
+            exit;
+        }
+
+        try {
+            $publisherId = (int)($currentUser['id'] ?? 0);
+            $publisherName = (string)($currentUser['name'] ?? 'Publisher');
+
+            $reportData = $this->getPublisherMonthlyReportData($publisherId, $month);
+            $pdf = $this->generatePublisherMonthlyReportPDF($publisherName, $month, $reportData);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="publisher-monthly-report-' . $month . '.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::downloadMonthlyReport: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            $response = ['success' => false, 'error' => 'Failed to generate monthly report'];
+            if (defined('DEBUG') && DEBUG) {
+                $response['details'] = $e->getMessage();
+            }
+            echo json_encode($response);
+            exit;
+        }
+    }
+
+    /**
+     * API endpoint to get completed-event profitability report for publisher.
+     */
+    public function getEventProfitReport()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultTo = date('Y-m-d');
+
+        $fromDate = $_GET['from_date'] ?? $defaultFrom;
+        $toDate = $_GET['to_date'] ?? $defaultTo;
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fromDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$toDate)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid date format']);
+            return;
+        }
+
+        if (strtotime($fromDate) === false || strtotime($toDate) === false || strtotime($fromDate) > strtotime($toDate)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid date range']);
+            return;
+        }
+
+        try {
+            $publisherId = (int)($currentUser['id'] ?? 0);
+            $reportData = $this->getCompletedEventProfitReportData($publisherId, $fromDate, $toDate);
+
+            echo json_encode([
+                'success' => true,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'data' => $reportData
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::getEventProfitReport: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load completed event profit report']);
+        }
+    }
+
+    /**
+     * Download completed-event profitability report as PDF.
+     */
+    public function downloadEventProfitReport()
+    {
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultTo = date('Y-m-d');
+
+        $fromDate = $_GET['from_date'] ?? $defaultFrom;
+        $toDate = $_GET['to_date'] ?? $defaultTo;
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fromDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date format']);
+            exit;
+        }
+
+        if (strtotime($fromDate) === false || strtotime($toDate) === false || strtotime($fromDate) > strtotime($toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date range']);
+            exit;
+        }
+
+        try {
+            $publisherId = (int)($currentUser['id'] ?? 0);
+            $publisherName = (string)($currentUser['name'] ?? 'Publisher');
+
+            $reportData = $this->getCompletedEventProfitReportData($publisherId, $fromDate, $toDate);
+            $pdf = $this->generateCompletedEventProfitReportPDF($publisherName, $fromDate, $toDate, $reportData);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="publisher-event-profit-report-' . $fromDate . '-to-' . $toDate . '.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::downloadEventProfitReport: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            $response = ['success' => false, 'error' => 'Failed to generate completed event profit report'];
+            if (defined('DEBUG') && DEBUG) {
+                $response['details'] = $e->getMessage();
+            }
+            echo json_encode($response);
+            exit;
+        }
+    }
+
+    /**
+     * Download single completed-event profit report as PDF.
+     */
+    public function downloadEventProfitByEvent()
+    {
+        $currentUser = AuthService::getCurrentUser();
+        $allowedRoles = ['publisher', 'admin', 'moderator'];
+
+        if (!$currentUser || !in_array($currentUser['type'], $allowedRoles, true)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+
+        $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
+        if ($eventId <= 0) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid event id']);
+            exit;
+        }
+
+        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultTo = date('Y-m-d');
+
+        $fromDate = $_GET['from_date'] ?? $defaultFrom;
+        $toDate = $_GET['to_date'] ?? $defaultTo;
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fromDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date format']);
+            exit;
+        }
+
+        if (strtotime($fromDate) === false || strtotime($toDate) === false || strtotime($fromDate) > strtotime($toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date range']);
+            exit;
+        }
+
+        try {
+            $publisherId = (int)($currentUser['id'] ?? 0);
+            $publisherName = (string)($currentUser['name'] ?? 'Publisher');
+            $reportData = $this->getCompletedEventProfitReportData($publisherId, $fromDate, $toDate);
+            $events = is_array($reportData['events'] ?? null) ? $reportData['events'] : [];
+
+            $selectedEvent = null;
+            foreach ($events as $event) {
+                if ((int)($event['event_id'] ?? 0) === $eventId) {
+                    $selectedEvent = $event;
+                    break;
+                }
+            }
+
+            if (!$selectedEvent) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Selected event was not found in this report range']);
+                exit;
+            }
+
+            $pdf = $this->generateSingleCompletedEventProfitPDF($publisherName, $fromDate, $toDate, $selectedEvent);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            $safeName = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string)($selectedEvent['event_name'] ?? 'event'));
+            $safeName = trim((string)$safeName, '-');
+            if ($safeName === '') {
+                $safeName = 'event';
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="' . $safeName . '-profit-report.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Throwable $e) {
+            error_log('Error in PublisherDashboard::downloadEventProfitByEvent: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            $response = ['success' => false, 'error' => 'Failed to generate event profit report'];
+            if (defined('DEBUG') && DEBUG) {
+                $response['details'] = $e->getMessage();
+            }
+            echo json_encode($response);
+            exit;
+        }
+    }
+
+    /**
+     * Build monthly ticket-sales report data for publisher events.
+     */
+    private function getPublisherMonthlyReportData($publisherId, $month)
+    {
+        $paidRows = [];
+        $freeRows = [];
+
+        try {
+            $paidRows = $this->query(
+                "SELECT
+                    e.id AS event_id,
+                    e.title AS event_name,
+                    COALESCE(NULLIF(TRIM(pr.ticket_tier_name), ''), 'General Admission') AS ticket_type,
+                    SUM(COALESCE(pr.ticket_quantity, 1)) AS ticket_amount,
+                    SUM(
+                        CASE
+                            WHEN pr.payment_status IN ('paid', 'partially_refunded', 'refunded', 'completed')
+                                THEN GREATEST(COALESCE(pr.total_amount, 0) - COALESCE(pr.refund_amount, 0), 0)
+                            ELSE 0
+                        END
+                    ) AS sales
+                FROM paid_event_registrations pr
+                INNER JOIN events e ON e.id = pr.event_id
+                WHERE e.created_by_type = 'publisher'
+                  AND e.created_by = :publisher_id
+                  AND e.is_deleted = 0
+                  AND pr.registration_status IN ('confirmed', 'checked_in')
+                  AND DATE_FORMAT(COALESCE(pr.paid_at, pr.created_at), '%Y-%m') = :month
+                                GROUP BY
+                                        e.id,
+                                        e.title,
+                                        COALESCE(NULLIF(TRIM(pr.ticket_tier_name), ''), 'General Admission')
+                ORDER BY e.title ASC, ticket_type ASC",
+                [
+                    'publisher_id' => $publisherId,
+                    'month' => $month,
+                ]
+            ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Publisher monthly report paid-query warning: ' . $e->getMessage());
+            $paidRows = [];
+        }
+
+        try {
+            $freeRows = $this->query(
+                "SELECT
+                    e.id AS event_id,
+                    e.title AS event_name,
+                    'Free Registration' AS ticket_type,
+                    COUNT(*) AS ticket_amount,
+                    0.00 AS sales
+                FROM free_event_registrations fr
+                INNER JOIN events e ON e.id = fr.event_id
+                WHERE e.created_by_type = 'publisher'
+                  AND e.created_by = :publisher_id
+                  AND e.is_deleted = 0
+                  AND fr.status IN ('registered', 'checked_in')
+                  AND DATE_FORMAT(COALESCE(fr.registered_at, fr.created_at), '%Y-%m') = :month
+                GROUP BY e.id, e.title
+                ORDER BY e.title ASC",
+                [
+                    'publisher_id' => $publisherId,
+                    'month' => $month,
+                ]
+            ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Publisher monthly report free-query warning: ' . $e->getMessage());
+            $freeRows = [];
+        }
+
+        $detailRows = [];
+        foreach ($paidRows as $row) {
+            $detailRows[] = [
+                'event_id' => (int)($row->event_id ?? 0),
+                'event_name' => (string)($row->event_name ?? 'Untitled Event'),
+                'ticket_type' => (string)($row->ticket_type ?? 'General Admission'),
+                'ticket_amount' => (int)($row->ticket_amount ?? 0),
+                'sales' => round((float)($row->sales ?? 0), 2)
+            ];
+        }
+
+        foreach ($freeRows as $row) {
+            $detailRows[] = [
+                'event_id' => (int)($row->event_id ?? 0),
+                'event_name' => (string)($row->event_name ?? 'Untitled Event'),
+                'ticket_type' => (string)($row->ticket_type ?? 'Free Registration'),
+                'ticket_amount' => (int)($row->ticket_amount ?? 0),
+                'sales' => 0.00
+            ];
+        }
+
+        usort($detailRows, function ($a, $b) {
+            $eventSort = strcmp((string)($a['event_name'] ?? ''), (string)($b['event_name'] ?? ''));
+            if ($eventSort !== 0) {
+                return $eventSort;
+            }
+            return strcmp((string)($a['ticket_type'] ?? ''), (string)($b['ticket_type'] ?? ''));
+        });
+
+        $eventTotalsMap = [];
+        $grandTotalSales = 0.0;
+        $totalTicketsSold = 0;
+
+        foreach ($detailRows as $row) {
+            $eventName = (string)$row['event_name'];
+            $sales = (float)$row['sales'];
+            $tickets = (int)$row['ticket_amount'];
+
+            if (!isset($eventTotalsMap[$eventName])) {
+                $eventTotalsMap[$eventName] = 0.0;
+            }
+
+            $eventTotalsMap[$eventName] += $sales;
+            $grandTotalSales += $sales;
+            $totalTicketsSold += $tickets;
+        }
+
+        $eventTotals = [];
+        foreach ($eventTotalsMap as $eventName => $totalSales) {
+            $eventTotals[] = [
+                'event_name' => $eventName,
+                'total_sales' => round((float)$totalSales, 2)
+            ];
+        }
+
+        usort($eventTotals, function ($a, $b) {
+            return strcmp((string)($a['event_name'] ?? ''), (string)($b['event_name'] ?? ''));
+        });
+
+        return [
+            'details' => $detailRows,
+            'event_totals' => $eventTotals,
+            'summary' => [
+                'events_count' => count($eventTotals),
+                'tickets_count' => $totalTicketsSold,
+                'grand_total_sales' => round($grandTotalSales, 2)
+            ]
+        ];
+    }
+
+    /**
+     * Build completed-event profitability data for publisher events.
+     */
+    private function getCompletedEventProfitReportData($publisherId, $fromDate, $toDate)
+    {
+        $rows = $this->query(
+            "SELECT
+                e.id AS event_id,
+                e.title AS event_name,
+                e.event_date,
+                COALESCE(paid_summary.paid_tickets, 0) AS paid_tickets,
+                COALESCE(free_summary.free_tickets, 0) AS free_tickets,
+                COALESCE(payment_summary.gross_sales, 0) AS payment_gross_sales,
+                COALESCE(payment_summary.total_commission, 0) AS total_commission,
+                COALESCE(payment_summary.total_profit, 0) AS total_profit,
+                COALESCE(paid_summary.registration_net_sales, 0) AS registration_net_sales
+            FROM events e
+            LEFT JOIN (
+                SELECT
+                    pr.event_id,
+                    SUM(COALESCE(pr.ticket_quantity, 1)) AS paid_tickets,
+                    SUM(
+                        CASE
+                            WHEN pr.payment_status IN ('paid', 'partially_refunded', 'refunded', 'completed')
+                                THEN GREATEST(COALESCE(pr.total_amount, 0) - COALESCE(pr.refund_amount, 0), 0)
+                            ELSE 0
+                        END
+                    ) AS registration_net_sales
+                FROM paid_event_registrations pr
+                WHERE pr.registration_status IN ('confirmed', 'checked_in')
+                GROUP BY pr.event_id
+            ) AS paid_summary ON paid_summary.event_id = e.id
+            LEFT JOIN (
+                SELECT
+                    fr.event_id,
+                    COUNT(*) AS free_tickets
+                FROM free_event_registrations fr
+                WHERE fr.status IN ('registered', 'checked_in')
+                GROUP BY fr.event_id
+            ) AS free_summary ON free_summary.event_id = e.id
+            LEFT JOIN (
+                SELECT
+                    p.event_id,
+                    SUM(COALESCE(p.amount, 0)) AS gross_sales,
+                    SUM(COALESCE(p.commission_amount, 0)) AS total_commission,
+                    SUM(COALESCE(p.organizer_amount, 0)) AS total_profit
+                FROM payments p
+                WHERE p.payment_type = 'ticket'
+                                    AND p.publisher_id = :payment_publisher_id
+                  AND LOWER(COALESCE(p.status, '')) IN ('completed', 'paid', 'success')
+                GROUP BY p.event_id
+            ) AS payment_summary ON payment_summary.event_id = e.id
+            WHERE e.created_by_type = 'publisher'
+                            AND e.created_by = :event_publisher_id
+              AND e.is_deleted = 0
+              AND (e.status = 'completed' OR e.event_date < CURDATE())
+              AND e.event_date BETWEEN :from_date AND :to_date
+            ORDER BY e.event_date DESC, e.id DESC",
+            [
+                'payment_publisher_id' => $publisherId,
+                'event_publisher_id' => $publisherId,
+                'from_date' => $fromDate,
+                'to_date' => $toDate
+            ]
+        ) ?: [];
+
+        $events = [];
+        $summary = [
+            'events_count' => 0,
+            'tickets_count' => 0,
+            'gross_sales' => 0.0,
+            'commission_total' => 0.0,
+            'profit_total' => 0.0,
+            'avg_profit_per_event' => 0.0
+        ];
+
+        foreach ($rows as $row) {
+            $paidTickets = (int)($row->paid_tickets ?? 0);
+            $freeTickets = (int)($row->free_tickets ?? 0);
+            $totalTickets = $paidTickets + $freeTickets;
+
+            $grossSales = (float)($row->payment_gross_sales ?? 0);
+            $registrationNetSales = (float)($row->registration_net_sales ?? 0);
+            if ($grossSales <= 0 && $registrationNetSales > 0) {
+                $grossSales = $registrationNetSales;
+            }
+
+            $commission = (float)($row->total_commission ?? 0);
+            $profit = (float)($row->total_profit ?? 0);
+            if ($profit <= 0 && $grossSales > 0 && $commission >= 0) {
+                $profit = max($grossSales - $commission, 0);
+            }
+
+            $profitMargin = $grossSales > 0 ? ($profit / $grossSales) * 100 : 0;
+
+            $events[] = [
+                'event_id' => (int)($row->event_id ?? 0),
+                'event_name' => (string)($row->event_name ?? 'Untitled Event'),
+                'event_date' => (string)($row->event_date ?? ''),
+                'paid_tickets' => $paidTickets,
+                'free_tickets' => $freeTickets,
+                'total_tickets_sold' => $totalTickets,
+                'gross_sales' => round($grossSales, 2),
+                'commission_total' => round($commission, 2),
+                'profit_total' => round($profit, 2),
+                'profit_margin' => round($profitMargin, 2)
+            ];
+
+            $summary['events_count']++;
+            $summary['tickets_count'] += $totalTickets;
+            $summary['gross_sales'] += $grossSales;
+            $summary['commission_total'] += $commission;
+            $summary['profit_total'] += $profit;
+        }
+
+        if ($summary['events_count'] > 0) {
+            $summary['avg_profit_per_event'] = $summary['profit_total'] / $summary['events_count'];
+        }
+
+        $topProfitEvent = null;
+        $topTicketEvent = null;
+
+        if (!empty($events)) {
+            $profitSorted = $events;
+            usort($profitSorted, function ($a, $b) {
+                return ((float)$b['profit_total']) <=> ((float)$a['profit_total']);
+            });
+            $topProfitEvent = $profitSorted[0];
+
+            $ticketSorted = $events;
+            usort($ticketSorted, function ($a, $b) {
+                return ((int)$b['total_tickets_sold']) <=> ((int)$a['total_tickets_sold']);
+            });
+            $topTicketEvent = $ticketSorted[0];
+        }
+
+        return [
+            'events' => $events,
+            'summary' => [
+                'events_count' => (int)$summary['events_count'],
+                'tickets_count' => (int)$summary['tickets_count'],
+                'gross_sales' => round((float)$summary['gross_sales'], 2),
+                'commission_total' => round((float)$summary['commission_total'], 2),
+                'profit_total' => round((float)$summary['profit_total'], 2),
+                'avg_profit_per_event' => round((float)$summary['avg_profit_per_event'], 2)
+            ],
+            'insights' => [
+                'top_profit_event' => $topProfitEvent,
+                'top_ticket_event' => $topTicketEvent
+            ]
+        ];
+    }
+
+    /**
+     * Generate a compact PDF report for publisher monthly ticket sales.
+     */
+    private function generatePublisherMonthlyReportPDF($publisherName, $month, $reportData)
+    {
+        $monthName = date('F Y', strtotime($month . '-01'));
+        $details = is_array($reportData['details'] ?? null) ? $reportData['details'] : [];
+        $eventTotals = is_array($reportData['event_totals'] ?? null) ? $reportData['event_totals'] : [];
+        $summary = is_array($reportData['summary'] ?? null) ? $reportData['summary'] : [];
+
+        $groupedDetails = [];
+        foreach ($details as $row) {
+            $eventName = (string)($row['event_name'] ?? 'Untitled Event');
+            if (!isset($groupedDetails[$eventName])) {
+                $groupedDetails[$eventName] = [];
+            }
+            $groupedDetails[$eventName][] = $row;
+        }
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [30, 58, 138], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Publisher Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Monthly Ticket Sales Evolution', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $monthName . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [255, 237, 213], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Publisher', 'F1', 8.5, [255, 237, 213]);
+        $content .= $this->pdfText($contentRight - 174, 727, $this->truncatePDFText($publisherName, 24), 'F2', 11.5, [255, 255, 255]);
+
+        $eventsCount = (int)($summary['events_count'] ?? 0);
+        $ticketsCount = (int)($summary['tickets_count'] ?? 0);
+        $grandSales = (float)($summary['grand_total_sales'] ?? 0);
+
+        $content .= $this->pdfRect($marginX, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 10, 673, 'Events', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 10, 659, (string)$eventsCount, 'F2', 13, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 178, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 188, 673, 'Tickets', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 188, 659, number_format($ticketsCount), 'F2', 13, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 356, 652, 214, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 366, 673, 'Total Sales', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 366, 659, 'LKR ' . number_format($grandSales, 2), 'F2', 13, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 18;
+        $rowY = 620;
+
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Event-wise Ticket Type Sales', 'F2', 12, [30, 58, 138]);
+        $rowY -= 10;
+
+        if (empty($groupedDetails)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No ticket sales activity recorded for this month.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            foreach ($groupedDetails as $eventName => $eventRows) {
+                $eventSubtotal = 0.0;
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, 22, [239, 246, 255], [191, 219, 254], 0.8);
+                $content .= $this->pdfText($tableX + 10, $rowY + 7, $this->truncatePDFText($eventName, 48), 'F2', 10.2, [30, 58, 138]);
+                $rowY -= 22;
+
+                $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [30, 58, 138], [249, 115, 22], 24);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, 'TICKET TYPE', 'F2', 8.2, [255, 255, 255]);
+                $content .= $this->pdfText($tableX + 250, $rowY + 6, 'TICKET AMOUNT', 'F2', 8.2, [255, 255, 255]);
+                $content .= $this->pdfText($tableX + 474, $rowY + 6, 'SALES (LKR)', 'F2', 8.2, [255, 255, 255]);
+                $rowY -= $rowH;
+
+                foreach ($eventRows as $index => $row) {
+                    $ticketType = (string)($row['ticket_type'] ?? 'General Admission');
+                    $ticketAmount = (int)($row['ticket_amount'] ?? 0);
+                    $sales = (float)($row['sales'] ?? 0);
+                    $eventSubtotal += $sales;
+
+                    $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+                    $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                    $content .= $this->pdfText($tableX + 10, $rowY + 6, $this->truncatePDFText($ticketType, 28), 'F1', 8.0, [71, 85, 105]);
+                    $content .= $this->pdfText($tableX + 250, $rowY + 6, number_format($ticketAmount), 'F2', 8.0, [30, 41, 59]);
+                    $content .= $this->pdfText($tableX + 474, $rowY + 6, number_format($sales, 2), 'F2', 8.0, [6, 95, 70]);
+                    $rowY -= $rowH;
+                }
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 237, 213], [253, 186, 116], 0.8);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Total Sales', 'F2', 8.8, [154, 52, 18]);
+                $content .= $this->pdfText($tableX + 474, $rowY + 6, number_format($eventSubtotal, 2), 'F2', 8.8, [154, 52, 18]);
+                $rowY -= ($rowH + 14);
+            }
+        }
+
+        $rowY -= 16;
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Total Sales by Event', 'F2', 12, [30, 58, 138]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [30, 58, 138], [249, 115, 22], 24);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'EVENT NAME', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 474, $rowY + 6, 'TOTAL SALES', 'F2', 8.2, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        if (empty($eventTotals)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No event totals available.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            $maxSummaryRows = min(count($eventTotals), 10);
+            for ($i = 0; $i < $maxSummaryRows; $i++) {
+                $row = $eventTotals[$i];
+                $bg = ($i % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, $this->truncatePDFText((string)($row['event_name'] ?? '-'), 36), 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 474, $rowY + 6, number_format((float)($row['total_sales'] ?? 0), 2), 'F2', 8.0, [6, 95, 70]);
+                $rowY -= $rowH;
+            }
+        }
+
+        $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 237, 213], [253, 186, 116], 0.8);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Grand Total', 'F2', 8.8, [154, 52, 18]);
+        $content .= $this->pdfText($tableX + 474, $rowY + 6, number_format($grandSales, 2), 'F2', 8.8, [154, 52, 18]);
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Publisher Monthly Evolution  |  ' . $monthName, 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
+    }
+
+    /**
+     * Generate PDF report for completed-event profit data.
+     */
+    private function generateCompletedEventProfitReportPDF($publisherName, $fromDate, $toDate, $reportData)
+    {
+        $events = is_array($reportData['events'] ?? null) ? $reportData['events'] : [];
+        $summary = is_array($reportData['summary'] ?? null) ? $reportData['summary'] : [];
+
+        $periodLabel = date('M d, Y', strtotime($fromDate)) . ' to ' . date('M d, Y', strtotime($toDate));
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [17, 94, 89], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Publisher Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Completed Event Profit Report', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $periodLabel . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [254, 215, 170], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Publisher', 'F1', 8.5, [254, 215, 170]);
+        $content .= $this->pdfText($contentRight - 174, 727, $this->truncatePDFText($publisherName, 24), 'F2', 11.5, [255, 255, 255]);
+
+        $eventsCount = (int)($summary['events_count'] ?? 0);
+        $ticketsCount = (int)($summary['tickets_count'] ?? 0);
+        $profitTotal = (float)($summary['profit_total'] ?? 0);
+
+        $content .= $this->pdfRect($marginX, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 10, 673, 'Completed Events', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 10, 659, (string)$eventsCount, 'F2', 13, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 178, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 188, 673, 'Tickets Sold', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 188, 659, number_format($ticketsCount), 'F2', 13, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 356, 652, 214, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 366, 673, 'Total Profit', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 366, 659, 'LKR ' . number_format($profitTotal, 2), 'F2', 13, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 18;
+        $rowY = 620;
+
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Completed Event Profitability', 'F2', 12, [17, 94, 89]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [17, 94, 89], [249, 115, 22], 30);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'EVENT', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 252, $rowY + 6, 'TICKETS', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 316, $rowY + 6, 'GROSS', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 392, $rowY + 6, 'COMMISSION', 'F2', 7.8, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 468, $rowY + 6, 'PROFIT', 'F2', 7.8, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        if (empty($events)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No completed events found for the selected period.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            $maxRows = min(count($events), 16);
+            for ($i = 0; $i < $maxRows; $i++) {
+                $event = $events[$i];
+                $bg = ($i % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                $content .= $this->pdfText(
+                    $tableX + 10,
+                    $rowY + 6,
+                    $this->truncatePDFText((string)($event['event_name'] ?? '-'), 32),
+                    'F2',
+                    7.8,
+                    [30, 41, 59]
+                );
+                $content .= $this->pdfText($tableX + 252, $rowY + 6, number_format((int)($event['total_tickets_sold'] ?? 0)), 'F2', 7.8, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 316, $rowY + 6, number_format((float)($event['gross_sales'] ?? 0), 2), 'F2', 7.8, [51, 65, 85]);
+                $content .= $this->pdfText($tableX + 392, $rowY + 6, number_format((float)($event['commission_total'] ?? 0), 2), 'F2', 7.8, [217, 119, 6]);
+                $content .= $this->pdfText($tableX + 468, $rowY + 6, number_format((float)($event['profit_total'] ?? 0), 2), 'F2', 7.8, [6, 95, 70]);
+                $rowY -= $rowH;
+            }
+        }
+
+        $rowY -= 12;
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Summary', 'F2', 11, [17, 94, 89]);
+        $rowY -= 8;
+
+        $summaryRows = [
+            ['label' => 'Gross Sales', 'value' => number_format((float)($summary['gross_sales'] ?? 0), 2)],
+            ['label' => 'Platform Commission', 'value' => number_format((float)($summary['commission_total'] ?? 0), 2)],
+            ['label' => 'Total Profit', 'value' => number_format((float)($summary['profit_total'] ?? 0), 2)],
+            ['label' => 'Average Profit / Event', 'value' => number_format((float)($summary['avg_profit_per_event'] ?? 0), 2)]
+        ];
+
+        foreach ($summaryRows as $index => $row) {
+            $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, $row['label'], 'F2', 8.4, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 446, $rowY + 6, $row['value'], 'F2', 8.4, [30, 41, 59]);
+            $rowY -= $rowH;
+        }
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [17, 94, 89], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Completed Event Profit Report  |  ' . $periodLabel, 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
+    }
+
+    /**
+     * Generate PDF report for a single completed event.
+     */
+    private function generateSingleCompletedEventProfitPDF($publisherName, $fromDate, $toDate, $event)
+    {
+        $periodLabel = date('M d, Y', strtotime($fromDate)) . ' to ' . date('M d, Y', strtotime($toDate));
+        $eventName = (string)($event['event_name'] ?? 'Untitled Event');
+        $eventDate = (string)($event['event_date'] ?? '');
+        $eventDateLabel = $eventDate !== '' ? date('M d, Y', strtotime($eventDate)) : '-';
+
+        $totalTickets = (int)($event['total_tickets_sold'] ?? 0);
+        $grossSales = (float)($event['gross_sales'] ?? 0);
+        $commission = (float)($event['commission_total'] ?? 0);
+        $profit = (float)($event['profit_total'] ?? 0);
+        $margin = (float)($event['profit_margin'] ?? 0);
+        $paidTickets = (int)($event['paid_tickets'] ?? 0);
+        $freeTickets = (int)($event['free_tickets'] ?? 0);
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [17, 94, 89], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Event Profit Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Completed Event Financial Summary', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $periodLabel . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [254, 215, 170], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Publisher', 'F1', 8.5, [254, 215, 170]);
+        $content .= $this->pdfText($contentRight - 174, 727, $this->truncatePDFText($publisherName, 24), 'F2', 11.5, [255, 255, 255]);
+
+        $content .= $this->pdfRect($marginX, 622, $contentRight - $marginX, 58, [239, 246, 255], [191, 219, 254], 0.8);
+        $content .= $this->pdfText($marginX + 12, 662, 'Event Name', 'F1', 8.4, [71, 85, 105]);
+        $content .= $this->pdfText($marginX + 12, 645, $this->truncatePDFText($eventName, 58), 'F2', 13.2, [30, 58, 138]);
+        $content .= $this->pdfText($marginX + 410, 662, 'Completed On', 'F1', 8.4, [71, 85, 105]);
+        $content .= $this->pdfText($marginX + 410, 645, $eventDateLabel, 'F2', 11.2, [30, 41, 59]);
+
+        $metricY = 572;
+        $metricGap = 8;
+        $metricWidth = 124;
+
+        $metric1X = $marginX;
+        $metric2X = $metric1X + $metricWidth + $metricGap;
+        $metric3X = $metric2X + $metricWidth + $metricGap;
+        $metric4X = $metric3X + $metricWidth + $metricGap;
+
+        $content .= $this->pdfRect($metric1X, $metricY, $metricWidth, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($metric1X + 10, $metricY + 21, 'Tickets Sold', 'F1', 8.2, [100, 116, 139]);
+        $content .= $this->pdfText($metric1X + 10, $metricY + 8, number_format($totalTickets), 'F2', 12.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($metric2X, $metricY, $metricWidth, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($metric2X + 10, $metricY + 21, 'Gross Sales', 'F1', 8.2, [100, 116, 139]);
+        $content .= $this->pdfText($metric2X + 10, $metricY + 8, number_format($grossSales, 2), 'F2', 12.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($metric3X, $metricY, $metricWidth, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($metric3X + 10, $metricY + 21, 'Commission', 'F1', 8.2, [100, 116, 139]);
+        $content .= $this->pdfText($metric3X + 10, $metricY + 8, number_format($commission, 2), 'F2', 12.5, [217, 119, 6]);
+
+        $content .= $this->pdfRect($metric4X, $metricY, $metricWidth, 34, [236, 253, 245], [167, 243, 208], 0.8);
+        $content .= $this->pdfText($metric4X + 10, $metricY + 21, 'Total Profit', 'F1', 8.2, [6, 95, 70]);
+        $content .= $this->pdfText($metric4X + 10, $metricY + 8, number_format($profit, 2), 'F2', 12.5, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 24;
+        $rowY = 512;
+
+        $content .= $this->pdfText($tableX, $rowY + 18, 'Event Breakdown', 'F2', 12, [17, 94, 89]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [17, 94, 89], [249, 115, 22], 30);
+        $content .= $this->pdfText($tableX + 10, $rowY + 8, 'METRIC', 'F2', 8.4, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 446, $rowY + 8, 'VALUE', 'F2', 8.4, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        $rows = [
+            ['label' => 'Paid Tickets', 'value' => number_format($paidTickets)],
+            ['label' => 'Free Tickets', 'value' => number_format($freeTickets)],
+            ['label' => 'Total Tickets Sold', 'value' => number_format($totalTickets)],
+            ['label' => 'Gross Sales', 'value' => number_format($grossSales, 2)],
+            ['label' => 'Platform Commission', 'value' => number_format($commission, 2)],
+            ['label' => 'Total Profit', 'value' => number_format($profit, 2)],
+            ['label' => 'Profit Margin', 'value' => number_format($margin, 2) . '%']
+        ];
+
+        foreach ($rows as $index => $row) {
+            $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 8, $row['label'], 'F2', 8.8, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 446, $rowY + 8, $row['value'], 'F2', 8.8, [30, 41, 59]);
+            $rowY -= $rowH;
+        }
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [17, 94, 89], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Event Profit Report  |  ' . $this->truncatePDFText($eventName, 52), 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
+    }
+
+    private function pdfRect($x, $y, $width, $height, $fillColor = null, $strokeColor = null, $lineWidth = 1)
+    {
+        $cmd = '';
+        if ($fillColor !== null) {
+            $cmd .= $this->pdfColor($fillColor, false);
+        }
+        if ($strokeColor !== null) {
+            $cmd .= $this->pdfColor($strokeColor, true);
+            $cmd .= number_format($lineWidth, 2, '.', '') . " w\n";
+        }
+
+        $op = 'n';
+        if ($fillColor !== null && $strokeColor !== null) {
+            $op = 'B';
+        } elseif ($fillColor !== null) {
+            $op = 'f';
+        } elseif ($strokeColor !== null) {
+            $op = 'S';
+        }
+
+        return $cmd
+            . number_format($x, 2, '.', '') . ' '
+            . number_format($y, 2, '.', '') . ' '
+            . number_format($width, 2, '.', '') . ' '
+            . number_format($height, 2, '.', '') . " re $op\n";
+    }
+
+    private function pdfLinearGradientRect($x, $y, $width, $height, $startColor, $endColor, $steps = 32)
+    {
+        $steps = max(1, (int)$steps);
+        $segmentW = $width / $steps;
+        $cmd = '';
+
+        for ($i = 0; $i < $steps; $i++) {
+            $ratio = $steps === 1 ? 0 : ($i / ($steps - 1));
+            $color = [
+                (int)round($startColor[0] + (($endColor[0] - $startColor[0]) * $ratio)),
+                (int)round($startColor[1] + (($endColor[1] - $startColor[1]) * $ratio)),
+                (int)round($startColor[2] + (($endColor[2] - $startColor[2]) * $ratio)),
+            ];
+
+            $cmd .= $this->pdfRect($x + ($segmentW * $i), $y, $segmentW + 0.2, $height, $color);
+        }
+
+        return $cmd;
+    }
+
+    private function pdfText($x, $y, $text, $font = 'F1', $fontSize = 10, $color = [0, 0, 0])
+    {
+        return "BT\n"
+            . $this->pdfColor($color, false)
+            . "/{$font} " . number_format($fontSize, 2, '.', '') . " Tf\n"
+            . number_format($x, 2, '.', '') . ' ' . number_format($y, 2, '.', '') . " Td\n"
+            . '(' . $this->escapePDF($text) . ") Tj\n"
+            . "ET\n";
+    }
+
+    private function pdfColor($rgb, $isStroke)
+    {
+        $r = number_format(((int)($rgb[0] ?? 0)) / 255, 3, '.', '');
+        $g = number_format(((int)($rgb[1] ?? 0)) / 255, 3, '.', '');
+        $b = number_format(((int)($rgb[2] ?? 0)) / 255, 3, '.', '');
+
+        return $r . ' ' . $g . ' ' . $b . ($isStroke ? " RG\n" : " rg\n");
+    }
+
+    private function truncatePDFText($text, $maxChars)
+    {
+        $safeText = (string)$text;
+        if (strlen($safeText) <= $maxChars) {
+            return $safeText;
+        }
+        return rtrim(substr($safeText, 0, max(1, $maxChars - 1))) . '...';
+    }
+
+    private function escapePDF($text)
+    {
+        $text = str_replace('\\', '\\\\', (string)$text);
+        $text = str_replace('(', '\\(', $text);
+        $text = str_replace(')', '\\)', $text);
+        $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $text);
+        return $text;
     }
 }
