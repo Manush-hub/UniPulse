@@ -290,7 +290,7 @@
         </section>
 
         <!-- Sales & Analytics -->
-        <section class="sales-analytics">
+        <section class="sales-analytics" id="monthly-evolution-anchor">
             <div class="container">
                 <div class="sales-layout">
                     <div class="sales-summary">
@@ -299,6 +299,17 @@
                             <div class="loading-events">
                                 <div class="spinner"></div>
                                 <p>Loading registration data...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sales-summary event-revenue-summary">
+                        <h2>Event Revenue</h2>
+                        <p class="event-revenue-subtitle">Track ticket amount and total revenue for each event in real time.</p>
+                        <div id="eventRevenueContainer" class="event-revenue-container">
+                            <div class="loading-events">
+                                <div class="spinner"></div>
+                                <p>Loading event revenue...</p>
                             </div>
                         </div>
                     </div>
@@ -349,6 +360,50 @@
                         <div class="spinner"></div>
                         <p>Loading recent comments...</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Monthly Evolution Button -->
+        <section class="monthly-evolution-btn-section">
+            <div class="container">
+                <div class="report-action-grid">
+                    <a href="/unipulse/public/publisher/dashboard/monthlyEvolution" class="evolution-btn">
+                        <div class="evolution-btn-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 12h18M3 6h18M3 18h18"></path>
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            </svg>
+                        </div>
+                        <div class="evolution-btn-content">
+                            <h3>View Monthly Evolution Report</h3>
+                            <p>Track your volunteering, donations, and events participation for each month</p>
+                        </div>
+                        <div class="evolution-btn-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
+
+                    <a href="/unipulse/public/publisher/dashboard/eventProfitReport" class="evolution-btn profit-report-btn">
+                        <div class="evolution-btn-icon">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 17l6-6 4 4 8-8"></path>
+                                <path d="M21 10V4h-6"></path>
+                                <path d="M4 21h16"></path>
+                            </svg>
+                        </div>
+                        <div class="evolution-btn-content">
+                            <h3>View Completed Event Profit Report</h3>
+                            <p>Analyze post-event ticket sales, platform commission, and your final profit per event</p>
+                        </div>
+                        <div class="evolution-btn-arrow">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </div>
+                    </a>
                 </div>
             </div>
         </section>

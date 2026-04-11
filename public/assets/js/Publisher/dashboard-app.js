@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         initializeDashboard();
         loadEventsManagement();
         loadRegistrationTicketing();
+        loadEventRevenue();
         loadVolunteerData();
         startVolunteerAutoRefresh();
         loadRecentActivity();
@@ -280,6 +281,91 @@ function renderRegistrationTicketing(events) {
     }).join('');
 
     container.innerHTML = sectionsHtml;
+}
+
+function loadEventRevenue() {
+    const container = document.getElementById('eventRevenueContainer');
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="loading-events">
+            <div class="spinner"></div>
+            <p>Loading event revenue...</p>
+        </div>
+    `;
+
+    fetch('/unipulse/public/publisher/dashboard/getEventRevenue')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load event revenue data');
+            }
+
+            renderEventRevenue(data.events || []);
+        })
+        .catch(error => {
+            console.error('Error loading event revenue:', error);
+            container.innerHTML = `
+                <div class="error-message">
+                    <p>Failed to load event revenue data.</p>
+                </div>
+            `;
+        });
+}
+
+function renderEventRevenue(events) {
+    const container = document.getElementById('eventRevenueContainer');
+    if (!container) {
+        return;
+    }
+
+    if (!Array.isArray(events) || events.length === 0) {
+        container.innerHTML = `
+            <div class="no-events">
+                <h3>No events found</h3>
+                <p>Create events to view ticket amount and revenue.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const cardsHtml = events.map(event => {
+        const eventTitle = escapeHtml(event.event_title || 'Untitled Event');
+        const ticketAmount = Number(event.ticket_amount || 0);
+        const totalRevenue = Number(event.total_revenue || 0);
+        const formattedRevenue = totalRevenue.toLocaleString('en-LK', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        return `
+            <article class="event-revenue-card">
+                <header class="event-revenue-card-header">
+                    <h3>${eventTitle}</h3>
+                </header>
+                <div class="event-revenue-metrics">
+                    <div class="event-revenue-metric">
+                        <span class="event-revenue-label">Ticket Amount</span>
+                        <strong class="event-revenue-value">${formatNumber(ticketAmount)}</strong>
+                    </div>
+                    <div class="event-revenue-divider" aria-hidden="true"></div>
+                    <div class="event-revenue-metric">
+                        <span class="event-revenue-label">Total Revenue</span>
+                        <strong class="event-revenue-value revenue">LKR ${formattedRevenue}</strong>
+                    </div>
+                </div>
+            </article>
+        `;
+    }).join('');
+
+    container.innerHTML = cardsHtml;
 }
 
 function escapeHtml(value) {
@@ -1481,8 +1567,8 @@ function displayRecentComments(comments, stats) {
     }
 
     const commentsHtml = comments.map(comment => {
-        const profilePhoto = comment.profile_photo 
-            ? `<img src="${comment.profile_photo}" alt="${comment.user_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` 
+        const profilePhoto = comment.profile_photo
+            ? `<img src="${comment.profile_photo}" alt="${comment.user_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
             : getUserTypeIcon(comment.user_type);
         const ratingStars = comment.rating > 0 ? generateStarRating(comment.rating) : '';
         const hideBadge = comment.is_hidden
