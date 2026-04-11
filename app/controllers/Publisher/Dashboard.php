@@ -1904,9 +1904,7 @@ class PublisherDashboard extends Controller
         ];
     }
 
-    /**
-     * Build completed-event profitability data for publisher events.
-     */
+    //Build completed-event profitability data for publisher events.
     private function getCompletedEventProfitReportData($publisherId, $fromDate, $toDate)
     {
         $rows = $this->query(
@@ -1987,12 +1985,14 @@ class PublisherDashboard extends Controller
 
             $grossSales = (float)($row->payment_gross_sales ?? 0);
             $registrationNetSales = (float)($row->registration_net_sales ?? 0);
-            if ($grossSales <= 0 && $registrationNetSales > 0) {
-                $grossSales = $registrationNetSales;
-            }
-
             $commission = (float)($row->total_commission ?? 0);
             $profit = (float)($row->total_profit ?? 0);
+
+            if ($grossSales <= 0 && $registrationNetSales > 0) {
+                $grossSales = $registrationNetSales;
+                $commission = round($grossSales * 0.05, 2);
+            }
+
             if ($profit <= 0 && $grossSales > 0 && $commission >= 0) {
                 $profit = max($grossSales - $commission, 0);
             }
