@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     loadAdminData();
+    loadAdminRevenueReport();
     loadRecentActivity();
     // loadPendingApprovals(); // Commented out - Pending approvals are now rendered server-side in PHP
     // loadUserTable(); // Commented out - User table is now rendered server-side in PHP
@@ -64,6 +65,137 @@ function updateDashboardStats(data) {
 
     if (overviewActiveEvents) overviewActiveEvents.textContent = (data.activeEvents || 0).toLocaleString();
     if (overviewTotalEvents) overviewTotalEvents.textContent = (data.totalEvents || 0).toLocaleString();
+}
+
+function formatLkr(amount) {
+    const value = Number(amount || 0);
+    return `LKR ${value.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getAdminRevenueDateRange() {
+    const fromDateEl = document.getElementById('adminRevenueFromDate');
+    const toDateEl = document.getElementById('adminRevenueToDate');
+
+    if (!fromDateEl || !toDateEl) {
+        throw new Error('Revenue filter controls are not available.');
+    }
+
+    const fromDate = fromDateEl.value;
+    const toDate = toDateEl.value;
+
+    if (!fromDate || !toDate) {
+        throw new Error('Please select both From and To dates.');
+    }
+
+    if (new Date(fromDate) > new Date(toDate)) {
+        throw new Error('From date cannot be later than To date.');
+    }
+
+    return { fromDate, toDate };
+}
+
+function renderAdminRevenueSummary(summary) {
+    const commissionEl = document.getElementById('adminCommissionTotal');
+    const boostingEl = document.getElementById('adminBoostingTotal');
+    const totalEl = document.getElementById('adminTotalRevenue');
+
+    if (commissionEl) commissionEl.textContent = formatLkr(summary.commission_total || 0);
+    if (boostingEl) boostingEl.textContent = formatLkr(summary.boosting_total || 0);
+    if (totalEl) totalEl.textContent = formatLkr(summary.total_revenue || 0);
+}
+
+function renderPublisherIncomeTable(rows) {
+    const tableBody = document.getElementById('publisherIncomeTableBody');
+    if (!tableBody) return;
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" class="publisher-income-empty">No publisher income found for the selected period.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = rows.map((row) => {
+        const publisherName = escapeHtml(row.publisher_name || 'Unknown Publisher');
+        const commissionIncome = Number(row.commission_income || 0);
+        const boostIncome = Number(row.boost_income || 0);
+        const totalIncome = Number(row.total_income || 0);
+
+        return `
+            <tr>
+                <td>${publisherName}</td>
+                <td>${formatLkr(commissionIncome)}</td>
+                <td>${formatLkr(boostIncome)}</td>
+                <td class="publisher-income-total">${formatLkr(totalIncome)}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function loadAdminRevenueReport() {
+    const tableBody = document.getElementById('publisherIncomeTableBody');
+    if (!tableBody) return;
+
+    let range;
+    try {
+        range = getAdminRevenueDateRange();
+    } catch (error) {
+        showToast(error.message, 'warning');
+        tableBody.innerHTML = `<tr><td colspan="4" class="publisher-income-empty">${error.message}</td></tr>`;
+        return;
+    }
+
+    tableBody.innerHTML = '<tr><td colspan="4" class="publisher-income-empty">Loading publisher income...</td></tr>';
+
+    const params = new URLSearchParams({
+        from_date: range.fromDate,
+        to_date: range.toDate
+    });
+
+    fetch(`/unipulse/public/admin/dashboard/getRevenueReport?${params.toString()}`)
+        .then((response) => response.json())
+        .then((payload) => {
+            if (!payload.success) {
+                throw new Error(payload.error || 'Failed to load revenue report.');
+            }
+
+            const reportData = payload.data || {};
+            const summary = reportData.summary || {};
+            const rows = Array.isArray(reportData.publisher_income) ? reportData.publisher_income : [];
+
+            renderAdminRevenueSummary(summary);
+            renderPublisherIncomeTable(rows);
+        })
+        .catch((error) => {
+            const message = error.message || 'Failed to load revenue report.';
+            tableBody.innerHTML = `<tr><td colspan="4" class="publisher-income-empty">${message}</td></tr>`;
+            showToast(message, 'error');
+        });
+}
+
+function downloadAdminRevenueReport() {
+    let range;
+    try {
+        range = getAdminRevenueDateRange();
+    } catch (error) {
+        showToast(error.message, 'warning');
+        return;
+    }
+
+    const params = new URLSearchParams({
+        from_date: range.fromDate,
+        to_date: range.toDate
+    });
+
+    window.location.href = `/unipulse/public/admin/dashboard/downloadRevenueReport?${params.toString()}`;
 }
 
 // Load recent activity
@@ -309,6 +441,27 @@ function setupEventListeners() {
             handleQuickAction(action);
         });
     });
+
+    const refreshRevenueBtn = document.getElementById('refreshAdminRevenueBtn');
+    const downloadRevenueBtn = document.getElementById('downloadAdminRevenueBtn');
+    const revenueFromDate = document.getElementById('adminRevenueFromDate');
+    const revenueToDate = document.getElementById('adminRevenueToDate');
+
+    if (refreshRevenueBtn) {
+        refreshRevenueBtn.addEventListener('click', loadAdminRevenueReport);
+    }
+
+    if (downloadRevenueBtn) {
+        downloadRevenueBtn.addEventListener('click', downloadAdminRevenueReport);
+    }
+
+    if (revenueFromDate) {
+        revenueFromDate.addEventListener('change', loadAdminRevenueReport);
+    }
+
+    if (revenueToDate) {
+        revenueToDate.addEventListener('change', loadAdminRevenueReport);
+    }
 }
 
 // Setup modals

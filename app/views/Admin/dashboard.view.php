@@ -157,6 +157,76 @@
             </div>
         </section>
 
+        <section class="revenue-overview">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Revenue Overview</h2>
+                </div>
+
+                <div class="revenue-controls">
+                    <div class="revenue-range-grid">
+                        <div class="month-selector">
+                            <label for="adminRevenueFromDate">From Date:</label>
+                            <input type="date" id="adminRevenueFromDate" value="<?= date('Y-m-d', strtotime('-12 months')) ?>" max="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div class="month-selector">
+                            <label for="adminRevenueToDate">To Date:</label>
+                            <input type="date" id="adminRevenueToDate" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>">
+                        </div>
+                    </div>
+                    <div class="revenue-action-buttons">
+                        <button type="button" class="btn btn-primary" id="refreshAdminRevenueBtn">
+                            <i class="fas fa-rotate-right"></i>
+                            Refresh Revenue
+                        </button>
+                        <button type="button" class="btn btn-outline" id="downloadAdminRevenueBtn">
+                            <i class="fas fa-download"></i>
+                            Download PDF Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="revenue-summary-grid">
+                    <div class="revenue-summary-card">
+                        <h3>Total Commission</h3>
+                        <div class="summary-value" id="adminCommissionTotal">LKR 0.00</div>
+                        <div class="summary-note">Commission collected from ticket payments</div>
+                    </div>
+                    <div class="revenue-summary-card">
+                        <h3>Total Boosting Income</h3>
+                        <div class="summary-value" id="adminBoostingTotal">LKR 0.00</div>
+                        <div class="summary-note">Revenue earned from event boosting</div>
+                    </div>
+                    <div class="revenue-summary-card revenue-highlight-card">
+                        <h3>Total Platform Revenue</h3>
+                        <div class="summary-value" id="adminTotalRevenue">LKR 0.00</div>
+                        <div class="summary-note">Commission + boosting combined</div>
+                    </div>
+                </div>
+
+                <div class="publisher-income-table-wrapper">
+                    <h3>Income by Publisher</h3>
+                    <div class="publisher-income-table-scroll">
+                        <table class="publisher-income-table">
+                            <thead>
+                                <tr>
+                                    <th>Publisher</th>
+                                    <th>Commission Income</th>
+                                    <th>Boosting Income</th>
+                                    <th>Total Income</th>
+                                </tr>
+                            </thead>
+                            <tbody id="publisherIncomeTableBody">
+                                <tr>
+                                    <td colspan="4" class="publisher-income-empty">Loading publisher income...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Recent Activity -->
         <section class="recent-activity">
             <div class="container">

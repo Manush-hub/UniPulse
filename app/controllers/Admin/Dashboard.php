@@ -530,6 +530,98 @@ class AdminDashboard extends Controller {
         
         echo json_encode($stats);
     }
+
+    /**
+     * API endpoint to get admin revenue report data.
+     * Includes platform commission income, event boost income, and publisher-wise income totals.
+     */
+    public function getRevenueReport() {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Access denied']);
+            return;
+        }
+
+        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultTo = date('Y-m-d');
+
+        $fromDate = $_GET['from_date'] ?? $defaultFrom;
+        $toDate = $_GET['to_date'] ?? $defaultTo;
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fromDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$toDate)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid date format']);
+            return;
+        }
+
+        if (strtotime($fromDate) === false || strtotime($toDate) === false || strtotime($fromDate) > strtotime($toDate)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid date range']);
+            return;
+        }
+
+        try {
+            $report = $this->getAdminRevenueReportData($fromDate, $toDate);
+            echo json_encode([
+                'success' => true,
+                'from_date' => $fromDate,
+                'to_date' => $toDate,
+                'data' => $report
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in AdminDashboard::getRevenueReport: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load revenue report']);
+        }
+    }
+
+    /**
+     * Download admin revenue report as PDF.
+     */
+    public function downloadRevenueReport() {
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Access denied']);
+            exit;
+        }
+
+        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultTo = date('Y-m-d');
+
+        $fromDate = $_GET['from_date'] ?? $defaultFrom;
+        $toDate = $_GET['to_date'] ?? $defaultTo;
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$fromDate) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date format']);
+            exit;
+        }
+
+        if (strtotime($fromDate) === false || strtotime($toDate) === false || strtotime($fromDate) > strtotime($toDate)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid date range']);
+            exit;
+        }
+
+        try {
+            $report = $this->getAdminRevenueReportData($fromDate, $toDate);
+            $pdf = $this->generateAdminRevenueReportPDF($fromDate, $toDate, $report);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="admin-revenue-report-' . $fromDate . '-to-' . $toDate . '.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Throwable $e) {
+            error_log('Error in AdminDashboard::downloadRevenueReport: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to generate revenue report']);
+            exit;
+        }
+    }
     
     /**
      * Simple test endpoint
@@ -551,6 +643,586 @@ class AdminDashboard extends Controller {
         if ($time < 2628000) return floor($time/86400) . ' days ago';
         
         return date('M j, Y', strtotime($datetime));
+    }
+
+    /**
+     * Build revenue report data for admin dashboard.
+     */
+    private function getAdminRevenueReportData($fromDate, $toDate) {
+        $params = [
+            'from_date' => $fromDate,
+            'to_date' => $toDate
+        ];
+
+        $paymentsTableExists = $this->tableExists('payments');
+        $publishersTableExists = $this->tableExists('publishers');
+        $eventBoostsTableExists = $this->tableExists('event_boosts');
+
+        $hasPaymentType = $paymentsTableExists && $this->columnExists('payments', 'payment_type');
+        $hasCommissionAmount = $paymentsTableExists && $this->columnExists('payments', 'commission_amount');
+        $hasAmount = $paymentsTableExists && $this->columnExists('payments', 'amount');
+        $hasPublisherId = $paymentsTableExists && $this->columnExists('payments', 'publisher_id');
+
+        $ticketTypeFilter = $hasPaymentType ? "AND p.payment_type = 'ticket'" : '';
+        $commissionExpr = '0';
+        if ($hasCommissionAmount) {
+            $commissionExpr = 'SUM(COALESCE(p.commission_amount, 0))';
+        } elseif ($hasAmount) {
+            // Fallback for older schema: estimate platform commission as 5% of ticket payment amount.
+            $commissionExpr = 'SUM(COALESCE(p.amount, 0) * 0.05)';
+        }
+
+        $ticketPaymentCount = 0;
+        $commissionTotal = 0.0;
+
+        if ($paymentsTableExists) {
+            try {
+                $countRows = $this->query(
+                    "SELECT COUNT(*) AS cnt
+                     FROM payments p
+                     WHERE LOWER(COALESCE(p.status, '')) IN ('completed', 'paid', 'success')
+                       $ticketTypeFilter
+                       AND DATE(p.created_at) BETWEEN :from_date AND :to_date",
+                    $params
+                );
+                $countSource = $countRows[0] ?? null;
+                if (is_object($countSource)) {
+                    $ticketPaymentCount = (int)($countSource->cnt ?? 0);
+                } elseif (is_array($countSource)) {
+                    $ticketPaymentCount = (int)($countSource['cnt'] ?? 0);
+                }
+            } catch (Throwable $e) {
+                $ticketPaymentCount = 0;
+            }
+
+            try {
+                $commissionRows = $this->query(
+                    "SELECT COALESCE($commissionExpr, 0) AS total_commission
+                     FROM payments p
+                     WHERE LOWER(COALESCE(p.status, '')) IN ('completed', 'paid', 'success')
+                       $ticketTypeFilter
+                       AND DATE(p.created_at) BETWEEN :from_date AND :to_date",
+                    $params
+                );
+                $commissionSource = $commissionRows[0] ?? null;
+                if (is_object($commissionSource)) {
+                    $commissionTotal = (float)($commissionSource->total_commission ?? 0);
+                } elseif (is_array($commissionSource)) {
+                    $commissionTotal = (float)($commissionSource['total_commission'] ?? 0);
+                }
+            } catch (Throwable $e) {
+                $commissionTotal = 0.0;
+            }
+        }
+
+        $boostRow = [['total_boosting' => 0]];
+        if ($eventBoostsTableExists && $this->columnExists('event_boosts', 'amount_paid')) {
+            try {
+                $boostRow = $this->query(
+                    "SELECT COALESCE(SUM(COALESCE(eb.amount_paid, 0)), 0) AS total_boosting
+                     FROM event_boosts eb
+                     WHERE LOWER(COALESCE(eb.payment_status, '')) = 'completed'
+                       AND DATE(eb.created_at) BETWEEN :from_date AND :to_date",
+                    $params
+                );
+            } catch (Throwable $e) {
+                $boostRow = [['total_boosting' => 0]];
+            }
+        } elseif ($paymentsTableExists && $hasAmount && $hasPaymentType) {
+            try {
+                $boostRow = $this->query(
+                    "SELECT COALESCE(SUM(COALESCE(p.amount, 0)), 0) AS total_boosting
+                     FROM payments p
+                     WHERE p.payment_type = 'boost'
+                       AND LOWER(COALESCE(p.status, '')) IN ('completed', 'paid', 'success')
+                       AND DATE(p.created_at) BETWEEN :from_date AND :to_date",
+                    $params
+                );
+            } catch (Throwable $e) {
+                $boostRow = [['total_boosting' => 0]];
+            }
+        }
+
+        $publisherRows = [];
+        if ($publishersTableExists && $hasPublisherId && $paymentsTableExists) {
+            $commissionTypeFilter = $hasPaymentType ? "AND pay.payment_type = 'ticket'" : '';
+            $commissionIncomeExpr = '0';
+            if ($hasCommissionAmount) {
+                $commissionIncomeExpr = 'SUM(COALESCE(pay.commission_amount, 0))';
+            } elseif ($hasAmount) {
+                $commissionIncomeExpr = 'SUM(COALESCE(pay.amount, 0) * 0.05)';
+            }
+
+            $boostSubquery = "SELECT pay.publisher_id, 0 AS boost_income FROM payments pay WHERE 1 = 0";
+            if ($eventBoostsTableExists && $this->columnExists('event_boosts', 'publisher_id') && $this->columnExists('event_boosts', 'amount_paid')) {
+                $boostSubquery =
+                    "SELECT
+                        eb.publisher_id,
+                        SUM(COALESCE(eb.amount_paid, 0)) AS boost_income
+                     FROM event_boosts eb
+                     WHERE LOWER(COALESCE(eb.payment_status, '')) = 'completed'
+                       AND DATE(eb.created_at) BETWEEN :from_date AND :to_date
+                     GROUP BY eb.publisher_id";
+            } elseif ($hasAmount && $hasPaymentType) {
+                $boostSubquery =
+                    "SELECT
+                        pay.publisher_id,
+                        SUM(COALESCE(pay.amount, 0)) AS boost_income
+                     FROM payments pay
+                     WHERE pay.payment_type = 'boost'
+                       AND LOWER(COALESCE(pay.status, '')) IN ('completed', 'paid', 'success')
+                       AND DATE(pay.created_at) BETWEEN :from_date AND :to_date
+                     GROUP BY pay.publisher_id";
+            }
+
+            try {
+                $publisherRows = $this->query(
+                    "SELECT
+                        p.id AS publisher_id,
+                        p.society_name AS publisher_name,
+                        COALESCE(comm.commission_income, 0) AS commission_income,
+                        COALESCE(boost.boost_income, 0) AS boost_income,
+                        COALESCE(comm.commission_income, 0) + COALESCE(boost.boost_income, 0) AS total_income
+                    FROM publishers p
+                    LEFT JOIN (
+                        SELECT
+                            pay.publisher_id,
+                            COALESCE($commissionIncomeExpr, 0) AS commission_income
+                        FROM payments pay
+                        WHERE LOWER(COALESCE(pay.status, '')) IN ('completed', 'paid', 'success')
+                          $commissionTypeFilter
+                          AND DATE(pay.created_at) BETWEEN :from_date AND :to_date
+                        GROUP BY pay.publisher_id
+                    ) AS comm ON comm.publisher_id = p.id
+                    LEFT JOIN (
+                        $boostSubquery
+                    ) AS boost ON boost.publisher_id = p.id
+                    WHERE (COALESCE(comm.commission_income, 0) + COALESCE(boost.boost_income, 0)) > 0
+                    ORDER BY total_income DESC, p.society_name ASC",
+                    $params
+                ) ?: [];
+            } catch (Throwable $e) {
+                $publisherRows = [];
+            }
+        }
+
+        $boostSource = $boostRow[0] ?? null;
+
+        if (is_object($boostSource)) {
+            $boostingTotal = (float)($boostSource->total_boosting ?? 0);
+        } elseif (is_array($boostSource)) {
+            $boostingTotal = (float)($boostSource['total_boosting'] ?? 0);
+        } else {
+            $boostingTotal = 0.0;
+        }
+
+        // If there are no ticket payment rows, fallback to paid-event registrations.
+        // This supports environments where revenue was tracked before payments table integration.
+        $paidRegsTableExists = $this->tableExists('paid_event_registrations');
+        $paidRegsHasPublisherId = $paidRegsTableExists && $this->columnExists('paid_event_registrations', 'publisher_id');
+
+        if (($ticketPaymentCount === 0 || $commissionTotal <= 0 || empty($publisherRows)) && $paidRegsTableExists && $paidRegsHasPublisherId) {
+            $paidDateExpr = $this->columnExists('paid_event_registrations', 'paid_at')
+                ? 'COALESCE(pr.paid_at, pr.created_at)'
+                : 'pr.created_at';
+            $refundExpr = $this->columnExists('paid_event_registrations', 'refund_amount')
+                ? 'COALESCE(pr.refund_amount, 0)'
+                : '0';
+
+            try {
+                $fallbackCommissionRows = $this->query(
+                    "SELECT
+                        COALESCE(SUM(
+                            CASE
+                                WHEN LOWER(COALESCE(pr.payment_status, '')) IN ('paid', 'partially_refunded', 'refunded', 'completed')
+                                    THEN GREATEST(COALESCE(pr.total_amount, 0) - $refundExpr, 0)
+                                ELSE 0
+                            END
+                        ) * 0.05, 0) AS total_commission
+                     FROM paid_event_registrations pr
+                     WHERE pr.publisher_id IS NOT NULL
+                       AND LOWER(COALESCE(pr.registration_status, '')) IN ('reserved', 'confirmed', 'checked_in')
+                       AND DATE($paidDateExpr) BETWEEN :from_date AND :to_date",
+                    $params
+                );
+
+                $source = $fallbackCommissionRows[0] ?? null;
+                if (is_object($source)) {
+                    $commissionTotal = (float)($source->total_commission ?? 0);
+                } elseif (is_array($source)) {
+                    $commissionTotal = (float)($source['total_commission'] ?? 0);
+                } else {
+                    $commissionTotal = 0.0;
+                }
+            } catch (Throwable $e) {
+                $commissionTotal = 0.0;
+            }
+
+            try {
+                $publisherNameExpr = $publishersTableExists
+                    ? "COALESCE(p.society_name, CONCAT('Publisher #', comm.publisher_id))"
+                    : "CONCAT('Publisher #', comm.publisher_id)";
+                $publisherJoin = $publishersTableExists
+                    ? 'LEFT JOIN publishers p ON p.id = comm.publisher_id'
+                    : '';
+
+                $publisherRows = $this->query(
+                    "SELECT
+                        comm.publisher_id AS publisher_id,
+                        $publisherNameExpr AS publisher_name,
+                        COALESCE(comm.commission_income, 0) AS commission_income,
+                        0 AS boost_income,
+                        COALESCE(comm.commission_income, 0) AS total_income
+                    FROM (
+                        SELECT
+                            pr.publisher_id AS publisher_id,
+                            COALESCE(SUM(
+                                CASE
+                                    WHEN LOWER(COALESCE(pr.payment_status, '')) IN ('paid', 'partially_refunded', 'refunded', 'completed')
+                                        THEN GREATEST(COALESCE(pr.total_amount, 0) - $refundExpr, 0)
+                                    ELSE 0
+                                END
+                            ) * 0.05, 0) AS commission_income
+                        FROM paid_event_registrations pr
+                        WHERE pr.publisher_id IS NOT NULL
+                          AND LOWER(COALESCE(pr.registration_status, '')) IN ('reserved', 'confirmed', 'checked_in')
+                          AND DATE($paidDateExpr) BETWEEN :from_date AND :to_date
+                        GROUP BY pr.publisher_id
+                    ) AS comm
+                    $publisherJoin
+                    WHERE COALESCE(comm.commission_income, 0) > 0
+                    ORDER BY total_income DESC, publisher_name ASC",
+                    $params
+                ) ?: [];
+
+                // Merge in real boost income if available.
+                if (!empty($publisherRows)) {
+                    $boostMap = [];
+                    if ($eventBoostsTableExists && $this->columnExists('event_boosts', 'publisher_id') && $this->columnExists('event_boosts', 'amount_paid')) {
+                        $boostRows = $this->query(
+                            "SELECT
+                                eb.publisher_id,
+                                SUM(COALESCE(eb.amount_paid, 0)) AS boost_income
+                             FROM event_boosts eb
+                             WHERE LOWER(COALESCE(eb.payment_status, '')) = 'completed'
+                               AND DATE(eb.created_at) BETWEEN :from_date AND :to_date
+                             GROUP BY eb.publisher_id",
+                            $params
+                        ) ?: [];
+                        foreach ($boostRows as $bRow) {
+                            $pid = (int)($bRow->publisher_id ?? 0);
+                            $boostMap[$pid] = (float)($bRow->boost_income ?? 0);
+                        }
+                    } elseif ($paymentsTableExists && $hasAmount && $hasPaymentType && $hasPublisherId) {
+                        $boostRows = $this->query(
+                            "SELECT
+                                pay.publisher_id,
+                                SUM(COALESCE(pay.amount, 0)) AS boost_income
+                             FROM payments pay
+                             WHERE pay.payment_type = 'boost'
+                               AND LOWER(COALESCE(pay.status, '')) IN ('completed', 'paid', 'success')
+                               AND DATE(pay.created_at) BETWEEN :from_date AND :to_date
+                             GROUP BY pay.publisher_id",
+                            $params
+                        ) ?: [];
+                        foreach ($boostRows as $bRow) {
+                            $pid = (int)($bRow->publisher_id ?? 0);
+                            $boostMap[$pid] = (float)($bRow->boost_income ?? 0);
+                        }
+                    }
+
+                    foreach ($publisherRows as $idx => $row) {
+                        $pid = (int)($row->publisher_id ?? 0);
+                        $currentCommission = (float)($row->commission_income ?? 0);
+                        $boostIncome = $boostMap[$pid] ?? 0.0;
+                        $row->boost_income = $boostIncome;
+                        $row->total_income = $currentCommission + $boostIncome;
+                        $publisherRows[$idx] = $row;
+                    }
+
+                    usort($publisherRows, function($a, $b) {
+                        $aTotal = (float)($a->total_income ?? 0);
+                        $bTotal = (float)($b->total_income ?? 0);
+                        return $bTotal <=> $aTotal;
+                    });
+                }
+            } catch (Throwable $e) {
+                // Keep previous result if fallback merge fails.
+            }
+        }
+
+        $totalRevenue = $commissionTotal + $boostingTotal;
+
+        $publisherIncome = [];
+        foreach ($publisherRows as $row) {
+            $publisherIncome[] = [
+                'publisher_id' => (int)($row->publisher_id ?? 0),
+                'publisher_name' => (string)($row->publisher_name ?? 'Unknown Publisher'),
+                'commission_income' => round((float)($row->commission_income ?? 0), 2),
+                'boost_income' => round((float)($row->boost_income ?? 0), 2),
+                'total_income' => round((float)($row->total_income ?? 0), 2),
+            ];
+        }
+
+        return [
+            'summary' => [
+                'commission_total' => round($commissionTotal, 2),
+                'boosting_total' => round($boostingTotal, 2),
+                'total_revenue' => round($totalRevenue, 2),
+                'publishers_with_income' => count($publisherIncome),
+            ],
+            'publisher_income' => $publisherIncome,
+        ];
+    }
+
+    private function tableExists($tableName) {
+        try {
+            $safeTableName = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$tableName);
+            if ($safeTableName === '') {
+                return false;
+            }
+
+            $rows = $this->query("SHOW TABLES LIKE '$safeTableName'", []);
+            return !empty($rows);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    private function columnExists($tableName, $columnName) {
+        try {
+            $safeTableName = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$tableName);
+            $safeColumnName = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$columnName);
+            if ($safeTableName === '' || $safeColumnName === '') {
+                return false;
+            }
+
+            $rows = $this->query("SHOW COLUMNS FROM `$safeTableName` LIKE '$safeColumnName'", []);
+            return !empty($rows);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Generate a decorated PDF for admin revenue data.
+     */
+    private function generateAdminRevenueReportPDF($fromDate, $toDate, $reportData) {
+        $summary = is_array($reportData['summary'] ?? null) ? $reportData['summary'] : [];
+        $publishers = is_array($reportData['publisher_income'] ?? null) ? $reportData['publisher_income'] : [];
+
+        $periodLabel = date('M d, Y', strtotime($fromDate)) . ' to ' . date('M d, Y', strtotime($toDate));
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [30, 58, 138], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Admin Revenue Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Platform Revenue Overview', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $periodLabel . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [255, 237, 213], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Report Type', 'F1', 8.5, [255, 237, 213]);
+        $content .= $this->pdfText($contentRight - 174, 727, 'Admin Revenue', 'F2', 11.5, [255, 255, 255]);
+
+        $commissionTotal = (float)($summary['commission_total'] ?? 0);
+        $boostingTotal = (float)($summary['boosting_total'] ?? 0);
+        $totalRevenue = (float)($summary['total_revenue'] ?? 0);
+        $publisherCount = (int)($summary['publishers_with_income'] ?? count($publishers));
+
+        $content .= $this->pdfRect($marginX, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 10, 673, 'Total Commission', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 10, 659, 'LKR ' . number_format($commissionTotal, 2), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 178, 652, 168, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 188, 673, 'Boosting Income', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 188, 659, 'LKR ' . number_format($boostingTotal, 2), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 356, 652, 214, 34, [236, 253, 245], [167, 243, 208], 0.8);
+        $content .= $this->pdfText($marginX + 366, 673, 'Platform Revenue', 'F1', 8.5, [6, 95, 70]);
+        $content .= $this->pdfText($marginX + 366, 659, 'LKR ' . number_format($totalRevenue, 2), 'F2', 12.8, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 18;
+        $rowY = 620;
+
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Income by Publisher (' . $publisherCount . ')', 'F2', 12, [30, 58, 138]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'PUBLISHER', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 318, $rowY + 6, 'COMMISSION', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 418, $rowY + 6, 'BOOSTING', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 500, $rowY + 6, 'TOTAL', 'F2', 8.2, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        if (empty($publishers)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No publisher income found for this period.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            $maxRows = min(count($publishers), 18);
+            for ($i = 0; $i < $maxRows; $i++) {
+                $row = $publishers[$i];
+                $bg = ($i % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+
+                $publisherName = $this->truncatePDFText((string)($row['publisher_name'] ?? 'Unknown Publisher'), 36);
+                $commissionIncome = (float)($row['commission_income'] ?? 0);
+                $boostIncome = (float)($row['boost_income'] ?? 0);
+                $rowTotal = (float)($row['total_income'] ?? 0);
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, $publisherName, 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 318, $rowY + 6, number_format($commissionIncome, 2), 'F2', 8.0, [217, 119, 6]);
+                $content .= $this->pdfText($tableX + 418, $rowY + 6, number_format($boostIncome, 2), 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 500, $rowY + 6, number_format($rowTotal, 2), 'F2', 8.0, [6, 95, 70]);
+                $rowY -= $rowH;
+            }
+
+            if (count($publishers) > $maxRows) {
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 251, 235], [253, 230, 138], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Showing first ' . $maxRows . ' publishers in this PDF export.', 'F1', 7.8, [120, 53, 15]);
+                $rowY -= $rowH;
+            }
+        }
+
+        $rowY -= 12;
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Summary', 'F2', 11, [30, 58, 138]);
+        $rowY -= 8;
+
+        $summaryRows = [
+            ['label' => 'Total Commission Revenue', 'value' => 'LKR ' . number_format($commissionTotal, 2)],
+            ['label' => 'Total Boosting Revenue', 'value' => 'LKR ' . number_format($boostingTotal, 2)],
+            ['label' => 'Total Platform Revenue', 'value' => 'LKR ' . number_format($totalRevenue, 2)],
+            ['label' => 'Publishers With Revenue', 'value' => number_format($publisherCount)],
+        ];
+
+        foreach ($summaryRows as $index => $row) {
+            $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, $row['label'], 'F2', 8.4, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 430, $rowY + 6, $row['value'], 'F2', 8.4, [30, 41, 59]);
+            $rowY -= $rowH;
+        }
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Admin Revenue Report  |  ' . $periodLabel, 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
+    }
+
+    private function escapePdfText($text) {
+        return str_replace(
+            ['\\', '(', ')'],
+            ['\\\\', '\\(', '\\)'],
+            $text
+        );
+    }
+
+    private function pdfRect($x, $y, $width, $height, $fillColor = null, $strokeColor = null, $lineWidth = 1)
+    {
+        $cmd = '';
+        if ($fillColor !== null) {
+            $cmd .= $this->pdfColor($fillColor, false);
+        }
+        if ($strokeColor !== null) {
+            $cmd .= $this->pdfColor($strokeColor, true);
+            $cmd .= number_format($lineWidth, 2, '.', '') . " w\n";
+        }
+
+        $op = 'n';
+        if ($fillColor !== null && $strokeColor !== null) {
+            $op = 'B';
+        } elseif ($fillColor !== null) {
+            $op = 'f';
+        } elseif ($strokeColor !== null) {
+            $op = 'S';
+        }
+
+        return $cmd
+            . number_format($x, 2, '.', '') . ' '
+            . number_format($y, 2, '.', '') . ' '
+            . number_format($width, 2, '.', '') . ' '
+            . number_format($height, 2, '.', '') . " re $op\n";
+    }
+
+    private function pdfLinearGradientRect($x, $y, $width, $height, $startColor, $endColor, $steps = 32)
+    {
+        $steps = max(1, (int)$steps);
+        $segmentW = $width / $steps;
+        $cmd = '';
+
+        for ($i = 0; $i < $steps; $i++) {
+            $ratio = $steps === 1 ? 0 : ($i / ($steps - 1));
+            $color = [
+                (int)round($startColor[0] + (($endColor[0] - $startColor[0]) * $ratio)),
+                (int)round($startColor[1] + (($endColor[1] - $startColor[1]) * $ratio)),
+                (int)round($startColor[2] + (($endColor[2] - $startColor[2]) * $ratio)),
+            ];
+
+            $cmd .= $this->pdfRect($x + ($segmentW * $i), $y, $segmentW + 0.2, $height, $color);
+        }
+
+        return $cmd;
+    }
+
+    private function pdfText($x, $y, $text, $font = 'F1', $fontSize = 10, $color = [0, 0, 0])
+    {
+        return "BT\n"
+            . $this->pdfColor($color, false)
+            . "/{$font} " . number_format($fontSize, 2, '.', '') . " Tf\n"
+            . number_format($x, 2, '.', '') . ' ' . number_format($y, 2, '.', '') . " Td\n"
+            . '(' . $this->escapePdfText($text) . ") Tj\n"
+            . "ET\n";
+    }
+
+    private function pdfColor($rgb, $isStroke)
+    {
+        $r = number_format(((int)($rgb[0] ?? 0)) / 255, 3, '.', '');
+        $g = number_format(((int)($rgb[1] ?? 0)) / 255, 3, '.', '');
+        $b = number_format(((int)($rgb[2] ?? 0)) / 255, 3, '.', '');
+
+        return $r . ' ' . $g . ' ' . $b . ($isStroke ? " RG\n" : " rg\n");
+    }
+
+    private function truncatePDFText($text, $maxChars)
+    {
+        $safeText = (string)$text;
+        if (strlen($safeText) <= $maxChars) {
+            return $safeText;
+        }
+
+        return rtrim(substr($safeText, 0, max(1, $maxChars - 1))) . '...';
     }
     
     /**
