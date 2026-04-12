@@ -293,15 +293,13 @@ class PublisherEventview extends Controller
                 exit;
             }
 
-            // Check if event has available spots (only if max_participants is set)
-            if ($event->max_participants !== null) {
-                if ($event->current_participants >= $event->max_participants) {
-                    echo json_encode([
-                        'success' => false,
-                        'error' => 'Event is full'
-                    ]);
-                    exit;
-                }
+            $capacityLimit = $this->eventModel->getRegistrationLimitValue($event);
+            if ($capacityLimit !== null && (int)($event->current_participants ?? 0) >= $capacityLimit) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Registration is full for this event'
+                ]);
+                exit;
             }
 
             if ($event->status === 'completed' || $event->status === 'cancelled') {
@@ -329,33 +327,31 @@ class PublisherEventview extends Controller
                 exit;
             }
 
-            // Join the event by incrementing current participants
-            if ($this->eventModel->incrementParticipants($eventId)) {
-                // Get updated event data from database
-                $updatedEvent = $this->eventModel->getEventById($eventId);
-
-                // Calculate available spots (null if unlimited)
-                $availableSpots = null;
-                if ($updatedEvent->max_participants !== null) {
-                    $availableSpots = $updatedEvent->max_participants - $updatedEvent->current_participants;
-                }
-
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Successfully joined the event',
-                    'participants' => $updatedEvent->participants, // Legacy
-                    'current_participants' => $updatedEvent->current_participants,
-                    'max_participants' => $updatedEvent->max_participants,
-                    'availableSpots' => $availableSpots
-                ]);
-            } else {
-                // Rollback registration if increment fails
+            $incrementResult = $this->eventModel->incrementParticipants($eventId, 1);
+            if (!$incrementResult) {
                 $this->registrationModel->cancelRegistration($eventId, $publisherId, 'publisher');
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to join event. Event may be full or an error occurred.'
+                    'error' => 'Registration is full for this event'
                 ]);
+                exit;
             }
+
+            $updatedEvent = $this->eventModel->getEventById($eventId);
+            $availableSpots = null;
+            if ($capacityLimit !== null && $updatedEvent) {
+                $availableSpots = max(0, $capacityLimit - (int)($updatedEvent->current_participants ?? 0));
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Successfully joined the event',
+                'participants' => $updatedEvent->participants ?? 0,
+                'current_participants' => $updatedEvent->current_participants ?? 0,
+                'max_participants' => $updatedEvent->max_participants ?? null,
+                'registration_limit' => $updatedEvent->registration_limit ?? null,
+                'availableSpots' => $availableSpots
+            ]);
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in PublisherEventview::joinEvent: " . $e->getMessage());

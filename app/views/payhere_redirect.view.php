@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/payhere_redirect.css">
 </head>
+
 <body>
     <div class="redirect-card">
         <div class="spinner"><i class="fas fa-circle-notch"></i></div>
@@ -26,4 +28,5 @@
 
     <script src="<?php echo ROOT ?>/assets/js/extracted/payhere_redirect.js"></script>
 </body>
+
 </html>

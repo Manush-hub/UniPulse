@@ -164,7 +164,11 @@ class PublisherCreateevent extends Controller
                 'participants' => 0,
                 'status' => 'upcoming',
                 'ticket_type' => $_POST['ticketType'] ?? 'free-all',
-                'registration_limit' => !empty($_POST['registration_limit']) ? (int)$_POST['registration_limit'] : null,
+                'registration_limit' => !empty($_POST['registration_limit'])
+                    ? (int)$_POST['registration_limit']
+                    : (!empty($_POST['free_registration_limit'])
+                        ? (int)$_POST['free_registration_limit']
+                        : (!empty($_POST['mixed_registration_limit']) ? (int)$_POST['mixed_registration_limit'] : null)),
                 'needs_volunteers' => isset($_POST['volunteerToggle']) && $_POST['volunteerToggle'] == '1' ? 1 : 0,
                 'volunteers_needed' => !empty($_POST['volunteers_needed']) ? (int)$_POST['volunteers_needed'] : null,
                 'accepts_donations' => isset($_POST['donationToggle']) && $_POST['donationToggle'] == '1' ? 1 : 0,
