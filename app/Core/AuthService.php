@@ -245,19 +245,85 @@ class AuthService
     /**
      * Redirect to appropriate dashboard based on user type
      */
-    public function redirectToDashboard($userType)
+    public function redirectToDashboard($userType, $userId = null)
     {
         $dashboards = [
             'admin' => '/unipulse/public/admin/dashboard',
             'moderator' => '/unipulse/public/moderator/dashboard',
-            'public' => '/unipulse/public/user/dashboard',
-            'university' => '/unipulse/public/user/dashboard',
+            'public' => '/unipulse/public/user/landing',
+            'university' => '/unipulse/public/user/landing',
             'sponsor' => '/unipulse/public/sponsor/dashboard',
             'publisher' => '/unipulse/public/publisher/dashboard'
         ];
 
-        $dashboard = $dashboards[$userType] ?? '/unipulse/public/user/dashboard';
+        $dashboard = $this->getPostLoginRedirectPath($userType, $userId);
         header('Location: ' . $dashboard);
         exit();
+    }
+
+    /**
+     * Resolve post-login redirect path with profile completion checks.
+     */
+    public function getPostLoginRedirectPath($userType, $userId = null)
+    {
+        $dashboards = [
+            'admin' => '/unipulse/public/admin/dashboard',
+            'moderator' => '/unipulse/public/moderator/dashboard',
+            'public' => '/unipulse/public/user/landing',
+            'university' => '/unipulse/public/user/landing',
+            'sponsor' => '/unipulse/public/sponsor/dashboard',
+            'publisher' => '/unipulse/public/publisher/dashboard'
+        ];
+
+        $defaultPath = $dashboards[$userType] ?? '/unipulse/public/user/dashboard';
+
+        if (!$userId || !in_array($userType, ['sponsor', 'publisher'], true)) {
+            return $defaultPath;
+        }
+
+        if ($userType === 'sponsor') {
+            $sponsorModel = new Sponsor();
+            $sponsorData = $sponsorModel->findById($userId);
+            $profileData = $sponsorModel->getProfileData($userId);
+
+            $hasRequiredBasics = $sponsorData
+                && !empty(trim((string)($sponsorData->company_name ?? '')))
+                && !empty(trim((string)($sponsorData->phone ?? '')));
+
+            $hasRequiredProfile = $profileData
+                && !empty(trim((string)($profileData->sponsor_type ?? '')))
+                && !empty(trim((string)($profileData->industry ?? '')))
+                && !empty(trim((string)($profileData->about ?? '')))
+                && !empty(trim((string)($profileData->logo_url ?? '')))
+                && !empty(trim((string)($profileData->cover_photo_url ?? '')));
+
+            if (!$hasRequiredBasics || !$hasRequiredProfile) {
+                error_log('Sponsor profile incomplete for user ' . (int)$userId . ': ' . json_encode([
+                    'company_name' => !empty(trim((string)($sponsorData->company_name ?? ''))),
+                    'phone' => !empty(trim((string)($sponsorData->phone ?? ''))),
+                    'sponsor_type' => !empty(trim((string)($profileData->sponsor_type ?? ''))),
+                    'industry' => !empty(trim((string)($profileData->industry ?? ''))),
+                    'about' => !empty(trim((string)($profileData->about ?? ''))),
+                    'logo_url' => !empty(trim((string)($profileData->logo_url ?? ''))),
+                    'cover_photo_url' => !empty(trim((string)($profileData->cover_photo_url ?? '')))
+                ]));
+                return '/unipulse/public/sponsor/profile?required=1';
+            }
+        }
+
+        if ($userType === 'publisher') {
+            $publisherModel = new Publisher();
+            $profileData = $publisherModel->getProfileData($userId);
+
+            $hasRequiredImages = $profileData
+                && !empty(trim((string)($profileData->logo_url ?? '')))
+                && !empty(trim((string)($profileData->cover_photo_url ?? '')));
+
+            if (!$hasRequiredImages) {
+                return '/unipulse/public/publisher/profile?required=1';
+            }
+        }
+
+        return $defaultPath;
     }
 }

@@ -310,7 +310,8 @@ class Sponsor {
         ORDER BY e.event_date DESC";
         
         try {
-            return $this->query($query, ['sponsor_id' => $sponsorId]);
+            $rows = $this->query($query, ['sponsor_id' => $sponsorId]);
+            return is_array($rows) ? $rows : [];
         } catch (Exception $e) {
             error_log("Error fetching sponsored events: " . $e->getMessage());
             return [];

@@ -65,11 +65,13 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                         </svg>
                     </button>
                     <div class="user-dropdown" id="userDropdown">
+                        <a href="#" id="openRegisteredEventsCalendar">Calendar</a>
                         <a href="/unipulse/public/logout" class="logout">Logout</a>
                     </div>
                 </div>
             </div>
         </div>
     </header>
+<script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
 <script src="/unipulse/public/assets/js/Moderator/header.js"></script>
 <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_components_header.js"></script>

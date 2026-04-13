@@ -340,6 +340,89 @@ class ModeratorDashboard extends Controller {
         ]);
     }
 
+    /**
+     * API endpoint to get upcoming publisher events relevant to the moderator's university.
+     */
+    public function getUpcomingEvents()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'moderator') {
+            echo json_encode([
+                'success' => false,
+                'events' => [],
+                'message' => 'Unauthorized'
+            ]);
+            return;
+        }
+
+        try {
+            $moderatorId = (int)($currentUser['id'] ?? 0);
+            $moderatorUniversity = trim((string)($currentUser['university'] ?? ''));
+
+            if ($moderatorUniversity === '') {
+                $moderatorModel = new Moderator();
+                $moderatorRow = $moderatorModel->findById($moderatorId);
+                $moderatorUniversity = trim((string)($moderatorRow->university ?? ''));
+            }
+
+            if ($moderatorUniversity === '') {
+                echo json_encode([
+                    'success' => true,
+                    'events' => []
+                ]);
+                return;
+            }
+
+            $eventModel = new Event();
+            $rows = $eventModel->query(
+                "SELECT
+                    e.id,
+                    e.title,
+                    e.event_date,
+                    e.event_time,
+                    COALESCE(NULLIF(TRIM(e.venue_name), ''), NULLIF(TRIM(e.location), ''), 'Location TBA') AS location
+                 FROM events e
+                 INNER JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
+                 WHERE e.is_deleted = 0
+                   AND p.university = :moderator_university
+                   AND TIMESTAMP(e.event_date, COALESCE(e.event_time, '00:00:00')) >= NOW()
+                 ORDER BY e.event_date ASC, e.event_time ASC
+                 LIMIT 500",
+                ['moderator_university' => $moderatorUniversity]
+            ) ?: [];
+
+            $events = [];
+            foreach ($rows as $row) {
+                $eventId = (int)($row->id ?? 0);
+                if ($eventId <= 0) {
+                    continue;
+                }
+
+                $events[] = [
+                    'id' => $eventId,
+                    'title' => (string)($row->title ?? 'Untitled Event'),
+                    'date' => (string)($row->event_date ?? ''),
+                    'time' => (string)($row->event_time ?? ''),
+                    'location' => (string)($row->location ?? 'Location TBA')
+                ];
+            }
+
+            echo json_encode([
+                'success' => true,
+                'events' => $events
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in ModeratorDashboard::getUpcomingEvents: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'events' => [],
+                'message' => 'Failed to load events'
+            ]);
+        }
+    }
+
     private function formatRelativeTime($dateTime)
     {
         $timestamp = strtotime((string)$dateTime);

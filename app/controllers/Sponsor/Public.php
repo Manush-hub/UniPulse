@@ -30,6 +30,9 @@ class Sponsorpublic extends Controller{
         
         // Get sponsored events
         $sponsoredEvents = $sponsorModel->getSponsoredEvents($sponsorId);
+        if (!is_array($sponsoredEvents)) {
+            $sponsoredEvents = [];
+        }
         error_log("Sponsor Public - Sponsor ID: $sponsorId");
         error_log("Sponsor Public - Sponsored Events Count: " . count($sponsoredEvents));
         error_log("Sponsor Public - Sponsored Events Data: " . print_r($sponsoredEvents, true));

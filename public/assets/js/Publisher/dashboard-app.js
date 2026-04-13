@@ -608,6 +608,9 @@ function createEventCard(event) {
 
     const currentParticipants = event.current_participants || 0;
     const maxParticipants = event.max_participants;
+    const hiddenReason = event.status === 'hidden'
+        ? escapeHtml(event.hidden_reason || 'Hidden by moderator')
+        : '';
 
     card.innerHTML = `
         <div class="event-image">
@@ -650,6 +653,16 @@ function createEventCard(event) {
                         <polyline points="9,22 9,12 15,12 15,22"></polyline>
                     </svg>
                     <span>${secondaryInfo}</span>
+                </div>
+                ` : ''}
+                ${event.status === 'hidden' ? `
+                <div class="meta-item hidden-reason-item" title="${hiddenReason}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span><strong>Hidden reason:</strong> ${hiddenReason}</span>
                 </div>
                 ` : ''}
                 ${(event.accepts_sponsorships && event.sponsorship_stats && event.sponsorship_stats.total_packages > 0) && event.status != 'completed' ? `
@@ -759,6 +772,7 @@ function getStatusClass(status) {
         'ongoing': 'status-ongoing',
         'completed': 'status-completed',
         'cancelled': 'status-cancelled',
+        'hidden': 'status-hidden',
         'draft': 'status-draft'
     };
     return statusClasses[status] || 'status-unknown';

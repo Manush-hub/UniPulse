@@ -452,6 +452,12 @@ body {
     color: #6b7280;
 }
 
+.event-status.hidden {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: #ffffff;
+    font-weight: 600;
+}
+
 .event-content {
     padding: 1.5rem;
 }
@@ -2972,6 +2978,24 @@ body {
 .status-draft {
     background: #f1f5f9;
     color: #64748b;
+}
+
+.status-hidden {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: #ffffff;
+}
+
+.hidden-reason-item {
+    display: block;
+    width: 100%;
+    border-top: 1px solid #fecaca;
+    margin-top: 0.5rem;
+    padding-top: 0.6rem;
+    color: #b91c1c;
+}
+
+.hidden-reason-item svg {
+    color: #ef4444;
 }
 
 .event-actions {
