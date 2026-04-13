@@ -2,6 +2,10 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserData();
     loadNotifications();
     setupEventListeners();
+
+    if (window.adminContactMessageSentFlash) {
+        showToast(String(window.adminContactMessageSentFlash), 'success');
+    }
 });
 
 // Load user data from backend
@@ -83,17 +87,30 @@ function displayNotifications(notifications) {
 function createNotificationItem(notification) {
     const item = document.createElement('div');
     item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
-    item.onclick = () => markNotificationAsRead(notification.id);
+    item.onclick = () => handleNotificationClick(notification);
     
     item.innerHTML = `
         <div class="notification-content">
-            <h4>${notification.title}</h4>
+            <h4>${notification.title || 'Notification'}</h4>
             <p>${notification.message}</p>
             <div class="notification-time">${notification.time}</div>
         </div>
     `;
     
     return item;
+}
+
+function handleNotificationClick(notification) {
+    if (!notification) return;
+
+    if (notification.type === 'support_message') {
+        markNotificationAsRead(notification.id, notification.link || '/unipulse/public/admin/messages');
+        return;
+    }
+
+    if (notification.link) {
+        window.location.href = notification.link;
+    }
 }
 
 // Setup event listeners
@@ -129,7 +146,7 @@ function toggleUserMenu() {
 }
 
 // Mark notification as read
-function markNotificationAsRead(notificationId) {
+function markNotificationAsRead(notificationId, redirectLink = null) {
     fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
         method: 'POST',
         headers: {
@@ -141,6 +158,11 @@ function markNotificationAsRead(notificationId) {
     .then(data => {
         if (data.success) {
             loadNotifications();
+            if (redirectLink) {
+                setTimeout(() => {
+                    window.location.href = redirectLink;
+                }, 150);
+            }
         }
     })
     .catch(error => {

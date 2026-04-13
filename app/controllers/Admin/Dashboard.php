@@ -1839,23 +1839,125 @@ class AdminDashboard extends Controller {
             // Pending publisher approvals become notifications
             $publisher = new Publisher();
             $pending   = $publisher->getAllPending();
+            $supportMessageModel = new SupportMessage();
             $notifications = [];
 
             if (is_array($pending)) {
                 foreach (array_slice($pending, 0, 10) as $p) {
                     $notifications[] = [
-                        'id'      => $p->id,
+                        'id'      => 'publisher:' . (int)$p->id,
+                        'type'    => 'publisher_pending',
+                        'title'   => 'Publisher Approval Pending',
                         'message' => ($p->society_name ?? 'A publisher') . ' is awaiting approval',
                         'time'    => isset($p->created_at) ? $this->timeAgo($p->created_at) : '',
                         'unread'  => true,
                         'link'    => '/unipulse/public/admin/dashboard',
+                        'raw_time' => isset($p->created_at) ? strtotime($p->created_at) : time(),
                     ];
                 }
             }
 
+            $supportNotifications = $supportMessageModel->getUnreadNotificationsForAdmin(10);
+            if (is_array($supportNotifications)) {
+                foreach ($supportNotifications as $s) {
+                    $notifications[] = [
+                        'id'       => 'support:' . (int)$s->id,
+                        'type'     => 'support_message',
+                        'title'    => 'New Contact Us Reach',
+                        'message'  => (string)($s->subject ?? 'New support message') . ' - from ' . (string)($s->full_name ?? 'Unknown user'),
+                        'time'     => isset($s->created_at) ? $this->timeAgo($s->created_at) : '',
+                        'unread'   => true,
+                        'link'     => '/unipulse/public/admin/messages',
+                        'raw_time' => isset($s->created_at) ? strtotime($s->created_at) : time(),
+                    ];
+                }
+            }
+
+            usort($notifications, function ($a, $b) {
+                return ((int)($b['raw_time'] ?? 0)) - ((int)($a['raw_time'] ?? 0));
+            });
+
+            $notifications = array_map(function ($item) {
+                unset($item['raw_time']);
+                return $item;
+            }, array_slice($notifications, 0, 20));
+
             echo json_encode(['success' => true, 'notifications' => $notifications]);
         } catch (Exception $e) {
             error_log('Admin getNotifications error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Server error']);
+        }
+        exit;
+    }
+
+    /**
+     * Mark one notification as read (supports contact-us notifications).
+     */
+    public function markNotificationRead() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'admin') {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+                exit;
+            }
+
+            $payload = json_decode(file_get_contents('php://input'), true);
+            $notificationId = trim((string)($payload['notificationId'] ?? ''));
+
+            if ($notificationId === '') {
+                echo json_encode(['success' => false, 'error' => 'Notification ID is required']);
+                exit;
+            }
+
+            if (strpos($notificationId, 'support:') === 0) {
+                $supportId = (int)substr($notificationId, strlen('support:'));
+                $supportMessageModel = new SupportMessage();
+                $ok = $supportMessageModel->markNotificationAsRead($supportId);
+                echo json_encode(['success' => (bool)$ok]);
+                exit;
+            }
+
+            // Non-support notifications are not persisted as read yet.
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            error_log('Admin markNotificationRead error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Server error']);
+        }
+        exit;
+    }
+
+    /**
+     * Mark all contact-us notifications as read.
+     */
+    public function markAllNotificationsRead() {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || $currentUser['type'] !== 'admin') {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                exit;
+            }
+
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+                exit;
+            }
+
+            $supportMessageModel = new SupportMessage();
+            $ok = $supportMessageModel->markAllNotificationsAsRead();
+            echo json_encode(['success' => (bool)$ok]);
+        } catch (Exception $e) {
+            error_log('Admin markAllNotificationsRead error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Server error']);
         }
         exit;

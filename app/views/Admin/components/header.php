@@ -1,6 +1,10 @@
 <?php
 $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+$contactMessageSentFlash = $_SESSION['contact_message_sent'] ?? null;
+if (isset($_SESSION['contact_message_sent'])) {
+    unset($_SESSION['contact_message_sent']);
+}
 ?>
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
@@ -61,5 +65,8 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             </div>
         </div>
     </header>
+<script>
+window.adminContactMessageSentFlash = <?= json_encode($contactMessageSentFlash) ?>;
+</script>
 <script src="/unipulse/public/assets/js/Admin/header-app.js"></script>
 <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_components_header.js"></script>

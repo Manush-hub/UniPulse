@@ -16,6 +16,7 @@ class AdminMessages extends Controller {
         try {
             $messageModel   = new Message();
             $moderatorModel = new Moderator();
+            $supportMessageModel = new SupportMessage();
 
             // All current conversations this admin has
             $conversations = $messageModel->getConversations($currentUser['id'], 'admin');
@@ -29,11 +30,20 @@ class AdminMessages extends Controller {
                 $availableModerators = [];
             }
 
+            $contactReaches = [];
+            try {
+                $contactReaches = $supportMessageModel->getRecentForAdmin(15);
+            } catch (Exception $e) {
+                error_log('AdminMessages::index contact reaches error: ' . $e->getMessage());
+                $contactReaches = [];
+            }
+
             $data = [
                 'user'                => $currentUser,
                 'conversations'       => $conversations,
                 'unread_count'        => $unreadCount,
                 'available_moderators' => $availableModerators,
+                'contact_reaches'     => $contactReaches,
                 'page_title'          => 'Messages',
             ];
 
@@ -47,6 +57,7 @@ class AdminMessages extends Controller {
                 'conversations'       => [],
                 'unread_count'        => 0,
                 'available_moderators' => [],
+                'contact_reaches'     => [],
                 'page_title'          => 'Messages',
                 'error'               => 'Failed to load messages',
             ];

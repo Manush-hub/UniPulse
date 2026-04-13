@@ -11,6 +11,7 @@ class SupportMessage {
         'category',
         'subject',
         'message',
+        'status',
         'source_page',
         'ip_address',
         'user_agent',
@@ -19,28 +20,8 @@ class SupportMessage {
 
     public function validate($input) {
         $errors = [];
-
-        $fullName = trim($input['name'] ?? '');
-        $email = trim($input['email'] ?? '');
-        $category = trim($input['category'] ?? '');
         $subject = trim($input['subject'] ?? '');
         $message = trim($input['message'] ?? '');
-
-        if ($fullName === '') {
-            $errors[] = 'Full name is required.';
-        } elseif (mb_strlen($fullName) > 150) {
-            $errors[] = 'Full name must be 150 characters or fewer.';
-        }
-
-        if ($email === '') {
-            $errors[] = 'Email is required.';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Please enter a valid email address.';
-        }
-
-        if ($category === '') {
-            $errors[] = 'Issue category is required.';
-        }
 
         if ($subject === '') {
             $errors[] = 'Subject is required.';
@@ -57,12 +38,22 @@ class SupportMessage {
         return $errors;
     }
 
-    public function createFromContactForm($input) {
+    public function createFromContactForm($input, $profileData = []) {
+        $this->ensureTableExists();
+
+        $fullName = trim((string)($profileData['name'] ?? ''));
+        $email = trim((string)($profileData['email'] ?? ''));
+        $phone = trim((string)($profileData['phone'] ?? ''));
+
+        if ($fullName === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return false;
+        }
+
         $data = [
-            'full_name' => trim($input['name'] ?? ''),
-            'email' => trim($input['email'] ?? ''),
-            'phone' => trim($input['phone'] ?? ''),
-            'category' => trim($input['category'] ?? ''),
+            'full_name' => $fullName,
+            'email' => $email,
+            'phone' => $phone !== '' ? $phone : null,
+            'category' => 'contact',
             'subject' => trim($input['subject'] ?? ''),
             'message' => trim($input['message'] ?? ''),
             'source_page' => '/unipulse/public/contact',
@@ -72,5 +63,103 @@ class SupportMessage {
         ];
 
         return $this->insert($data);
+    }
+
+    public function getRecentForAdmin($limit = 20) {
+        $this->ensureTableExists();
+
+        $limit = max(1, (int)$limit);
+
+        $query = "SELECT
+                    id,
+                    full_name,
+                    email,
+                    phone,
+                    subject,
+                    message,
+                    status,
+                    source_page,
+                    created_at
+                  FROM support_messages
+                  ORDER BY created_at DESC
+                  LIMIT {$limit}";
+
+        return $this->query($query, []) ?: [];
+    }
+
+    public function getUnreadNotificationsForAdmin($limit = 10) {
+        $this->ensureTableExists();
+
+        $limit = max(1, (int)$limit);
+        $query = "SELECT id, full_name, email, subject, message, created_at
+                  FROM support_messages
+                  WHERE status = 'new'
+                  ORDER BY created_at DESC
+                  LIMIT {$limit}";
+
+        return $this->query($query, []) ?: [];
+    }
+
+    public function markNotificationAsRead($id) {
+        $this->ensureTableExists();
+
+        $id = (int)$id;
+        if ($id <= 0) {
+            return false;
+        }
+
+        $conn = $this->connect();
+        $stmt = $conn->prepare(
+            "UPDATE support_messages
+             SET status = 'in_progress', updated_at = NOW()
+             WHERE id = :id"
+        );
+
+        return $stmt->execute(['id' => $id]);
+    }
+
+    public function markAllNotificationsAsRead() {
+        $this->ensureTableExists();
+
+        $conn = $this->connect();
+        $stmt = $conn->prepare(
+            "UPDATE support_messages
+             SET status = 'in_progress', updated_at = NOW()
+             WHERE status = 'new'"
+        );
+
+        return $stmt->execute();
+    }
+
+    private function ensureTableExists() {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+
+        $conn = $this->connect();
+        $conn->exec(
+            "CREATE TABLE IF NOT EXISTS support_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                full_name VARCHAR(150) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(30) DEFAULT NULL,
+                category VARCHAR(100) NOT NULL,
+                subject VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                source_page VARCHAR(255) DEFAULT NULL,
+                ip_address VARCHAR(45) DEFAULT NULL,
+                user_agent TEXT DEFAULT NULL,
+                status ENUM('new', 'in_progress', 'resolved', 'closed') DEFAULT 'new',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_status (status),
+                INDEX idx_category (category),
+                INDEX idx_email (email),
+                INDEX idx_created_at (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
+
+        $checked = true;
     }
 }

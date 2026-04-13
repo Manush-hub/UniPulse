@@ -11,6 +11,7 @@
   $errors = $errors ?? [];
   $success_message = $success_message ?? null;
   $form_data = $form_data ?? [];
+  $current_user = $current_user ?? (AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null);
 
   function contactOldValue($key, $formData = []) {
     return htmlspecialchars($formData[$key] ?? '', ENT_QUOTES, 'UTF-8');
@@ -71,40 +72,14 @@
 
     <section class="form-section" id="support-form">
       <h2>Send us a Message</h2>
+
+      <div class="contact-alert" style="background: #f1f5f9; border-left-color: #1e3a8a; color: #334155; margin-bottom: 1rem;">
+        <strong>Sender details:</strong>
+        <?= htmlspecialchars((string)($current_user['name'] ?? 'Guest User'), ENT_QUOTES, 'UTF-8') ?>
+        (<?= htmlspecialchars((string)($current_user['email'] ?? 'Not signed in'), ENT_QUOTES, 'UTF-8') ?>)
+      </div>
+
       <form id="contactForm" method="POST" action="" novalidate>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name">Full Name *</label>
-            <input type="text" id="name" name="name" value="<?= contactOldValue('name', $form_data) ?>" required>
-          </div>
-          <div class="form-group">
-            <label for="email">Email Address *</label>
-            <input type="email" id="email" name="email" value="<?= contactOldValue('email', $form_data) ?>" required>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" name="phone" value="<?= contactOldValue('phone', $form_data) ?>">
-          </div>
-          <div class="form-group">
-            <label for="category">Issue Category *</label>
-            <select id="category" name="category" required>
-              <option value="">-- Select Category --</option>
-              <option value="account" <?= (($form_data['category'] ?? '') === 'account') ? 'selected' : '' ?>>Account & Login</option>
-              <option value="event" <?= (($form_data['category'] ?? '') === 'event') ? 'selected' : '' ?>>Event Management</option>
-              <option value="tickets" <?= (($form_data['category'] ?? '') === 'tickets') ? 'selected' : '' ?>>Tickets & Registration</option>
-              <option value="payment" <?= (($form_data['category'] ?? '') === 'payment') ? 'selected' : '' ?>>Payment Issues</option>
-              <option value="technical" <?= (($form_data['category'] ?? '') === 'technical') ? 'selected' : '' ?>>Technical Issues</option>
-              <option value="privacy" <?= (($form_data['category'] ?? '') === 'privacy') ? 'selected' : '' ?>>Privacy & Data</option>
-              <option value="abuse" <?= (($form_data['category'] ?? '') === 'abuse') ? 'selected' : '' ?>>Abuse Report</option>
-              <option value="feedback" <?= (($form_data['category'] ?? '') === 'feedback') ? 'selected' : '' ?>>General Feedback</option>
-              <option value="other" <?= (($form_data['category'] ?? '') === 'other') ? 'selected' : '' ?>>Other</option>
-            </select>
-          </div>
-        </div>
-
         <div class="form-group">
           <label for="subject">Subject *</label>
           <input type="text" id="subject" name="subject" value="<?= contactOldValue('subject', $form_data) ?>" required>
