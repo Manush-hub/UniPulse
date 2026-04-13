@@ -376,7 +376,8 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 12px;
-    height: 100px;
+    min-height: 100px;
+    height: auto;
     width: 140px;
     display: flex;
     flex-direction: column;
@@ -390,6 +391,14 @@ body {
     font-weight: 700;
     color: white;
     margin-bottom: 0.25rem;
+    width: 100%;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#totalInvestment {
+    font-size: 1.15rem;
 }
 
 .stat-label {

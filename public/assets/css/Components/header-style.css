@@ -195,6 +195,12 @@ textarea {
     overflow-y: auto !important;
 }
 
+.notification-list .no-data {
+    padding: 1rem !important;
+    color: #666 !important;
+    text-align: center !important;
+}
+
 .notification-item {
     padding: 1rem !important;
     border-bottom: 1px solid #f3f4f6 !important;
