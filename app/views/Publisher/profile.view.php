@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/profile-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <?php include_once(__DIR__ . '/components/header.php'); ?>
 
@@ -23,7 +25,7 @@
                         Change Cover Photo
                     </div>
                 </div>
-                
+
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
                     <img id="profileImage" src="<?= isset($profile->logo_url) && $profile->logo_url ? $profile->logo_url : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop' ?>" alt="Profile Logo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
@@ -35,12 +37,12 @@
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCover(event)">
             </div>
-            
+
             <!-- Profile Info Below Cover -->
             <div class="profile-info-section">
                 <div class="profile-name-email">
                     <h1 class="profile-name"><?= isset($publisher->society_name) ? htmlspecialchars($publisher->society_name) : 'Organization Name' ?></h1>
-                    <?php if(isset($publisher->email)): ?>
+                    <?php if (isset($publisher->email)): ?>
                         <p class="profile-email"><?= htmlspecialchars($publisher->email) ?></p>
                     <?php endif; ?>
                 </div>
@@ -99,12 +101,12 @@
                             <label for="contactNumber">Contact Number</label>
                             <input type="tel" id="contactNumber" placeholder="Enter contact number">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="address">Address</label>
                             <textarea id="address" rows="2" placeholder="Enter organization address"></textarea>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="establishedYear">Established Year</label>
                             <input type="number" id="establishedYear" placeholder="YYYY" min="1900" max="2024">
@@ -113,10 +115,10 @@
                             <label for="memberCount">Current Members</label>
                             <input type="number" id="memberCount" placeholder="Number of members" min="0">
                         </div>
-                        
-                        
-                        
-                         <div class="form-group full-width">
+
+
+
+                        <div class="form-group full-width">
                             <label for="headline">Headline</label>
                             <textarea id="headline" rows="1" placeholder="Enter a brief headline about your organization"></textarea>
                         </div>
@@ -128,7 +130,7 @@
                             <label for="mission">Mission Statement</label>
                             <textarea id="mission" rows="3" placeholder="Enter your organization's mission statement"></textarea>
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveOrganizationInfo()">
                                 Save Changes
@@ -145,34 +147,34 @@
                     <div class="card-header">
                         <h3>Organization Preferences</h3>
                     </div>
-                    
+
                     <?php if (isset($_SESSION['success'])): ?>
                         <div class="alert alert-success">
-                            <?php 
-                            echo htmlspecialchars($_SESSION['success']); 
+                            <?php
+                            echo htmlspecialchars($_SESSION['success']);
                             unset($_SESSION['success']);
                             ?>
                         </div>
                     <?php endif; ?>
-                    
+
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-error">
-                            <?php 
-                            echo htmlspecialchars($_SESSION['error']); 
+                            <?php
+                            echo htmlspecialchars($_SESSION['error']);
                             unset($_SESSION['error']);
                             ?>
                         </div>
                     <?php endif; ?>
-                    
+
                     <div id="interests-section" class="interests-content">
                         <div class="preference-buttons" id="preferenceContainer">
-                            <?php 
+                            <?php
                             // Decode preferences from JSON
                             $selectedPreferences = [];
                             if (!empty($data['profile']->preferences)) {
                                 $selectedPreferences = json_decode($data['profile']->preferences, true) ?? [];
                             }
-                            
+
                             // Define all available preferences
                             $allPreferences = [
                                 'technology' => 'Technology',
@@ -183,19 +185,19 @@
                                 'networking' => 'Networking',
                                 'research' => 'Research'
                             ];
-                            
+
                             foreach ($allPreferences as $key => $label):
                                 $activeClass = in_array($key, $selectedPreferences) ? ' active' : '';
                                 $activeStyle = in_array($key, $selectedPreferences) ? ' style="background: linear-gradient(135deg, #4A5BCC 0%, #23387f 100%); border-color: #4A5BCC; color: white; box-shadow: 0 4px 15px rgba(74, 91, 204, 0.3);"' : '';
                             ?>
-                                <button type="button" class="preference-btn-custom<?php echo $activeClass; ?>" data-preference="<?php echo htmlspecialchars($key); ?>"<?php echo $activeStyle; ?>>
+                                <button type="button" class="preference-btn-custom<?php echo $activeClass; ?>" data-preference="<?php echo htmlspecialchars($key); ?>" <?php echo $activeStyle; ?>>
                                     <?php echo htmlspecialchars($label); ?>
                                 </button>
                             <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
-            
+
                 <!-- Gallery Section -->
                 <div class="card">
                     <div class="card-header">
@@ -238,35 +240,35 @@
                             </label>
                             <input type="url" id="facebook" placeholder="https://facebook.com/orgname">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="instagram">
                                 <i class="fab fa-instagram"></i> Instagram
                             </label>
                             <input type="url" id="instagram" placeholder="https://instagram.com/orgname">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="linkedin">
                                 <i class="fab fa-linkedin"></i> LinkedIn
                             </label>
                             <input type="url" id="linkedin" placeholder="https://linkedin.com/company/orgname">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="twitter">
                                 <i class="fab fa-x-twitter"></i> X (Twitter)
                             </label>
                             <input type="url" id="twitter" placeholder="https://x.com/orgname">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="youtube">
                                 <i class="fab fa-youtube"></i> YouTube
                             </label>
                             <input type="url" id="youtube" placeholder="https://youtube.com/@channelname">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="discord">
                                 <i class="fab fa-discord"></i> Discord Server
@@ -403,13 +405,13 @@
                         <input type="text" id="galleryTitle" placeholder="Enter a title for your photo" maxlength="50" required>
                         <small>Maximum 50 characters</small>
                     </div>
-                    
+
                     <div class="form-group full-width">
                         <label for="galleryDescription">Description</label>
                         <textarea id="galleryDescription" rows="3" placeholder="Write a brief description of your photo" maxlength="150" required></textarea>
                         <small>Maximum 150 characters</small>
                     </div>
-                    
+
                     <div class="form-group full-width" id="galleryImageUpload">
                         <label>Photo Upload (Up to 10 photos)</label>
                         <div class="multi-photo-upload">
@@ -426,7 +428,7 @@
                                 </div>
                                 <input type="file" id="galleryFile1" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 1)" required>
                             </div>
-                            
+
                             <!-- Second Row: Photos 2, 3, 4 -->
                             <div class="photo-upload-item">
                                 <label for="galleryFile2" class="photo-upload-label">Photo 2 (Optional)</label>
@@ -440,7 +442,7 @@
                                 </div>
                                 <input type="file" id="galleryFile2" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 2)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile3" class="photo-upload-label">Photo 3 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile3').click()">
@@ -453,7 +455,7 @@
                                 </div>
                                 <input type="file" id="galleryFile3" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 3)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile4" class="photo-upload-label">Photo 4 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile4').click()">
@@ -466,7 +468,7 @@
                                 </div>
                                 <input type="file" id="galleryFile4" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 4)">
                             </div>
-                            
+
                             <!-- Third Row: Photos 5, 6, 7 -->
                             <div class="photo-upload-item">
                                 <label for="galleryFile5" class="photo-upload-label">Photo 5 (Optional)</label>
@@ -480,7 +482,7 @@
                                 </div>
                                 <input type="file" id="galleryFile5" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 5)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile6" class="photo-upload-label">Photo 6 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile6').click()">
@@ -493,7 +495,7 @@
                                 </div>
                                 <input type="file" id="galleryFile6" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 6)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile7" class="photo-upload-label">Photo 7 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile7').click()">
@@ -506,7 +508,7 @@
                                 </div>
                                 <input type="file" id="galleryFile7" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 7)">
                             </div>
-                            
+
                             <!-- Fourth Row: Photos 8, 9, 10 -->
                             <div class="photo-upload-item">
                                 <label for="galleryFile8" class="photo-upload-label">Photo 8 (Optional)</label>
@@ -520,7 +522,7 @@
                                 </div>
                                 <input type="file" id="galleryFile8" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 8)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile9" class="photo-upload-label">Photo 9 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile9').click()">
@@ -533,7 +535,7 @@
                                 </div>
                                 <input type="file" id="galleryFile9" accept="image/*" style="display: none;" onchange="previewGalleryImage(event, 9)">
                             </div>
-                            
+
                             <div class="photo-upload-item">
                                 <label for="galleryFile10" class="photo-upload-label">Photo 10 (Optional)</label>
                                 <div class="gallery-upload-area" onclick="document.getElementById('galleryFile10').click()">
@@ -585,7 +587,7 @@
                             <input type="file" id="adminPhoto" accept="image/*" style="display: none;" onchange="previewAdminPhoto(event)">
                         </div>
                     </div>
-                    
+
                     <!-- 2nd Row: Administrator Role -->
                     <div class="admin-form-row">
                         <div class="form-group">
@@ -597,27 +599,27 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <!-- 3rd Row: First and Last Name -->
                     <div class="admin-form-row">
                         <div class="form-group">
                             <label for="adminFirstName">First Name</label>
                             <input type="text" id="adminFirstName" placeholder="Enter first name" maxlength="50" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="adminLastName">Last Name</label>
                             <input type="text" id="adminLastName" placeholder="Enter last name" maxlength="50" required>
                         </div>
                     </div>
-                    
+
                     <!-- 4th Row: Email and Contact Number -->
                     <div class="admin-form-row">
                         <div class="form-group">
                             <label for="adminEmail">Email Address</label>
                             <input type="email" id="adminEmail" placeholder="Enter email address" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="adminContact">Contact Number</label>
                             <input type="tel" id="adminContact" placeholder="Enter contact number" required>
@@ -640,100 +642,13 @@
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
     <script>
-        // Pass publisher data from PHP to JavaScript
-        const publisherData = <?= $publisherJson ?? '{}' ?>;
-        
-        // Add event listeners for preference buttons
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.preference-btn-custom').forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    togglePreferenceBtn(this);
-                });
-            });
-        });
-        
-        // Toggle preference button and auto-save to database
-        function togglePreferenceBtn(button) {
-            // Toggle active class
-            const wasActive = button.classList.contains('active');
-            button.classList.toggle('active');
-            const isNowActive = button.classList.contains('active');
-            
-            console.log('Button:', button.getAttribute('data-preference'), 'Was active:', wasActive, 'Now active:', isNowActive);
-            
-            // Apply inline styles based on new state
-            if (isNowActive) {
-                button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
-                button.style.borderColor = '#4A5BCC';
-                button.style.color = 'white';
-                button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
-            } else {
-                button.style.background = '#fafafa';
-                button.style.borderColor = '#e0e0e0';
-                button.style.color = '#666';
-                button.style.boxShadow = 'none';
-            }
-            
-            // Get all active preferences after toggle
-            const activePreferences = [];
-            document.querySelectorAll('.preference-btn-custom.active').forEach(btn => {
-                const preference = btn.getAttribute('data-preference');
-                if (preference) {
-                    activePreferences.push(preference);
-                }
-            });
-            
-            console.log('Active preferences now:', activePreferences);
-            
-            // Auto-save to database via AJAX
-            fetch('/unipulse/public/publisher/profile/updatePreferences', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'selected_preferences=' + encodeURIComponent(JSON.stringify(activePreferences))
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log('✓ Saved successfully');
-                } else {
-                    console.error('✗ Failed:', data.message);
-                    // Revert on error
-                    button.classList.toggle('active');
-                    if (wasActive) {
-                        button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
-                        button.style.borderColor = '#4A5BCC';
-                        button.style.color = 'white';
-                        button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
-                    } else {
-                        button.style.background = '#fafafa';
-                        button.style.borderColor = '#e0e0e0';
-                        button.style.color = '#666';
-                        button.style.boxShadow = 'none';
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('✗ Error:', error);
-                // Revert on error
-                button.classList.toggle('active');
-                if (wasActive) {
-                    button.style.background = 'linear-gradient(135deg, #4A5BCC 0%, #23387f 100%)';
-                    button.style.borderColor = '#4A5BCC';
-                    button.style.color = 'white';
-                    button.style.boxShadow = '0 4px 15px rgba(74, 91, 204, 0.3)';
-                } else {
-                    button.style.background = '#fafafa';
-                    button.style.borderColor = '#e0e0e0';
-                    button.style.color = '#666';
-                    button.style.boxShadow = 'none';
-                }
-            });
-        }
+        window.publisherProfileConfig = {
+            publisherData: <?= $publisherJson ?? '{}' ?>,
+            updatePreferencesUrl: '/unipulse/public/publisher/profile/updatePreferences'
+        };
     </script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_profile.js"></script>
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>
+
 </html>

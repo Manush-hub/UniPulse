@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/signin-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
     <?php include 'header.php'; ?>
@@ -38,7 +40,7 @@
                             <strong>Reason:</strong>
                             <p><?= htmlspecialchars($suspension_reason) ?></p>
                         </div>
-                        
+
                         <div class="appeal-section">
                             <h3>Submit an Appeal</h3>
                             <p>If you believe this suspension is unjust, you can submit an appeal to the administrators.</p>
@@ -48,50 +50,17 @@
                             </button>
                             <a href="/unipulse/public/signin" style="display: block; text-align: center; margin-top: 15px; color: #666;">Back to Sign In</a>
                         </div>
-                        
+
                         <div id="appealResult" style="margin-top: 15px; display: none;"></div>
                     </div>
-                    
+
                     <script>
-                        function submitAppeal() {
-                            const message = document.getElementById('appealMessage').value.trim();
-                            
-                            if (!message) {
-                                alert('Please enter your appeal message');
-                                return;
-                            }
-                            
-                            fetch('/unipulse/public/signin/submitAppeal', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    user_id: <?= $user_id ?>,
-                                    user_type: '<?= str_replace('_users', '', $user_type) ?>',
-                                    appeal_message: message
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                const resultDiv = document.getElementById('appealResult');
-                                resultDiv.style.display = 'block';
-                                
-                                if (data.success) {
-                                    resultDiv.innerHTML = '<div style="padding: 15px; background: #d4edda; color: #155724; border-radius: 4px;"><i class="fas fa-check-circle"></i> ' + data.message + '</div>';
-                                    document.getElementById('appealMessage').value = '';
-                                    setTimeout(() => {
-                                        window.location.href = '/unipulse/public/signin';
-                                    }, 3000);
-                                } else {
-                                    resultDiv.innerHTML = '<div style="padding: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;"><i class="fas fa-exclamation-circle"></i> ' + data.message + '</div>';
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('An error occurred while submitting your appeal');
-                            });
-                        }
+                        window.signinAppealConfig = {
+                            submitUrl: '/unipulse/public/signin/submitAppeal',
+                            redirectUrl: '/unipulse/public/signin',
+                            userId: <?= $user_id ?>,
+                            userType: '<?= str_replace('_users', '', $user_type) ?>'
+                        };
                     </script>
                 <?php elseif (isset($error)): ?>
                     <div class="error-message-box">
@@ -99,7 +68,7 @@
                         <?= htmlspecialchars($error) ?>
                     </div>
                 <?php endif; ?>
-                
+
                 <?php if (isset($success)): ?>
                     <div class="success-message-box">
                         <i class="fas fa-check-circle"></i>
@@ -108,62 +77,60 @@
                 <?php endif; ?>
 
                 <?php if (!isset($suspended) || !$suspended): ?>
-                <form class="signin-form" method="POST" action="/unipulse/public/signin">
-                    <div class="form-header">
-                        <h2>Sign In</h2>
-                        <p>Enter your credentials to access your account</p>
-                    </div>
-
-                    <!-- Email Field -->
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <div class="input-container">
-                            <i class="fas fa-envelope"></i>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                placeholder="Enter your email address"
-                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-                                required
-                            >
+                    <form class="signin-form" method="POST" action="/unipulse/public/signin">
+                        <div class="form-header">
+                            <h2>Sign In</h2>
+                            <p>Enter your credentials to access your account</p>
                         </div>
-                    </div>
 
-                    <!-- Password Field -->
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-container">
-                            <i class="fas fa-lock"></i>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                placeholder="Enter your password"
-                                required
-                            >
-                            <button type="button" class="password-toggle" id="passwordToggle">
-                                <i class="fas fa-eye"></i>
-                            </button>
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <div class="input-container">
+                                <i class="fas fa-envelope"></i>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Enter your email address"
+                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+                                    required>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Forgot Password Link -->
-                    <!-- <div class="forgot-password">
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-container">
+                                <i class="fas fa-lock"></i>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    required>
+                                <button type="button" class="password-toggle" id="passwordToggle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Forgot Password Link -->
+                        <!-- <div class="forgot-password">
                         <a href="/unipulse/public/forgotpassword">Forgot password?</a>
                     </div> -->
 
-                    <!-- Sign In Button -->
-                    <button type="submit" class="signin-btn">
-                        <span class="btn-text">Sign In</span>
-                    </button>
+                        <!-- Sign In Button -->
+                        <button type="submit" class="signin-btn">
+                            <span class="btn-text">Sign In</span>
+                        </button>
 
-                    <!-- Create Account Link -->
-                    <div class="create-account">
-                        <span>Don't have an account? </span>
-                        <a href="/unipulse/public/signup">Create Account</a>
-                    </div>
-                </form>
+                        <!-- Create Account Link -->
+                        <div class="create-account">
+                            <span>Don't have an account? </span>
+                            <a href="/unipulse/public/signup">Create Account</a>
+                        </div>
+                    </form>
                 <?php endif; ?>
             </div>
         </div>
@@ -173,5 +140,7 @@
     <?php include 'footer.php'; ?>
 
     <script src="<?php echo ROOT ?>/assets/js/extracted/signin.js"></script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/signin_suspension.js"></script>
 </body>
+
 </html>

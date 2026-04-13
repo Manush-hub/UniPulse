@@ -49,15 +49,15 @@
                         <div class="conversations-header">
                             <h3><i class="fas fa-inbox"></i> Conversations</h3>
                         </div>
-                        
+
                         <div class="conversations-list" id="conversationsList">
                             <?php if (!empty($conversations)): ?>
                                 <?php foreach ($conversations as $index => $conv): ?>
-                                    <div class="conversation-item <?= $conv->unread_count > 0 ? 'has-unread' : '' ?> <?= $index === 0 ? 'active' : '' ?>" 
-                                         data-contact-id="<?= $conv->contact_id ?>"
-                                         data-contact-type="<?= $conv->contact_type ?>"
-                                         data-contact-name="<?= htmlspecialchars($conv->contact_name) ?>"
-                                         onclick="selectConversation(this)">
+                                    <div class="conversation-item <?= $conv->unread_count > 0 ? 'has-unread' : '' ?> <?= $index === 0 ? 'active' : '' ?>"
+                                        data-contact-id="<?= $conv->contact_id ?>"
+                                        data-contact-type="<?= $conv->contact_type ?>"
+                                        data-contact-name="<?= htmlspecialchars($conv->contact_name) ?>"
+                                        onclick="selectConversation(this)">
                                         <div class="conversation-avatar">
                                             <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
                                         </div>
@@ -95,7 +95,7 @@
                                 </div>
                             <?php endif; ?>
                         </div>
-                        
+
                         <!-- Available Contacts Section -->
                         <div class="conversations-header" style="margin-top: 1rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
                             <h3><i class="fas fa-users"></i> Available Contacts</h3>
@@ -111,7 +111,7 @@
                                 <div class="contacts-list">
                                     <?php foreach ($available_admins as $admin): ?>
                                         <div class="contact-item" style="border-left:3px solid #1E3A8A;"
-                                             onclick="startConversation(<?= $admin->id ?>, 'admin', '<?= htmlspecialchars($admin->full_name) ?>')">
+                                            onclick="startConversation(<?= $admin->id ?>, 'admin', '<?= htmlspecialchars($admin->full_name) ?>')">
                                             <div class="contact-avatar" style="background:linear-gradient(135deg,#1E3A8A,#3b82f6);">
                                                 <?= strtoupper(substr($admin->full_name, 0, 2)) ?>
                                             </div>
@@ -183,13 +183,12 @@
                                     <input type="hidden" id="recipientId" value="<?= $conversations[0]->contact_id ?>">
                                     <input type="hidden" id="recipientType" value="<?= $conversations[0]->contact_type ?>">
                                     <div class="chat-input-wrapper">
-                                        <textarea 
-                                            id="messageInput" 
-                                            placeholder="Type your message..." 
+                                        <textarea
+                                            id="messageInput"
+                                            placeholder="Type your message..."
                                             rows="1"
                                             maxlength="2000"
-                                            required
-                                        ></textarea>
+                                            required></textarea>
                                         <button type="submit" class="send-btn" id="sendBtn">
                                             <i class="fas fa-paper-plane"></i>
                                         </button>
@@ -215,278 +214,13 @@
     </div>
 
     <script>
-        // Current conversation
-        let currentContactId = <?= !empty($conversations) ? $conversations[0]->contact_id : 0 ?>;
-        let currentContactType = '<?= !empty($conversations) ? $conversations[0]->contact_type : '' ?>';
-        let messagePollingInterval;
-
-        // Load conversation messages
-        async function loadConversation(contactId, contactType) {
-            try {
-                const response = await fetch(`/unipulse/public/moderator/messages/conversation/${contactId}/${contactType}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayMessages(data.messages);
-                    updateUnreadCount();
-                } else {
-                    console.error('Failed to load conversation:', data.message);
-                }
-            } catch (error) {
-                console.error('Error loading conversation:', error);
-            }
-        }
-
-        // Display messages
-        function displayMessages(messages) {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = '';
-            
-            if (!messages || messages.length === 0) {
-                container.innerHTML = '<div class="no-messages-yet"><i class="fas fa-comments fa-3x"></i><p>No messages yet</p><small>Start the conversation!</small></div>';
-                return;
-            }
-            
-            messages.forEach(msg => {
-                const isOwn = msg.from_user_type === 'moderator';
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message-bubble ${isOwn ? 'message-mine' : 'message-theirs'}`;
-                
-                const time = new Date(msg.created_at).toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                messageDiv.innerHTML = `
-                    <div class="message-content">
-                        ${escapeHtml(msg.message)}
-                    </div>
-                    <div class="message-time">${time}</div>
-                `;
-                
-                container.appendChild(messageDiv);
-            });
-            
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // Send message
-        async function sendMessage(event) {
-            event.preventDefault();
-            
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-            
-            if (!message) return;
-            
-            try {
-                const formData = new FormData();
-                formData.append('to_user_id', document.getElementById('recipientId').value);
-                formData.append('to_user_type', document.getElementById('recipientType').value);
-                formData.append('message', message);
-                
-                const response = await fetch('/unipulse/public/moderator/messages/send', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    messageInput.value = '';
-                    loadConversation(currentContactId, currentContactType);
-                } else {
-                    alert('Failed to send message: ' + data.message);
-                }
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
-            }
-        }
-
-        // Select conversation
-        function selectConversation(element) {
-            document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-            
-            currentContactId = element.dataset.contactId;
-            currentContactType = element.dataset.contactType;
-            const contactName = element.dataset.contactName;
-            
-            // Update UI if elements exist
-            const nameEl = document.getElementById('chatContactName');
-            const typeEl = document.getElementById('chatContactType');
-            const avatarEl = document.getElementById('chatAvatar');
-            const recipientIdEl = document.getElementById('recipientId');
-            const recipientTypeEl = document.getElementById('recipientType');
-            
-            if (nameEl) nameEl.textContent = contactName;
-            if (typeEl) typeEl.textContent = capitalizeFirst(currentContactType);
-            if (avatarEl) avatarEl.textContent = contactName.substring(0, 2).toUpperCase();
-            if (recipientIdEl) recipientIdEl.value = currentContactId;
-            if (recipientTypeEl) recipientTypeEl.value = currentContactType;
-            
-            loadConversation(currentContactId, currentContactType);
-        }
-
-        // Start new conversation
-        function startConversation(contactId, contactType, contactName) {
-            currentContactId = contactId;
-            currentContactType = contactType;
-            
-            // Check if chat interface exists, if not create it
-            const chatPanel = document.querySelector('.chat-panel');
-            const emptyState = chatPanel.querySelector('.chat-empty-state');
-            
-            if (emptyState) {
-                // Replace empty state with chat interface
-                chatPanel.innerHTML = `
-                    <!-- Chat Header -->
-                    <div class="chat-header">
-                        <div class="chat-contact-info">
-                            <div class="chat-avatar" id="chatAvatar">
-                                ${contactName.substring(0, 2).toUpperCase()}
-                            </div>
-                            <div class="chat-contact-details">
-                                <h3 id="chatContactName">${contactName}</h3>
-                                <span class="contact-type" id="chatContactType">
-                                    ${capitalizeFirst(contactType)}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="chat-actions">
-                            <button class="chat-action-btn" onclick="refreshChat()" title="Refresh">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Chat Messages -->
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="no-messages-yet">
-                            <i class="fas fa-comments fa-3x"></i>
-                            <p>No messages yet</p>
-                            <small>Start the conversation!</small>
-                        </div>
-                    </div>
-
-                    <!-- Chat Input -->
-                    <div class="chat-input-container">
-                        <form id="chatForm" onsubmit="sendMessage(event)">
-                            <input type="hidden" id="recipientId" value="${contactId}">
-                            <input type="hidden" id="recipientType" value="${contactType}">
-                            <div class="chat-input-wrapper">
-                                <textarea 
-                                    id="messageInput" 
-                                    placeholder="Type your message..." 
-                                    rows="1"
-                                    maxlength="2000"
-                                    required
-                                ></textarea>
-                                <button type="submit" class="send-btn" id="sendBtn">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                            </div>
-                            <div class="char-counter">
-                                <span id="charCount">0</span> / 2000
-                            </div>
-                        </form>
-                    </div>
-                `;
-                
-                // Re-attach event listeners
-                const messageInput = document.getElementById('messageInput');
-                if (messageInput) {
-                    messageInput.addEventListener('input', function() {
-                        this.style.height = 'auto';
-                        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                        
-                        // Update character counter
-                        const charCount = this.value.length;
-                        document.getElementById('charCount').textContent = charCount;
-                    });
-                }
-                
-                // Start polling for messages
-                if (messagePollingInterval) {
-                    clearInterval(messagePollingInterval);
-                }
-                messagePollingInterval = setInterval(() => {
-                    loadConversation(currentContactId, currentContactType);
-                }, 5000);
-            } else {
-                // Update existing chat interface
-                document.getElementById('chatContactName').textContent = contactName;
-                document.getElementById('chatContactType').textContent = capitalizeFirst(contactType);
-                document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
-                document.getElementById('recipientId').value = contactId;
-                document.getElementById('recipientType').value = contactType;
-                
-                document.getElementById('chatMessages').innerHTML = '<div class="no-messages-yet"><i class="fas fa-comments fa-3x"></i><p>No messages yet</p><small>Start the conversation!</small></div>';
-            }
-            
-            // Load conversation (will be empty for new conversation)
-            loadConversation(currentContactId, currentContactType);
-        }
-
-        // Update unread count
-        async function updateUnreadCount() {
-            try {
-                const response = await fetch('/unipulse/public/moderator/messages/unreadCount');
-                const data = await response.json();
-                if (data.success) {
-                    document.querySelectorAll('.stat-number')[1].textContent = data.count;
-                }
-            } catch (error) {
-                console.error('Error updating unread count:', error);
-            }
-        }
-
-        // Utility functions
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function capitalizeFirst(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
-
-        // Auto-expand textarea - initial setup
-        const messageInput = document.getElementById('messageInput');
-        if (messageInput) {
-            messageInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                
-                // Update character counter
-                const charCount = this.value.length;
-                const charCountEl = document.getElementById('charCount');
-                if (charCountEl) {
-                    charCountEl.textContent = charCount;
-                }
-            });
-        }
-        
-        // Refresh chat function
-        function refreshChat() {
-            if (currentContactId && currentContactType) {
-                loadConversation(currentContactId, currentContactType);
-            }
-        }
-
-        // Load initial conversation
-        if (currentContactId && currentContactType) {
-            loadConversation(currentContactId, currentContactType);
-            
-            // Poll for new messages every 5 seconds
-            messagePollingInterval = setInterval(() => {
-                loadConversation(currentContactId, currentContactType);
-            }, 5000);
-        }
+        window.moderatorMessagesConfig = {
+            currentContactId: <?= !empty($conversations) ? $conversations[0]->contact_id : 0 ?>,
+            currentContactType: '<?= !empty($conversations) ? $conversations[0]->contact_type : '' ?>'
+        };
     </script>
-    
+    <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_messages.js"></script>
+
 </body>
 
 </html>

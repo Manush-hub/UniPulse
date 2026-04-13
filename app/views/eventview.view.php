@@ -798,48 +798,16 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
     <script>
         window.serverData = <?php echo json_encode($serverData ?? []); ?>;
         const userRole = '<?php echo $currentRole; ?>';
-
-        <?php if ($config['purchaseTicketFunction']): ?>
-            // Purchase ticket function - redirects to payment gateway
-            function purchaseTicket() {
-                const eventId = window.currentEvent?.id;
-                if (!eventId) {
-                    alert('Event information not available');
-                    return;
-                }
-
-                // Check if user is logged in
-                const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-                if (!isLoggedIn) {
-                    alert('Please log in to purchase tickets');
-                    window.location.href = '/unipulse/public/signin?redirect=' + encodeURIComponent(window.location.pathname);
-                    return;
-                }
-
-                // Check if event requires tickets
-                const ticketType = window.currentEvent?.ticket_type;
-                if (ticketType === 'free-all') {
-                    alert('This is a free event. No ticket purchase required.');
-                    return;
-                }
-
-                // Redirect to payment page
-                window.location.href = `/unipulse/public/payment/ticket?event_id=${eventId}`;
-            }
-        <?php endif; ?>
-
-        <?php if ($config['visitProfileFunction']): ?>
-            // Function to visit publisher profile
-            function visitPublisherProfile() {
-                const publisherId = window.currentEvent?.publisher_id || window.currentEvent?.created_by;
-                if (publisherId) {
-                    window.location.href = `/unipulse/public/publisher/public?id=${publisherId}`;
-                } else {
-                    alert('Publisher profile not available');
-                }
-            }
-        <?php endif; ?>
+        window.eventviewActionConfig = {
+            purchaseTicketEnabled: <?= $config['purchaseTicketFunction'] ? 'true' : 'false' ?>,
+            visitProfileEnabled: <?= $config['visitProfileFunction'] ? 'true' : 'false' ?>,
+            isLoggedIn: <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>,
+            signinUrl: '/unipulse/public/signin',
+            ticketPaymentBaseUrl: '/unipulse/public/payment/ticket?event_id=',
+            publisherProfileBaseUrl: '/unipulse/public/publisher/public?id='
+        };
     </script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/eventview_actions.js"></script>
 
     <script src="<?php echo $config['jsFile']; ?>?v=<?= time() ?>"></script>
 
