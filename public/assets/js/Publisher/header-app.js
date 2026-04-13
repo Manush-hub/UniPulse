@@ -45,8 +45,13 @@ async function loadNotifications() {
 
     notificationList.innerHTML = '';
 
-    notificationBadge.textContent = unreadNotificationsCount;
-    notificationBadge.classList.toggle('hidden', unreadNotificationsCount <= 0);
+    if (unreadNotificationsCount > 0) {
+        notificationBadge.textContent = unreadNotificationsCount;
+        notificationBadge.classList.remove('hidden');
+    } else {
+        notificationBadge.textContent = '';
+        notificationBadge.classList.add('hidden');
+    }
 
     if (notifications.length === 0) {
         notificationList.innerHTML = '<div class="notification-item"><div class="notification-content"><p>No notifications</p></div></div>';
@@ -131,8 +136,13 @@ function updateBadgeCountFromCurrentList() {
     }
 
     unreadNotificationsCount = notifications.filter(n => !n.read).length;
-    notificationBadge.textContent = unreadNotificationsCount;
-    notificationBadge.classList.toggle('hidden', unreadNotificationsCount <= 0);
+    if (unreadNotificationsCount > 0) {
+        notificationBadge.textContent = unreadNotificationsCount;
+        notificationBadge.classList.remove('hidden');
+    } else {
+        notificationBadge.textContent = '';
+        notificationBadge.classList.add('hidden');
+    }
 }
 
 // Setup event listeners
@@ -186,7 +196,7 @@ async function markAllAsRead() {
     unreadNotificationsCount = 0;
     const notificationBadge = document.getElementById('notificationBadge');
     if (notificationBadge) {
-        notificationBadge.textContent = '0';
+        notificationBadge.textContent = '';
         notificationBadge.classList.add('hidden');
     }
 

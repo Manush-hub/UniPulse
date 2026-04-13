@@ -1,6 +1,10 @@
 <?php
 $pageConfig = isset($pageConfig) ? $pageConfig : [];
 $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+$contactMessageSentFlash = $_SESSION['contact_message_sent'] ?? null;
+if (isset($_SESSION['contact_message_sent'])) {
+    unset($_SESSION['contact_message_sent']);
+}
 ?>
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
@@ -28,7 +32,7 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
                             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span class="notification-badge" id="notificationBadge">5</span>
+                        <span class="notification-badge hidden" id="notificationBadge"></span>
                     </button>
                     <div class="notification-dropdown" id="notificationDropdown">
                         <div class="notification-header">
@@ -61,5 +65,8 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
             </div>
         </div>
     </header>
+<script>
+window.adminContactMessageSentFlash = <?= json_encode($contactMessageSentFlash) ?>;
+</script>
 <script src="/unipulse/public/assets/js/Admin/header-app.js"></script>
 <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_components_header.js"></script>

@@ -35,6 +35,50 @@
                         <span class="stat-number" id="unreadStatCount"><?= $unread_count ?></span>
                         <span class="stat-label">Unread</span>
                     </div>
+                    <div class="stat-item">
+                        <span class="stat-number"><?= count($contact_reaches ?? []) ?></span>
+                        <span class="stat-label">Contact Reaches</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact-reaches-section">
+            <div class="container">
+                <div class="contact-reaches-card">
+                    <div class="contact-reaches-header">
+                        <h3><i class="fas fa-life-ring"></i> Contact Us Reaches</h3>
+                        <span class="contact-reaches-count"><?= count($contact_reaches ?? []) ?> recent</span>
+                    </div>
+
+                    <?php if (!empty($contact_reaches)): ?>
+                        <div class="contact-reaches-list <?= count($contact_reaches) > 2 ? 'has-scroll' : '' ?>">
+                            <?php foreach ($contact_reaches as $reach): ?>
+                                <article class="contact-reach-item">
+                                    <div class="contact-reach-top">
+                                        <div>
+                                            <h4><?= htmlspecialchars($reach->subject ?? 'No Subject') ?></h4>
+                                            <p class="contact-reach-meta">
+                                                From <?= htmlspecialchars($reach->full_name ?? 'Unknown User') ?>
+                                                (<?= htmlspecialchars($reach->email ?? 'No Email') ?>)
+                                            </p>
+                                        </div>
+                                        <span class="contact-reach-time">
+                                            <?= !empty($reach->created_at) ? date('M j, Y g:i A', strtotime($reach->created_at)) : '-' ?>
+                                        </span>
+                                    </div>
+                                    <p class="contact-reach-message">
+                                        <?= nl2br(htmlspecialchars($reach->message ?? '')) ?>
+                                    </p>
+                                </article>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="contact-reaches-empty">
+                            <i class="fas fa-inbox"></i>
+                            <p>No contact submissions yet.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>

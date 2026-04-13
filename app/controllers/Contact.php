@@ -3,21 +3,51 @@
 class Contact extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
+        $currentUser = AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null;
+
         $data = [
             'errors' => [],
             'success_message' => null,
-            'form_data' => []
+            'form_data' => [],
+            'current_user' => $currentUser
         ];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $supportMessage = new SupportMessage();
             $errors = $supportMessage->validate($_POST);
 
+            if (!$currentUser) {
+                $errors[] = 'Please sign in to send a contact message.';
+            }
+
             if (empty($errors)) {
-                $savedId = $supportMessage->createFromContactForm($_POST);
+                $profileData = [
+                    'name' => $currentUser['name'] ?? '',
+                    'email' => $currentUser['email'] ?? '',
+                    'phone' => $currentUser['phone'] ?? ''
+                ];
+
+                $savedId = $supportMessage->createFromContactForm($_POST, $profileData);
 
                 if ($savedId) {
-                    $data['success_message'] = 'Thank you! Your support message has been submitted successfully.';
+                    $redirectByType = [
+                        'admin' => '/unipulse/public/admin/landing',
+                        'moderator' => '/unipulse/public/moderator/dashboard',
+                        'publisher' => '/unipulse/public/publisher/dashboard',
+                        'sponsor' => '/unipulse/public/sponsor/dashboard',
+                        'public' => '/unipulse/public/home',
+                        'university' => '/unipulse/public/home',
+                    ];
+
+                    $userType = strtolower((string)($currentUser['type'] ?? ''));
+                    $redirectPath = $redirectByType[$userType] ?? '/unipulse/public/home';
+
+                    if ($userType === 'admin') {
+                        $_SESSION['contact_message_sent'] = 'Message sent';
+                    }
+
+                    header('Location: ' . $redirectPath);
+                    exit;
                 } else {
                     $errors[] = 'Could not submit your message right now. Please try again.';
                     $data['form_data'] = $_POST;
