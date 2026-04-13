@@ -432,6 +432,76 @@ class UserDashboard extends Controller
     }
 
     /**
+     * API endpoint to get all visible upcoming events for calendar.
+     */
+    public function getCalendarEvents()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+            return;
+        }
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || !in_array($currentUser['type'] ?? '', ['public', 'university'])) {
+                echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+                return;
+            }
+
+            $eventModel = new Event();
+            $rows = $eventModel->getAllEvents([
+                'status' => 'upcoming',
+                'limit' => 500,
+                'offset' => 0
+            ], $currentUser);
+
+            $upcomingEvents = [];
+            foreach ($rows ?: [] as $event) {
+                $eventDate = (string)($event->event_date ?? '');
+                if ($eventDate === '') {
+                    continue;
+                }
+
+                $eventTime = (string)($event->event_time ?? '');
+                $eventDateTime = trim($eventDate . ' ' . ($eventTime !== '' ? $eventTime : '23:59:59'));
+                $eventTimestamp = strtotime($eventDateTime);
+                if ($eventTimestamp === false || $eventTimestamp < time()) {
+                    continue;
+                }
+
+                $upcomingEvents[] = [
+                    'id' => (int)($event->id ?? 0),
+                    'title' => (string)($event->title ?? 'Untitled Event'),
+                    'date' => $eventDate,
+                    'time' => $eventTime,
+                    'location' => (string)($event->location ?: ($event->venue_name ?: ($event->city ?? 'Location TBA')))
+                ];
+            }
+
+            usort($upcomingEvents, function ($a, $b) {
+                $aDateTime = trim((string)$a['date'] . ' ' . ((string)$a['time'] !== '' ? (string)$a['time'] : '23:59:59'));
+                $bDateTime = trim((string)$b['date'] . ' ' . ((string)$b['time'] !== '' ? (string)$b['time'] : '23:59:59'));
+                return (strtotime($aDateTime) ?: 0) <=> (strtotime($bDateTime) ?: 0);
+            });
+
+            echo json_encode([
+                'success' => true,
+                'events' => $upcomingEvents,
+                'count' => count($upcomingEvents)
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in UserDashboard::getCalendarEvents: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load calendar events',
+                'events' => []
+            ]);
+        }
+    }
+
+    /**
      * API endpoint to get featured events
      */
     public function getFeaturedEvents()
