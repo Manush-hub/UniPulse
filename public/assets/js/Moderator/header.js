@@ -50,8 +50,15 @@ function displayNotifications(notifications) {
     const unreadCount = notifications.filter(n => !n.read).length;
     const notificationBadge = document.getElementById('notificationBadge');
     if (notificationBadge) {
-        notificationBadge.textContent = unreadCount;
-        notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        if (unreadCount > 0) {
+            notificationBadge.textContent = unreadCount;
+            notificationBadge.style.display = 'flex';
+            notificationBadge.classList.remove('hidden');
+        } else {
+            notificationBadge.textContent = '';
+            notificationBadge.style.display = 'none';
+            notificationBadge.classList.add('hidden');
+        }
     }
     
     if (notifications.length === 0) {
