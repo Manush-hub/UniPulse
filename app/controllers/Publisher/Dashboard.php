@@ -171,10 +171,17 @@ class PublisherDashboard extends Controller
                 $isVolunteerNotification =
                     stripos($title, 'volunteer application') !== false ||
                     $notificationType === 'volunteer_registration';
+                $notificationMessage = (string)($notification->message ?? '');
+                $isHiddenEventNotification =
+                    $notificationType === 'event_hidden' ||
+                    stripos($title, 'event hidden') !== false ||
+                    stripos($notificationMessage, 'was hidden by') !== false;
 
                 $redirectUrl = '/unipulse/public/publisher/dashboard';
                 if ($isVolunteerNotification) {
                     $redirectUrl = '/unipulse/public/publisher/dashboard#volunteer-management';
+                } elseif ($isHiddenEventNotification) {
+                    $redirectUrl = '/unipulse/public/publisher/dashboard#events-management';
                 } elseif ($relatedId > 0) {
                     $redirectUrl = '/unipulse/public/publisher/eventview?id=' . $relatedId;
                 }
@@ -544,14 +551,21 @@ class PublisherDashboard extends Controller
             $currentDate = date('Y-m-d');
 
             foreach ($events as $event) {
-                // Calculate actual status based on event date
-                $eventStatus = $event->status;
-                if ($event->event_date < $currentDate) {
-                    $eventStatus = 'completed';
-                } elseif ($event->event_date == $currentDate) {
-                    $eventStatus = 'ongoing';
-                } elseif ($event->event_date > $currentDate) {
-                    $eventStatus = 'upcoming';
+                // Preserve hidden status for soft-deleted events.
+                $eventStatus = strtolower((string)($event->status ?? ''));
+                $isDeleted = (int)($event->is_deleted ?? 0) === 1;
+
+                if ($isDeleted || $eventStatus === 'hidden') {
+                    $eventStatus = 'hidden';
+                } else {
+                    // Calculate active/completed status based on event date.
+                    if ($event->event_date < $currentDate) {
+                        $eventStatus = 'completed';
+                    } elseif ($event->event_date == $currentDate) {
+                        $eventStatus = 'ongoing';
+                    } else {
+                        $eventStatus = 'upcoming';
+                    }
                 }
 
                 $formattedEvents[] = [
@@ -567,6 +581,9 @@ class PublisherDashboard extends Controller
                     'university_name' => $event->university_name ?? '',
                     'faculty_department' => $event->faculty_department ?? '',
                     'status' => $eventStatus,
+                    'hidden_reason' => ($eventStatus === 'hidden')
+                        ? (string)($event->deletion_reason ?? 'Hidden by moderator')
+                        : null,
                     'category' => $event->category,
                     'cover_image' => $event->cover_image ?? $event->image_url ?? '',
                     'organizer_name' => $event->organizer_name ?? $event->organizer ?? '',

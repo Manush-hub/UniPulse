@@ -21,7 +21,7 @@ class Signin extends Controller{
             // Check if user is already logged in, redirect to appropriate dashboard
             if (AuthService::isLoggedIn()) {
                 $currentUser = AuthService::getCurrentUser();
-                $this->authService->redirectToDashboard($currentUser['type']);
+                $this->authService->redirectToDashboard($currentUser['type'], $currentUser['id'] ?? null);
             }
             
             // Check for logout message
@@ -79,31 +79,12 @@ class Signin extends Controller{
             if ($authResult) {
                 // Login successful - start session
                 $this->authService->startSession($authResult);
-                
-                // Redirect based on user type
-                switch ($authResult['type']) {
-                    case 'admin':
-                        header('Location: /unipulse/public/admin/dashboard');
-                        break;
-                    case 'moderator':
-                        header('Location: /unipulse/public/moderator/dashboard');
-                        break;
-                    case 'public':
-                        header('Location: /unipulse/public/user/landing');
-                        break;
-                    case 'university':
-                        header('Location: /unipulse/public/user/landing');
-                        break;
-                    case 'sponsor':
-                        header('Location: /unipulse/public/sponsor/dashboard');
-                        break;
-                    case 'publisher':
-                        header('Location: /unipulse/public/publisher/dashboard');
-                        break;
-                    default:
-                        header('Location: /unipulse/public/user/landing');
-                }
-                exit();
+
+                // Redirect based on user type and required profile completion checks
+                $this->authService->redirectToDashboard(
+                    $authResult['type'],
+                    $authResult['user']->id ?? null
+                );
             } else {
                 // Check if this is a publisher waiting for approval
                 $publisherModel = new Publisher();

@@ -1257,18 +1257,36 @@ class Event
         try {
             $conn = $this->connect();
 
-            $query = "UPDATE events 
-                      SET is_deleted = 0,
-                          deleted_at = NULL,
-                          deleted_by = NULL,
-                          deletion_reason = NULL,
-                          restored_by = :restored_by,
-                          restored_at = NOW(),
-                          updated_at = NOW()
-                      WHERE id = :event_id";
+            // Preferred path when restore-tracking columns exist.
+            $queryWithTracking = "UPDATE events 
+                                  SET is_deleted = 0,
+                                      deleted_at = NULL,
+                                      deleted_by = NULL,
+                                      deletion_reason = NULL,
+                                      restored_by = :restored_by,
+                                      restored_at = NOW(),
+                                      updated_at = NOW()
+                                  WHERE id = :event_id";
 
-            $stmt = $conn->prepare($query);
-            $result = $stmt->execute(['event_id' => $eventId, 'restored_by' => $moderatorId]);
+            $stmt = $conn->prepare($queryWithTracking);
+
+            try {
+                $result = $stmt->execute(['event_id' => $eventId, 'restored_by' => $moderatorId]);
+            } catch (Exception $trackingError) {
+                // Backward compatibility for databases without restored_by/restored_at columns.
+                error_log("restore fallback (without tracking columns): " . $trackingError->getMessage());
+
+                $queryFallback = "UPDATE events 
+                                  SET is_deleted = 0,
+                                      deleted_at = NULL,
+                                      deleted_by = NULL,
+                                      deletion_reason = NULL,
+                                      updated_at = NOW()
+                                  WHERE id = :event_id";
+
+                $stmtFallback = $conn->prepare($queryFallback);
+                $result = $stmtFallback->execute(['event_id' => $eventId]);
+            }
 
             if ($result) {
                 // Optionally notify the publisher that their event has been restored
@@ -1323,7 +1341,7 @@ class Event
      */
     public function getEventWithPublisher($eventId)
     {
-        $query = "SELECT e.*, p.email as publisher_email, p.full_name as publisher_name, p.university as publisher_university
+        $query = "SELECT e.*, p.email as publisher_email, p.society_name as publisher_name, p.university as publisher_university
                   FROM events e
                   LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                   WHERE e.id = :event_id";
@@ -1346,33 +1364,107 @@ class Event
                 return false;
             }
 
+            // Only publisher-owned events should trigger publisher notifications.
+            $publisherId = (int)($event->created_by ?? 0);
+            $createdByType = (string)($event->created_by_type ?? '');
+            if ($createdByType !== 'publisher' || $publisherId <= 0) {
+                return true;
+            }
+
             // Get moderator details
             $moderatorModel = new Moderator();
             $moderator = $moderatorModel->findById($moderatorId);
+            $moderatorName = trim((string)($moderator->full_name ?? ''));
+            if ($moderatorName === '') {
+                $moderatorName = 'a moderator';
+            }
 
-            // Create notification in database
+            $cleanReason = trim((string)$reason);
+            if ($cleanReason === '') {
+                $cleanReason = 'No reason provided';
+            }
+
+            $eventTitle = (string)($event->title ?? 'Untitled Event');
+            $message = "Your event '{$eventTitle}' was hidden by {$moderatorName}. Reason: {$cleanReason}";
+
+            // Primary notification path used by publisher dashboard/header.
+            $notificationType = $this->resolveNotificationType('event_hidden');
+
+            $notificationModel = new Notification();
+            $notificationResult = $notificationModel->sendNotification([
+                'recipient_id' => $publisherId,
+                'recipient_type' => 'publisher',
+                'type' => $notificationType,
+                'title' => 'Event Hidden by Moderator',
+                'message' => $message,
+                'related_id' => (int)$eventId,
+                'related_type' => 'event',
+                'is_read' => 0
+            ]);
+
+            // Legacy moderation notification record (best-effort).
             $conn = $this->connect();
             $query = "INSERT INTO event_moderation_notifications 
                       (event_id, moderator_id, notification_type, message, created_at) 
                       VALUES (:event_id, :moderator_id, 'deleted', :message, NOW())";
 
-            $message = "Your event '{$event->title}' has been hidden by a moderator. Reason: {$reason}";
-
             $stmt = $conn->prepare($query);
-            $result = $stmt->execute([
+            $legacyResult = $stmt->execute([
                 'event_id' => $eventId,
                 'moderator_id' => $moderatorId,
                 'message' => $message
             ]);
 
-            if ($result) {
-                error_log("Publisher notification created for event $eventId");
+            if ($notificationResult || $legacyResult) {
+                error_log("Publisher hidden-event notification created for event $eventId");
             }
 
-            return $result;
+            return (bool)($notificationResult || $legacyResult);
         } catch (Exception $e) {
             error_log("notifyPublisherOfDeletion error: " . $e->getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Resolve a notification type that exists in current DB enum definition.
+     */
+    private function resolveNotificationType($preferredType)
+    {
+        $preferredType = trim((string)$preferredType);
+        if ($preferredType === '') {
+            return 'event_comment';
+        }
+
+        try {
+            $columns = $this->query("SHOW COLUMNS FROM notifications WHERE Field = 'type'");
+            if (!$columns || !isset($columns[0]->Type)) {
+                return $preferredType;
+            }
+
+            $typeDef = (string)$columns[0]->Type;
+            if (!preg_match('/^enum\((.*)\)$/i', $typeDef, $matches)) {
+                return $preferredType;
+            }
+
+            $allowed = array_map(function ($item) {
+                return trim($item, "' \t\n\r\0\x0B");
+            }, explode(',', (string)$matches[1]));
+
+            if (in_array($preferredType, $allowed, true)) {
+                return $preferredType;
+            }
+
+            foreach (['event_comment', 'new_comment', 'comment_hidden', 'comment_edited', 'comment_deleted'] as $fallback) {
+                if (in_array($fallback, $allowed, true)) {
+                    return $fallback;
+                }
+            }
+
+            return !empty($allowed[0]) ? $allowed[0] : $preferredType;
+        } catch (Exception $e) {
+            error_log('resolveNotificationType warning: ' . $e->getMessage());
+            return $preferredType;
         }
     }
 

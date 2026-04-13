@@ -64,18 +64,17 @@ function safeOutput($value, $default = '') {
     <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Sponsor_public.css">
 </head>
 <body>
-    <?php include_once(__DIR__ . '/../header.php'); ?>
-    
-    <!-- Back Navigation -->
-    <nav class="navigation-bar">
-        <div class="container-nav">
-            <a href="javascript:history.back()" class="back-btn">
-                <i class="fas fa-arrow-left"></i>
-                Back to Sponsors
-            </a>
-        </div>
-    </nav>
-    
+    <?php
+    $pageConfig = ['activeNav' => 'sponsors'];
+    if ($currentUser && $userType === 'publisher') {
+        include_once(__DIR__ . '/../Publisher/components/header.php');
+    } elseif ($currentUser && $userType === 'sponsor') {
+        include_once(__DIR__ . '/components/header.php');
+    } else {
+        include_once(__DIR__ . '/../header.php');
+    }
+    ?>
+
     <div class="container">
         <!-- Profile Header -->
         <div class="profile-header">
@@ -449,6 +448,6 @@ function safeOutput($value, $default = '') {
         </div>
     </div>
     
-    <?php include_once(__DIR__ . '/../footer.php'); ?>
+    <?php include_once(__DIR__ . '/../components/footer.php'); ?>
 </body>
 </html>

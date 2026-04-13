@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // No need to fetch from API
     loadNotifications();
     setupEventListeners();
+    if (typeof initializeRegisteredEventsCalendar === 'function') {
+        initializeRegisteredEventsCalendar({
+            apiEndpoint: '/unipulse/public/moderator/dashboard/getUpcomingEvents',
+            eventDetailsBasePath: '/unipulse/public/moderator/eventview?id=',
+            fallbackEventsPath: '/unipulse/public/moderator/events',
+            modalTitle: 'Publisher Events Calendar',
+            emptyMessage: 'No upcoming publisher events found.',
+            noEventsOnDateMessage: 'No publisher events on this date.'
+        });
+    }
 });
 
 
