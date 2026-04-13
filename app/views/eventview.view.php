@@ -254,6 +254,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     <div class="section-header" id="registrationSectionHeader">
                         <h2 class="section-title">Registration & Ticketing</h2>
                         <p class="section-subtitle">Get your tickets or register for this event</p>
+                        <div id="ticketAvailabilitySummary" class="ticket-availability-summary" style="display: none;"></div>
                     </div>
 
                     <div class="registration-section" id="ticketingSectionWrapper">

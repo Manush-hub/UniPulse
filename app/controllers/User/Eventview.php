@@ -298,17 +298,14 @@ class UserEventview extends Controller
                 exit;
             }
 
-            // Check if event has available spots (only when both fields exist and max is set)
-            $hasMaxParticipants = isset($event->max_participants) && $event->max_participants !== null;
-            if ($hasMaxParticipants) {
-                $currentParticipants = isset($event->current_participants) ? (int)$event->current_participants : 0;
-                if ($currentParticipants >= (int)$event->max_participants) {
-                    echo json_encode([
-                        'success' => false,
-                        'error' => 'Event is full'
-                    ]);
-                    exit;
-                }
+            $capacityLimit = $this->eventModel->getRegistrationLimitValue($event);
+            $currentParticipants = isset($event->current_participants) ? (int)$event->current_participants : 0;
+            if ($capacityLimit !== null && $currentParticipants >= $capacityLimit) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Registration is full for this event'
+                ]);
+                exit;
             }
 
             if ($event->status === 'completed' || $event->status === 'cancelled') {
@@ -330,6 +327,17 @@ class UserEventview extends Controller
             ];
 
             if ($this->registrationModel->registerUser($registrationData)) {
+                $incrementResult = $this->eventModel->incrementParticipants($eventId, 1);
+                if (!$incrementResult) {
+                    $this->registrationModel->cancelRegistration($eventId, $userId, $userType);
+                    echo json_encode([
+                        'success' => false,
+                        'error' => 'Registration is full for this event'
+                    ]);
+                    exit;
+                }
+
+                $updatedEvent = $this->eventModel->getEventById($eventId) ?: $event;
                 $ticketType = strtolower((string)($event->ticket_type ?? 'free-all'));
 
                 if ($ticketType === 'free-all') {
@@ -356,26 +364,10 @@ class UserEventview extends Controller
                     }
                 }
 
-                // Registration is the primary action. Participant counter updates are best effort.
-                $updatedEvent = $event;
-
-                try {
-                    $incrementResult = $this->eventModel->incrementParticipants($eventId);
-                    if ($incrementResult) {
-                        $latestEvent = $this->eventModel->getEventById($eventId);
-                        if ($latestEvent) {
-                            $updatedEvent = $latestEvent;
-                        }
-                    }
-                } catch (Throwable $counterException) {
-                    error_log("Participant count update warning in UserEventview::joinEvent: " . $counterException->getMessage());
-                }
-
-                // Calculate available spots (null if unlimited or unavailable)
                 $availableSpots = null;
-                if (isset($updatedEvent->max_participants) && $updatedEvent->max_participants !== null) {
+                if ($capacityLimit !== null) {
                     $updatedCurrentParticipants = isset($updatedEvent->current_participants) ? (int)$updatedEvent->current_participants : 0;
-                    $availableSpots = (int)$updatedEvent->max_participants - $updatedCurrentParticipants;
+                    $availableSpots = max(0, $capacityLimit - $updatedCurrentParticipants);
                 }
 
                 echo json_encode([
@@ -384,6 +376,7 @@ class UserEventview extends Controller
                     'participants' => $updatedEvent->participants ?? 0, // Legacy
                     'current_participants' => $updatedEvent->current_participants ?? 0,
                     'max_participants' => $updatedEvent->max_participants ?? null,
+                    'registration_limit' => $updatedEvent->registration_limit ?? null,
                     'availableSpots' => $availableSpots,
                     'isRegistered' => true
                 ]);

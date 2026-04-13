@@ -1,26 +1,29 @@
 <?php
 
-class SponsorEventview extends Controller {
-    
+class SponsorEventview extends Controller
+{
+
     private $eventModel;
     private $registrationModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         // Initialize Event model
         $this->eventModel = new Event();
         $this->registrationModel = new EventRegistration();
     }
-    
-    public function index($id = null) {
-        
+
+    public function index($id = null)
+    {
+
         // Get event ID from URL parameter or GET request
         $eventId = $id;
         if (!$eventId && isset($_GET['id'])) {
             $eventId = $_GET['id'];
         }
-        
+
         $data = [];
-        
+
         if ($eventId) {
             try {
                 // Validate event ID is numeric
@@ -29,20 +32,20 @@ class SponsorEventview extends Controller {
                 } else {
                     // Get specific event from database
                     $event = $this->eventModel->getEventById($eventId);
-                    
+
                     if ($event) {
                         // Get current user for visibility filtering
                         $currentUser = AuthService::getCurrentUser();
-                        
+
                         // Get similar events from database
                         $similarEvents = $this->eventModel->getSimilarEvents(
-                            $event->id, 
-                            $event->category, 
-                            $event->university, 
+                            $event->id,
+                            $event->category,
+                            $event->university,
                             3,
                             $currentUser
                         );
-                        
+
                         // Check if sponsor is already registered
                         $currentUser = AuthService::getCurrentUser();
                         $currentSponsorId = ($currentUser && $currentUser['type'] === 'sponsor') ? $currentUser['id'] : null;
@@ -50,7 +53,7 @@ class SponsorEventview extends Controller {
                         if ($currentSponsorId) {
                             $isRegistered = $this->registrationModel->isUserRegistered($eventId, $currentSponsorId, 'sponsor');
                         }
-                        
+
                         // Pass server data to view for JavaScript
                         $data = [
                             'event' => $event,
@@ -95,22 +98,23 @@ class SponsorEventview extends Controller {
                 ]
             ];
         }
-        
+
         $this->view('eventview', $data);
     }
-    
+
     /**
      * API endpoint to get event details as JSON
      */
-    public function getEvent($id = null) {
+    public function getEvent($id = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Get event ID from parameter or GET request
         $eventId = $id;
         if (!$eventId && isset($_GET['id'])) {
             $eventId = $_GET['id'];
         }
-        
+
         if (!$eventId) {
             echo json_encode([
                 'success' => false,
@@ -118,7 +122,7 @@ class SponsorEventview extends Controller {
             ]);
             exit;
         }
-        
+
         // Validate event ID is numeric
         if (!is_numeric($eventId)) {
             echo json_encode([
@@ -127,11 +131,11 @@ class SponsorEventview extends Controller {
             ]);
             exit;
         }
-        
+
         try {
             // Get event from database
             $event = $this->eventModel->getEventById($eventId);
-            
+
             if (!$event) {
                 echo json_encode([
                     'success' => false,
@@ -139,34 +143,33 @@ class SponsorEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Get current user for visibility filtering
             $currentUser = AuthService::getCurrentUser();
-            
+
             // Get similar events from database
             $similarEvents = $this->eventModel->getSimilarEvents(
-                $event->id, 
-                $event->category, 
-                $event->university, 
+                $event->id,
+                $event->category,
+                $event->university,
                 3,
                 $currentUser
             );
-            
+
             // Format event data for JSON response
             $eventData = $this->formatEventForResponse($event);
-            
+
             // Format similar events
             $formattedSimilarEvents = [];
             foreach ($similarEvents as $similarEvent) {
                 $formattedSimilarEvents[] = $this->formatEventForResponse($similarEvent);
             }
-            
+
             echo json_encode([
                 'success' => true,
                 'event' => $eventData,
                 'similarEvents' => $formattedSimilarEvents
             ]);
-            
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in SponsorEventview::getEvent: " . $e->getMessage());
@@ -175,22 +178,23 @@ class SponsorEventview extends Controller {
                 'error' => 'Unable to retrieve event data. Please try again later.'
             ]);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Join event endpoint
      */
-    public function joinEvent($id = null) {
+    public function joinEvent($id = null)
+    {
         header('Content-Type: application/json');
-        
+
         // Get event ID from parameter or POST request
         $eventId = $id;
         if (!$eventId && isset($_POST['id'])) {
             $eventId = $_POST['id'];
         }
-        
+
         if (!$eventId) {
             echo json_encode([
                 'success' => false,
@@ -198,7 +202,7 @@ class SponsorEventview extends Controller {
             ]);
             exit;
         }
-        
+
         // Check if sponsor is logged in
         $currentUser = AuthService::getCurrentUser();
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
@@ -208,9 +212,9 @@ class SponsorEventview extends Controller {
             ]);
             exit;
         }
-        
+
         $sponsorId = $currentUser['id'];
-        
+
         // Validate event ID is numeric
         if (!is_numeric($eventId)) {
             echo json_encode([
@@ -219,7 +223,7 @@ class SponsorEventview extends Controller {
             ]);
             exit;
         }
-        
+
         try {
             // Check if sponsor is already registered
             if ($this->registrationModel->isUserRegistered($eventId, $sponsorId, 'sponsor')) {
@@ -230,10 +234,10 @@ class SponsorEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Check if event exists
             $event = $this->eventModel->getEventById($eventId);
-            
+
             if (!$event) {
                 echo json_encode([
                     'success' => false,
@@ -241,18 +245,16 @@ class SponsorEventview extends Controller {
                 ]);
                 exit;
             }
-            
-            // Check if event has available spots (only if max_participants is set)
-            if ($event->max_participants !== null) {
-                if ($event->current_participants >= $event->max_participants) {
-                    echo json_encode([
-                        'success' => false,
-                        'error' => 'Event is full'
-                    ]);
-                    exit;
-                }
+
+            $capacityLimit = $this->eventModel->getRegistrationLimitValue($event);
+            if ($capacityLimit !== null && (int)($event->current_participants ?? 0) >= $capacityLimit) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Registration is full for this event'
+                ]);
+                exit;
             }
-            
+
             if ($event->status === 'completed' || $event->status === 'cancelled') {
                 echo json_encode([
                     'success' => false,
@@ -260,7 +262,7 @@ class SponsorEventview extends Controller {
                 ]);
                 exit;
             }
-            
+
             // Create registration record
             $registrationData = [
                 'event_id' => $eventId,
@@ -269,7 +271,7 @@ class SponsorEventview extends Controller {
                 'notes' => $_POST['notes'] ?? '',
                 'status' => 'registered'
             ];
-            
+
             if (!$this->registrationModel->registerUser($registrationData)) {
                 echo json_encode([
                     'success' => false,
@@ -277,35 +279,33 @@ class SponsorEventview extends Controller {
                 ]);
                 exit;
             }
-            
-            // Join the event by incrementing current participants
-            if ($this->eventModel->incrementParticipants($eventId)) {
-                // Get updated event data from database
-                $updatedEvent = $this->eventModel->getEventById($eventId);
-                
-                // Calculate available spots (null if unlimited)
-                $availableSpots = null;
-                if ($updatedEvent->max_participants !== null) {
-                    $availableSpots = $updatedEvent->max_participants - $updatedEvent->current_participants;
-                }
-                
-                echo json_encode([
-                    'success' => true,
-                    'message' => 'Successfully joined the event',
-                    'participants' => $updatedEvent->participants, // Legacy
-                    'current_participants' => $updatedEvent->current_participants,
-                    'max_participants' => $updatedEvent->max_participants,
-                    'availableSpots' => $availableSpots
-                ]);
-            } else {
-                // Rollback registration if increment fails
+
+            $incrementResult = $this->eventModel->incrementParticipants($eventId, 1);
+            if (!$incrementResult) {
                 $this->registrationModel->cancelRegistration($eventId, $sponsorId, 'sponsor');
                 echo json_encode([
                     'success' => false,
-                    'error' => 'Failed to join event. Event may be full or an error occurred.'
+                    'error' => 'Registration is full for this event'
                 ]);
+                exit;
             }
-            
+
+            $updatedEvent = $this->eventModel->getEventById($eventId);
+
+            $availableSpots = null;
+            if ($capacityLimit !== null && $updatedEvent) {
+                $availableSpots = max(0, $capacityLimit - (int)($updatedEvent->current_participants ?? 0));
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Successfully joined the event',
+                'participants' => $updatedEvent->participants ?? 0,
+                'current_participants' => $updatedEvent->current_participants ?? 0,
+                'max_participants' => $updatedEvent->max_participants ?? null,
+                'registration_limit' => $updatedEvent->registration_limit ?? null,
+                'availableSpots' => $availableSpots
+            ]);
         } catch (Exception $e) {
             // Log error and return generic error message
             error_log("Database error in SponsorEventview::joinEvent: " . $e->getMessage());
@@ -314,16 +314,17 @@ class SponsorEventview extends Controller {
                 'error' => 'Unable to join event. Please try again later.'
             ]);
         }
-        
+
         exit;
     }
-    
+
     /**
      * Helper method to format event data for API responses
      */
-    private function formatEventForResponse($event) {
+    private function formatEventForResponse($event)
+    {
         $eventData = (array) $event;
-        
+
         // Add publisher profile headline for organizer role display
         if (isset($eventData['created_by_type']) && $eventData['created_by_type'] === 'publisher' && isset($eventData['created_by'])) {
             $publisherModel = new Publisher();
@@ -334,25 +335,25 @@ class SponsorEventview extends Controller {
                 $eventData['organizer_role'] = 'Event Organizer';
             }
         }
-        
+
         // Format date and time for frontend display
         if (isset($eventData['event_date'])) {
             $eventData['date'] = $eventData['event_date'];
         }
-        
+
         if (isset($eventData['event_time'])) {
             $eventData['time'] = date('h:i A', strtotime($eventData['event_time']));
         }
-        
+
         // Ensure JSON fields are properly decoded
         if (isset($eventData['requirements']) && is_string($eventData['requirements'])) {
             $eventData['requirements'] = json_decode($eventData['requirements'], true) ?: [];
         }
-        
+
         if (isset($eventData['schedule']) && is_string($eventData['schedule'])) {
             $eventData['schedule'] = json_decode($eventData['schedule'], true) ?: [];
         }
-        
+
         return $eventData;
     }
 }

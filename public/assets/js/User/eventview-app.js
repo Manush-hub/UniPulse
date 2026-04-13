@@ -99,7 +99,7 @@ function loadEventDetails() {
 function displayEventDetails(event) {
     // Handle different field names from database vs JavaScript
     const universityName = event.university_name || event.universityName;
-    const maxParticipants = event.max_participants || event.maxParticipants;
+    const capacityLimit = getRegistrationCapacityLimit(event);
     const currentParticipants = event.current_participants || event.currentParticipants || 0;
     const organizerEmail = event.organizer_email || event.organizerEmail;
     const targetAudience = event.target_audience || event.targetAudience;
@@ -234,14 +234,14 @@ function displayEventDetails(event) {
         if (venueInfoElement) venueInfoElement.style.display = 'none';
     }
 
-    // Show participants info only if max_participants is set
+    // Show participants info only if a capacity limit exists
     const participantsInfoElement = document.getElementById('participantsInfo');
     if (participantsInfoElement) {
-        if (maxParticipants !== null && maxParticipants !== undefined) {
+        if (capacityLimit !== null && capacityLimit !== undefined) {
             participantsInfoElement.style.display = 'flex';
             const eventParticipantsElement = document.getElementById('eventParticipants');
             if (eventParticipantsElement) {
-                eventParticipantsElement.textContent = `${currentParticipants}/${maxParticipants}`;
+                eventParticipantsElement.textContent = `${currentParticipants}/${capacityLimit}`;
             }
         } else {
             participantsInfoElement.style.display = 'none';
@@ -418,9 +418,9 @@ function displayEventDetails(event) {
     // Store organizer email for contact function
     currentEvent.organizerEmail = organizerEmail;
 
-    // Statistics - only show if max_participants is set
+    // Statistics - only show if a capacity limit is set
     const eventStatsCardElement = document.getElementById('eventStatsCard');
-    if (maxParticipants !== null && maxParticipants !== undefined) {
+    if (capacityLimit !== null && capacityLimit !== undefined) {
         if (eventStatsCardElement) {
             eventStatsCardElement.style.display = 'block';
         }
@@ -432,11 +432,11 @@ function displayEventDetails(event) {
 
         const availableSpotsElement = document.getElementById('availableSpots');
         if (availableSpotsElement) {
-            availableSpotsElement.textContent = maxParticipants - currentParticipants;
+            availableSpotsElement.textContent = Math.max(0, capacityLimit - currentParticipants);
         }
 
         // Participation percentage
-        const percentage = maxParticipants > 0 ? Math.round((currentParticipants / maxParticipants) * 100) : 0;
+        const percentage = capacityLimit > 0 ? Math.round((currentParticipants / capacityLimit) * 100) : 0;
         const participationPercentageElement = document.getElementById('participationPercentage');
         if (participationPercentageElement) {
             participationPercentageElement.textContent = `${percentage}%`;
@@ -459,7 +459,7 @@ function displayEventDetails(event) {
     }
 
     // Update status styling
-    updateStatusStyling(normalizedStatus, currentParticipants, maxParticipants);
+    updateStatusStyling(normalizedStatus, currentParticipants, capacityLimit);
 
     // Show comments section if event is completed
     if (normalizedStatus === 'completed') {
@@ -584,7 +584,7 @@ function loadSimilarEvents(events) {
 }
 
 // Update status styling
-function updateStatusStyling(status, participants, maxParticipants) {
+function updateStatusStyling(status, participants, capacityLimit) {
     const statusElement = document.getElementById('eventStatus');
     if (statusElement) {
         statusElement.className = `event-status ${status}`;
@@ -595,7 +595,7 @@ function updateStatusStyling(status, participants, maxParticipants) {
         if (status === 'completed' || status === 'cancelled') {
             joinBtn.disabled = true;
             joinBtn.innerHTML = '<i class="fas fa-calendar-times"></i> Event Ended';
-        } else if (participants >= maxParticipants) {
+        } else if (capacityLimit !== null && capacityLimit !== undefined && participants >= capacityLimit) {
             joinBtn.disabled = true;
             joinBtn.innerHTML = '<i class="fas fa-users"></i> Event Full';
         }
@@ -1192,7 +1192,121 @@ function displayLocationDetails(event) {
     }
 }
 
+function getRegistrationCapacityLimit(event) {
+    const registrationLimit = Number(event?.registration_limit);
+    if (Number.isFinite(registrationLimit) && registrationLimit > 0) {
+        return registrationLimit;
+    }
+
+    const legacyLimit = Number(event?.max_participants);
+    if (Number.isFinite(legacyLimit) && legacyLimit > 0) {
+        return legacyLimit;
+    }
+
+    return null;
+}
+
+function getAvailableRegistrationSpots(event) {
+    const capacityLimit = getRegistrationCapacityLimit(event);
+    if (capacityLimit === null) {
+        return null;
+    }
+
+    const currentParticipants = Number(event?.current_participants || 0);
+    return Math.max(0, capacityLimit - currentParticipants);
+}
+
+function getTicketTypes(event) {
+    let ticketTypes = event?.ticket_types;
+    if (typeof ticketTypes === 'string') {
+        try {
+            ticketTypes = JSON.parse(ticketTypes);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    return Array.isArray(ticketTypes) ? ticketTypes : [];
+}
+
+function renderTicketAvailabilitySummary(event) {
+    const summaryElement = document.getElementById('ticketAvailabilitySummary');
+    if (!summaryElement) {
+        return;
+    }
+
+    const ticketType = String(event?.ticket_type || 'free-all').toLowerCase();
+    const capacityLimit = getRegistrationCapacityLimit(event);
+    const availableSpots = getAvailableRegistrationSpots(event);
+    const ticketTypes = getTicketTypes(event);
+
+    let summaryHTML = '';
+
+    if (ticketType === 'free-all') {
+        if (availableSpots === null) {
+            summaryHTML = '<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#ecfdf5; color:#166534; font-weight:600;">Unlimited registrations available</div>';
+        } else if (availableSpots <= 0) {
+            summaryHTML = '<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#fef2f2; color:#b91c1c; font-weight:600;">Registration full</div>';
+        } else {
+            summaryHTML = `<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:600;">${availableSpots} registration spot${availableSpots === 1 ? '' : 's'} left</div>`;
+        }
+    } else if (ticketTypes.length > 0) {
+        const availabilityRows = ticketTypes.map(ticket => {
+            const availableQuantity = Math.max(0, Number(ticket?.quantity) || 0);
+            const isSoldOut = availableQuantity <= 0;
+            const rowColor = isSoldOut ? '#b91c1c' : '#166534';
+            const rowBackground = isSoldOut ? '#fef2f2' : '#ecfdf5';
+            const statusLabel = isSoldOut ? 'Sold out' : `${availableQuantity} left`;
+
+            return `<div style="display:flex; justify-content:space-between; gap:1rem; padding:0.5rem 0; border-bottom:1px solid rgba(148,163,184,0.18);">
+                <strong style="color:#0f172a;">${ticket.name || 'Ticket'}</strong>
+                <span style="padding:0.2rem 0.55rem; border-radius:999px; background:${rowBackground}; color:${rowColor}; font-size:0.8rem; font-weight:700;">${statusLabel}</span>
+            </div>`;
+        }).join('');
+
+        summaryHTML = `<div style="border:1px solid rgba(148,163,184,0.2); background:#f8fafc; border-radius:16px; padding:1rem 1.15rem; margin-top:0.85rem;">
+            <div style="display:flex; justify-content:space-between; gap:1rem; align-items:center; margin-bottom:0.65rem;">
+                <strong style="color:#0f172a;">Ticket Availability</strong>
+                ${capacityLimit !== null ? `<span style="color:#64748b; font-size:0.85rem;">${Math.max(0, capacityLimit - Number(event?.current_participants || 0))} total seats remaining</span>` : ''}
+            </div>
+            <div style="display:grid; gap:0.35rem;">${availabilityRows}</div>
+        </div>`;
+    }
+
+    summaryElement.innerHTML = summaryHTML;
+    summaryElement.style.display = summaryHTML ? 'block' : 'none';
+}
+
+function updateTicketActionButtonState(sectionElement, hasAvailableTickets) {
+    if (!sectionElement) {
+        return;
+    }
+
+    const actionButton = sectionElement.querySelector('.btn-buy-tickets-modern');
+    if (!actionButton) {
+        return;
+    }
+
+    if (!actionButton.dataset.defaultHtml) {
+        actionButton.dataset.defaultHtml = actionButton.innerHTML;
+    }
+
+    if (hasAvailableTickets) {
+        actionButton.disabled = false;
+        actionButton.innerHTML = actionButton.dataset.defaultHtml;
+        actionButton.style.opacity = '';
+        actionButton.style.cursor = '';
+    } else {
+        actionButton.disabled = true;
+        actionButton.innerHTML = '<i class="fas fa-ban"></i> Sold Out';
+        actionButton.style.opacity = '0.6';
+        actionButton.style.cursor = 'not-allowed';
+    }
+}
+
 function displayTicketDetails(event) {
+    renderTicketAvailabilitySummary(event);
+
     const ticketType = event.ticket_type || 'free-all';
 
     if (ticketType === 'free-all') {
@@ -1240,6 +1354,38 @@ function renderFreeRegistration(event) {
 
     console.log('Rendering free registration for event:', event.title);
 
+    const availableSpots = getAvailableRegistrationSpots(event);
+    const freeSubtitle = document.getElementById('freeEntrySubtitle');
+    const freeButton = freeSection.querySelector('.btn-register-modern');
+
+    if (freeButton && !freeButton.dataset.defaultHtml) {
+        freeButton.dataset.defaultHtml = freeButton.innerHTML;
+    }
+
+    if (availableSpots !== null && availableSpots <= 0) {
+        if (freeSubtitle) {
+            freeSubtitle.textContent = 'Registration limit reached for this event.';
+        }
+        if (freeButton) {
+            freeButton.disabled = true;
+            freeButton.innerHTML = '<i class="fas fa-users"></i> Registration Full';
+            freeButton.style.opacity = '0.6';
+            freeButton.style.cursor = 'not-allowed';
+        }
+    } else {
+        if (freeSubtitle) {
+            freeSubtitle.textContent = availableSpots === null
+                ? 'This event is free to attend'
+                : `${availableSpots} registration spot${availableSpots === 1 ? '' : 's'} remaining`;
+        }
+        if (freeButton) {
+            freeButton.disabled = false;
+            freeButton.innerHTML = freeButton.dataset.defaultHtml || '<i class="fas fa-user-plus"></i> Register for Free';
+            freeButton.style.opacity = '';
+            freeButton.style.cursor = '';
+        }
+    }
+
     // Show the free registration section
     freeSection.style.display = 'block';
 }
@@ -1252,25 +1398,20 @@ function renderPaidTickets(event) {
     const paidSection = document.getElementById('paidTicketingSection');
     if (!paidSection) return;
 
-    // Parse ticket_types if it's a string
-    let ticketTypes = event.ticket_types;
-    if (typeof ticketTypes === 'string') {
-        try {
-            ticketTypes = JSON.parse(ticketTypes);
-        } catch (e) {
-            console.error('Failed to parse ticket_types:', e);
-            return;
-        }
-    }
-
-    if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
+    let ticketTypes = getTicketTypes(event);
+    if (ticketTypes.length === 0) {
         return;
     }
+
+    const hasAvailableTickets = ticketTypes.some(t => Number(t.quantity) > 0);
+    updateTicketActionButtonState(paidSection, hasAvailableTickets);
 
     // Render ticket options
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
 
     ticketTypes.forEach((ticket, index) => {
+        const availablequantity = Math.max(0, Number(ticket.quantity) || 0);
+        const isSoldOut = availablequantity <= 0;
         const originalPrice = Number(ticket.price) || 0;
         const discountedPrice = Number(ticket.discounted_price) || 0;
         const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
@@ -1287,27 +1428,34 @@ function renderPaidTickets(event) {
                </div>`
             : `<p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</p>`;
 
+        const borderColor = isSoldOut ? '#fca5a5' : '#e2e8f0';
+        const bgColor = isSoldOut ? '#fef2f2' : '#f8fafc';
+
         ticketsHTML += `
             <div class="ticket-option" 
                  data-ticket-index="${index}" 
                  data-ticket-name="${ticket.name}" 
                  data-ticket-price="${payablePrice}"
                  data-original-price="${originalPrice}"
-                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
+                 data-available="${availablequantity}"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 12px; opacity: ${isSoldOut ? '0.65' : '1'};">
                 <div class="ticket-info" style="flex: 1;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
                     ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
                     ${priceHTML}
-                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
+                    <p style="margin: 0.25rem 0 0 0; color: ${isSoldOut ? '#dc2626' : '#94a3b8'}; font-size: 0.85rem; font-weight: ${isSoldOut ? '600' : '400'};">
+                        ${isSoldOut ? '<i class="fas fa-ban"></i> Sold out' : `Available: ${availablequantity}`}
+                    </p>
                 </div>
                 <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
                     <label for="ticket-quantity-${index}" style="color: #475569; font-size: 0.9rem; font-weight: 500;">Quantity:</label>
                     <input type="number" 
                            id="ticket-quantity-${index}" 
                            min="0" 
-                           max="${ticket.quantity}" 
+                           max="${availablequantity}" 
                            value="0" 
                            class="quantity-input"
+                           ${isSoldOut ? 'disabled' : ''}
                            style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
                 </div>
             </div>
@@ -1336,23 +1484,19 @@ function renderMixedTickets(event) {
     const mixedSection = document.getElementById('mixedTicketingSection');
     if (!mixedSection) return;
 
-    let ticketTypes = event.ticket_types;
-    if (typeof ticketTypes === 'string') {
-        try {
-            ticketTypes = JSON.parse(ticketTypes);
-        } catch (e) {
-            console.error('Failed to parse ticket_types:', e);
-            return;
-        }
-    }
-
-    if (!Array.isArray(ticketTypes) || ticketTypes.length === 0) {
+    let ticketTypes = getTicketTypes(event);
+    if (ticketTypes.length === 0) {
         return;
     }
+
+    const hasAvailableTickets = ticketTypes.some(t => Number(t.quantity) > 0);
+    updateTicketActionButtonState(mixedSection, hasAvailableTickets);
 
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
 
     ticketTypes.forEach((ticket, index) => {
+        const availablequantity = Math.max(0, Number(ticket.quantity) || 0);
+        const isSoldOut = availablequantity <= 0;
         const originalPrice = Number(ticket.price) || 0;
         const discountedPrice = Number(ticket.discounted_price) || 0;
         const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
@@ -1369,27 +1513,34 @@ function renderMixedTickets(event) {
                </div>`
             : `<p style="margin: 0.5rem 0; color: #667eea; font-size: 1.25rem; font-weight: 700;">LKR ${payablePrice.toFixed(2)}</p>`;
 
+        const borderColor = isSoldOut ? '#fca5a5' : '#e2e8f0';
+        const bgColor = isSoldOut ? '#fef2f2' : '#f8fafc';
+
         ticketsHTML += `
             <div class="ticket-option" 
                  data-ticket-index="${index}" 
                  data-ticket-name="${ticket.name}" 
                  data-ticket-price="${payablePrice}"
                  data-original-price="${originalPrice}"
-                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;">
+                 data-available="${availablequantity}"
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 12px; opacity: ${isSoldOut ? '0.65' : '1'};">
                 <div class="ticket-info" style="flex: 1;">
                     <h4 style="margin: 0 0 0.5rem 0; color: #1e293b; font-size: 1.1rem; font-weight: 600;">${ticket.name}</h4>
                     ${ticket.description ? `<p style="margin: 0 0 0.75rem 0; color: #64748b; font-size: 0.9rem;">${ticket.description}</p>` : ''}
                     ${priceHTML}
-                    <p style="margin: 0.25rem 0 0 0; color: #94a3b8; font-size: 0.85rem;">Available: ${ticket.quantity}</p>
+                    <p style="margin: 0.25rem 0 0 0; color: ${isSoldOut ? '#dc2626' : '#94a3b8'}; font-size: 0.85rem; font-weight: ${isSoldOut ? '600' : '400'};">
+                        ${isSoldOut ? '<i class="fas fa-ban"></i> Sold out' : `Available: ${availablequantity}`}
+                    </p>
                 </div>
                 <div class="ticket-quantity-control" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
                     <label for="mixed-ticket-quantity-${index}" style="color: #475569; font-size: 0.9rem; font-weight: 500;">Quantity:</label>
                     <input type="number" 
                            id="mixed-ticket-quantity-${index}" 
                            min="0" 
-                           max="${ticket.quantity}" 
+                           max="${availablequantity}" 
                            value="0" 
                            class="quantity-input"
+                           ${isSoldOut ? 'disabled' : ''}
                            style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
                 </div>
             </div>
@@ -1451,6 +1602,7 @@ function setupTicketQuantityListeners() {
 function updateTotalPrice() {
     const allTickets = document.querySelectorAll('.ticket-option');
     let totalPrice = 0;
+    let totalQuantity = 0;
 
     allTickets.forEach(ticket => {
         const index = ticket.dataset.ticketIndex;
@@ -1460,6 +1612,7 @@ function updateTotalPrice() {
         const price = parseFloat(ticket.dataset.ticketPrice) || 0;
 
         totalPrice += quantity * price;
+        totalQuantity += quantity;
     });
 
     const ticketPriceEl = document.getElementById('ticketPrice');
@@ -1470,6 +1623,22 @@ function updateTotalPrice() {
     }
     if (mixedTicketPriceEl) {
         mixedTicketPriceEl.textContent = `LKR ${totalPrice.toFixed(2)}`;
+    }
+
+    // Update button state based on total quantity
+    const buyButton = document.querySelector('.btn-buy-tickets');
+    if (buyButton) {
+        if (totalQuantity === 0) {
+            buyButton.disabled = true;
+            buyButton.style.opacity = '0.6';
+            buyButton.style.cursor = 'not-allowed';
+            buyButton.title = 'Please select at least one ticket';
+        } else {
+            buyButton.disabled = false;
+            buyButton.style.opacity = '1';
+            buyButton.style.cursor = 'pointer';
+            buyButton.title = '';
+        }
     }
 }
 
@@ -1495,14 +1664,22 @@ function buyTickets() {
 
     const ticketSelections = [];
     let totalPrice = 0;
+    let totalQuantity = 0;
 
     allTickets.forEach(ticket => {
         const index = ticket.dataset.ticketIndex;
         const quantityInput = document.getElementById(`ticket-quantity-${index}`) ||
             document.getElementById(`mixed-ticket-quantity-${index}`);
         const quantity = parseInt(quantityInput?.value) || 0;
+        const available = parseInt(ticket.dataset.available) || 0;
 
         if (quantity > 0) {
+            // Validate against available inventory
+            if (quantity > available) {
+                alert(`Cannot select ${quantity} of "${ticket.dataset.ticketName}" - only ${available} available. Please reduce quantity.`);
+                return;
+            }
+
             const ticketName = ticket.dataset.ticketName;
             const ticketPrice = parseFloat(ticket.dataset.ticketPrice) || 0;
             const originalPrice = parseFloat(ticket.dataset.originalPrice) || ticketPrice;
@@ -1521,15 +1698,31 @@ function buyTickets() {
             });
 
             totalPrice += subtotal;
+            totalQuantity += quantity;
         }
     });
 
     console.log('Ticket selections:', ticketSelections);
     console.log('Total price:', totalPrice);
+    console.log('Total quantity:', totalQuantity);
 
-    if (ticketSelections.length === 0) {
+    if (ticketSelections.length === 0 || totalQuantity === 0) {
         alert('Please select at least one ticket by setting quantity greater than 0');
         return;
+    }
+
+    // For mixed events, paid public tickets are controlled by ticket inventory, not free registration seats.
+    const ticketType = String(currentEvent.ticket_type || '').toLowerCase();
+    const shouldEnforceRegistrationLimit = ticketType !== 'mixed';
+
+    if (shouldEnforceRegistrationLimit) {
+        const capacityLimit = getRegistrationCapacityLimit(currentEvent);
+        const currentParticipants = currentEvent.participants || 0;
+        if (capacityLimit !== null && (currentParticipants + totalQuantity) > capacityLimit) {
+            const remainingSpots = Math.max(0, capacityLimit - currentParticipants);
+            alert(`Cannot select ${totalQuantity} tickets. Only ${remainingSpots} registration spot(s) remain for this event.`);
+            return;
+        }
     }
 
     const paymentData = {
@@ -1537,6 +1730,7 @@ function buyTickets() {
         eventTitle: currentEvent.title,
         tickets: ticketSelections,
         totalAmount: totalPrice,
+        totalQuantity: totalQuantity,
         timestamp: Date.now()
     };
 

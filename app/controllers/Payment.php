@@ -185,9 +185,10 @@ class Payment extends Controller
             $items
         );
 
-        // Pass event_id and publisher_id as custom fields so notify callback can store them
+        // Pass event metadata as custom fields so notify/return callbacks can restore the purchase context
         $fields['custom_1'] = $_SESSION['payment_event_id']     ?? '';
         $fields['custom_2'] = $_SESSION['payment_publisher_id'] ?? '';
+        $fields['custom_3'] = $_SESSION['payment_tickets_metadata'] ?? '';
 
         // Render an auto-submitting form (user never sees it flash)
         $this->view('payhere_redirect', [
@@ -287,13 +288,15 @@ class Payment extends Controller
 
             if ($paymentType === 'ticket') {
                 $resolvedUserType = $this->resolveRegistrationUserType($userId, 'public');
+                $ticketSelections = $this->decodeTicketSelections($_POST['custom_3'] ?? null, $_SESSION['payment_ticket_tier'] ?? 'General', $_SESSION['payment_quantity'] ?? 1);
                 $this->ensurePaidEventRegistrationFromPayment(
                     (int)$userId,
                     $resolvedUserType,
                     (int)($_POST['custom_1'] ?? 0),
                     $amount,
                     $paymentId,
-                    'Auto-registered after successful PayHere notify callback'
+                    'Auto-registered after successful PayHere notify callback',
+                    $ticketSelections
                 );
             }
         }
@@ -333,10 +336,11 @@ class Payment extends Controller
 
         // Save payment (fallback — notify may have already saved it on live)
         $payhereOrderId = $_SESSION['payhere_order_id'] ?? $orderId;
+        $existing = [];
         try {
             // Check if already saved by notify callback
             $existing = $this->query(
-                "SELECT id FROM payments WHERE transaction_id = :tid OR payhere_order_id = :oid LIMIT 1",
+                "SELECT id, transaction_id, payhere_payment_id FROM payments WHERE transaction_id = :tid OR payhere_order_id = :oid LIMIT 1",
                 ['tid' => $transId, 'oid' => $payhereOrderId]
             );
             if (!$existing) {
@@ -395,6 +399,20 @@ class Payment extends Controller
             error_log('[PayHere] DB insert failed: ' . $e->getMessage());
         }
 
+        $registrationPaymentReference = $transId;
+        if (!empty($existing) && isset($existing[0])) {
+            $existingRow = $existing[0];
+            $existingTxn = is_object($existingRow)
+                ? ($existingRow->transaction_id ?? null)
+                : ($existingRow['transaction_id'] ?? null);
+            $existingPayHerePaymentId = is_object($existingRow)
+                ? ($existingRow->payhere_payment_id ?? null)
+                : ($existingRow['payhere_payment_id'] ?? null);
+
+            // Prefer stable gateway IDs to keep registration sync idempotent across notify/return callbacks
+            $registrationPaymentReference = $existingPayHerePaymentId ?: $existingTxn ?: $transId;
+        }
+
         // If this is a boost payment, create the boost record
         if ($paymentType === 'boost') {
             error_log("PayHere Return - Detected boost payment, calling createBoostAfterPayment");
@@ -414,13 +432,15 @@ class Payment extends Controller
                 error_log("PayHere Return - Boost creation FAILED!");
             }
         } else {
+            $ticketSelections = $this->decodeTicketSelections($_SESSION['payment_tickets_metadata'] ?? null, $_SESSION['payment_ticket_tier'] ?? 'General', $_SESSION['payment_quantity'] ?? 1);
             $this->ensurePaidEventRegistrationFromPayment(
                 (int)$_SESSION['user_id'],
                 $_SESSION['user_type'] ?? null,
                 (int)($completedEventId ?? 0),
                 $lkrAmount,
-                $transId,
-                'Auto-registered after successful PayHere return'
+                $registrationPaymentReference,
+                'Auto-registered after successful PayHere return',
+                $ticketSelections
             );
         }
 
@@ -462,6 +482,59 @@ class Payment extends Controller
             $_SESSION['payment_description'],
             $_SESSION['payment_quantity']
         );
+    }
+
+    private function decodeTicketSelections($rawSelections, $fallbackTicketName = 'General', $fallbackQuantity = 1)
+    {
+        $fallbackQuantity = max(1, (int)$fallbackQuantity);
+        $decodedSelections = [];
+
+        if (is_string($rawSelections) && trim($rawSelections) !== '') {
+            $decoded = json_decode($rawSelections, true);
+            if (is_array($decoded)) {
+                foreach ($decoded as $selection) {
+                    $ticketName = trim((string)($selection['name'] ?? ''));
+                    $quantity = max(0, (int)($selection['quantity'] ?? 0));
+                    if ($ticketName === '' || $quantity <= 0) {
+                        continue;
+                    }
+
+                    $decodedSelections[] = [
+                        'name' => $ticketName,
+                        'quantity' => $quantity
+                    ];
+                }
+            }
+        }
+
+        if (!empty($decodedSelections)) {
+            return $decodedSelections;
+        }
+
+        return [[
+            'name' => $fallbackTicketName !== '' ? $fallbackTicketName : 'General',
+            'quantity' => $fallbackQuantity
+        ]];
+    }
+
+    private function resolveTicketQuantity($ticketSelections, $amount = null, $paymentReference = null)
+    {
+        if (is_array($ticketSelections)) {
+            $quantity = 0;
+            foreach ($ticketSelections as $selection) {
+                $quantity += max(0, (int)($selection['quantity'] ?? 0));
+            }
+
+            if ($quantity > 0) {
+                return $quantity;
+            }
+        }
+
+        if (!empty($_SESSION['payment_quantity'])) {
+            return max(1, (int)$_SESSION['payment_quantity']);
+        }
+
+        return 1;
     }
 
     private function validatePaymentData($data)
@@ -557,13 +630,15 @@ class Payment extends Controller
             $this->query($query, $params);
 
             if ($paymentType === 'ticket' && !empty($_SESSION['payment_event_id'])) {
+                $ticketSelections = $this->decodeTicketSelections($_SESSION['payment_tickets_metadata'] ?? null, $_SESSION['payment_ticket_tier'] ?? 'General', $quantity);
                 $this->ensurePaidEventRegistrationFromPayment(
                     (int)$_SESSION['user_id'],
                     $_SESSION['user_type'] ?? null,
                     (int)$_SESSION['payment_event_id'],
                     (float)$amount,
                     $transactionId,
-                    'Auto-registered after successful direct payment'
+                    'Auto-registered after successful direct payment',
+                    $ticketSelections
                 );
             }
 
@@ -593,7 +668,7 @@ class Payment extends Controller
         }
     }
 
-    private function ensurePaidEventRegistrationFromPayment($userId, $userType, $eventId, $amount = null, $paymentReference = null, $notes = '')
+    private function ensurePaidEventRegistrationFromPayment($userId, $userType, $eventId, $amount = null, $paymentReference = null, $notes = '', $ticketSelections = null)
     {
         try {
             $userId = (int)$userId;
@@ -614,6 +689,11 @@ class Payment extends Controller
             $registrationModel = new EventRegistration();
             $wasRegistered = $registrationModel->isUserRegistered($eventId, $userId, $normalizedUserType);
 
+            $quantity = $this->resolveTicketQuantity($ticketSelections, $amount, $paymentReference);
+            if (empty($ticketSelections)) {
+                $ticketSelections = $this->decodeTicketSelections(null, $_SESSION['payment_ticket_tier'] ?? 'General', $quantity);
+            }
+
             $registrationResult = $registrationModel->ensurePaidRegistration([
                 'event_id' => $eventId,
                 'user_id' => $userId,
@@ -628,8 +708,19 @@ class Payment extends Controller
                 return false;
             }
 
-            if (!$wasRegistered) {
-                $eventModel->incrementParticipants($eventId);
+            $alreadyProcessedForPayment = false;
+            if (!empty($paymentReference)) {
+                $alreadyProcessedForPayment = $this->hasPaidRegistrationForPaymentReference((string)$paymentReference);
+            }
+
+            if (!$alreadyProcessedForPayment) {
+                $inventoryResult = $eventModel->applyTicketPurchase($eventId, $ticketSelections);
+                if (!$inventoryResult) {
+                    if (!$wasRegistered) {
+                        $registrationModel->cancelRegistration($eventId, $userId, $normalizedUserType);
+                    }
+                    return false;
+                }
             }
 
             $syncResult = $this->syncPaidEventRegistrationRecord(
@@ -647,6 +738,26 @@ class Payment extends Controller
             return true;
         } catch (Throwable $e) {
             error_log('[Payment] Failed to ensure paid event registration: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function hasPaidRegistrationForPaymentReference($paymentReference)
+    {
+        $paymentReference = trim((string)$paymentReference);
+        if ($paymentReference === '') {
+            return false;
+        }
+
+        try {
+            $result = $this->query(
+                "SELECT id FROM paid_event_registrations WHERE payment_transaction_id = :ref LIMIT 1",
+                ['ref' => $paymentReference]
+            );
+
+            return !empty($result);
+        } catch (Throwable $e) {
+            error_log('[Payment] Failed to check paid registration by payment reference: ' . $e->getMessage());
             return false;
         }
     }
@@ -677,7 +788,7 @@ class Payment extends Controller
 
                     $whereParts = [];
                     $queryParams = [];
-                    
+
                     if (in_array('transaction_id', $paymentsColumns, true)) {
                         $whereParts[] = 'transaction_id = :ref1';
                         $queryParams['ref1'] = $paymentReference;
@@ -698,7 +809,7 @@ class Payment extends Controller
                              WHERE " . implode(' OR ', $whereParts) . "
                              ORDER BY id DESC
                              LIMIT 1",
-                             $queryParams
+                            $queryParams
                         );
 
                         if (!empty($paymentResult)) {

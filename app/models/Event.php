@@ -520,56 +520,88 @@ class Event
      */
     public function updateCurrentParticipants($id, $newCount)
     {
-        return $this->update($id, ['current_participants' => $newCount]);
+        $normalizedCount = max(0, (int)$newCount);
+        $updateData = [
+            'current_participants' => $normalizedCount,
+            'participants' => $normalizedCount
+        ];
+
+        return $this->update($id, $updateData);
+    }
+
+    /**
+     * Determine the active registration cap for an event.
+     */
+    public function getRegistrationLimitValue($event)
+    {
+        if (!$event) {
+            return null;
+        }
+
+        if (isset($event->registration_limit) && $event->registration_limit !== null && $event->registration_limit !== '') {
+            return (int)$event->registration_limit;
+        }
+
+        if (isset($event->max_participants) && $event->max_participants !== null && $event->max_participants !== '') {
+            return (int)$event->max_participants;
+        }
+
+        return null;
     }
 
     /**
      * Increment current participants (when user registers or buys ticket)
      */
-    public function incrementParticipants($id)
+    public function incrementParticipants($id, $count = 1)
     {
+        $count = max(1, (int)$count);
         $event = $this->getEventById($id);
         if (!$event) {
             return false;
         }
 
-        // Check if registration_limit is set and if we've reached the limit
-        if ($event->registration_limit !== null && $event->current_participants >= $event->registration_limit) {
-            return false; // Event is full
+        $limit = $this->getRegistrationLimitValue($event);
+        $currentParticipants = (int)($event->current_participants ?? 0);
+
+        if ($limit !== null && ($currentParticipants + $count) > $limit) {
+            return false;
         }
 
-        return $this->updateCurrentParticipants($id, $event->current_participants + 1);
+        return $this->updateCurrentParticipants($id, $currentParticipants + $count);
     }
 
     /**
      * Decrement current participants (when user cancels registration)
      */
-    public function decrementParticipants($id)
+    public function decrementParticipants($id, $count = 1)
     {
+        $count = max(1, (int)$count);
         $event = $this->getEventById($id);
-        if (!$event || $event->current_participants <= 0) {
+        if (!$event || (int)($event->current_participants ?? 0) <= 0) {
             return false;
         }
 
-        return $this->updateCurrentParticipants($id, $event->current_participants - 1);
+        $currentParticipants = max(0, (int)$event->current_participants - $count);
+        return $this->updateCurrentParticipants($id, $currentParticipants);
     }
 
     /**
      * Check if event has available spots
      */
-    public function hasAvailableSpots($id)
+    public function hasAvailableSpots($id, $count = 1)
     {
+        $count = max(1, (int)$count);
         $event = $this->getEventById($id);
         if (!$event) {
             return false;
         }
 
-        // If registration_limit is not set (NULL), unlimited spots available
-        if ($event->registration_limit === null) {
+        $limit = $this->getRegistrationLimitValue($event);
+        if ($limit === null) {
             return true;
         }
 
-        return $event->current_participants < $event->registration_limit;
+        return ((int)($event->current_participants ?? 0) + $count) <= $limit;
     }
 
     /**
@@ -582,12 +614,103 @@ class Event
             return 0;
         }
 
-        // If registration_limit is not set (NULL), return null to indicate unlimited
-        if ($event->registration_limit === null) {
+        $limit = $this->getRegistrationLimitValue($event);
+        if ($limit === null) {
             return null;
         }
 
-        return max(0, $event->registration_limit - $event->current_participants);
+        return max(0, $limit - (int)($event->current_participants ?? 0));
+    }
+
+    /**
+     * Apply a paid ticket purchase to the event inventory and participant counters.
+     *
+     * @param mixed $id
+     * @param array $ticketSelections
+     * @return object|false Updated event on success, false on validation failure
+     */
+    public function applyTicketPurchase($id, array $ticketSelections)
+    {
+        $event = $this->getEventById($id);
+        if (!$event) {
+            return false;
+        }
+
+        $ticketTypes = $event->ticket_types;
+        if (is_string($ticketTypes)) {
+            $ticketTypes = json_decode($ticketTypes, true);
+        }
+
+        if (!is_array($ticketTypes) || empty($ticketTypes)) {
+            return false;
+        }
+
+        $normalizedSelections = [];
+        $totalQuantity = 0;
+        foreach ($ticketSelections as $selection) {
+            $ticketName = strtolower(trim((string)($selection['name'] ?? '')));
+            $quantity = max(0, (int)($selection['quantity'] ?? 0));
+            if ($ticketName === '' || $quantity <= 0) {
+                continue;
+            }
+
+            $normalizedSelections[] = [
+                'name' => $ticketName,
+                'quantity' => $quantity
+            ];
+            $totalQuantity += $quantity;
+        }
+
+        if ($totalQuantity <= 0) {
+            return false;
+        }
+
+        $limit = $this->getRegistrationLimitValue($event);
+        $currentParticipants = (int)($event->current_participants ?? 0);
+        $ticketType = strtolower(trim((string)($event->ticket_type ?? '')));
+        $shouldEnforceRegistrationLimit = $ticketType !== 'mixed';
+
+        if ($shouldEnforceRegistrationLimit && $limit !== null && ($currentParticipants + $totalQuantity) > $limit) {
+            return false;
+        }
+
+        $ticketIndexMap = [];
+        foreach ($ticketTypes as $index => $ticketType) {
+            $ticketName = strtolower(trim((string)($ticketType['name'] ?? '')));
+            if ($ticketName !== '') {
+                $ticketIndexMap[$ticketName] = $index;
+            }
+        }
+
+        foreach ($normalizedSelections as $selection) {
+            if (!array_key_exists($selection['name'], $ticketIndexMap)) {
+                return false;
+            }
+
+            $ticketIndex = $ticketIndexMap[$selection['name']];
+            $availableQuantity = max(0, (int)($ticketTypes[$ticketIndex]['quantity'] ?? 0));
+            if ($availableQuantity < $selection['quantity']) {
+                return false;
+            }
+        }
+
+        foreach ($normalizedSelections as $selection) {
+            $ticketIndex = $ticketIndexMap[$selection['name']];
+            $ticketTypes[$ticketIndex]['quantity'] = max(0, (int)($ticketTypes[$ticketIndex]['quantity'] ?? 0) - $selection['quantity']);
+        }
+
+        $updateData = [
+            'current_participants' => $currentParticipants + $totalQuantity,
+            'ticket_types' => json_encode(array_values($ticketTypes))
+        ];
+
+        $updateData['participants'] = $currentParticipants + $totalQuantity;
+
+        if ($this->update($id, $updateData)) {
+            return $this->getEventById($id);
+        }
+
+        return false;
     }
 
     /**
@@ -1488,7 +1611,9 @@ class Event
                 FROM events e
                 LEFT JOIN moderators m ON e.deleted_by = m.id
                 WHERE e.is_deleted = 1 AND e.deleted_at IS NOT NULL";
-            if ($moderatorId) { $query .= " AND e.deleted_by = :moderator_id1"; }
+            if ($moderatorId) {
+                $query .= " AND e.deleted_by = :moderator_id1";
+            }
             $query .= ")
 
                 UNION ALL
@@ -1503,7 +1628,9 @@ class Event
                 FROM events e
                 LEFT JOIN moderators m ON e.restored_by = m.id
                 WHERE e.restored_at IS NOT NULL";
-            if ($moderatorId) { $query .= " AND e.restored_by = :moderator_id_r"; }
+            if ($moderatorId) {
+                $query .= " AND e.restored_by = :moderator_id_r";
+            }
             $query .= ")
 
                 UNION ALL
@@ -1519,7 +1646,9 @@ class Event
                 LEFT JOIN events e ON c.event_id = e.id
                 LEFT JOIN moderators m ON c.hidden_by = m.id
                 WHERE c.is_hidden = 1 AND c.hidden_at IS NOT NULL";
-            if ($moderatorId) { $query .= " AND c.hidden_by = :moderator_id_hc"; }
+            if ($moderatorId) {
+                $query .= " AND c.hidden_by = :moderator_id_hc";
+            }
             $query .= ")
 
                 UNION ALL
@@ -1534,7 +1663,9 @@ class Event
                 FROM publishers pub
                 LEFT JOIN moderators m ON pub.approved_by = m.id
                 WHERE pub.approval_status = 'approved' AND pub.approved_at IS NOT NULL";
-            if ($moderatorId) { $query .= " AND pub.approved_by = :moderator_id2"; }
+            if ($moderatorId) {
+                $query .= " AND pub.approved_by = :moderator_id2";
+            }
             $query .= ")
 
                 UNION ALL
@@ -1549,7 +1680,9 @@ class Event
                 FROM publishers pub
                 LEFT JOIN moderators m ON pub.approved_by = m.id
                 WHERE pub.approval_status = 'rejected' AND pub.approved_at IS NOT NULL";
-            if ($moderatorId) { $query .= " AND pub.approved_by = :moderator_id3"; }
+            if ($moderatorId) {
+                $query .= " AND pub.approved_by = :moderator_id3";
+            }
             $query .= ")
 
                 ORDER BY activity_time DESC
