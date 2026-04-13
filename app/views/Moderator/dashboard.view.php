@@ -288,77 +288,6 @@
             </div>
         </section>
 
-        <!-- User Reports -->
-        <section class="user-reports">
-            <div class="container">
-                <div class="section-header">
-                    <h2>Recent User Reports</h2>
-                    <button onclick="toggleUserReports()" class="view-all expand-btn" id="userReportsBtn">
-                        <span class="btn-text">View All Reports</span>
-                        <i class="fas fa-chevron-down expand-icon"></i>
-                    </button>
-                </div>
-                <div class="reports-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Reported Content</th>
-                                <th>Report Type</th>
-                                <th>Submitted</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reportsTableBody">
-                            <?php if (!empty($user_reports)): ?>
-                                <?php foreach ($user_reports as $index => $report): ?>
-                                    <tr<?= $index >= 5 ? ' class="hidden-row" style="display:none;"' : '' ?>>
-                                        <td class="report-content">
-                                            <strong><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $report->reported_content_type ?? 'Content'))) ?></strong>
-                                            <?php if (!empty($report->reporter_name)): ?>
-                                                <br><small>by <?= htmlspecialchars($report->reporter_name) ?></small>
-                                            <?php endif; ?>
-                                            <?php if (!empty($report->description)): ?>
-                                                <br><small><?= htmlspecialchars(substr($report->description, 0, 60)) ?><?= strlen($report->description) > 60 ? '...' : '' ?></small>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                                $rtype = $report->report_type ?? 'other';
-                                                $rtypeColors = ['spam'=>'#fef3c7;color:#92400e','inappropriate'=>'#fee2e2;color:#b91c1c','harassment'=>'#fce7f3;color:#9d174d','misinformation'=>'#ede9fe;color:#6d28d9','other'=>'#f3f4f6;color:#374151'];
-                                                $rtypeStyle = $rtypeColors[$rtype] ?? $rtypeColors['other'];
-                                            ?>
-                                            <span class="badge" style="background:<?= $rtypeStyle ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $rtype))) ?></span>
-                                        </td>
-                                        <td><?= date('M d, Y', strtotime($report->created_at)) ?></td>
-                                        <td>
-                                            <?php
-                                                $statusColors = ['pending'=>'badge-warning','in_progress'=>'badge-info','resolved'=>'badge-success'];
-                                                $sc = $statusColors[$report->status] ?? 'badge-warning';
-                                            ?>
-                                            <span class="badge <?= $sc ?>"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $report->status ?? 'pending'))) ?></span>
-                                        </td>
-                                        <td>
-                                            <div class="table-actions">
-                                                <a href="/unipulse/public/moderator/userreports" class="action-btn view" title="View Reports"><i class="fas fa-eye"></i></a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="5" style="text-align:center;padding:2rem;color:#6b7280;">
-                                        <i class="fas fa-flag" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
-                                        No user reports yet
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
 <!-- Moderation Stats and Guidelines Section -->
         <section class="moderation-overview">
             <div class="container">
@@ -493,10 +422,10 @@
             eventsReviewed: <?= intval($publisher_stats->approved ?? 0) ?>,
             reportsHandled: <?= intval($publisher_stats->rejected ?? 0) ?>,
             approvalRate: <?= intval($publisher_stats->total ?? 0) ?>,
-            approvedEvents: <?= intval($moderation_stats['approved_publishers'] ?? 0) ?>,
-            rejectedEvents: <?= intval($moderation_stats['rejected_publishers'] ?? 0) ?>,
-            editedEvents: <?= intval($moderation_stats['hidden_events'] ?? 0) ?>,
-            verifiedOrganizers: <?= intval($moderation_stats['total_actions'] ?? 0) ?>
+            hiddenEvents: <?= intval($moderation_stats['hidden_events'] ?? 0) ?>,
+            approvedPublishers: <?= intval($moderation_stats['approved_publishers'] ?? 0) ?>,
+            rejectedPublishers: <?= intval($moderation_stats['rejected_publishers'] ?? 0) ?>,
+            totalActions: <?= intval($moderation_stats['total_actions'] ?? 0) ?>
         };
     </script>
     <script src="/unipulse/public/assets/js/Moderator/dashboard-app.js"></script>

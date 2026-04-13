@@ -42,54 +42,8 @@ class ModeratorDashboard extends Controller {
         $eventModel = new Event();
         $data['recent_activities'] = $eventModel->getRecentModerationActivities(null, 50);
 
-        // Get recent user reports for this moderator's university
-        try {
-            $reportModel = new Report();
-            $data['user_reports'] = $reportModel->getReportsForUniversity($data['moderator']->university, 20) ?: [];
-        } catch (Exception $e) {
-            error_log("Dashboard reports error: " . $e->getMessage());
-            $data['user_reports'] = [];
-        }
-        
-        // Calculate moderation stats using direct PDO connection
-        try {
-            $string = "mysql:host=".DBHOST.";port=".DBPORT.";dbname=".DBNAME.";charset=utf8mb4";
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ];
-            $conn = new PDO($string, DBUSER, DBPASS, $options);
-            
-            $moderatorId = $data['user']['id'];
-
-            // Count hidden events by this moderator
-            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM events WHERE is_deleted = 1 AND moderated_by = :mid");
-            $stmt->execute([':mid' => $moderatorId]);
-            $data['moderation_stats']['hidden_events'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
-            
-            // Count approved publishers handled by this moderator
-            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'approved' AND approved_by = :mid");
-            $stmt->execute([':mid' => $moderatorId]);
-            $data['moderation_stats']['approved_publishers'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
-            
-            // Count rejected publishers handled by this moderator
-            $stmt = $conn->prepare("SELECT COUNT(*) as count FROM publishers WHERE approval_status = 'rejected' AND approved_by = :mid");
-            $stmt->execute([':mid' => $moderatorId]);
-            $data['moderation_stats']['rejected_publishers'] = $stmt->fetch(PDO::FETCH_OBJ)->count;
-            
-            // Total moderation actions
-            $data['moderation_stats']['total_actions'] = $data['moderation_stats']['hidden_events'] + 
-                                                          $data['moderation_stats']['approved_publishers'] + 
-                                                          $data['moderation_stats']['rejected_publishers'];
-        } catch (PDOException $e) {
-            error_log("Dashboard stats error: " . $e->getMessage());
-            // Set default values if query fails
-            $data['moderation_stats']['hidden_events'] = 0;
-            $data['moderation_stats']['approved_publishers'] = 0;
-            $data['moderation_stats']['rejected_publishers'] = 0;
-            $data['moderation_stats']['total_actions'] = 0;
-        }
+        // Calculate moderation stats from model (single source of truth)
+        $data['moderation_stats'] = $moderatorModel->getModerationStats((int)$data['user']['id']);
         
         $this->view('Moderator/dashboard', $data);
     }

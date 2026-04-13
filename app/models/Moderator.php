@@ -359,4 +359,55 @@ class Moderator {
         $publisherModel = new Publisher();
         return $publisherModel->getPendingCountByUniversity($moderator->university);
     }
+
+    /**
+     * Get moderation action stats for a moderator.
+     */
+    public function getModerationStats($moderatorId) {
+        $moderatorId = (int)$moderatorId;
+        if ($moderatorId <= 0) {
+            return [
+                'hidden_events' => 0,
+                'approved_publishers' => 0,
+                'rejected_publishers' => 0,
+                'total_actions' => 0,
+            ];
+        }
+
+        try {
+            $hiddenRows = $this->query(
+                "SELECT COUNT(*) AS total FROM events WHERE is_deleted = 1 AND deleted_by = :moderator_id",
+                ['moderator_id' => $moderatorId]
+            ) ?: [];
+
+            $approvedRows = $this->query(
+                "SELECT COUNT(*) AS total FROM publishers WHERE approval_status = 'approved' AND approved_by = :moderator_id",
+                ['moderator_id' => $moderatorId]
+            ) ?: [];
+
+            $rejectedRows = $this->query(
+                "SELECT COUNT(*) AS total FROM publishers WHERE approval_status = 'rejected' AND approved_by = :moderator_id",
+                ['moderator_id' => $moderatorId]
+            ) ?: [];
+
+            $hiddenEvents = (int)($hiddenRows[0]->total ?? 0);
+            $approvedPublishers = (int)($approvedRows[0]->total ?? 0);
+            $rejectedPublishers = (int)($rejectedRows[0]->total ?? 0);
+
+            return [
+                'hidden_events' => $hiddenEvents,
+                'approved_publishers' => $approvedPublishers,
+                'rejected_publishers' => $rejectedPublishers,
+                'total_actions' => $hiddenEvents + $approvedPublishers + $rejectedPublishers,
+            ];
+        } catch (Exception $e) {
+            error_log('Moderator::getModerationStats error: ' . $e->getMessage());
+            return [
+                'hidden_events' => 0,
+                'approved_publishers' => 0,
+                'rejected_publishers' => 0,
+                'total_actions' => 0,
+            ];
+        }
+    }
 }
