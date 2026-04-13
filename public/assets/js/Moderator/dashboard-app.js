@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
             loadModeratorData();
             loadPendingReviews();
             loadRecentActivity();
-            loadUserReports();
             setupDashboardListeners();
             console.log('Dashboard initialization complete');
         } catch (error) {
@@ -49,10 +48,10 @@ function loadModeratorData() {
     // Update moderation stats
     const statCards = document.querySelectorAll('.stat-card .stat-number');
     if (statCards.length >= 4) {
-        statCards[0].textContent = moderatorData.approvedEvents;
-        statCards[1].textContent = moderatorData.rejectedEvents;
-        statCards[2].textContent = moderatorData.editedEvents;
-        statCards[3].textContent = moderatorData.verifiedOrganizers;
+        statCards[0].textContent = moderatorData.hiddenEvents;
+        statCards[1].textContent = moderatorData.approvedPublishers;
+        statCards[2].textContent = moderatorData.rejectedPublishers;
+        statCards[3].textContent = moderatorData.totalActions;
     }
     
     console.log('Moderator data loaded successfully');
