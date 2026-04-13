@@ -138,9 +138,24 @@ $cssVersion = file_exists($cssFilePath) ? filemtime($cssFilePath) : time();
                             <option value="">All Universities</option>
                             <option value="university-of-colombo">University of Colombo</option>
                             <option value="university-of-peradeniya">University of Peradeniya</option>
+                            <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
                             <option value="university-of-kelaniya">University of Kelaniya</option>
                             <option value="university-of-moratuwa">University of Moratuwa</option>
-                            <option value="university-of-sri-jayewardenepura">University of Sri Jayewardenepura</option>
+                            <option value="university-of-jaffna">University of Jaffna</option>
+                            <option value="university-of-ruhuna">University of Ruhuna</option>
+                            <option value="eastern-university-sri-lanka">Eastern University, Sri Lanka</option>
+                            <option value="south-eastern-university-of-sri-lanka">South Eastern University of Sri Lanka</option>
+                            <option value="rajarata-university-of-sri-lanka">Rajarata University of Sri Lanka</option>
+                            <option value="sabaragamuwa-university-of-sri-lanka">Sabaragamuwa University of Sri Lanka</option>
+                            <option value="wayamba-university-of-sri-lanka">Wayamba University of Sri Lanka</option>
+                            <option value="uva-wellassa-university">Uva Wellassa University</option>
+                            <option value="open-university-of-sri-lanka">Open University of Sri Lanka</option>
+                            <option value="buddhist-and-pali-university-of-sri-lanka">Buddhist and Pali University of Sri Lanka</option>
+                            <option value="sri-lanka-institute-of-information-technology-sliit">Sri Lanka Institute of Information Technology (SLIIT)</option>
+                            <option value="nsbm-green-university">NSBM Green University</option>
+                            <option value="cinec-campus">CINEC Campus</option>
+                            <option value="asia-pacific-institute-of-information-technology-apiit">Asia Pacific Institute of Information Technology (APIIT)</option>
+                            <option value="kiu-kaatsu-international-university">KIU (Kaatsu International University)</option>
                         </select>
 
                         <select id="statusFilter" onchange="filterEvents()">
