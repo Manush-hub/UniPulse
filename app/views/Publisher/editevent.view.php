@@ -18,12 +18,12 @@
     $pageConfig = ['activeNav' => ''];
     include __DIR__ . '/components/header.php';
     ?>
-    
+
     <div class="main-container">
         <form action="/unipulse/public/publisher/editevent/<?= $data['event_id'] ?>" method="POST" enctype="multipart/form-data" id="edit-event">
             <!-- Hidden field to help with AJAX detection -->
             <input type="hidden" name="ajax" value="1" id="ajax-flag">
-            
+
             <!-- Hidden fields for read-only data that needs to be submitted -->
             <input type="hidden" name="event_category" value="<?= htmlspecialchars($data['event']->category) ?>">
             <input type="hidden" name="event_date" value="<?= htmlspecialchars($data['event']->event_date) ?>">
@@ -36,27 +36,27 @@
             <input type="hidden" name="volunteerToggle" value="<?= htmlspecialchars($data['event']->needs_volunteers ?? 0) ?>">
             <input type="hidden" name="volunteers_needed" value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>">
             <input type="hidden" name="donationToggle" value="<?= htmlspecialchars($data['event']->accepts_donations ?? 0) ?>">
-            <?php 
+            <?php
             $volunteerSources = $data['event']->volunteer_sources ?? [];
             if (!is_array($volunteerSources)) {
                 $volunteerSources = json_decode($volunteerSources, true) ?? [];
             }
-            foreach ($volunteerSources as $source): 
+            foreach ($volunteerSources as $source):
             ?>
-            <input type="hidden" name="volunteer-source[]" value="<?= htmlspecialchars($source) ?>">
+                <input type="hidden" name="volunteer-source[]" value="<?= htmlspecialchars($source) ?>">
             <?php endforeach; ?>
-            
-                        <main class="content">
-        
+
+            <main class="content">
+
                 <h2 style="margin-bottom: 30px;">Edit Event</h2>
-        
+
                 <!-- Display success message if exists -->
                 <?php if (isset($data['success'])): ?>
                     <div class="success-message" style="background: #4CAF50; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                         <strong>✓ <?= htmlspecialchars($data['success']) ?></strong>
                     </div>
                 <?php endif; ?>
-                
+
                 <!-- Display errors if any -->
                 <?php if (isset($data['errors']) && !empty($data['errors'])): ?>
                     <div class="error-message" style="background: #f44336; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
@@ -78,46 +78,46 @@
                     </div>
                     <div class="section-content">
 
-                    <div class="form-group">
-                        <label for="event_name" class="form-label">Event Name *</label>
-                        <div class="input-group">
-                            <input type="text" name="event_name" class="form-input" required
-                                   value="<?= htmlspecialchars($data['old_data']['title'] ?? $data['event']->title) ?>"
-                                   placeholder="Enter event name">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="event_description" class="form-label">Event Description *</label>
-                        <div class="input-group">
-                            <textarea name="event_description" class="form-textarea" required
-                                      placeholder="Describe your event in detail"><?= htmlspecialchars($data['old_data']['description'] ?? $data['event']->description) ?></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="event_category" class="form-label">Category</label>
+                            <label for="event_name" class="form-label">Event Name *</label>
                             <div class="input-group">
-                                <input type="text" class="form-input" disabled
-                                       value="<?php 
-                                       $categories = [
-                                           'academic' => 'Academic',
-                                           'sports' => 'Sports',
-                                           'cultural' => 'Cultural',
-                                           'technology' => 'Technology',
-                                           'social' => 'Social',
-                                           'workshop' => 'Workshop',
-                                           'business' => 'Business',
-                                           'music' => 'Music'
-                                       ];
-                                       echo htmlspecialchars($categories[$data['event']->category] ?? $data['event']->category);
-                                       ?>"
-                                       style="background-color: #f5f5f5; cursor: not-allowed;">
+                                <input type="text" name="event_name" class="form-input" required
+                                    value="<?= htmlspecialchars($data['old_data']['title'] ?? $data['event']->title) ?>"
+                                    placeholder="Enter event name">
                             </div>
-                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                         </div>
-                    </div>
+
+                        <div class="form-group">
+                            <label for="event_description" class="form-label">Event Description *</label>
+                            <div class="input-group">
+                                <textarea name="event_description" class="form-textarea" required
+                                    placeholder="Describe your event in detail"><?= htmlspecialchars($data['old_data']['description'] ?? $data['event']->description) ?></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="event_category" class="form-label">Category</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-input" disabled
+                                        value="<?php
+                                                $categories = [
+                                                    'academic' => 'Academic',
+                                                    'sports' => 'Sports',
+                                                    'cultural' => 'Cultural',
+                                                    'technology' => 'Technology',
+                                                    'social' => 'Social',
+                                                    'workshop' => 'Workshop',
+                                                    'business' => 'Business',
+                                                    'music' => 'Music'
+                                                ];
+                                                echo htmlspecialchars($categories[$data['event']->category] ?? $data['event']->category);
+                                                ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+                        </div>
                 </section>
 
                 <!-- Cover Image -->
@@ -146,9 +146,9 @@
                                         <i class="fas fa-image"></i> Current Cover Image
                                     </p>
                                     <div style="text-align: center;">
-                                        <img src="/unipulse/public/<?= htmlspecialchars($data['event']->cover_image) ?>" 
-                                             alt="Current cover" 
-                                             style="
+                                        <img src="/unipulse/public/<?= htmlspecialchars($data['event']->cover_image) ?>"
+                                            alt="Current cover"
+                                            style="
                                                 max-width: 100%; 
                                                 max-height: 300px; 
                                                 border-radius: 8px; 
@@ -174,9 +174,9 @@
                                     <i class="fas fa-check-circle"></i> New Cover Image Preview
                                 </p>
                                 <div style="text-align: center;">
-                                    <img id="newImagePreview" 
-                                         alt="New cover preview" 
-                                         style="
+                                    <img id="newImagePreview"
+                                        alt="New cover preview"
+                                        style="
                                             max-width: 100%; 
                                             max-height: 300px; 
                                             border-radius: 8px; 
@@ -195,8 +195,8 @@
                                     cursor: pointer;
                                     font-size: 12px;
                                     transition: background 0.3s;
-                                " onmouseover="this.style.background='#c82333'" 
-                                   onmouseout="this.style.background='#dc3545'">
+                                " onmouseover="this.style.background='#c82333'"
+                                    onmouseout="this.style.background='#dc3545'">
                                     <i class="fas fa-times"></i> Remove New Image
                                 </button>
                             </div>
@@ -210,8 +210,8 @@
                             text-align: center;
                             transition: all 0.3s ease;
                             margin-top: 20px;
-                        " onmouseover="this.style.background='#f0f4ff'; this.style.borderColor='#1e40af';" 
-                           onmouseout="this.style.background='#ffffff'; this.style.borderColor='#1E3A8A';">
+                        " onmouseover="this.style.background='#f0f4ff'; this.style.borderColor='#1e40af';"
+                            onmouseout="this.style.background='#ffffff'; this.style.borderColor='#1E3A8A';">
                             <div class="upload-icon" style="font-size: 48px; color: #1E3A8A; margin-bottom: 16px;">
                                 <i class="fas fa-cloud-upload-alt"></i>
                             </div>
@@ -229,8 +229,8 @@
                                 display: inline-block;
                                 font-weight: 600;
                                 transition: all 0.3s ease;
-                            " onmouseover="this.style.background='#1e40af';" 
-                               onmouseout="this.style.background='#1E3A8A';">
+                            " onmouseover="this.style.background='#1e40af';"
+                                onmouseout="this.style.background='#1E3A8A';">
                                 Browse Files
                             </label>
                             <p style="color: #999; font-size: 12px; margin-top: 12px;">JPG, PNG, GIF up to 5MB</p>
@@ -251,8 +251,8 @@
                                 <label for="event_date" class="form-label">Event Date</label>
                                 <div class="input-group">
                                     <input type="date" class="form-input" disabled
-                                           value="<?= htmlspecialchars($data['event']->event_date) ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?= htmlspecialchars($data['event']->event_date) ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
@@ -261,8 +261,8 @@
                                 <label for="event_time" class="form-label">Start Time</label>
                                 <div class="input-group">
                                     <input type="time" class="form-input" disabled
-                                           value="<?= htmlspecialchars($data['event']->event_time) ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?= htmlspecialchars($data['event']->event_time) ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
@@ -271,8 +271,8 @@
                                 <label for="event_end_time" class="form-label">End Time</label>
                                 <div class="input-group">
                                     <input type="time" class="form-input" disabled
-                                           value="<?= htmlspecialchars($data['event']->event_end_time ?? '') ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?= htmlspecialchars($data['event']->event_end_time ?? '') ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
@@ -292,8 +292,8 @@
                             <label for="event_location" class="form-label">Location</label>
                             <div class="input-group">
                                 <input type="text" class="form-input" disabled
-                                       value="<?= htmlspecialchars($data['event']->location) ?>"
-                                       style="background-color: #f5f5f5; cursor: not-allowed;">
+                                    value="<?= htmlspecialchars($data['event']->location) ?>"
+                                    style="background-color: #f5f5f5; cursor: not-allowed;">
                             </div>
                             <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                         </div>
@@ -303,28 +303,28 @@
                                 <label for="location-type" class="form-label">Location Type</label>
                                 <div class="input-group">
                                     <input type="text" class="form-input" disabled
-                                           value="<?php 
-                                           $locationTypes = [
-                                               'inside-university' => 'Inside University',
-                                               'outside-university' => 'Outside University'
-                                           ];
-                                           echo htmlspecialchars($locationTypes[$data['event']->location_type ?? 'inside-university'] ?? $data['event']->location_type ?? 'Inside University');
-                                           ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?php
+                                                $locationTypes = [
+                                                    'inside-university' => 'Inside University',
+                                                    'outside-university' => 'Outside University'
+                                                ];
+                                                echo htmlspecialchars($locationTypes[$data['event']->location_type ?? 'inside-university'] ?? $data['event']->location_type ?? 'Inside University');
+                                                ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
 
                             <?php if (!empty($data['event']->venue_name)): ?>
-                            <div class="form-group">
-                                <label for="venue_name" class="form-label">Venue Name</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-input" disabled
-                                           value="<?= htmlspecialchars($data['event']->venue_name) ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                <div class="form-group">
+                                    <label for="venue_name" class="form-label">Venue Name</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-input" disabled
+                                            value="<?= htmlspecialchars($data['event']->venue_name) ?>"
+                                            style="background-color: #f5f5f5; cursor: not-allowed;">
+                                    </div>
+                                    <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                                 </div>
-                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
-                            </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -343,8 +343,8 @@
                                 <label for="max_participants" class="form-label">Maximum Participants</label>
                                 <div class="input-group">
                                     <input type="number" class="form-input" disabled
-                                           value="<?= htmlspecialchars($data['event']->max_participants) ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?= htmlspecialchars($data['event']->max_participants) ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
@@ -353,15 +353,15 @@
                                 <label for="ticketType" class="form-label">Ticket Type</label>
                                 <div class="input-group">
                                     <input type="text" class="form-input" disabled
-                                           value="<?php 
-                                           $ticketTypes = [
-                                               'free-all' => 'Free for All',
-                                               'paid-all' => 'Paid for All',
-                                               'mixed' => 'Mixed (Free & Paid)'
-                                           ];
-                                           echo htmlspecialchars($ticketTypes[$data['event']->ticket_type] ?? $data['event']->ticket_type);
-                                           ?>"
-                                           style="background-color: #f5f5f5; cursor: not-allowed;">
+                                        value="<?php
+                                                $ticketTypes = [
+                                                    'free-all' => 'Free for All',
+                                                    'paid-all' => 'Paid for All',
+                                                    'mixed' => 'Mixed (Free & Paid)'
+                                                ];
+                                                echo htmlspecialchars($ticketTypes[$data['event']->ticket_type] ?? $data['event']->ticket_type);
+                                                ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
@@ -371,51 +371,51 @@
 
                 <!-- Volunteers (Read-only) -->
                 <?php if ($data['event']->needs_volunteers == 1): ?>
-                <section class="section" id="volunteers">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Volunteer Requirements</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <div class="info-note">
-                            <i class="fas fa-info-circle"></i>
-                            This event accepts volunteers from the following sources (cannot be edited)
+                    <section class="section" id="volunteers">
+                        <div class="section-header">
+                            <div class="section-icon"></div>
+                            <h3>Volunteer Requirements</h3>
+                            <div class="toggle-icon" style="margin-left: auto;">▼</div>
                         </div>
+                        <div class="section-content">
+                            <div class="info-note">
+                                <i class="fas fa-info-circle"></i>
+                                This event accepts volunteers from the following sources (cannot be edited)
+                            </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Volunteer Source</label>
-                            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
-                                <?php 
-                                $volunteerSources = $data['event']->volunteer_sources ?? [];
-                                if (!is_array($volunteerSources)) {
-                                    $volunteerSources = json_decode($volunteerSources, true) ?? [];
-                                }
-                                $sourceLabels = [
-                                    'faculty' => '✓ From My Faculty',
-                                    'university' => '✓ From My University',
-                                    'public' => '✓ Public Users'
-                                ];
-                                foreach ($volunteerSources as $source) {
-                                    if (isset($sourceLabels[$source])) {
-                                        echo '<p style="margin: 5px 0; color: #333;"><strong>' . htmlspecialchars($sourceLabels[$source]) . '</strong></p>';
+                            <div class="form-group">
+                                <label class="form-label">Volunteer Source</label>
+                                <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border: 1px solid #ddd;">
+                                    <?php
+                                    $volunteerSources = $data['event']->volunteer_sources ?? [];
+                                    if (!is_array($volunteerSources)) {
+                                        $volunteerSources = json_decode($volunteerSources, true) ?? [];
                                     }
-                                }
-                                ?>
+                                    $sourceLabels = [
+                                        'faculty' => '✓ From My Faculty',
+                                        'university' => '✓ From My University',
+                                        'public' => '✓ Public Users'
+                                    ];
+                                    foreach ($volunteerSources as $source) {
+                                        if (isset($sourceLabels[$source])) {
+                                            echo '<p style="margin: 5px 0; color: #333;"><strong>' . htmlspecialchars($sourceLabels[$source]) . '</strong></p>';
+                                        }
+                                    }
+                                    ?>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Number of Volunteers Needed</label>
-                            <div class="input-group">
-                                <input type="number" class="form-input" disabled
-                                       value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>"
-                                       style="background-color: #f5f5f5; cursor: not-allowed; max-width: 200px;">
+                            <div class="form-group">
+                                <label class="form-label">Number of Volunteers Needed</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-input" disabled
+                                        value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>"
+                                        style="background-color: #f5f5f5; cursor: not-allowed; max-width: 200px;">
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                             </div>
-                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
                         </div>
-                    </div>
-                </section>
+                    </section>
                 <?php endif; ?>
 
                 <!-- Donations (Read-only) -->
@@ -442,36 +442,36 @@
                 </section>
 
                 <?php if (!empty($data['event']->requirements)): ?>
-                <!-- Requirements (Read-only) -->
-                <section class="section" id="requirements">
-                    <div class="section-header">
-                        <div class="section-icon"></div>
-                        <h3>Additional Requirements</h3>
-                        <div class="toggle-icon" style="margin-left: auto;">▼</div>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label class="form-label">Requirements</label>
-                            <div class="input-group">
-                                <textarea class="form-textarea" disabled
-                                          style="background-color: #f5f5f5; cursor: not-allowed;"><?php 
-                                          $requirements = $data['event']->requirements ?? '';
-                                          if (is_array($requirements)) {
-                                              echo htmlspecialchars(implode("\n", $requirements));
-                                          } else if (is_string($requirements) && !empty($requirements)) {
-                                              $decoded = json_decode($requirements, true);
-                                              if (is_array($decoded)) {
-                                                  echo htmlspecialchars(implode("\n", $decoded));
-                                              } else {
-                                                  echo htmlspecialchars($requirements);
-                                              }
-                                          }
-                                          ?></textarea>
-                            </div>
-                            <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                    <!-- Requirements (Read-only) -->
+                    <section class="section" id="requirements">
+                        <div class="section-header">
+                            <div class="section-icon"></div>
+                            <h3>Additional Requirements</h3>
+                            <div class="toggle-icon" style="margin-left: auto;">▼</div>
                         </div>
-                    </div>
-                </section>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label class="form-label">Requirements</label>
+                                <div class="input-group">
+                                    <textarea class="form-textarea" disabled
+                                        style="background-color: #f5f5f5; cursor: not-allowed;"><?php
+                                                                                                $requirements = $data['event']->requirements ?? '';
+                                                                                                if (is_array($requirements)) {
+                                                                                                    echo htmlspecialchars(implode("\n", $requirements));
+                                                                                                } else if (is_string($requirements) && !empty($requirements)) {
+                                                                                                    $decoded = json_decode($requirements, true);
+                                                                                                    if (is_array($decoded)) {
+                                                                                                        echo htmlspecialchars(implode("\n", $decoded));
+                                                                                                    } else {
+                                                                                                        echo htmlspecialchars($requirements);
+                                                                                                    }
+                                                                                                }
+                                                                                                ?></textarea>
+                                </div>
+                                <small style="color: #666; font-size: 12px;">Cannot be edited</small>
+                            </div>
+                        </div>
+                    </section>
                 <?php endif; ?>
 
                 <!-- Action Buttons -->
@@ -490,164 +490,14 @@
     </div>
     <?php include __DIR__ . '/../components/footer.php'; ?>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
-    
+
     <script>
-    // Dropdown scroll functionality - show 5 items when opened
-    document.addEventListener('DOMContentLoaded', function() {
-        // Cover image preview functionality
-        const coverFileInput = document.getElementById('coverFileInput');
-        if (coverFileInput) {
-            coverFileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const newImagePreview = document.getElementById('newImagePreview');
-                        const newImageContainer = document.getElementById('newImagePreviewContainer');
-                        
-                        newImagePreview.src = e.target.result;
-                        newImageContainer.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-    });
-    
-    // Function to clear new image selection
-    function clearNewImage() {
-        const coverFileInput = document.getElementById('coverFileInput');
-        const newImageContainer = document.getElementById('newImagePreviewContainer');
-        
-        coverFileInput.value = '';
-        newImageContainer.style.display = 'none';
-    }
-    
-    // Function to show success message
-    function showSuccessMessage(message) {
-        // Remove any existing success messages
-        const existingMessage = document.querySelector('.success-message');
-        if (existingMessage) {
-            existingMessage.remove();
-        }
-        
-        // Create success message element
-        const successDiv = document.createElement('div');
-        successDiv.className = 'success-message';
-        successDiv.style.cssText = `
-            background: #4CAF50;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-size: 16px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            animation: slideDown 0.3s ease-out;
-        `;
-        successDiv.innerHTML = `
-            <strong>✓ ${message}</strong>
-            <button onclick="this.parentElement.remove()" style="
-                background: none; 
-                border: none; 
-                color: white; 
-                float: right; 
-                cursor: pointer; 
-                font-size: 18px;
-                margin-top: -2px;
-            ">×</button>
-        `;
-        
-        // Insert at the top of the form
-        const form = document.getElementById('edit-event');
-        form.insertBefore(successDiv, form.firstChild);
-        
-        // Auto-remove after 5 seconds
-        setTimeout(() => {
-            if (successDiv.parentElement) {
-                successDiv.remove();
-            }
-        }, 5000);
-    }
-    
-    // Handle form submission
-    document.getElementById('edit-event').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const submitBtn = document.querySelector('.publish-btn');
-        const originalText = submitBtn.innerHTML;
-        
-        // Show loading state
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating Event...';
-        submitBtn.disabled = true;
-        
-        // Get form data
-        const formData = new FormData(this);
-        
-        // Ensure AJAX detection
-        formData.set('ajax', '1');
-        
-        // Submit form
-        fetch(this.action, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => {
-            console.log('Response status:', response.status);
-            console.log('Response headers:', response.headers.get('content-type'));
-            
-            if (!response.ok && response.status !== 200) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            // Check if response is JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                return response.text().then(text => {
-                    console.error('Non-JSON response received:', text);
-                    throw new Error('Server returned non-JSON response: ' + text.substring(0, 200));
-                });
-            }
-            
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                // Show success message with better styling
-                showSuccessMessage('Event updated successfully! Redirecting to event view...');
-                
-                // Redirect to event view after a short delay
-                setTimeout(function() {
-                    window.location.href = '/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>';
-                }, 1500);
-            } else {
-                // Show error messages
-                let errorMessage = 'Please fix the following errors:\n';
-                if (data.errors) {
-                    for (const [field, message] of Object.entries(data.errors)) {
-                        errorMessage += `- ${message}\n`;
-                    }
-                } else {
-                    errorMessage += data.message || 'Unknown error occurred';
-                }
-                alert(errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Network or server error: ' + error.message + '. Please check the console for more details.');
-        })
-        .finally(() => {
-            // Reset button
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        });
-    });
+        window.publisherEditEventConfig = {
+            redirectUrl: '/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>'
+        };
     </script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_editevent.js"></script>
+
 </body>
 
 </html>
