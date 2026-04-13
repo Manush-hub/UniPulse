@@ -423,5 +423,30 @@ class SponsorProfile extends Controller {
             echo json_encode(['success' => false, 'message' => 'Failed to upload file']);
         }
     }
+
+    /**
+     * Delete sponsor account
+     */
+    public function deleteAccount($a = '', $b = '', $c = '') {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+
+        if (!$currentUser || $currentUser['type'] !== 'sponsor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $sponsorId = (int) $currentUser['id'];
+        $deleted = $this->sponsorModel->deleteAccount($sponsorId);
+
+        if ($deleted) {
+            AuthService::logout();
+            echo json_encode(['success' => true, 'message' => 'Account deleted successfully']);
+            return;
+        }
+
+        echo json_encode(['success' => false, 'message' => 'Unable to delete account right now. Please try again later.']);
+    }
 }
 

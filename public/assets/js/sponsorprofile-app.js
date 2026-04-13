@@ -509,28 +509,39 @@ class SponsorProfileApp {
     }
 
     // Delete Account
-    deleteAccount() {
+    async deleteAccount() {
         if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
             if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
-                // Implement delete account functionality
-                fetch('/UniPulse/public/sponsor/profile/deleteAccount', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
+                try {
+                    const response = await fetch('/UniPulse/public/sponsor/profile/deleteAccount', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (parseError) {
+                        this.showNotification('Could not process server response. Please try again later.', 'error');
+                        return;
                     }
-                })
-                .then(response => response.json())
-                .then(result => {
+
+                    if (!response.ok) {
+                        this.showNotification(result.message || 'Account deletion failed. Please try again.', 'error');
+                        return;
+                    }
+
                     if (result.success) {
                         window.location.href = '/UniPulse/public/signin';
                     } else {
                         this.showNotification(result.message || 'Failed to delete account', 'error');
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error deleting account:', error);
-                    this.showNotification('An error occurred', 'error');
-                });
+                    this.showNotification('Unable to delete account right now. Please check your connection and try again.', 'error');
+                }
             }
         }
     }

@@ -316,4 +316,48 @@ class Sponsor {
             return [];
         }
     }
+
+    /**
+     * Permanently delete sponsor account and related data.
+     */
+    public function deleteAccount($sponsorId) {
+        $sponsorId = (int) $sponsorId;
+
+        if ($sponsorId <= 0) {
+            return false;
+        }
+
+        try {
+            $conn = $this->connect();
+            $conn->beginTransaction();
+
+            // Remove related rows that are known to reference sponsor ids without FK constraints.
+            $stmt = $conn->prepare("DELETE FROM event_sponsorships WHERE sponsor_id = :sponsor_id AND sponsor_type = 'sponsor'");
+            $stmt->execute(['sponsor_id' => $sponsorId]);
+
+            $stmt = $conn->prepare("DELETE FROM users WHERE user_type = 'sponsor' AND user_id = :sponsor_id");
+            $stmt->execute(['sponsor_id' => $sponsorId]);
+
+            // sponsor_profiles has FK ON DELETE CASCADE in migration, but this keeps compatibility if FK is missing.
+            $stmt = $conn->prepare("DELETE FROM sponsor_profiles WHERE sponsor_id = :sponsor_id");
+            $stmt->execute(['sponsor_id' => $sponsorId]);
+
+            $stmt = $conn->prepare("DELETE FROM sponsors WHERE id = :sponsor_id");
+            $stmt->execute(['sponsor_id' => $sponsorId]);
+
+            if ($stmt->rowCount() < 1) {
+                $conn->rollBack();
+                return false;
+            }
+
+            $conn->commit();
+            return true;
+        } catch (Exception $e) {
+            if (isset($conn) && $conn->inTransaction()) {
+                $conn->rollBack();
+            }
+            error_log("Error deleting sponsor account: " . $e->getMessage());
+            return false;
+        }
+    }
 }

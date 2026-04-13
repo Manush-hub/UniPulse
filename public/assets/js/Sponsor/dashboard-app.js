@@ -192,7 +192,7 @@ function setupScrollAnimations() {
     }, observerOptions);
 
     // Observe sections for animation
-    document.querySelectorAll('.sponsorship-card, .performance-card').forEach(element => {
+    document.querySelectorAll('.sponsorship-card').forEach(element => {
         element.style.opacity = '0';
         element.style.transform = 'translateY(20px)';
         element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';

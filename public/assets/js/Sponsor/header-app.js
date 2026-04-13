@@ -83,13 +83,15 @@ function loadNotifications() {
                 displayNotifications(data.notifications);
             } else {
                 notificationList.innerHTML = '<div class="no-data">No notifications</div>';
-                notificationBadge.style.display = 'none';
+                notificationBadge.textContent = '';
+                notificationBadge.classList.add('hidden');
             }
         })
         .catch(error => {
             console.error('Error loading notifications:', error);
             notificationList.innerHTML = '<div class="no-data">Failed to load notifications</div>';
-            notificationBadge.style.display = 'none';
+            notificationBadge.textContent = '';
+            notificationBadge.classList.add('hidden');
         });
 }
 
@@ -101,8 +103,13 @@ function displayNotifications(notifications) {
     notificationList.innerHTML = '';
 
     const unreadCount = notifications.filter(n => n.unread).length;
-    notificationBadge.textContent = unreadCount;
-    notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    if (unreadCount > 0) {
+        notificationBadge.textContent = unreadCount;
+        notificationBadge.classList.remove('hidden');
+    } else {
+        notificationBadge.textContent = '';
+        notificationBadge.classList.add('hidden');
+    }
 
     if (notifications.length === 0) {
         notificationList.innerHTML = '<div class="no-data">No notifications</div>';
@@ -119,7 +126,7 @@ function displayNotifications(notifications) {
 function createNotificationItem(notification) {
     const item = document.createElement('div');
     item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
-    item.onclick = () => markNotificationAsRead(notification.id);
+    item.onclick = () => handleNotificationClick(notification);
 
     item.innerHTML = `
         <div class="notification-content">
@@ -130,6 +137,33 @@ function createNotificationItem(notification) {
     `;
 
     return item;
+}
+
+async function handleNotificationClick(notification) {
+    const redirectUrl = typeof notification.redirect_url === 'string'
+        ? notification.redirect_url.trim()
+        : '';
+
+    if (notification.unread) {
+        const success = await markNotificationAsRead(notification.id);
+        if (success) {
+            notification.unread = false;
+            loadNotifications();
+        }
+    }
+
+    if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+    }
+
+    const relatedId = Number(notification.related_id || 0);
+    if (relatedId > 0) {
+        window.location.href = `/unipulse/public/sponsor/eventview?id=${relatedId}`;
+        return;
+    }
+
+    window.location.href = '/unipulse/public/sponsor/dashboard';
 }
 
 // Setup event listeners
@@ -158,23 +192,23 @@ function toggleUserMenu() {
 }
 
 // Mark notification as read
-function markNotificationAsRead(notificationId) {
-    fetch('/unipulse/public/sponsor/dashboard/markNotificationRead', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ notificationId: notificationId })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadNotifications();
-            }
-        })
-        .catch(error => {
-            console.error('Error marking notification as read:', error);
+async function markNotificationAsRead(notificationId) {
+    try {
+        const response = await fetch('/unipulse/public/sponsor/dashboard/markNotificationRead', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ notificationId: notificationId }),
+            keepalive: true
         });
+
+        const data = await response.json();
+        return Boolean(data.success);
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+        return false;
+    }
 }
 
 // Mark all notifications as read

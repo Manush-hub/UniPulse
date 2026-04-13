@@ -113,6 +113,9 @@ class SponsorDashboard extends Controller
             $notifications = [];
             foreach ($rows ?: [] as $row) {
                 $createdAt = $row->created_at ?? date('Y-m-d H:i:s');
+                $relatedId = (int)($row->related_id ?? 0);
+                $relatedType = (string)($row->related_type ?? '');
+                $notificationType = (string)($row->type ?? '');
                 $notifications[] = [
                     'id' => (int)($row->id ?? 0),
                     'title' => (string)($row->title ?? 'Notification'),
@@ -120,6 +123,10 @@ class SponsorDashboard extends Controller
                     'time' => $this->formatRelativeTime($createdAt),
                     'created_at' => $createdAt,
                     'unread' => !((bool)($row->is_read ?? 0)),
+                    'type' => $notificationType,
+                    'related_id' => $relatedId,
+                    'related_type' => $relatedType,
+                    'redirect_url' => $this->getSponsorNotificationRedirectUrl($relatedId, $relatedType, $notificationType),
                 ];
             }
 
@@ -701,6 +708,26 @@ class SponsorDashboard extends Controller
         }
 
         return date('M j, Y', $time);
+    }
+
+    /**
+     * Resolve where sponsor notification clicks should navigate.
+     */
+    private function getSponsorNotificationRedirectUrl($relatedId, $relatedType, $notificationType)
+    {
+        $relatedId = (int)$relatedId;
+        $relatedType = strtolower(trim((string)$relatedType));
+        $notificationType = strtolower(trim((string)$notificationType));
+
+        if ($relatedType === 'event' && $relatedId > 0) {
+            return '/unipulse/public/sponsor/eventview?id=' . $relatedId;
+        }
+
+        if ($notificationType === 'event_comment' && $relatedId > 0) {
+            return '/unipulse/public/sponsor/eventview?id=' . $relatedId;
+        }
+
+        return '/unipulse/public/sponsor/dashboard';
     }
 
     /**
