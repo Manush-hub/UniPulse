@@ -141,5 +141,8 @@
             </div>
         </section>
     </div>
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
+    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_admin_create.js"></script>
 </body>
 </html>

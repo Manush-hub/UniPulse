@@ -19,6 +19,7 @@ class AdminDashboard extends Controller {
         
         $activeModerators = $moderatorModel->getActiveModerators();
         $activeAdmins = $adminModel->getActiveAdmins();
+        $data['is_system_admin'] = $adminModel->isSystemAdministrator($data['user']['id']);
         
         $data['stats'] = [
             'total_moderators' => count($activeModerators),
@@ -353,6 +354,7 @@ class AdminDashboard extends Controller {
                     'moderator_created'    => 'Moderator Added',
                     'moderator_edited'     => 'Moderator Updated',
                     'moderator_deleted'    => 'Moderator Deleted',
+                    'moderator_deactivated'=> 'Moderator Deactivated',
                     'moderator_activated'  => 'Moderator Reactivated',
                     'admin_created'        => 'New Admin Added',
                     'user_suspended'       => 'Account Suspended',

@@ -8,6 +8,10 @@ class Admin_create extends Controller{
             header('Location: /unipulse/public/signin');
             exit();
         }
+
+        $_SESSION['error_message'] = 'Admin management page has been removed';
+        header('Location: /unipulse/public/admin/dashboard');
+        exit();
         
         // Handle POST request (form submission)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -16,7 +20,7 @@ class Admin_create extends Controller{
         }
         
         $data = [];
-        $data['user'] = AuthService::getCurrentUser();
+        $data['user'] = $currentUser;
         
         $this->view('Admin/admin_create', $data);
     }

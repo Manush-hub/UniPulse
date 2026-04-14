@@ -177,6 +177,8 @@
         </section>
     </div>
 
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
     <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_moderator_edit.js"></script>
 </body>
 </html>

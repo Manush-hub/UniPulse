@@ -240,6 +240,8 @@
         </section>
     </div>
 
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
     <!-- Toast notification -->
     <div class="chat-notification" id="chatNotification">
         <i class="fas fa-check-circle" id="notifIcon"></i>

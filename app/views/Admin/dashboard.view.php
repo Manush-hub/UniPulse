@@ -55,13 +55,9 @@
                             <i class="fas fa-user-shield"></i>
                             Manage Moderators
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/admins_list'">
-                            <i class="fas fa-users-cog"></i>
-                            Manage Admins
-                        </button>
-                        <button class="btn btn-outline" onclick="window.location.href='/unipulse/public/admin/settings'">
-                            <i class="fas fa-cog"></i>
-                            System Settings
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/admin_edit/<?php echo (int)($user['id'] ?? 0); ?>'">
+                            <i class="fas fa-user-cog"></i>
+                            Manage Account
                         </button>
                     </div>
                 </div>
