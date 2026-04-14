@@ -390,10 +390,11 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                     </div>
 
                     <div class="section-header" id="volunteerDonationHeader" style="display: none;">
-                        <h2 class="section-title">Volunteer & Donations</h2>
+                        <h2 class="section-title"><?= ($currentRole === 'Sponsor' || $currentRole === 'Publisher') ? 'Donations' : 'Volunteer & Donations' ?></h2>
                     </div>
 
                     <div class="details-grid" id="volunteerDonationGrid" style="display: none;">
+                        <?php if ($currentRole === 'User'): ?>
                         <div class="content-card" id="volunteerCard" style="display: none;">
                             <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
                             <div id="volunteerInfo"></div>
@@ -403,6 +404,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                             <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
                             <div id="volunteerInvolvementInfo"></div>
                         </div>
+                        <?php endif; ?>
 
                         <div class="content-card" id="donationCard" style="display: none;">
                             <h3><i class="fas fa-hand-holding-heart"></i> Support This Event</h3>
@@ -466,28 +468,30 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
         </div>
     </div>
 
-    <!-- Volunteer Consent Modal -->
-    <div id="volunteerConsentModal" class="modal">
-        <div class="modal-content volunteer-consent-content">
-            <div class="modal-header">
-                <h2>Volunteer Application Consent</h2>
-                <button class="close-btn" onclick="closeVolunteerConsentModal()">&times;</button>
-            </div>
-            <div class="modal-body volunteer-consent-body">
-                <div class="volunteer-consent-icon" aria-hidden="true">
-                    <i class="fas fa-shield-alt"></i>
+    <?php if ($currentRole === 'User'): ?>
+        <!-- Volunteer Consent Modal -->
+        <div id="volunteerConsentModal" class="modal">
+            <div class="modal-content volunteer-consent-content">
+                <div class="modal-header">
+                    <h2>Volunteer Application Consent</h2>
+                    <button class="close-btn" onclick="closeVolunteerConsentModal()">&times;</button>
                 </div>
-                <p class="volunteer-consent-message">
-                    By applying as a volunteer, your private details including your phone number and email address will be shared with the publisher.
-                </p>
-                <p class="volunteer-consent-question">Do you want to continue?</p>
-            </div>
-            <div class="modal-footer volunteer-consent-footer">
-                <button class="btn btn-secondary" onclick="closeVolunteerConsentModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmVolunteerConsent()">Confirm</button>
+                <div class="modal-body volunteer-consent-body">
+                    <div class="volunteer-consent-icon" aria-hidden="true">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <p class="volunteer-consent-message">
+                        By applying as a volunteer, your private details including your phone number and email address will be shared with the publisher.
+                    </p>
+                    <p class="volunteer-consent-question">Do you want to continue?</p>
+                </div>
+                <div class="modal-footer volunteer-consent-footer">
+                    <button class="btn btn-secondary" onclick="closeVolunteerConsentModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="confirmVolunteerConsent()">Confirm</button>
+                </div>
             </div>
         </div>
-    </div>
+    <?php endif; ?>
 
     <!-- Donation Modal -->
     <div id="donationModal" class="modal">

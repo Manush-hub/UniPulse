@@ -272,43 +272,13 @@ function displayEventDetails(event) {
 
         const eventStatus = getEventStatus(event.event_date || event.date, event.event_time || event.time, event.event_end_time);
 
-        if (eventStatus !== 'upcoming') {
-            const volunteerCard = document.getElementById('volunteerCard');
-            const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
-            if (volunteerCard) {
-                volunteerCard.style.display = 'none';
-            }
-            if (volunteerInvolvementCard) {
-                volunteerInvolvementCard.style.display = 'none';
-            }
-        } else {
-            // Volunteer information - hide card if not accepting volunteers or no slots left
-            if (event.needs_volunteers && event.needs_volunteers == 1) {
-                const volunteersNeeded = event.volunteers_needed !== null && event.volunteers_needed !== undefined
-                    ? parseInt(event.volunteers_needed, 10)
-                    : null;
-
-                if (volunteersNeeded === null || volunteersNeeded > 0) {
-                    displayVolunteerInfo(event);
-                } else {
-                    if (document.getElementById('volunteerCard')) {
-                        document.getElementById('volunteerCard').style.display = 'none';
-                    }
-                }
-            } else {
-                if (document.getElementById('volunteerCard')) {
-                    document.getElementById('volunteerCard').style.display = 'none';
-                }
-            }
-
-            if (isVolunteerApplied) {
-                displayVolunteerInvolvement(event);
-            } else {
-                const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
-                if (volunteerInvolvementCard) {
-                    volunteerInvolvementCard.style.display = 'none';
-                }
-            }
+        const volunteerCard = document.getElementById('volunteerCard');
+        const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
+        if (volunteerCard) {
+            volunteerCard.style.display = 'none';
+        }
+        if (volunteerInvolvementCard) {
+            volunteerInvolvementCard.style.display = 'none';
         }
 
         // Donation information - hide card if not accepting donations
@@ -322,10 +292,9 @@ function displayEventDetails(event) {
             }
         }
 
-        // Show volunteer/donation section if either is available
-        const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1;
+        // Publisher role only uses donations in this section.
         const hasDonation = eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1;
-        if (hasVolunteer || hasDonation) {
+        if (hasDonation) {
             const volunteerDonationHeader = document.getElementById('volunteerDonationHeader');
             const volunteerDonationGrid = document.getElementById('volunteerDonationGrid');
 
@@ -1372,11 +1341,7 @@ function displayVolunteerInfo(event) {
     // }
 
     volunteerHTML += '<div style="margin-top: 15px;">';
-    if (isVolunteerApplied) {
-        volunteerHTML += `<button class="btn btn-primary" disabled style="opacity:0.7;cursor:not-allowed;">${getVolunteerStatusText(volunteerApplication?.status)}</button>`;
-    } else {
-        volunteerHTML += `<button class="btn btn-primary" onclick="applyAsVolunteer()" ${hasVolunteerSlots ? '' : 'disabled style="opacity:0.6;cursor:not-allowed;"'}>${hasVolunteerSlots ? 'Apply as Volunteer' : 'Volunteer Positions Filled'}</button>`;
-    }
+    volunteerHTML += '<p style="color:#64748b;font-size:0.9rem;">Volunteer applications are not available for publisher accounts.</p>';
     volunteerHTML += '</div>';
 
     volunteerHTML += '</div>';
