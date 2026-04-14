@@ -362,10 +362,10 @@
                     <div class="danger-actions">
                         <div class="danger-item">
                             <div>
-                                <h4>Delete Organization</h4>
-                                <p>Permanently delete organization and all associated data</p>
+                                <h4>Deactivate Organization</h4>
+                                <p>The organization account will be marked inactive and can be reactivated by signing in again</p>
                             </div>
-                            <button class="btn btn-danger" onclick="deleteOrganization()">Delete</button>
+                            <button class="btn btn-danger" onclick="deleteOrganization()">Deactivate</button>
                         </div>
                     </div>
                 </div>

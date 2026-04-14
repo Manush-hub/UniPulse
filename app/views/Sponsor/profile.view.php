@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="/UniPulse/public/assets/css/sponsor/profile-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <?php include_once(__DIR__ . '/components/header.php'); ?>
 
@@ -23,7 +25,7 @@
                         Change Cover Photo
                     </div>
                 </div>
-                
+
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
                     <img id="profileImage" src="<?= isset($profile->logo_url) && $profile->logo_url ? $profile->logo_url : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop' ?>" alt="Sponsor Logo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
@@ -35,12 +37,12 @@
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCover(event)">
             </div>
-            
+
             <!-- Profile Info Below Cover -->
             <div class="profile-info-section">
                 <div class="profile-name-email">
                     <h1 class="profile-name"><?= isset($sponsor->company_name) ? htmlspecialchars($sponsor->company_name) : 'Sponsor Name' ?></h1>
-                    <?php if(isset($sponsor->email)): ?>
+                    <?php if (isset($sponsor->email)): ?>
                         <p class="profile-email"><?= htmlspecialchars($sponsor->email) ?></p>
                     <?php endif; ?>
                 </div>
@@ -108,14 +110,14 @@
                             <label for="sponsorPhone">Phone Number <span style="color: #dc3545;">*</span></label>
                             <input type="tel" id="sponsorPhone" placeholder="Contact phone" required>
                         </div>
-                        
-                        
+
+
                         <!-- Fifth Row: Address -->
                         <div class="form-group full-width">
                             <label for="sponsorAddress">Address</label>
                             <textarea id="sponsorAddress" rows="2" placeholder="Business address"></textarea>
                         </div>
-                        
+
                         <div class="form-group full-width">
                             <label for="headline">Headline</label>
                             <textarea id="headline" rows="1" placeholder="Brief tagline or mission statement"></textarea>
@@ -124,7 +126,7 @@
                             <label for="sponsorAbout">About <span style="color: #dc3545;">*</span></label>
                             <textarea id="sponsorAbout" rows="4" placeholder="Tell us about your organization" required></textarea>
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveSponsorInfo()">
                                 <i class="fas fa-save"></i> Save Changes
@@ -196,7 +198,7 @@
                             </label>
                             <input type="url" id="facebook" placeholder="https://facebook.com/company">
                         </div>
-                        
+
                         <!-- Row 2 -->
                         <div class="form-group">
                             <label for="instagram">
@@ -210,7 +212,7 @@
                             </label>
                             <input type="url" id="linkedin" placeholder="https://linkedin.com/company">
                         </div>
-                        
+
                         <!-- Row 3 -->
                         <div class="form-group">
                             <label for="twitter">
@@ -224,7 +226,7 @@
                             </label>
                             <input type="url" id="youtube" placeholder="https://youtube.com/@company">
                         </div>
-                        
+
                         <div class="form-actions">
                             <button type="button" class="btn btn-primary" onclick="saveContactInfo()">
                                 <i class="fas fa-save"></i> Save Changes
@@ -292,11 +294,11 @@
                     <div class="danger-actions">
                         <div class="danger-item">
                             <div class="danger-info">
-                                <h4>Delete Account</h4>
-                                <p>Permanently delete your sponsor account and all associated data</p>
+                                <h4>Deactivate Account</h4>
+                                <p>Your sponsor account will be marked inactive and can be reactivated by signing in again</p>
                             </div>
                             <button class="btn btn-danger" onclick="deleteAccount()">
-                                Delete
+                                Deactivate
                             </button>
                         </div>
                     </div>
@@ -323,11 +325,12 @@
     </div>
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
-    
+
     <script>
         // Pass sponsor data from PHP to JavaScript
         const sponsorData = <?= $sponsorJson ?? '{}' ?>;
     </script>
     <script src="/UniPulse/public/assets/js/sponsorprofile-app.js"></script>
 </body>
+
 </html>

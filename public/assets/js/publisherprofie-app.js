@@ -25,10 +25,10 @@ class ClubProfile {
             github: '',
             logo: ''
         };
-        
+
         this.focusAreas = ['Technology', 'Innovation', 'Entrepreneurship', 'Networking'];
         this.notifications = [];
-        
+
         this.init();
     }
 
@@ -327,10 +327,10 @@ class ClubProfile {
         // Set active states for existing buttons based on focus areas
         document.querySelectorAll('.preference-btn').forEach(btn => {
             const preference = btn.dataset.preference;
-            const shouldBeActive = this.focusAreas.some(area => 
+            const shouldBeActive = this.focusAreas.some(area =>
                 area.toLowerCase().includes(preference) || preference.includes(area.toLowerCase())
             );
-            
+
             if (shouldBeActive) {
                 btn.classList.add('active');
             } else {
@@ -345,7 +345,7 @@ class ClubProfile {
         button.classList.toggle('active');
         const preference = button.dataset.preference;
         const isActive = button.classList.contains('active');
-        
+
         if (isActive) {
             // this.showNotification(`${preference.charAt(0).toUpperCase() + preference.slice(1)} preference added`, 'success');
         } else {
@@ -389,7 +389,7 @@ class ClubProfile {
         const activeContent = document.querySelector('.tab-content.active');
         activeContent.style.opacity = '0';
         activeContent.style.transform = 'translateY(20px)';
-        
+
         setTimeout(() => {
             activeContent.style.transition = 'all 0.3s ease';
             activeContent.style.opacity = '1';
@@ -399,9 +399,9 @@ class ClubProfile {
 
     formatDate(dateString) {
         const date = new Date(dateString);
-        const options = { 
-            year: 'numeric', 
-            month: 'long', 
+        const options = {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric'
         };
         return date.toLocaleDateString('en-US', options);
@@ -436,56 +436,56 @@ class ClubProfile {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update organizationData
-                this.organizationData.name = formData.orgName;
-                this.organizationData.type = formData.orgType;
-                this.organizationData.university = formData.university;
-                this.organizationData.faculty = formData.faculty;
-                this.organizationData.contactNumber = formData.contactNumber;
-                this.organizationData.address = formData.address;
-                this.organizationData.establishedYear = formData.establishedYear;
-                this.organizationData.memberCount = formData.memberCount;
-                this.organizationData.headline = formData.headline;
-                this.organizationData.bio = formData.bio;
-                this.organizationData.mission = formData.mission;
-                
-                // Update profile display
-                const profileName = document.getElementById('profileName');
-                if (profileName) profileName.textContent = formData.orgName;
-                
-                const profileBio = document.getElementById('profileBio');
-                if (profileBio) profileBio.textContent = formData.bio;
-                
-                // Update header username
-                const headerUsername = document.getElementById('username');
-                if (headerUsername && formData.orgName) {
-                    headerUsername.textContent = formData.orgName;
-                    console.log('Header username updated to:', formData.orgName);
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update organizationData
+                    this.organizationData.name = formData.orgName;
+                    this.organizationData.type = formData.orgType;
+                    this.organizationData.university = formData.university;
+                    this.organizationData.faculty = formData.faculty;
+                    this.organizationData.contactNumber = formData.contactNumber;
+                    this.organizationData.address = formData.address;
+                    this.organizationData.establishedYear = formData.establishedYear;
+                    this.organizationData.memberCount = formData.memberCount;
+                    this.organizationData.headline = formData.headline;
+                    this.organizationData.bio = formData.bio;
+                    this.organizationData.mission = formData.mission;
+
+                    // Update profile display
+                    const profileName = document.getElementById('profileName');
+                    if (profileName) profileName.textContent = formData.orgName;
+
+                    const profileBio = document.getElementById('profileBio');
+                    if (profileBio) profileBio.textContent = formData.bio;
+
+                    // Update header username
+                    const headerUsername = document.getElementById('username');
+                    if (headerUsername && formData.orgName) {
+                        headerUsername.textContent = formData.orgName;
+                        console.log('Header username updated to:', formData.orgName);
+                    }
+
+                    this.showNotification('Organization information updated successfully!', 'success');
+                } else {
+                    this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
                 }
-                
-                this.showNotification('Organization information updated successfully!', 'success');
-            } else {
-                this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error updating organization info:', error);
-            this.showNotification('An error occurred while updating', 'error');
-        })
-        .finally(() => {
-            saveBtn.textContent = originalText;
-            saveBtn.disabled = false;
-        });
+            })
+            .catch(error => {
+                console.error('Error updating organization info:', error);
+                this.showNotification('An error occurred while updating', 'error');
+            })
+            .finally(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            });
     }
 
     cancelOrganizationInfo() {
         // Reset form to original values
         const form = document.getElementById('organization-form');
         const inputs = form.querySelectorAll('input, textarea, select');
-        
+
         // Reset to original values (you can implement actual reset logic here)
         // this.showNotification('Changes cancelled', 'info');
     }
@@ -494,7 +494,7 @@ class ClubProfile {
         // Reset social links form to original values
         const form = document.getElementById('social-form');
         const inputs = form.querySelectorAll('input');
-        
+
         // Reset to original values (you can implement actual reset logic here)
         // this.showNotification('Changes cancelled', 'info');
     }
@@ -503,12 +503,12 @@ class ClubProfile {
         // Reset security form to original values
         const form = document.getElementById('security-form');
         const inputs = form.querySelectorAll('input');
-        
+
         // Clear password fields
         document.getElementById('currentPassword').value = '';
         document.getElementById('newPassword').value = '';
         document.getElementById('confirmPassword').value = '';
-        
+
         // this.showNotification('Changes cancelled', 'info');
     }
 
@@ -520,11 +520,11 @@ class ClubProfile {
             const name = card.querySelector('h4').textContent.toLowerCase();
             const role = card.querySelector('.member-role').textContent.toLowerCase();
             const details = card.querySelector('.member-details').textContent.toLowerCase();
-            
-            const matches = name.includes(searchTerm) || 
-                          role.includes(searchTerm) || 
-                          details.includes(searchTerm);
-            
+
+            const matches = name.includes(searchTerm) ||
+                role.includes(searchTerm) ||
+                details.includes(searchTerm);
+
             card.style.display = matches ? 'block' : 'none';
         });
     }
@@ -533,7 +533,7 @@ class ClubProfile {
         document.getElementById('addAdminModal').style.display = 'flex';
         document.getElementById('addAdminModal').classList.add('active');
         document.body.style.overflow = 'hidden';
-        
+
         // Reset form
         this.clearAddAdminForm();
     }
@@ -544,16 +544,16 @@ class ClubProfile {
         if (form) {
             form.reset();
         }
-        
+
         // Clear photo preview
         const preview = document.getElementById('adminPhotoPreview');
         const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
-        
+
         if (preview) {
             preview.style.display = 'none';
             preview.src = '';
         }
-        
+
         if (uploadPlaceholder) {
             uploadPlaceholder.style.display = 'flex';
         }
@@ -581,12 +581,29 @@ class ClubProfile {
     }
 
     deleteOrganization() {
-        if (confirm('Are you sure you want to delete this organization? This action cannot be undone.')) {
-            if (confirm('Please confirm again. This will permanently delete all organization data.')) {
-                // this.showNotification('Organization deletion process started', 'error');
-                // Implement deletion logic
-            }
+        if (!confirm('Deactivate this organization account now? Signing in again will reactivate it.')) {
+            return;
         }
+
+        fetch('/UniPulse/public/publisher/profile/deleteOrganization', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/UniPulse/public/signin?message=logout_success';
+                } else {
+                    this.showNotification(data.message || 'Failed to deactivate organization account', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deactivating organization account:', error);
+                this.showNotification('Unable to deactivate organization account right now', 'error');
+            });
     }
 
     saveSocialLinks() {
@@ -615,22 +632,22 @@ class ClubProfile {
                 },
                 body: JSON.stringify(socialData)
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.showNotification('Social links updated successfully!', 'success');
-                } else {
-                    this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error updating social links:', error);
-                this.showNotification('An error occurred while updating', 'error');
-            })
-            .finally(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.disabled = false;
-            });
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.showNotification('Social links updated successfully!', 'success');
+                    } else {
+                        this.showNotification('Failed to update: ' + (data.message || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating social links:', error);
+                    this.showNotification('An error occurred while updating', 'error');
+                })
+                .finally(() => {
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                });
         }
     }
 
@@ -761,7 +778,7 @@ class ClubProfile {
     showNotification(message, type = 'info') {
         // Create notification element if it doesn't exist
         let notification = document.getElementById('notification-toast');
-        
+
         if (!notification) {
             notification = document.createElement('div');
             notification.id = 'notification-toast';
@@ -788,7 +805,7 @@ class ClubProfile {
             'warning': '#f59e0b',
             'info': '#3b82f6'
         };
-        
+
         notification.style.backgroundColor = colors[type] || colors['info'];
         notification.textContent = message;
         notification.style.display = 'block';
@@ -866,7 +883,7 @@ function uploadCover() {
 function changeCover(event) {
     const file = event.target.files[0];
     console.log('changeCover called, file:', file);
-    
+
     if (file && file.type.startsWith('image/')) {
         // Show preview immediately
         const reader = new FileReader();
@@ -884,7 +901,7 @@ function changeCover(event) {
         formData.append('image', file);
 
         console.log('Starting upload to /UniPulse/public/publisher/profile/uploadCoverPhoto');
-        
+
         if (typeof clubProfile !== 'undefined') {
             clubProfile.showNotification('Uploading cover photo...', 'info');
         }
@@ -893,37 +910,37 @@ function changeCover(event) {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            console.log('Response received:', response);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            if (data.success) {
+            .then(response => {
+                console.log('Response received:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    if (typeof clubProfile !== 'undefined') {
+                        clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                    }
+                    // Update with server URL
+                    const coverImg = document.getElementById('coverPhoto');
+                    if (coverImg && data.imageUrl) {
+                        coverImg.src = data.imageUrl;
+                        console.log('Cover photo updated with URL:', data.imageUrl);
+                    }
+                } else {
+                    console.error('Upload failed:', data.message);
+                    if (typeof clubProfile !== 'undefined') {
+                        clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
+                    }
+                    alert('Failed to upload: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading cover photo:', error);
                 if (typeof clubProfile !== 'undefined') {
-                    clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                    clubProfile.showNotification('Error uploading cover photo', 'error');
                 }
-                // Update with server URL
-                const coverImg = document.getElementById('coverPhoto');
-                if (coverImg && data.imageUrl) {
-                    coverImg.src = data.imageUrl;
-                    console.log('Cover photo updated with URL:', data.imageUrl);
-                }
-            } else {
-                console.error('Upload failed:', data.message);
-                if (typeof clubProfile !== 'undefined') {
-                    clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
-                }
-                alert('Failed to upload: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading cover photo:', error);
-            if (typeof clubProfile !== 'undefined') {
-                clubProfile.showNotification('Error uploading cover photo', 'error');
-            }
-            alert('Error uploading cover photo: ' + error.message);
-        });
+                alert('Error uploading cover photo: ' + error.message);
+            });
     }
 }
 
@@ -955,30 +972,30 @@ function changeProfileImage(event) {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                clubProfile.showNotification('Profile logo updated successfully!', 'success');
-                // Update with server URL
-                const profileImg = document.getElementById('profileImage');
-                if (profileImg && data.imageUrl) {
-                    profileImg.src = data.imageUrl;
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    clubProfile.showNotification('Profile logo updated successfully!', 'success');
+                    // Update with server URL
+                    const profileImg = document.getElementById('profileImage');
+                    if (profileImg && data.imageUrl) {
+                        profileImg.src = data.imageUrl;
+                    }
+
+                    // Update header avatar
+                    const headerAvatar = document.getElementById('headerAvatar');
+                    if (headerAvatar && data.imageUrl) {
+                        headerAvatar.src = data.imageUrl;
+                        console.log('Header avatar updated with URL:', data.imageUrl);
+                    }
+                } else {
+                    clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
                 }
-                
-                // Update header avatar
-                const headerAvatar = document.getElementById('headerAvatar');
-                if (headerAvatar && data.imageUrl) {
-                    headerAvatar.src = data.imageUrl;
-                    console.log('Header avatar updated with URL:', data.imageUrl);
-                }
-            } else {
-                clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading profile image:', error);
-            clubProfile.showNotification('Error uploading profile image', 'error');
-        });
+            })
+            .catch(error => {
+                console.error('Error uploading profile image:', error);
+                clubProfile.showNotification('Error uploading profile image', 'error');
+            });
     }
 }
 
@@ -987,11 +1004,11 @@ let clubProfile;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM Content Loaded - Initializing...');
     clubProfile = new ClubProfile();
-    
+
     // Load galleries on page load
     console.log('About to call loadGalleries()...');
     loadGalleries();
-    
+
     // Add some extra interactivity
     document.addEventListener('keydown', (e) => {
         // ESC key to close modals
@@ -1004,12 +1021,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add loading states to buttons
     document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             if (!this.classList.contains('loading')) {
                 this.classList.add('loading');
                 const originalText = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-                
+
                 setTimeout(() => {
                     this.classList.remove('loading');
                     this.innerHTML = originalText;
@@ -1100,18 +1117,18 @@ async function loadGalleries() {
         console.log('Fetching from: /UniPulse/public/publisher/profile/getGalleries');
         const response = await fetch('/UniPulse/public/publisher/profile/getGalleries');
         console.log('Response status:', response.status);
-        
+
         if (!response.ok) {
             console.error('Response not OK:', response.status, response.statusText);
             const text = await response.text();
             console.error('Response text:', text);
             return;
         }
-        
+
         // Get response as text first to see what we're getting
         const text = await response.text();
         console.log('Raw response text:', text);
-        
+
         let data;
         try {
             data = JSON.parse(text);
@@ -1120,9 +1137,9 @@ async function loadGalleries() {
             console.error('First 500 chars of response:', text.substring(0, 500));
             return;
         }
-        
+
         console.log('Gallery data received:', data);
-        
+
         if (data.success && data.data) {
             console.log('Displaying', data.data.length, 'galleries');
             displayGalleries(data.data);
@@ -1139,12 +1156,12 @@ function displayGalleries(galleries) {
     console.log('displayGalleries called with:', galleries);
     const galleryGrid = document.getElementById('galleryGrid');
     const noGalleriesMsg = document.getElementById('noGalleriesMessage');
-    
+
     if (!galleryGrid) {
         console.error('Gallery grid element not found!');
         return;
     }
-    
+
     if (!galleries || galleries.length === 0) {
         console.log('No galleries to display');
         galleryGrid.innerHTML = '';
@@ -1161,18 +1178,18 @@ function displayGalleries(galleries) {
         }
         return;
     }
-    
+
     console.log('Hiding no galleries message and rendering', galleries.length, 'galleries');
-    
+
     // Clear existing content completely
     galleryGrid.innerHTML = '';
-    
+
     galleries.forEach((gallery, index) => {
         console.log(`Creating gallery ${index + 1}:`, gallery);
         const galleryItem = createGalleryElement(gallery);
         galleryGrid.appendChild(galleryItem);
     });
-    
+
     console.log('Galleries rendered successfully');
 }
 
@@ -1182,14 +1199,14 @@ function createGalleryElement(gallery) {
     const item = document.createElement('div');
     item.className = 'gallery-item editable';
     item.setAttribute('data-gallery-id', gallery.id);
-    
+
     const images = gallery.images || [];
     console.log('Gallery images:', images);
-    
+
     if (images.length === 0) {
         console.warn('No images in gallery!');
     }
-    
+
     // Create carousel images
     let carouselImagesHTML = '';
     images.forEach((imageUrl, index) => {
@@ -1203,13 +1220,13 @@ function createGalleryElement(gallery) {
             </div>
         `;
     });
-    
+
     // Create indicators
     let indicatorsHTML = '';
     images.forEach((_, index) => {
         indicatorsHTML += `<span class="indicator ${index === 0 ? 'active' : ''}" onclick="setCarouselImage(${gallery.id}, ${index})"></span>`;
     });
-    
+
     item.innerHTML = `
         <div class="gallery-images-container">
             <div class="gallery-image-carousel">
@@ -1244,7 +1261,7 @@ function createGalleryElement(gallery) {
             <p class="gallery-description">${escapeHtml(gallery.description || '')}</p>
         </div>
     `;
-    
+
     console.log('Gallery element HTML:', item.outerHTML.substring(0, 500));
     return item;
 }
@@ -1267,13 +1284,13 @@ function addGalleryPhoto() {
     document.getElementById('galleryModalTitle').textContent = 'Add Photo Gallery';
     document.getElementById('galleryTitle').value = '';
     document.getElementById('galleryDescription').value = '';
-    
+
     // Reset all file inputs and previews
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
         const uploadContent = document.querySelector(`#galleryFile${i}`)?.parentElement?.querySelector('.upload-content');
-        
+
         if (fileInput) fileInput.value = '';
         if (preview) {
             preview.style.display = 'none';
@@ -1281,7 +1298,7 @@ function addGalleryPhoto() {
         }
         if (uploadContent) uploadContent.style.display = 'flex';
     }
-    
+
     // Show modal
     document.getElementById('galleryPhotoModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -1292,25 +1309,25 @@ async function editGalleryItem(galleryId) {
     try {
         const response = await fetch(`/UniPulse/public/publisher/profile/getGallery/${galleryId}`);
         const data = await response.json();
-        
+
         if (!data.success || !data.data) {
             alert('Failed to load gallery');
             return;
         }
-        
+
         const gallery = data.data;
         currentEditingGalleryId = galleryId;
-        
+
         document.getElementById('galleryModalTitle').textContent = 'Edit Photo Gallery';
         document.getElementById('galleryTitle').value = gallery.title;
         document.getElementById('galleryDescription').value = gallery.description || '';
-        
+
         // Show existing images in preview
         const images = gallery.images || [];
         for (let i = 0; i < images.length && i < MAX_PHOTOS_PER_ENTRY; i++) {
             const preview = document.getElementById(`galleryPreview${i + 1}`);
             const uploadContent = document.querySelector(`#galleryFile${i + 1}`)?.parentElement?.querySelector('.upload-content');
-            
+
             if (preview) {
                 preview.src = images[i];
                 preview.style.display = 'block';
@@ -1320,11 +1337,11 @@ async function editGalleryItem(galleryId) {
                 uploadContent.style.display = 'none';
             }
         }
-        
+
         // Show modal
         document.getElementById('galleryPhotoModal').style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        
+
     } catch (error) {
         console.error('Error loading gallery:', error);
         alert('Failed to load gallery');
@@ -1336,14 +1353,14 @@ async function deleteGalleryItem(galleryId) {
     if (!confirm('Are you sure you want to delete this gallery? This action cannot be undone.')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/UniPulse/public/publisher/profile/deleteGallery/${galleryId}`, {
             method: 'POST'
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             alert('Gallery deleted successfully');
             loadGalleries(); // Reload galleries
@@ -1360,26 +1377,26 @@ async function deleteGalleryItem(galleryId) {
 function previewGalleryImage(event, photoIndex) {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
         // clubProfile.showNotification('File size must be less than 5MB', 'error');
         event.target.value = '';
         return;
     }
-    
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
         // clubProfile.showNotification('Please select a valid image file', 'error');
         event.target.value = '';
         return;
     }
-    
+
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         const preview = document.getElementById(`galleryPreview${photoIndex}`);
         const uploadContent = event.target.parentElement.querySelector('.upload-content');
-        
+
         preview.src = e.target.result;
         preview.style.display = 'block';
         uploadContent.style.display = 'none';
@@ -1391,26 +1408,26 @@ function previewGalleryImage(event, photoIndex) {
 async function saveGalleryPhoto() {
     const title = document.getElementById('galleryTitle').value.trim();
     const description = document.getElementById('galleryDescription').value.trim();
-    
+
     // Validation
     if (!title) {
         alert('Please enter a title for the gallery');
         return;
     }
-    
+
     // Collect uploaded photos
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
-    
+
     let hasFiles = false;
     let fileCount = 0;
     const existingPhotos = []; // Track existing photos
-    
+
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
-        
+
         if (fileInput && fileInput.files && fileInput.files[0]) {
             // New photo uploaded
             formData.append(`photos[]`, fileInput.files[0]);
@@ -1422,22 +1439,22 @@ async function saveGalleryPhoto() {
             fileCount++;
         }
     }
-    
+
     // Add existing photos as JSON string for update
     if (currentEditingGalleryId && existingPhotos.length > 0) {
         formData.append('keep_photos', JSON.stringify(existingPhotos));
     }
-    
+
     if (fileCount === 0) {
         alert('Please upload at least one photo');
         return;
     }
-    
+
     if (fileCount > MAX_PHOTOS_PER_ENTRY) {
         alert(`You can upload a maximum of ${MAX_PHOTOS_PER_ENTRY} photos per gallery`);
         return;
     }
-    
+
     // Determine endpoint
     let endpoint;
     if (currentEditingGalleryId) {
@@ -1446,7 +1463,7 @@ async function saveGalleryPhoto() {
     } else {
         endpoint = '/UniPulse/public/publisher/profile/createGallery';
     }
-    
+
     try {
         console.log('Sending request to:', endpoint);
         console.log('FormData contents:');
@@ -1457,21 +1474,21 @@ async function saveGalleryPhoto() {
                 console.log(pair[0], ':', pair[1]);
             }
         }
-        
+
         const response = await fetch(endpoint, {
             method: 'POST',
             body: formData
         });
-        
+
         console.log('Response status:', response.status);
         console.log('Response ok:', response.ok);
-        
+
         const contentType = response.headers.get('content-type');
         console.log('Content-Type:', contentType);
-        
+
         const text = await response.text();
         console.log('Raw response:', text);
-        
+
         let data;
         try {
             data = JSON.parse(text);
@@ -1480,13 +1497,13 @@ async function saveGalleryPhoto() {
             alert('Server returned invalid JSON:\n\n' + text.substring(0, 500));
             return;
         }
-        
+
         console.log('Parsed data:', data);
-        
+
         if (data.success) {
             // Close modal first
             closeGalleryModal();
-            
+
             // Wait a bit then reload galleries
             setTimeout(() => {
                 console.log('Reloading galleries after save...');
@@ -1509,17 +1526,17 @@ async function saveGalleryPhoto() {
 function closeGalleryModal() {
     document.getElementById('galleryPhotoModal').style.display = 'none';
     document.body.style.overflow = 'auto';
-    
+
     // Reset form
     document.getElementById('galleryTitle').value = '';
     document.getElementById('galleryDescription').value = '';
-    
+
     // Reset all file inputs and previews
     for (let i = 1; i <= MAX_PHOTOS_PER_ENTRY; i++) {
         const fileInput = document.getElementById(`galleryFile${i}`);
         const preview = document.getElementById(`galleryPreview${i}`);
         const uploadContent = document.querySelector(`#galleryFile${i}`)?.parentElement?.querySelector('.upload-content');
-        
+
         if (fileInput) fileInput.value = '';
         if (preview) {
             preview.style.display = 'none';
@@ -1527,7 +1544,7 @@ function closeGalleryModal() {
         }
         if (uploadContent) uploadContent.style.display = 'flex';
     }
-    
+
     currentEditingGalleryId = null;
 }
 
@@ -1535,20 +1552,20 @@ function closeGalleryModal() {
 function changeCarouselImage(galleryId, direction) {
     const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
     if (!galleryItem) return;
-    
+
     const images = galleryItem.querySelectorAll('.carousel-image');
     const indicators = galleryItem.querySelectorAll('.indicator');
     let currentIndex = Array.from(images).findIndex(img => img.classList.contains('active'));
-    
+
     // Remove active class from current image and indicator
     images[currentIndex].classList.remove('active');
     indicators[currentIndex].classList.remove('active');
-    
+
     // Calculate new index
     currentIndex += direction;
     if (currentIndex >= images.length) currentIndex = 0;
     if (currentIndex < 0) currentIndex = images.length - 1;
-    
+
     // Add active class to new image and indicator
     images[currentIndex].classList.add('active');
     indicators[currentIndex].classList.add('active');
@@ -1557,21 +1574,21 @@ function changeCarouselImage(galleryId, direction) {
 function setCarouselImage(galleryId, index) {
     const galleryItem = document.querySelector(`[data-gallery-id="${galleryId}"]`);
     if (!galleryItem) return;
-    
+
     const images = galleryItem.querySelectorAll('.carousel-image');
     const indicators = galleryItem.querySelectorAll('.indicator');
-    
+
     // Remove active class from all
     images.forEach(img => img.classList.remove('active'));
     indicators.forEach(ind => ind.classList.remove('active'));
-    
+
     // Add active class to selected
     if (images[index]) images[index].classList.add('active');
     if (indicators[index]) indicators[index].classList.add('active');
 }
 
 // Close gallery modal when clicking outside
-document.addEventListener('click', function(event) {
+document.addEventListener('click', function (event) {
     const modal = document.getElementById('galleryPhotoModal');
     if (event.target === modal) {
         closeGalleryModal();
@@ -1579,13 +1596,13 @@ document.addEventListener('click', function(event) {
 });
 
 // Close gallery modal with escape key
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
         const modal = document.getElementById('galleryPhotoModal');
         if (modal && modal.style.display === 'flex') {
             closeGalleryModal();
         }
-        
+
         const addAdminModal = document.getElementById('addAdminModal');
         if (addAdminModal && addAdminModal.style.display === 'flex') {
             closeAddAdminModal();
@@ -1598,7 +1615,7 @@ function closeAddAdminModal() {
     document.getElementById('addAdminModal').style.display = 'none';
     document.getElementById('addAdminModal').classList.remove('active');
     document.body.style.overflow = 'auto';
-    
+
     // Reset form
     clearAddAdminForm();
 }
@@ -1609,26 +1626,26 @@ function clearAddAdminForm() {
     document.getElementById('adminLastName').value = '';
     document.getElementById('adminEmail').value = '';
     document.getElementById('adminRole').value = '';
-    
+
     // Clear photo preview
     const preview = document.getElementById('adminPhotoPreview');
     const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
-    
+
     if (preview) {
         preview.style.display = 'none';
         preview.src = '';
     }
-    
+
     if (uploadPlaceholder) {
         uploadPlaceholder.style.display = 'flex';
     }
-    
+
     // Reset file input
     const fileInput = document.getElementById('adminPhoto');
     if (fileInput) {
         fileInput.value = '';
     }
-    
+
     // Clear all checkboxes
     document.querySelectorAll('#addAdminModal input[type="checkbox"]').forEach(checkbox => {
         checkbox.checked = false;
@@ -1645,24 +1662,24 @@ function previewAdminPhoto(event) {
             event.target.value = '';
             return;
         }
-        
+
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
             // clubProfile.showNotification('File size must be less than 5MB', 'error');
             event.target.value = '';
             return;
         }
-        
+
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const preview = document.getElementById('adminPhotoPreview');
             const uploadPlaceholder = document.querySelector('.admin-photo-upload .upload-placeholder');
-            
+
             if (preview) {
                 preview.src = e.target.result;
                 preview.style.display = 'block';
             }
-            
+
             if (uploadPlaceholder) {
                 uploadPlaceholder.style.display = 'none';
             }
@@ -1678,26 +1695,26 @@ function saveNewAdmin() {
     const email = document.getElementById('adminEmail').value.trim();
     const role = document.getElementById('adminRole').value;
     const photoInput = document.getElementById('adminPhoto');
-    
+
     // Validation
     if (!firstName || !lastName || !email || !role) {
         // clubProfile.showNotification('Please fill in all required fields', 'error');
         return;
     }
-    
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         // clubProfile.showNotification('Please enter a valid email address', 'error');
         return;
     }
-    
+
     // Get selected permissions
     const permissions = [];
     document.querySelectorAll('#addAdminModal input[type="checkbox"]:checked').forEach(checkbox => {
         permissions.push(checkbox.value);
     });
-    
+
     // Create admin data object
     const adminData = {
         firstName,
@@ -1708,25 +1725,25 @@ function saveNewAdmin() {
         photo: photoInput.files.length > 0 ? photoInput.files[0] : null,
         hasPhoto: photoInput.files.length > 0
     };
-    
+
     // Show loading state
     const saveBtn = document.querySelector('#addAdminModal .btn-primary');
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
     saveBtn.disabled = true;
-    
+
     // Simulate API call (replace with actual implementation)
     setTimeout(() => {
         // Add admin to the list (in real implementation, this would update the DOM)
         addAdminToList(adminData);
-        
+
         // Reset button state
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
-        
+
         // Close modal
         closeAddAdminModal();
-        
+
         // Show success message
         // clubProfile.showNotification(`${firstName} ${lastName} has been added as an administrator!`, 'success');
     }, 1000);
@@ -1735,7 +1752,7 @@ function saveNewAdmin() {
 function addAdminToList(adminData) {
     // This function would add the new admin to the admin list in the UI
     // In a real implementation, you would update the DOM here
-    
+
     // For demonstration, you could dynamically add to the admin list
     const adminList = document.querySelector('.admin-list');
     if (adminList) {
@@ -1753,7 +1770,7 @@ function createAdminItemHTML(adminData) {
         'event-manager': 'Event Manager'
     };
     const roleDisplay = roleDisplayMap[adminData.role] || adminData.role;
-    
+
     return `
         <div class="admin-item">
             <div class="admin-info">
@@ -1814,21 +1831,21 @@ function changePassword() {
             confirm_password: confirmPassword
         })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            document.getElementById('currentPassword').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-        } else {
-            alert(data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while changing password');
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while changing password');
+        });
 }
 
 function cancelSecurityForm() {

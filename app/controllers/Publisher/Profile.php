@@ -1,17 +1,20 @@
 <?php
 
-class PublisherProfile extends Controller{
+class PublisherProfile extends Controller
+{
 
     private $publisherModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->publisherModel = new Publisher();
     }
 
-    public function index($a = '', $b = '' , $c = ''){
+    public function index($a = '', $b = '', $c = '')
+    {
         // Check authentication
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             header('Location: /unipulse/public/signin');
             exit();
@@ -20,7 +23,7 @@ class PublisherProfile extends Controller{
         // Get publisher data
         $publisherId = $currentUser['id'];
         $publisherData = $this->publisherModel->findById($publisherId);
-        
+
         if (!$publisherData) {
             $this->view('profile', ['error' => 'Publisher profile not found']);
             return;
@@ -28,13 +31,13 @@ class PublisherProfile extends Controller{
 
         // Get additional profile data
         $profileData = $this->publisherModel->getProfileData($publisherId);
-        
+
         // Load profile logo into session for header
         if ($profileData && isset($profileData->logo_url)) {
             $_SESSION['user_profile_photo'] = $profileData->logo_url;
             $_SESSION['profile_photo'] = $profileData->logo_url;
         }
-        
+
         // Merge publisher and profile data
         $data = [
             'publisher' => $publisherData,
@@ -77,11 +80,12 @@ class PublisherProfile extends Controller{
     /**
      * API endpoint to get profile data
      */
-    public function getProfileData($a = '', $b = '', $c = '') {
+    public function getProfileData($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
@@ -90,7 +94,7 @@ class PublisherProfile extends Controller{
         $publisherId = $currentUser['id'];
         $publisherData = $this->publisherModel->findById($publisherId);
         $profileData = $this->publisherModel->getProfileData($publisherId);
-        
+
         if ($publisherData) {
             echo json_encode([
                 'success' => true,
@@ -107,21 +111,22 @@ class PublisherProfile extends Controller{
     /**
      * Update organization information
      */
-    public function updateOrganizationInfo($a = '', $b = '', $c = '') {
+    public function updateOrganizationInfo($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $publisherId = $currentUser['id'];
-        
+
         // Get JSON input
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             error_log("updateOrganizationInfo: Invalid input data");
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
@@ -136,7 +141,7 @@ class PublisherProfile extends Controller{
         if (isset($input['university'])) $basicData['university'] = $input['university'];
         if (isset($input['faculty'])) $basicData['faculty'] = $input['faculty'];
         if (isset($input['contactNumber'])) $basicData['phone'] = $input['contactNumber'];
-        
+
         $basicResult = true;
         if (!empty($basicData)) {
             error_log("updateOrganizationInfo: Updating basic info: " . print_r($basicData, true));
@@ -153,7 +158,7 @@ class PublisherProfile extends Controller{
         if (isset($input['headline']) && $input['headline'] !== '') $profileData['headline'] = $input['headline'];
         if (isset($input['bio']) && $input['bio'] !== '') $profileData['bio'] = $input['bio'];
         if (isset($input['mission']) && $input['mission'] !== '') $profileData['mission'] = $input['mission'];
-        
+
         $profileResult = true;
         if (!empty($profileData)) {
             error_log("updateOrganizationInfo: Updating profile data: " . print_r($profileData, true));
@@ -166,14 +171,14 @@ class PublisherProfile extends Controller{
             if (isset($input['orgName']) && !empty($input['orgName'])) {
                 $_SESSION['organization_name'] = $input['orgName'];
                 $_SESSION['user_name'] = $input['orgName'];
-                
+
                 // Also update the user session data if it exists
                 if (isset($_SESSION['user'])) {
                     $_SESSION['user']['name'] = $input['orgName'];
                     $_SESSION['user']['organization_name'] = $input['orgName'];
                 }
             }
-            
+
             echo json_encode(['success' => true, 'message' => 'Organization information updated successfully']);
         } else {
             $errorMsg = [];
@@ -187,20 +192,21 @@ class PublisherProfile extends Controller{
     /**
      * Update social links
      */
-    public function updateSocialLinks($a = '', $b = '', $c = '') {
+    public function updateSocialLinks($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $publisherId = $currentUser['id'];
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
             return;
@@ -228,11 +234,12 @@ class PublisherProfile extends Controller{
     /**
      * Upload profile image (logo)
      */
-    public function uploadProfileImage($a = '', $b = '', $c = '') {
+    public function uploadProfileImage($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
@@ -252,7 +259,7 @@ class PublisherProfile extends Controller{
                 // Update session with new profile photo
                 $_SESSION['user_profile_photo'] = $imageUrl;
                 $_SESSION['profile_photo'] = $imageUrl;
-                
+
                 echo json_encode(['success' => true, 'message' => 'Logo uploaded successfully', 'imageUrl' => $imageUrl]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Failed to save logo URL']);
@@ -265,15 +272,16 @@ class PublisherProfile extends Controller{
     /**
      * Upload cover photo
      */
-    public function uploadCoverPhoto($a = '', $b = '', $c = '') {
+    public function uploadCoverPhoto($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         // error_log("uploadCoverPhoto called");
         // error_log("FILES: " . print_r($_FILES, true));
-        
+
         $currentUser = AuthService::getCurrentUser();
         // error_log("Current user: " . print_r($currentUser, true));
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
@@ -307,43 +315,44 @@ class PublisherProfile extends Controller{
     /**
      * Update organization preferences (Auto-save via AJAX)
      */
-    public function updatePreferences($a = '', $b = '', $c = '') {
+    public function updatePreferences($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         // Check authentication
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
             exit();
         }
 
         $publisherId = $currentUser['id'];
-        
+
         // Handle AJAX request
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Get preferences from POST data (JSON string from JavaScript)
             $preferences = [];
-            
+
             if (isset($_POST['selected_preferences'])) {
                 $preferencesData = json_decode($_POST['selected_preferences'], true);
                 if (is_array($preferencesData)) {
                     $preferences = $preferencesData;
                 }
             }
-            
+
             // Store preferences as JSON string (empty array if nothing selected)
             $preferencesJson = json_encode($preferences);
-            
+
             // Log what we're saving
             error_log("Publisher $publisherId saving preferences: " . $preferencesJson);
-            
+
             $result = $this->publisherModel->updateProfileData($publisherId, ['preferences' => $preferencesJson]);
 
             if ($result) {
                 error_log("Publisher $publisherId preferences saved successfully");
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'message' => 'Preferences updated successfully',
                     'saved_preferences' => $preferences
                 ]);
@@ -358,21 +367,22 @@ class PublisherProfile extends Controller{
     }
 
     // ==================== PHOTO GALLERY METHODS ====================
-    
+
     /**
      * Get all galleries for the current publisher
      */
-    public function getGalleries($a = '', $b = '', $c = '') {
-        $this->jsonResponse(function() {
+    public function getGalleries($a = '', $b = '', $c = '')
+    {
+        $this->jsonResponse(function () {
             $currentUser = AuthService::getCurrentUser();
-            
+
             if (!$currentUser || $currentUser['type'] !== 'publisher') {
                 return ['success' => false, 'message' => 'Unauthorized'];
             }
 
             $publisherId = $currentUser['id'];
             $galleries = $this->publisherModel->getPublisherGalleries($publisherId);
-            
+
             return ['success' => true, 'data' => $galleries];
         });
     }
@@ -380,10 +390,11 @@ class PublisherProfile extends Controller{
     /**
      * Get a specific gallery by ID
      */
-    public function getGallery($galleryId = null, $b = '', $c = '') {
-        $this->jsonResponse(function() use ($galleryId) {
+    public function getGallery($galleryId = null, $b = '', $c = '')
+    {
+        $this->jsonResponse(function () use ($galleryId) {
             $currentUser = AuthService::getCurrentUser();
-            
+
             if (!$currentUser || $currentUser['type'] !== 'publisher') {
                 return ['success' => false, 'message' => 'Unauthorized'];
             }
@@ -394,7 +405,7 @@ class PublisherProfile extends Controller{
 
             $publisherId = $currentUser['id'];
             $gallery = $this->publisherModel->getGalleryById($galleryId);
-            
+
             if (!$gallery) {
                 return ['success' => false, 'message' => 'Gallery not found'];
             }
@@ -411,13 +422,14 @@ class PublisherProfile extends Controller{
     /**
      * Create a new gallery
      */
-    public function createGallery($a = '', $b = '', $c = '') {
-        $this->jsonResponse(function() {
+    public function createGallery($a = '', $b = '', $c = '')
+    {
+        $this->jsonResponse(function () {
             error_log("=== CREATE GALLERY START ===");
-            
+
             $currentUser = AuthService::getCurrentUser();
             error_log("Current user: " . json_encode($currentUser));
-            
+
             if (!$currentUser || $currentUser['type'] !== 'publisher') {
                 error_log("Authorization failed - User type: " . ($currentUser['type'] ?? 'none'));
                 return ['success' => false, 'message' => 'Unauthorized'];
@@ -434,7 +446,7 @@ class PublisherProfile extends Controller{
             // Validate input
             $title = trim($_POST['title'] ?? '');
             $description = trim($_POST['description'] ?? '');
-            
+
             error_log("Title: " . $title);
             error_log("Description: " . $description);
             error_log("FILES data: " . json_encode($_FILES));
@@ -493,10 +505,11 @@ class PublisherProfile extends Controller{
     /**
      * Update an existing gallery
      */
-    public function updateGallery($galleryId = null, $b = '', $c = '') {
-        $this->jsonResponse(function() use ($galleryId) {
+    public function updateGallery($galleryId = null, $b = '', $c = '')
+    {
+        $this->jsonResponse(function () use ($galleryId) {
             $currentUser = AuthService::getCurrentUser();
-            
+
             if (!$currentUser || $currentUser['type'] !== 'publisher') {
                 return ['success' => false, 'message' => 'Unauthorized'];
             }
@@ -513,7 +526,7 @@ class PublisherProfile extends Controller{
 
             // Verify ownership
             $gallery = $this->publisherModel->getGalleryById($galleryId);
-            
+
             if (!$gallery) {
                 return ['success' => false, 'message' => 'Gallery not found'];
             }
@@ -569,10 +582,11 @@ class PublisherProfile extends Controller{
     /**
      * Delete a gallery
      */
-    public function deleteGallery($galleryId = null, $b = '', $c = '') {
-        $this->jsonResponse(function() use ($galleryId) {
+    public function deleteGallery($galleryId = null, $b = '', $c = '')
+    {
+        $this->jsonResponse(function () use ($galleryId) {
             $currentUser = AuthService::getCurrentUser();
-            
+
             if (!$currentUser || $currentUser['type'] !== 'publisher') {
                 return ['success' => false, 'message' => 'Unauthorized'];
             }
@@ -589,7 +603,7 @@ class PublisherProfile extends Controller{
 
             // Verify ownership
             $gallery = $this->publisherModel->getGalleryById($galleryId);
-            
+
             if (!$gallery) {
                 return ['success' => false, 'message' => 'Gallery not found'];
             }
@@ -612,9 +626,10 @@ class PublisherProfile extends Controller{
     /**
      * Upload photos and return array of uploaded file paths
      */
-    private function uploadPhotos($files) {
+    private function uploadPhotos($files)
+    {
         error_log("uploadPhotos called with: " . json_encode($files));
-        
+
         $uploadedPhotos = [];
         $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
         $maxSize = 5 * 1024 * 1024; // 5MB
@@ -623,12 +638,12 @@ class PublisherProfile extends Controller{
         // Create upload directory if it doesn't exist
         $uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/UniPulse/public/uploads/gallery/';
         error_log("Upload directory: " . $uploadDir);
-        
+
         if (!file_exists($uploadDir)) {
             error_log("Creating upload directory...");
             mkdir($uploadDir, 0755, true);
         }
-        
+
         if (!is_writable($uploadDir)) {
             error_log("Upload directory is NOT writable!");
             throw new Exception("Upload directory is not writable");
@@ -638,7 +653,7 @@ class PublisherProfile extends Controller{
 
         $fileCount = count($files['name']);
         error_log("File count: " . $fileCount);
-        
+
         if ($fileCount > $maxPhotos) {
             throw new Exception("Maximum {$maxPhotos} photos allowed");
         }
@@ -646,7 +661,7 @@ class PublisherProfile extends Controller{
         for ($i = 0; $i < $fileCount; $i++) {
             error_log("Processing file {$i}: " . $files['name'][$i]);
             error_log("File error code: " . $files['error'][$i]);
-            
+
             if ($files['error'][$i] !== UPLOAD_ERR_OK) {
                 error_log("Skipping file {$i} due to error: " . $files['error'][$i]);
                 continue;
@@ -655,7 +670,7 @@ class PublisherProfile extends Controller{
             // Validate file type
             $fileType = $files['type'][$i];
             error_log("File type: " . $fileType);
-            
+
             if (!in_array($fileType, $allowedTypes)) {
                 throw new Exception("Invalid file type. Only JPG and PNG allowed.");
             }
@@ -669,7 +684,7 @@ class PublisherProfile extends Controller{
             $extension = pathinfo($files['name'][$i], PATHINFO_EXTENSION);
             $filename = uniqid('gallery_' . time() . '_') . '.' . $extension;
             $targetPath = $uploadDir . $filename;
-            
+
             error_log("Target path: " . $targetPath);
             error_log("Temp file: " . $files['tmp_name'][$i]);
 
@@ -691,27 +706,28 @@ class PublisherProfile extends Controller{
     /**
      * Get current publisher data for header
      */
-    public function getCurrentPublisher() {
+    public function getCurrentPublisher()
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Not authenticated']);
             exit();
         }
-        
+
         $publisherId = $currentUser['id'];
         $publisherData = $this->publisherModel->findById($publisherId);
-        
+
         if (!$publisherData) {
             echo json_encode(['success' => false, 'message' => 'Publisher not found']);
             exit();
         }
-        
+
         // Get profile data for logo
         $profileData = $this->publisherModel->getProfileData($publisherId);
-        
+
         echo json_encode([
             'success' => true,
             'publisher' => [
@@ -729,11 +745,12 @@ class PublisherProfile extends Controller{
     /**
      * Update primary admin email
      */
-    public function updateAdminEmail($a = '', $b = '', $c = '') {
+    public function updateAdminEmail($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit();
@@ -741,7 +758,7 @@ class PublisherProfile extends Controller{
 
         $publisherId = $currentUser['id'];
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
         $newEmail = $data['email'] ?? '';
         $currentPassword = $data['current_password'] ?? '';
 
@@ -772,7 +789,7 @@ class PublisherProfile extends Controller{
 
         // Update email
         $result = $this->publisherModel->updateEmail($publisherId, $newEmail);
-        
+
         if ($result) {
             echo json_encode(['success' => true, 'message' => 'Admin email updated successfully']);
         } else {
@@ -784,11 +801,12 @@ class PublisherProfile extends Controller{
     /**
      * Change password
      */
-    public function changePassword($a = '', $b = '', $c = '') {
+    public function changePassword($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'publisher') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit();
@@ -796,7 +814,7 @@ class PublisherProfile extends Controller{
 
         $publisherId = $currentUser['id'];
         $data = json_decode(file_get_contents('php://input'), true);
-        
+
         $currentPassword = $data['current_password'] ?? '';
         $newPassword = $data['new_password'] ?? '';
         $confirmPassword = $data['confirm_password'] ?? '';
@@ -826,7 +844,7 @@ class PublisherProfile extends Controller{
 
         // Update password
         $result = $this->publisherModel->updatePassword($publisherId, $newPassword);
-        
+
         if ($result) {
             echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
         } else {
@@ -836,9 +854,36 @@ class PublisherProfile extends Controller{
     }
 
     /**
+     * Soft-delete publisher account.
+     */
+    public function deleteOrganization($a = '', $b = '', $c = '')
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+
+        if (!$currentUser || $currentUser['type'] !== 'publisher') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $publisherId = (int)$currentUser['id'];
+        $deleted = $this->publisherModel->softDeleteAccount($publisherId);
+
+        if ($deleted) {
+            AuthService::logout();
+            echo json_encode(['success' => true, 'message' => 'Organization account deactivated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to deactivate organization account']);
+        }
+        exit();
+    }
+
+    /**
      * Helper method to send JSON response
      */
-    private function jsonResponse($callback) {
+    private function jsonResponse($callback)
+    {
         header('Content-Type: application/json');
         try {
             $result = $callback();
@@ -848,5 +893,4 @@ class PublisherProfile extends Controller{
         }
         exit();
     }
-
 }

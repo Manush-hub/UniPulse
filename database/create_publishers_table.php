@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Migration script to create publishers table and update users table for publisher support
  */
@@ -7,16 +8,16 @@ require_once __DIR__ . '/../app/Core/config.php';
 
 try {
     // Connect to database
-    $dsn = "mysql:host=".DBHOST.";port=".DBPORT.";dbname=".DBNAME.";charset=utf8mb4";
+    $dsn = "mysql:host=" . DBHOST . ";port=" . DBPORT . ";dbname=" . DBNAME . ";charset=utf8mb4";
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ];
     $pdo = new PDO($dsn, DBUSER, DBPASS, $options);
-    
+
     echo "Creating publishers table...\n";
-    
+
     // Create publishers table
     $publishersTable = "
         CREATE TABLE IF NOT EXISTS publishers (
@@ -34,6 +35,7 @@ try {
             approved_at TIMESTAMP NULL,
             rejection_reason TEXT NULL,
             is_active BOOLEAN DEFAULT FALSE,
+            is_deleted TINYINT(1) NOT NULL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_email (email),
@@ -43,29 +45,29 @@ try {
             FOREIGN KEY (approved_by) REFERENCES moderators(id) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($publishersTable);
     echo "Table 'publishers' created successfully.\n";
-    
+
     // Check if user_type enum needs to be updated to include 'publisher'
     $checkUserTypes = "SHOW COLUMNS FROM users LIKE 'user_type'";
     $result = $pdo->query($checkUserTypes)->fetch();
-    
+
     if ($result) {
         $type = $result['Type'];
         if (strpos($type, 'publisher') === false) {
             echo "Updating users table to support publisher user type...\n";
-            
+
             // Update user_type enum to include publisher
             $updateUserType = "ALTER TABLE users MODIFY COLUMN user_type ENUM('university', 'public', 'publisher', 'admin', 'moderator') NOT NULL";
             $pdo->exec($updateUserType);
-            
+
             echo "Users table updated successfully.\n";
         } else {
             echo "Users table already supports publisher user type.\n";
         }
     }
-    
+
     // Create publisher_approval_notifications table for tracking approval notifications
     $notificationsTable = "
         CREATE TABLE IF NOT EXISTS publisher_approval_notifications (
@@ -83,13 +85,11 @@ try {
             FOREIGN KEY (moderator_id) REFERENCES moderators(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($notificationsTable);
     echo "Table 'publisher_approval_notifications' created successfully.\n";
-    
+
     echo "Migration completed successfully!\n";
-    
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     echo "Migration failed: " . $e->getMessage() . "\n";
 }
-?>

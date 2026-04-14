@@ -1,12 +1,13 @@
 <?php
 
-class DatabaseInitializer {
-    
+class DatabaseInitializer
+{
+
     use Database;
-    
+
     private $requiredTables = [
         'university_users',
-        'public_users', 
+        'public_users',
         'publishers',
         'sponsors',
         'users',
@@ -14,41 +15,44 @@ class DatabaseInitializer {
         'event_comments',
         'notifications'
     ];
-    
-    public function initializeDatabase() {
+
+    public function initializeDatabase()
+    {
         try {
             // First ensure database exists
             $this->createDatabaseIfNotExists();
-            
+
             // Check and create tables if needed
             $this->createTablesIfNotExist();
-            
+
             return true;
         } catch (Exception $e) {
             error_log("Database initialization failed: " . $e->getMessage());
             return false;
         }
     }
-    
-    private function createDatabaseIfNotExists() {
+
+    private function createDatabaseIfNotExists()
+    {
         // Connect without selecting database first
-        $string = "mysql:host=".DBHOST.";port=".DBPORT;
+        $string = "mysql:host=" . DBHOST . ";port=" . DBPORT;
         $conn = new PDO($string, DBUSER, DBPASS);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
+
         // Create database if it doesn't exist
-        $conn->exec("CREATE DATABASE IF NOT EXISTS ".DBNAME." CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        
+        $conn->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
         // Select the database
-        $conn->exec("USE ".DBNAME);
+        $conn->exec("USE " . DBNAME);
     }
-    
-    private function createTablesIfNotExist() {
+
+    private function createTablesIfNotExist()
+    {
         $conn = $this->connect();
-        
+
         // Check which tables exist
         $existingTables = $this->getExistingTables($conn);
-        
+
         // Create missing tables
         foreach ($this->requiredTables as $table) {
             if (!in_array($table, $existingTables)) {
@@ -56,17 +60,19 @@ class DatabaseInitializer {
             }
         }
     }
-    
-    private function getExistingTables($conn) {
+
+    private function getExistingTables($conn)
+    {
         $stmt = $conn->prepare("SHOW TABLES");
         $stmt->execute();
         $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
         return $tables;
     }
-    
-    private function createTable($conn, $tableName) {
+
+    private function createTable($conn, $tableName)
+    {
         $sql = '';
-        
+
         switch ($tableName) {
             case 'university_users':
                 $sql = $this->getUniversityUsersTableSQL();
@@ -93,14 +99,15 @@ class DatabaseInitializer {
                 $sql = $this->getNotificationsTableSQL();
                 break;
         }
-        
+
         if ($sql) {
             $conn->exec($sql);
             error_log("Created table: $tableName");
         }
     }
-    
-    private function getUniversityUsersTableSQL() {
+
+    private function getUniversityUsersTableSQL()
+    {
         return "
             CREATE TABLE university_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -118,6 +125,7 @@ class DatabaseInitializer {
                 interests JSON NULL,
                 user_role ENUM('student', 'staff') DEFAULT 'student',
                 is_verified BOOLEAN DEFAULT FALSE,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 email_verified_at TIMESTAMP NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -129,8 +137,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getPublicUsersTableSQL() {
+
+    private function getPublicUsersTableSQL()
+    {
         return "
             CREATE TABLE public_users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -143,6 +152,7 @@ class DatabaseInitializer {
                 gender ENUM('male', 'female', 'other', 'prefer-not-to-say') NULL,
                 interests JSON NULL,
                 is_verified BOOLEAN DEFAULT FALSE,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 email_verified_at TIMESTAMP NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -151,8 +161,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getPublishersTableSQL() {
+
+    private function getPublishersTableSQL()
+    {
         return "
             CREATE TABLE publishers (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -167,6 +178,7 @@ class DatabaseInitializer {
                 verification_status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
                 verification_notes TEXT NULL,
                 is_active BOOLEAN DEFAULT TRUE,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_email (email),
@@ -176,8 +188,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getSponsorsTableSQL() {
+
+    private function getSponsorsTableSQL()
+    {
         return "
             CREATE TABLE sponsors (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -190,6 +203,7 @@ class DatabaseInitializer {
                 verification_status ENUM('pending', 'verified', 'rejected') DEFAULT 'pending',
                 verification_notes TEXT NULL,
                 is_active BOOLEAN DEFAULT TRUE,
+                is_deleted TINYINT(1) NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 INDEX idx_email (email),
@@ -198,8 +212,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getUsersTableSQL() {
+
+    private function getUsersTableSQL()
+    {
         return "
             CREATE TABLE users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -217,8 +232,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getEventsTableSQL() {
+
+    private function getEventsTableSQL()
+    {
         return "
             CREATE TABLE events (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -273,8 +289,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getEventCommentsTableSQL() {
+
+    private function getEventCommentsTableSQL()
+    {
         return "
             CREATE TABLE event_comments (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -298,8 +315,9 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    private function getNotificationsTableSQL() {
+
+    private function getNotificationsTableSQL()
+    {
         return "
             CREATE TABLE notifications (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -320,19 +338,20 @@ class DatabaseInitializer {
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ";
     }
-    
-    public function isDatabaseInitialized() {
+
+    public function isDatabaseInitialized()
+    {
         try {
             $conn = $this->connect();
             $existingTables = $this->getExistingTables($conn);
-            
+
             // Check if all required tables exist
             foreach ($this->requiredTables as $table) {
                 if (!in_array($table, $existingTables)) {
                     return false;
                 }
             }
-            
+
             return true;
         } catch (Exception $e) {
             return false;

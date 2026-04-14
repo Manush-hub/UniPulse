@@ -72,7 +72,7 @@ class UserProfile extends Controller
         error_log('=== [Profile::updateProfile] CALLED ===');
         error_log('[Profile::updateProfile] Content-Type: ' . ($_SERVER['CONTENT_TYPE'] ?? 'NOT SET'));
         error_log('[Profile::updateProfile] Request Method: ' . $_SERVER['REQUEST_METHOD']);
-        
+
         header('Content-Type: application/json');
         if (!AuthService::isLoggedIn()) {
             echo json_encode(['success' => false, 'error' => 'Not authenticated']);
@@ -89,7 +89,7 @@ class UserProfile extends Controller
         if (strpos($contentType, 'multipart/form-data') !== false) {
             // Log what files are being uploaded
             error_log('[Profile::updateProfile] $_FILES: ' . json_encode(array_keys($_FILES)));
-            
+
             // Handle file uploads
             if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] === UPLOAD_ERR_OK) {
                 error_log('[Profile::updateProfile] Processing profile_photo');
@@ -197,7 +197,7 @@ class UserProfile extends Controller
             if (isset($payload['bio']) && $payload['bio'] !== '') {
                 $basicFields['bio'] = $payload['bio'];
             }
-            
+
             // Handle interests (event preferences)
             if (isset($payload['interests'])) {
                 // If it's already a JSON string, use it directly
@@ -207,7 +207,7 @@ class UserProfile extends Controller
                     if (json_last_error() === JSON_ERROR_NONE) {
                         $basicFields['interests'] = $payload['interests'];
                     }
-                } 
+                }
                 // If it's an array, encode it
                 else if (is_array($payload['interests'])) {
                     $basicFields['interests'] = json_encode($payload['interests']);
@@ -272,6 +272,132 @@ class UserProfile extends Controller
         } catch (Exception $e) {
             error_log('Profile update error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Update failed: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Change the current user's password.
+     */
+    public function changePassword()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!in_array($currentUser['type'] ?? '', ['public', 'university'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        $currentPassword = (string)($payload['current_password'] ?? '');
+        $newPassword = (string)($payload['new_password'] ?? '');
+        $confirmPassword = (string)($payload['confirm_password'] ?? '');
+
+        if ($currentPassword === '' || $newPassword === '' || $confirmPassword === '') {
+            echo json_encode(['success' => false, 'message' => 'All fields are required']);
+            return;
+        }
+
+        if (strlen($newPassword) < 8) {
+            echo json_encode(['success' => false, 'message' => 'New password must be at least 8 characters long']);
+            return;
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            echo json_encode(['success' => false, 'message' => 'New passwords do not match']);
+            return;
+        }
+
+        $profile = $this->loadProfileRecord($currentUser);
+        if (!$profile || empty($profile['password_hash'])) {
+            echo json_encode(['success' => false, 'message' => 'User record not found']);
+            return;
+        }
+
+        if (!password_verify($currentPassword, $profile['password_hash'])) {
+            echo json_encode(['success' => false, 'message' => 'Current password is incorrect']);
+            return;
+        }
+
+        if ($currentUser['type'] === 'university') {
+            require_once __DIR__ . '/../../models/UniversityUser.php';
+            $model = new UniversityUser();
+            $table = 'university_users';
+        } else {
+            require_once __DIR__ . '/../../models/PublicUser.php';
+            $model = new PublicUser();
+            $table = 'public_users';
+        }
+
+        $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+        try {
+            $conn = $model->connect();
+            $stmt = $conn->prepare("UPDATE {$table} SET password_hash = :password_hash, updated_at = NOW() WHERE id = :id");
+            $result = $stmt->execute([
+                'password_hash' => $newPasswordHash,
+                'id' => $currentUser['id']
+            ]);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to change password']);
+            }
+        } catch (Exception $e) {
+            error_log('Change password error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to change password']);
+        }
+    }
+
+    /**
+     * Soft-delete current user account.
+     */
+    public function deleteAccount()
+    {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn()) {
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+            return;
+        }
+
+        $currentUser = AuthService::getCurrentUser();
+        $userId = (int)($currentUser['id'] ?? 0);
+        $userType = $currentUser['type'] ?? '';
+
+        if ($userId <= 0 || !in_array($userType, ['public', 'university'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            if ($userType === 'university') {
+                require_once __DIR__ . '/../../models/UniversityUser.php';
+                $model = new UniversityUser();
+            } else {
+                require_once __DIR__ . '/../../models/PublicUser.php';
+                $model = new PublicUser();
+            }
+
+            $deleted = $model->softDeleteAccount($userId);
+
+            if ($deleted) {
+                AuthService::logout();
+                echo json_encode(['success' => true, 'message' => 'Account deactivated successfully']);
+                return;
+            }
+
+            echo json_encode(['success' => false, 'message' => 'Failed to deactivate account']);
+        } catch (Exception $e) {
+            error_log('User soft delete error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to deactivate account']);
         }
     }
 
@@ -675,7 +801,7 @@ class UserProfile extends Controller
             $stmt = $conn->prepare($checkQuery);
             $stmt->execute();
             $exists = $stmt->fetchAll();
-            
+
             if (empty($exists)) {
                 // Use LONGTEXT to safely store multiple base64 images
                 $alterQuery = "ALTER TABLE {$tableName} ADD COLUMN gallery LONGTEXT NULL COMMENT 'User photo gallery albums stored as JSON'";

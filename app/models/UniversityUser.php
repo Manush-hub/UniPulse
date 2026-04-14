@@ -249,4 +249,20 @@ class UniversityUser
             'interests' => !empty($interests) ? json_encode($interests) : null
         ];
     }
+
+    public function softDeleteAccount($userId)
+    {
+        $query = "UPDATE university_users SET is_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$userId]);
+    }
+
+    public function reactivateAccount($userId)
+    {
+        $query = "UPDATE university_users SET is_deleted = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$userId]);
+    }
 }
