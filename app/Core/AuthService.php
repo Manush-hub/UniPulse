@@ -104,6 +104,12 @@ class AuthService
             }
 
             if ($this->verifyPassword($password, $user->password_hash)) {
+                // Soft-deleted accounts are reactivated on successful sign-in.
+                if (isset($user->is_deleted) && (int)$user->is_deleted === 1) {
+                    $this->reactivateSoftDeletedAccount($table, (int)$user->id);
+                    $user->is_deleted = 0;
+                }
+
                 error_log("Password verification successful for $table");
                 return $user;
             } else {
@@ -114,6 +120,23 @@ class AuthService
         }
 
         return false;
+    }
+
+    /**
+     * Reactivate a soft-deleted account.
+     */
+    private function reactivateSoftDeletedAccount($table, $userId)
+    {
+        $query = "UPDATE {$table} SET is_deleted = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['id' => $userId]);
+        } catch (Exception $e) {
+            error_log('Failed to reactivate soft-deleted account: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

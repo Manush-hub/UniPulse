@@ -12,11 +12,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Events are already sorted by backend, no need for client-side sorting
     loadEvents();
     setupEventListeners();
-    
+
     // Add event listener for Load More button
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function(e) {
+        loadMoreBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             loadMoreEvents();
@@ -115,7 +115,7 @@ function filterByCategory(category) {
     activeFilters.category = category;
     activeFilters.university = '';
     activeFilters.status = '';
-    activeFilters.eventName = '';
+    activeFilters.search = '';
 
     currentPage = 1;
 
@@ -163,7 +163,6 @@ function loadEvents(useAjax = false, append = false) {
         if (activeFilters.category) params.append('category', activeFilters.category);
         if (activeFilters.university) params.append('university', activeFilters.university);
         if (activeFilters.status) params.append('status', activeFilters.status);
-        if (activeFilters.eventName) params.append('eventName', activeFilters.eventName);
         if (activeFilters.search) params.append('search', activeFilters.search);
 
         params.append('page', currentPage);
@@ -215,11 +214,21 @@ function loadEvents(useAjax = false, append = false) {
 
 function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
+    const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
     // Clear existing events if it's a new search/filter (not appending)
     if (!append) {
         eventsGrid.innerHTML = '';
+    }
+
+    if (!append && (!events || events.length === 0)) {
+        displayNoEvents();
+        return;
+    }
+
+    if (noEvents) {
+        noEvents.style.display = 'none';
     }
 
     // Events are already sorted by backend, no need for client-side sorting
@@ -238,8 +247,12 @@ function displayEvents(events, append = false) {
 
 function displayNoEvents() {
     const noEvents = document.getElementById('noEvents');
+    const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
+    if (eventsGrid) {
+        eventsGrid.innerHTML = '';
+    }
     noEvents.style.display = 'block';
     loadMoreSection.style.display = 'none';
 }
@@ -501,7 +514,7 @@ function getEventStatus(eventDate, eventTime, eventEndTime) {
 // Search events
 function searchEvents() {
     const searchInput = document.getElementById('eventNameFilter');
-    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const searchTerm = searchInput ? searchInput.value.trim() : '';
     activeFilters.search = searchTerm;
     currentPage = 1;
     loadEvents(true);
@@ -513,7 +526,8 @@ function filterEvents() {
     activeFilters.category = document.getElementById('categoryFilter').value;
     activeFilters.university = document.getElementById('universityFilter').value;
     activeFilters.status = document.getElementById('statusFilter').value;
-    activeFilters.eventName = document.getElementById('eventNameFilter').value;
+    const searchInput = document.getElementById('eventNameFilter');
+    activeFilters.search = searchInput ? searchInput.value.trim() : '';
 
     currentPage = 1;
 
@@ -539,18 +553,18 @@ function clearFilters() {
 // Load more events
 function loadMoreEvents() {
     console.log('loadMoreEvents called, currentPage:', currentPage);
-    
+
     // Disable button and show loading state
     const loadMoreBtn = document.querySelector('#loadMoreSection button');
     if (loadMoreBtn) {
         loadMoreBtn.disabled = true;
         loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
-    
+
     currentPage++;
     console.log('Fetching page:', currentPage);
     loadEvents(true, true); // useAjax=true, append=true
-    
+
     // Re-enable button after loading
     setTimeout(() => {
         if (loadMoreBtn && !loadMoreBtn.disabled) return; // Already re-enabled

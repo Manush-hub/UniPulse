@@ -174,7 +174,7 @@ class UniPulseProfile {
         if (settingsForm) {
             settingsForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                this.saveSettings();
+                this.saveSecuritySettings();
             });
         }
 
@@ -253,6 +253,11 @@ class UniPulseProfile {
             const d = json.data || {};
             console.log('Profile data loaded:', d); // Debug log
 
+            const loginEmail = document.getElementById('loginEmail');
+            if (loginEmail) {
+                loginEmail.value = d.email || '';
+            }
+
             const map = ['full_name', 'email', 'phone', 'country_code', 'university', 'faculty', 'student_staff_id', 'academic_year', 'date_of_birth', 'current_city', 'home_town', 'headline', 'bio', 'nic'];
             map.forEach(id => {
                 const el = document.getElementById(id);
@@ -293,7 +298,7 @@ class UniPulseProfile {
             // Update display name and email in header
             const displayName = document.getElementById('displayName');
             if (displayName) displayName.textContent = d.full_name || '';
-            
+
             const displayEmail = document.getElementById('displayEmail');
             if (displayEmail) displayEmail.textContent = d.email || '';
 
@@ -327,7 +332,7 @@ class UniPulseProfile {
                 } else if (Array.isArray(d.interests)) {
                     interestsArray = d.interests;
                 }
-                
+
                 // Mark active preference buttons
                 document.querySelectorAll('.preference-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -336,7 +341,7 @@ class UniPulseProfile {
                         btn.classList.add('active');
                     }
                 });
-                
+
                 this.userInterests = interestsArray;
                 console.log('Loaded interests:', interestsArray);
             } else {
@@ -403,12 +408,12 @@ class UniPulseProfile {
         button.classList.toggle('active');
         const preference = button.dataset.preference;
         const isActive = button.classList.contains('active');
-        
+
         // Update local interests array
         if (!this.userInterests) {
             this.userInterests = [];
         }
-        
+
         if (isActive) {
             // Add preference if not already in array
             if (!this.userInterests.includes(preference)) {
@@ -421,27 +426,27 @@ class UniPulseProfile {
                 this.userInterests.splice(index, 1);
             }
         }
-        
+
         // Save to database
         await this.saveInterests();
     }
-    
+
     async saveInterests() {
         try {
             const url = (window.profileApi && window.profileApi.update) || '/unipulse/public/user/profile/updateProfile';
             const payload = {
                 interests: JSON.stringify(this.userInterests)
             };
-            
+
             console.log('Saving interests:', this.userInterests);
-            
+
             const res = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
                 body: JSON.stringify(payload)
             });
-            
+
             const json = await res.json();
             if (json.success) {
                 console.log('Interests saved successfully');
@@ -703,6 +708,55 @@ class UniPulseProfile {
         };
     }
 
+    async saveSecuritySettings() {
+        const currentPassword = document.getElementById('currentPassword')?.value || '';
+        const newPassword = document.getElementById('newPassword')?.value || '';
+        const confirmPassword = document.getElementById('confirmPassword')?.value || '';
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            this.showNotification('All fields are required', 'error');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            this.showNotification('New password must be at least 8 characters long', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            this.showNotification('New passwords do not match', 'error');
+            return;
+        }
+
+        try {
+            const url = (window.profileApi && window.profileApi.changePassword) || '/unipulse/public/user/profile/changePassword';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                this.showNotification(data.message || 'Password changed successfully', 'success');
+                this.cancelSecurityForm();
+            } else {
+                this.showNotification(data.message || 'Failed to change password', 'error');
+            }
+        } catch (error) {
+            console.error('Error changing password:', error);
+            this.showNotification('An error occurred while changing password', 'error');
+        }
+    }
+
     addTag() {
         const newTagInput = document.getElementById('newTag');
         const tagValue = newTagInput.value.trim();
@@ -797,11 +851,39 @@ class UniPulseProfile {
     }
 
     deleteAccount() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            if (confirm('Please confirm again. This will permanently delete all your data.')) {
-                console.log('Account deletion process started');
-            }
+        if (!confirm('Deactivate your account now? You can reactivate it anytime by signing in again.')) {
+            return;
         }
+
+        fetch('/UniPulse/public/user/profile/deleteAccount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/UniPulse/public/signin?message=logout_success';
+                } else {
+                    this.showNotification(data.message || 'Failed to deactivate account', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error deactivating account:', error);
+                this.showNotification('Unable to deactivate account right now', 'error');
+            });
+    }
+
+    cancelSecurityForm() {
+        const currentPassword = document.getElementById('currentPassword');
+        const newPassword = document.getElementById('newPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+
+        if (currentPassword) currentPassword.value = '';
+        if (newPassword) newPassword.value = '';
+        if (confirmPassword) confirmPassword.value = '';
     }
 
     editProfile() {
@@ -810,10 +892,15 @@ class UniPulseProfile {
     }
 
     cancelEdit(formId) {
+        if (formId === 'security-form') {
+            this.cancelSecurityForm();
+            return;
+        }
+
         this.loadUserData();
         this.toggleEdit(formId);
     }
-    
+
     showNotification(message, type = 'info') {
         // Call the global showNotification function
         showNotification(message, type);
@@ -836,6 +923,10 @@ function savePersonalInfo() {
     profileManager.savePersonalInfo();
 }
 
+function saveSecuritySettings() {
+    profileManager.saveSecuritySettings();
+}
+
 function cancelPersonalInfo() {
     profileManager.cancelPersonalInfo();
 }
@@ -850,6 +941,10 @@ function cancelSocialLinks() {
 
 function cancelEdit(formId) {
     profileManager.cancelEdit(formId);
+}
+
+function cancelSecurityForm() {
+    profileManager.cancelSecurityForm();
 }
 
 function addTag() {
@@ -875,7 +970,7 @@ function uploadCover() {
 function changeCover(event) {
     const file = event.target.files[0];
     console.log('changeCover called, file:', file);
-    
+
     if (file && file.type.startsWith('image/')) {
         // Show preview immediately
         const reader = new FileReader();
@@ -893,7 +988,7 @@ function changeCover(event) {
         formData.append('image', file);
 
         console.log('Starting upload to /UniPulse/public/user/profile/uploadCoverPhoto');
-        
+
         if (typeof clubProfile !== 'undefined') {
             clubProfile.showNotification('Uploading cover photo...', 'info');
         }
@@ -902,37 +997,37 @@ function changeCover(event) {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            console.log('Response received:', response);
-            return response.json();
-        })
-        .then(data => {
-            console.log('Response data:', data);
-            if (data.success) {
+            .then(response => {
+                console.log('Response received:', response);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    if (typeof clubProfile !== 'undefined') {
+                        clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                    }
+                    // Update with server URL
+                    const coverImg = document.getElementById('coverPhoto');
+                    if (coverImg && data.imageUrl) {
+                        coverImg.src = data.imageUrl;
+                        console.log('Cover photo updated with URL:', data.imageUrl);
+                    }
+                } else {
+                    console.error('Upload failed:', data.message);
+                    if (typeof clubProfile !== 'undefined') {
+                        clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
+                    }
+                    alert('Failed to upload: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading cover photo:', error);
                 if (typeof clubProfile !== 'undefined') {
-                    clubProfile.showNotification('Cover photo updated successfully!', 'success');
+                    clubProfile.showNotification('Error uploading cover photo', 'error');
                 }
-                // Update with server URL
-                const coverImg = document.getElementById('coverPhoto');
-                if (coverImg && data.imageUrl) {
-                    coverImg.src = data.imageUrl;
-                    console.log('Cover photo updated with URL:', data.imageUrl);
-                }
-            } else {
-                console.error('Upload failed:', data.message);
-                if (typeof clubProfile !== 'undefined') {
-                    clubProfile.showNotification('Failed to upload: ' + data.message, 'error');
-                }
-                alert('Failed to upload: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error uploading cover photo:', error);
-            if (typeof clubProfile !== 'undefined') {
-                clubProfile.showNotification('Error uploading cover photo', 'error');
-            }
-            alert('Error uploading cover photo: ' + error.message);
-        });
+                alert('Error uploading cover photo: ' + error.message);
+            });
     }
 }
 
@@ -980,7 +1075,7 @@ function changeCoverImage(event) {
     console.log('[changeCoverImage] Function called');
     const file = event.target.files[0];
     console.log('[changeCoverImage] File selected:', file ? file.name : 'NO FILE');
-    
+
     if (!file) {
         console.log('[changeCoverImage] No file selected, returning');
         return;
@@ -1007,7 +1102,7 @@ function changeCoverImage(event) {
     }
 
     console.log('[changeCoverImage] File validated, reading...');
-    
+
     // Show preview immediately
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -1075,7 +1170,7 @@ async function saveCoverImageFormData(file) {
         console.log('[saveCoverImageFormData] Starting upload, file size:', file.size, 'bytes');
         const formData = new FormData();
         formData.append('cover_photo', file);
-        
+
         console.log('[saveCoverImageFormData] FormData created, sending to server...');
 
         const response = await fetch('/unipulse/public/user/profile/updateProfile', {
@@ -1087,7 +1182,7 @@ async function saveCoverImageFormData(file) {
         console.log('[saveCoverImageFormData] Response status:', response.status);
         const result = await response.json();
         console.log('[saveCoverImageFormData] Result:', result);
-        
+
         if (result.success) {
             showImageUploadStatus('Cover photo saved successfully!', 'success');
             console.log('Cover photo saved successfully');

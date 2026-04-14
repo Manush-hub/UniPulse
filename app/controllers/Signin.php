@@ -1,63 +1,67 @@
 <?php
 
-class Signin extends Controller{
+class Signin extends Controller
+{
 
     use Database;
 
     private $authService;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->authService = new AuthService();
     }
 
-    public function index($a = '', $b = '' , $c = ''){
+    public function index($a = '', $b = '', $c = '')
+    {
         // Handle POST request for login submission
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->handleLogin();
         } else {
             // Prepare data for the view
             $data = [];
-            
+
             // Check if user is already logged in, redirect to appropriate dashboard
             if (AuthService::isLoggedIn()) {
                 $currentUser = AuthService::getCurrentUser();
                 $this->authService->redirectToDashboard($currentUser['type'], $currentUser['id'] ?? null);
             }
-            
+
             // Check for logout message
             if (isset($_GET['message']) && $_GET['message'] === 'logout_success') {
                 $data['success'] = 'You have been successfully logged out.';
             }
-            
+
             // Check for password reset success message
             if (isset($_GET['message']) && $_GET['message'] === 'password_reset_success') {
                 $data['success'] = '✅ Password reset successful! You can now sign in with your new password.';
             }
-            
+
             // Check for registration success message
             if (isset($_SESSION['registration_success'])) {
                 $data['success'] = $_SESSION['registration_success'];
                 unset($_SESSION['registration_success']);
             }
-            
+
             // Show login form
             $this->view('signin', $data);
         }
     }
 
-    private function handleLogin() {
+    private function handleLogin()
+    {
         try {
             $email = trim($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
-            
+
             if (empty($email) || empty($password)) {
                 $this->view('signin', ['error' => 'Email and password are required']);
                 return;
             }
-            
+
             // Authenticate user across all user tables
             $authResult = $this->authService->authenticate($email, $password);
-            
+
             if ($authResult === 'suspended') {
                 // Account is suspended - show suspension info and appeal option
                 $suspensionInfo = $_SESSION['suspension_info'] ?? null;
@@ -75,7 +79,7 @@ class Signin extends Controller{
                 }
                 return;
             }
-            
+
             if ($authResult) {
                 // Login successful - start session
                 $this->authService->startSession($authResult);
@@ -89,7 +93,7 @@ class Signin extends Controller{
                 // Check if this is a publisher waiting for approval
                 $publisherModel = new Publisher();
                 $publisher = $publisherModel->findByEmail($email);
-                
+
                 if ($publisher && password_verify($password, $publisher->password_hash)) {
                     if ($publisher->approval_status === 'pending') {
                         $this->view('signin', ['error' => 'Your publisher account is pending approval by university moderators. Please wait for approval before signing in.']);
@@ -103,7 +107,6 @@ class Signin extends Controller{
                     $this->view('signin', ['error' => 'Invalid email or password']);
                 }
             }
-            
         } catch (Exception $e) {
             $this->view('signin', ['error' => 'Login error: ' . $e->getMessage()]);
         }
@@ -112,7 +115,8 @@ class Signin extends Controller{
     /**
      * Submit suspension appeal from suspended-account sign-in view.
      */
-    public function submitAppeal() {
+    public function submitAppeal()
+    {
         header('Content-Type: application/json');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -188,12 +192,14 @@ class Signin extends Controller{
         }
     }
 
-    private function normalizeAppealUserType($rawType) {
+    private function normalizeAppealUserType($rawType)
+    {
         $type = strtolower(trim((string)$rawType));
         return str_replace('_users', '', $type);
     }
 
-    private function getAppealUserTable($userType) {
+    private function getAppealUserTable($userType)
+    {
         $tables = [
             'university' => 'university_users',
             'public' => 'public_users',

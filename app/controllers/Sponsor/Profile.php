@@ -1,17 +1,20 @@
 <?php
 
-class SponsorProfile extends Controller {
+class SponsorProfile extends Controller
+{
 
     private $sponsorModel;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->sponsorModel = new Sponsor();
     }
 
-    public function index($a = '', $b = '', $c = '') {
+    public function index($a = '', $b = '', $c = '')
+    {
         // Check authentication
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             header('Location: /unipulse/public/signin');
             exit();
@@ -20,7 +23,7 @@ class SponsorProfile extends Controller {
         // Get sponsor data
         $sponsorId = $currentUser['id'];
         $sponsorData = $this->sponsorModel->findById($sponsorId);
-        
+
         if (!$sponsorData) {
             $this->view('profile', ['error' => 'Sponsor profile not found']);
             return;
@@ -28,12 +31,12 @@ class SponsorProfile extends Controller {
 
         // Get additional profile data
         $profileData = $this->sponsorModel->getProfileData($sponsorId);
-        
+
         // Update session with profile data for header
         if ($profileData && isset($profileData->logo_url)) {
             $_SESSION['user_logo'] = $profileData->logo_url;
         }
-        
+
         // Merge sponsor and profile data
         $data = [
             'sponsor' => $sponsorData,
@@ -74,11 +77,12 @@ class SponsorProfile extends Controller {
     /**
      * API endpoint to get profile data
      */
-    public function getProfileData($a = '', $b = '', $c = '') {
+    public function getProfileData($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
@@ -87,7 +91,7 @@ class SponsorProfile extends Controller {
         $sponsorId = $currentUser['id'];
         $sponsorData = $this->sponsorModel->findById($sponsorId);
         $profileData = $this->sponsorModel->getProfileData($sponsorId);
-        
+
         if ($sponsorData) {
             echo json_encode([
                 'success' => true,
@@ -104,21 +108,22 @@ class SponsorProfile extends Controller {
     /**
      * Update sponsor information
      */
-    public function updateSponsorInfo($a = '', $b = '', $c = '') {
+    public function updateSponsorInfo($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $sponsorId = $currentUser['id'];
-        
+
         // Get JSON input
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             error_log("updateSponsorInfo: Invalid input data");
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
@@ -135,10 +140,8 @@ class SponsorProfile extends Controller {
         ];
 
         foreach ($requiredFields as $field => $label) {
-            $inputField = $field === 'company_name' ? 'sponsorName' : 
-                         ($field === 'sponsor_type' ? 'sponsorType' : 
-                         ($field === 'phone' ? 'sponsorPhone' : $field));
-            
+            $inputField = $field === 'company_name' ? 'sponsorName' : ($field === 'sponsor_type' ? 'sponsorType' : ($field === 'phone' ? 'sponsorPhone' : $field));
+
             if (empty($input[$inputField]) || trim($input[$inputField]) === '') {
                 echo json_encode(['success' => false, 'message' => "$label is required"]);
                 return;
@@ -153,7 +156,7 @@ class SponsorProfile extends Controller {
         if (isset($input['sponsorPhone']) && trim($input['sponsorPhone']) !== '') {
             $basicData['phone'] = trim($input['sponsorPhone']);
         }
-        
+
         $basicResult = true;
         if (!empty($basicData)) {
             $basicResult = $this->sponsorModel->updateBasicInfo($sponsorId, $basicData);
@@ -170,7 +173,7 @@ class SponsorProfile extends Controller {
         if (isset($input['about']) && $input['about'] !== '') {
             $profileData['about'] = trim($input['about']);
         }
-        
+
         // Optional fields
         if (isset($input['companySize']) && $input['companySize'] !== '') {
             $profileData['company_size'] = trim($input['companySize']);
@@ -184,7 +187,7 @@ class SponsorProfile extends Controller {
         if (isset($input['mission']) && $input['mission'] !== '') {
             $profileData['mission'] = trim($input['mission']);
         }
-        
+
         // Handle interests (JSON array)
         if (isset($input['interests'])) {
             if (is_array($input['interests'])) {
@@ -193,7 +196,7 @@ class SponsorProfile extends Controller {
                 $profileData['interests'] = $input['interests'];
             }
         }
-        
+
         $profileResult = true;
         if (!empty($profileData)) {
             $profileResult = $this->sponsorModel->updateProfileData($sponsorId, $profileData);
@@ -204,7 +207,7 @@ class SponsorProfile extends Controller {
             if (isset($input['sponsorName'])) {
                 $_SESSION['user_name'] = $input['sponsorName'];
             }
-            
+
             echo json_encode(['success' => true, 'message' => 'Profile updated successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to update profile']);
@@ -214,29 +217,30 @@ class SponsorProfile extends Controller {
     /**
      * Update interests/sponsorship focus areas immediately
      */
-    public function updateInterests($a = '', $b = '', $c = '') {
+    public function updateInterests($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $sponsorId = $currentUser['id'];
-        
+
         // Get JSON input
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input || !isset($input['interests'])) {
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
             return;
         }
 
         // Convert interests array to JSON string
-        $interestsJson = is_array($input['interests']) 
-            ? json_encode($input['interests']) 
+        $interestsJson = is_array($input['interests'])
+            ? json_encode($input['interests'])
             : $input['interests'];
 
         // Update interests in profile
@@ -253,21 +257,22 @@ class SponsorProfile extends Controller {
     /**
      * Update contact/social links
      */
-    public function updateContactInfo($a = '', $b = '', $c = '') {
+    public function updateContactInfo($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $sponsorId = $currentUser['id'];
-        
+
         // Get JSON input
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!$input) {
             echo json_encode(['success' => false, 'message' => 'Invalid input data']);
             return;
@@ -281,7 +286,7 @@ class SponsorProfile extends Controller {
         if (isset($input['linkedin'])) $profileData['linkedin'] = $input['linkedin'];
         if (isset($input['twitter'])) $profileData['twitter'] = $input['twitter'];
         if (isset($input['youtube'])) $profileData['youtube'] = $input['youtube'];
-        
+
         $result = $this->sponsorModel->updateProfileData($sponsorId, $profileData);
 
         if ($result) {
@@ -294,18 +299,19 @@ class SponsorProfile extends Controller {
     /**
      * Change password
      */
-    public function changePassword($a = '', $b = '', $c = '') {
+    public function changePassword($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
         }
 
         $input = json_decode(file_get_contents('php://input'), true);
-        
+
         if (!isset($input['currentPassword']) || !isset($input['newPassword']) || !isset($input['confirmPassword'])) {
             echo json_encode(['success' => false, 'message' => 'All fields are required']);
             return;
@@ -337,14 +343,15 @@ class SponsorProfile extends Controller {
     /**
      * Upload image (logo or cover photo)
      */
-    public function uploadImage($a = '', $b = '', $c = '') {
+    public function uploadImage($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
-        
+
         error_log("uploadImage called - FILES: " . print_r($_FILES, true));
         error_log("uploadImage called - POST: " . print_r($_POST, true));
-        
+
         $currentUser = AuthService::getCurrentUser();
-        
+
         if (!$currentUser || $currentUser['type'] !== 'sponsor') {
             error_log("uploadImage - Unauthorized: " . print_r($currentUser, true));
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -359,9 +366,9 @@ class SponsorProfile extends Controller {
 
         $file = $_FILES['image'];
         $type = $_POST['type']; // 'logo' or 'cover'
-        
+
         error_log("uploadImage - Processing file: " . $file['name'] . " Type: " . $type);
-        
+
         // Validate file
         $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
         if (!in_array($file['type'], $allowedTypes)) {
@@ -387,26 +394,26 @@ class SponsorProfile extends Controller {
         $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = 'sponsor_' . $currentUser['id'] . '_' . $type . '_' . time() . '.' . $extension;
         $uploadPath = $uploadDir . $filename;
-        
+
         error_log("uploadImage - Upload path: " . $uploadPath);
 
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
             error_log("uploadImage - File uploaded successfully");
-            
+
             // Generate URL for the image
             $imageUrl = '/UniPulse/public/uploads/sponsors/' . $filename;
-            
+
             // Update database
             $sponsorId = $currentUser['id'];
             $updateData = $type === 'logo' ? ['logo_url' => $imageUrl] : ['cover_photo_url' => $imageUrl];
-            
+
             error_log("uploadImage - Updating database for sponsor ID: " . $sponsorId . " with data: " . print_r($updateData, true));
-            
+
             $result = $this->sponsorModel->updateProfileData($sponsorId, $updateData);
-            
+
             error_log("uploadImage - Database update result: " . ($result ? 'success' : 'failed'));
-            
+
             if ($result) {
                 // Update session with logo URL for header
                 if ($type === 'logo') {
@@ -427,7 +434,8 @@ class SponsorProfile extends Controller {
     /**
      * Delete sponsor account
      */
-    public function deleteAccount($a = '', $b = '', $c = '') {
+    public function deleteAccount($a = '', $b = '', $c = '')
+    {
         header('Content-Type: application/json');
 
         $currentUser = AuthService::getCurrentUser();
@@ -438,15 +446,14 @@ class SponsorProfile extends Controller {
         }
 
         $sponsorId = (int) $currentUser['id'];
-        $deleted = $this->sponsorModel->deleteAccount($sponsorId);
+        $deleted = $this->sponsorModel->softDeleteAccount($sponsorId);
 
         if ($deleted) {
             AuthService::logout();
-            echo json_encode(['success' => true, 'message' => 'Account deleted successfully']);
+            echo json_encode(['success' => true, 'message' => 'Account deactivated successfully']);
             return;
         }
 
-        echo json_encode(['success' => false, 'message' => 'Unable to delete account right now. Please try again later.']);
+        echo json_encode(['success' => false, 'message' => 'Unable to deactivate account right now. Please try again later.']);
     }
 }
-

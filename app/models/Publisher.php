@@ -952,6 +952,22 @@ class Publisher
         return $stmt->execute(['password_hash' => $passwordHash, 'id' => $publisherId]);
     }
 
+    public function softDeleteAccount($publisherId)
+    {
+        $query = "UPDATE publishers SET is_deleted = 1, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$publisherId]);
+    }
+
+    public function reactivateAccount($publisherId)
+    {
+        $query = "UPDATE publishers SET is_deleted = 0, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$publisherId]);
+    }
+
     /**
      * Get all approved publishers by university
      */

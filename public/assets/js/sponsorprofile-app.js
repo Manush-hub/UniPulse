@@ -85,8 +85,8 @@ class SponsorProfileApp {
         if (sponsorData.interests) {
             let interests = [];
             try {
-                interests = typeof sponsorData.interests === 'string' 
-                    ? JSON.parse(sponsorData.interests) 
+                interests = typeof sponsorData.interests === 'string'
+                    ? JSON.parse(sponsorData.interests)
                     : sponsorData.interests;
             } catch (e) {
                 console.error('Error parsing interests:', e);
@@ -204,7 +204,7 @@ class SponsorProfileApp {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 // Update displayed profile name if changed
                 if (formData.sponsorName) {
@@ -212,7 +212,7 @@ class SponsorProfileApp {
                     if (profileName) {
                         profileName.textContent = formData.sponsorName;
                     }
-                    
+
                     // Update header bar username
                     const headerUsername = document.getElementById('username');
                     if (headerUsername) {
@@ -231,7 +231,7 @@ class SponsorProfileApp {
                     'headline': 'headline',
                     'about': 'about'
                 };
-                
+
                 Object.keys(formData).forEach(key => {
                     if (fieldMapping[key]) {
                         this.originalFormData[fieldMapping[key]] = formData[key];
@@ -266,7 +266,7 @@ class SponsorProfileApp {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 console.log('Interests updated successfully');
                 // Update sponsorData so cancel works correctly
@@ -284,7 +284,7 @@ class SponsorProfileApp {
     // Cancel editing and restore original values
     cancelSponsorInfo() {
         const form = document.getElementById('sponsor-form');
-        
+
         // Restore original values
         Object.keys(this.originalFormData).forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -297,8 +297,8 @@ class SponsorProfileApp {
         if (sponsorData.interests) {
             let interests = [];
             try {
-                interests = typeof sponsorData.interests === 'string' 
-                    ? JSON.parse(sponsorData.interests) 
+                interests = typeof sponsorData.interests === 'string'
+                    ? JSON.parse(sponsorData.interests)
                     : sponsorData.interests;
             } catch (e) {
                 console.error('Error parsing interests:', e);
@@ -342,10 +342,10 @@ class SponsorProfileApp {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.showNotification('Contact information updated successfully!', 'success');
-                
+
                 // Update stored original data
                 Object.keys(formData).forEach(key => {
                     this.originalFormData[key] = formData[key];
@@ -362,7 +362,7 @@ class SponsorProfileApp {
     // Cancel editing contact information
     cancelContactInfo() {
         const form = document.getElementById('contact-form');
-        
+
         // Restore original values
         form.querySelectorAll('input').forEach(field => {
             if (this.originalFormData[field.id] !== undefined) {
@@ -409,7 +409,7 @@ class SponsorProfileApp {
             });
 
             const result = await response.json();
-            
+
             if (result.success) {
                 this.showNotification('Password changed successfully!', 'success');
                 // Clear password fields
@@ -485,10 +485,10 @@ class SponsorProfileApp {
             });
 
             console.log('Upload response status:', response.status);
-            
+
             const result = await response.json();
             console.log('Upload result:', result);
-            
+
             if (result.success) {
                 // Update header avatar if logo was uploaded
                 if (type === 'logo' && result.url) {
@@ -510,38 +510,36 @@ class SponsorProfileApp {
 
     // Delete Account
     async deleteAccount() {
-        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-            if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
+        if (confirm('Deactivate your sponsor account now? Signing in again will reactivate it.')) {
+            try {
+                const response = await fetch('/UniPulse/public/sponsor/profile/deleteAccount', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                let result;
                 try {
-                    const response = await fetch('/UniPulse/public/sponsor/profile/deleteAccount', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    let result;
-                    try {
-                        result = await response.json();
-                    } catch (parseError) {
-                        this.showNotification('Could not process server response. Please try again later.', 'error');
-                        return;
-                    }
-
-                    if (!response.ok) {
-                        this.showNotification(result.message || 'Account deletion failed. Please try again.', 'error');
-                        return;
-                    }
-
-                    if (result.success) {
-                        window.location.href = '/UniPulse/public/signin';
-                    } else {
-                        this.showNotification(result.message || 'Failed to delete account', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error deleting account:', error);
-                    this.showNotification('Unable to delete account right now. Please check your connection and try again.', 'error');
+                    result = await response.json();
+                } catch (parseError) {
+                    this.showNotification('Could not process server response. Please try again later.', 'error');
+                    return;
                 }
+
+                if (!response.ok) {
+                    this.showNotification(result.message || 'Account deactivation failed. Please try again.', 'error');
+                    return;
+                }
+
+                if (result.success) {
+                    window.location.href = '/UniPulse/public/signin?message=logout_success';
+                } else {
+                    this.showNotification(result.message || 'Failed to deactivate account', 'error');
+                }
+            } catch (error) {
+                console.error('Error deactivating account:', error);
+                this.showNotification('Unable to deactivate account right now. Please check your connection and try again.', 'error');
             }
         }
     }

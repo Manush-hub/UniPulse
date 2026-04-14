@@ -15,11 +15,11 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('apiEndpoint:', apiEndpoint);
     loadEvents();
     setupEventListeners();
-    
+
     // Add event listener for Load More button
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function(e) {
+        loadMoreBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             loadMoreEvents();
@@ -41,12 +41,12 @@ function setupEventListeners() {
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterEvents);
     }
-    
+
     const universityFilter = document.getElementById('universityFilter');
     if (universityFilter) {
         universityFilter.addEventListener('change', filterEvents);
     }
-    
+
     const statusFilter = document.getElementById('statusFilter');
     if (statusFilter) {
         statusFilter.addEventListener('change', filterEvents);
@@ -70,7 +70,7 @@ function debounce(func, wait) {
 function loadEvents(useAjax = false, append = false) {
     console.log('loadEvents called, useAjax:', useAjax, 'append:', append);
     console.log('filteredEvents.length:', filteredEvents.length);
-    
+
     const eventsGrid = document.getElementById('eventsGrid');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
@@ -96,7 +96,7 @@ function loadEvents(useAjax = false, append = false) {
         params.append('limit', eventsPerPage);
 
         console.log('Fetching events from:', `${apiEndpoint}?${params.toString()}`);
-        
+
         fetch(`${apiEndpoint}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
@@ -141,13 +141,14 @@ function loadEvents(useAjax = false, append = false) {
 
 function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
+    const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     if (!eventsGrid) {
         console.error('eventsGrid element not found!');
         return;
     }
-    
+
     console.log('displayEvents called with', events.length, 'events, append:', append);
 
     // Clear existing events only if not appending
@@ -155,12 +156,21 @@ function displayEvents(events, append = false) {
         eventsGrid.innerHTML = '';
     }
 
+    if (!append && (!events || events.length === 0)) {
+        displayNoEvents();
+        return;
+    }
+
+    if (noEvents) {
+        noEvents.style.display = 'none';
+    }
+
     // Add events to the grid
     events.forEach(event => {
         const card = createEventCard(event);
         eventsGrid.appendChild(card);
     });
-    
+
     console.log('Successfully added', events.length, 'cards to grid. Total cards now:', eventsGrid.children.length);
 
     // Show/hide load more button
@@ -175,15 +185,19 @@ function displayEvents(events, append = false) {
 
 function displayNoEvents() {
     const noEvents = document.getElementById('noEvents');
+    const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
+    if (eventsGrid) {
+        eventsGrid.innerHTML = '';
+    }
     noEvents.style.display = 'block';
     loadMoreSection.style.display = 'none';
 }
 
 function updatePagination(pagination = null) {
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     if (!loadMoreSection) {
         console.warn('loadMoreSection element not found');
         return;
@@ -201,13 +215,13 @@ function updatePagination(pagination = null) {
         // Use local pagination logic
         console.log('Updating pagination locally - currentPage:', currentPage, 'totalPages:', totalPages);
         console.log('filteredEvents.length:', filteredEvents.length, 'allEvents.length:', allEvents.length);
-        
+
         // Check if there are more events to load
         const totalEventsShown = currentPage * eventsPerPage;
         const totalEventsAvailable = allEvents.length;
-        
+
         console.log('Events shown:', totalEventsShown, 'Total available:', totalEventsAvailable);
-        
+
         if (totalEventsShown >= totalEventsAvailable) {
             console.log('Hiding load more - all events displayed');
             loadMoreSection.style.display = 'none';
@@ -449,18 +463,18 @@ function clearFilters() {
 // Load more events
 function loadMoreEvents() {
     console.log('loadMoreEvents called, currentPage:', currentPage);
-    
+
     // Disable button and show loading state
     const loadMoreBtn = document.querySelector('#loadMoreSection button');
     if (loadMoreBtn) {
         loadMoreBtn.disabled = true;
         loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
-    
+
     currentPage++;
     console.log('Fetching page:', currentPage);
     loadEvents(true, true); // useAjax=true, append=true
-    
+
     // Re-enable button after loading
     setTimeout(() => {
         if (loadMoreBtn && !loadMoreBtn.disabled) return; // Already re-enabled

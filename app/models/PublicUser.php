@@ -67,8 +67,9 @@ class PublicUser
         $user = $this->findByNIC($nic);
         return $user !== false;
     }
-    
-    public function getRecentRegistrations($limit = 10) {
+
+    public function getRecentRegistrations($limit = 10)
+    {
         $limit = (int)$limit; // Ensure it's an integer
         $query = "SELECT 
             id,
@@ -81,11 +82,12 @@ class PublicUser
         FROM public_users 
         ORDER BY created_at DESC 
         LIMIT {$limit}";
-        
+
         return $this->query($query, []);
     }
-    
-    public function validateData($data) {
+
+    public function validateData($data)
+    {
         $errors = [];
 
         // Required fields validation
@@ -161,5 +163,21 @@ class PublicUser
             'gender' => !empty($data['gender']) ? $data['gender'] : null,
             'interests' => !empty($interests) ? json_encode($interests) : null
         ];
+    }
+
+    public function softDeleteAccount($userId)
+    {
+        $query = "UPDATE public_users SET is_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$userId]);
+    }
+
+    public function reactivateAccount($userId)
+    {
+        $query = "UPDATE public_users SET is_deleted = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$userId]);
     }
 }

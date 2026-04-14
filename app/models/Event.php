@@ -95,8 +95,10 @@ class Event
         }
 
         if (!empty($filters['university'])) {
-            $whereClause[] = 'e.university = :university';
-            $params['university'] = $filters['university'];
+            // Filter by organizer university (publishers.university), not event venue university.
+            // Normalize spaces to hyphens so values like "university-of-colombo" match DB text values.
+            $whereClause[] = "LOWER(REPLACE(p.university, ' ', '-')) = :organizer_university";
+            $params['organizer_university'] = strtolower($filters['university']);
         }
 
         if (!empty($filters['status'])) {
@@ -105,8 +107,8 @@ class Event
         }
 
         if (!empty($filters['search'])) {
-            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
-            $params['search'] = '%' . $filters['search'] . '%';
+            $whereClause[] = "CONVERT(CONCAT_WS(' ', COALESCE(e.title, ''), COALESCE(e.description, ''), COALESCE(e.university_name, ''), COALESCE(e.organizer, ''), COALESCE(e.location, ''), COALESCE(p.society_name, '')) USING utf8mb4) COLLATE utf8mb4_general_ci LIKE :search COLLATE utf8mb4_general_ci";
+            $params['search'] = '%' . trim((string)$filters['search']) . '%';
         }
 
         $sql = "SELECT e.*, ({$computedStatusSql}) as status, p.society_name as organizer_name, pp.logo_url as organizer_photo,
@@ -267,8 +269,8 @@ class Event
         }
 
         if (!empty($filters['search'])) {
-            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search)';
-            $params['search'] = '%' . $filters['search'] . '%';
+            $whereClause[] = "CONVERT(CONCAT_WS(' ', COALESCE(e.title, ''), COALESCE(e.description, ''), COALESCE(e.university_name, ''), COALESCE(e.organizer, ''), COALESCE(e.location, '')) USING utf8mb4) COLLATE utf8mb4_general_ci LIKE :search COLLATE utf8mb4_general_ci";
+            $params['search'] = '%' . trim((string)$filters['search']) . '%';
         }
 
         $sql = "SELECT e.* FROM {$this->table} e";
@@ -389,12 +391,12 @@ class Event
                             $params['category'] = $value;
                             break;
                         case 'university':
-                            $whereClause[] = 'e.university = :university';
-                            $params['university'] = $value;
+                            $whereClause[] = "LOWER(REPLACE(p.university, ' ', '-')) = :organizer_university";
+                            $params['organizer_university'] = strtolower($value);
                             break;
                         case 'search':
-                            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
-                            $params['search'] = '%' . $value . '%';
+                            $whereClause[] = "CONVERT(CONCAT_WS(' ', COALESCE(e.title, ''), COALESCE(e.description, ''), COALESCE(e.university_name, ''), COALESCE(e.organizer, ''), COALESCE(e.location, ''), COALESCE(p.society_name, '')) USING utf8mb4) COLLATE utf8mb4_general_ci LIKE :search COLLATE utf8mb4_general_ci";
+                            $params['search'] = '%' . trim((string)$value) . '%';
                             break;
                     }
                 }
@@ -1216,8 +1218,8 @@ class Event
         }
 
         if (!empty($filters['search'])) {
-            $whereClause[] = '(e.title LIKE :search OR e.description LIKE :search OR e.university_name LIKE :search OR e.organizer LIKE :search OR e.location LIKE :search OR p.society_name LIKE :search)';
-            $params['search'] = '%' . $filters['search'] . '%';
+            $whereClause[] = "CONVERT(CONCAT_WS(' ', COALESCE(e.title, ''), COALESCE(e.description, ''), COALESCE(e.university_name, ''), COALESCE(e.organizer, ''), COALESCE(e.location, ''), COALESCE(p.society_name, '')) USING utf8mb4) COLLATE utf8mb4_general_ci LIKE :search COLLATE utf8mb4_general_ci";
+            $params['search'] = '%' . trim((string)$filters['search']) . '%';
         }
 
         $sql = "SELECT e.*, 
@@ -1590,23 +1592,14 @@ class Event
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 WHERE e.is_deleted = 0
                     AND TIMESTAMP(e.event_date, e.event_time) > NOW()
+                    AND e.visibility = 'public'
+                    AND e.ticket_type IN ('free-all', 'free-limited', 'free')
             ";
-
-            $visibilityClause = $this->buildVisibilityFilter($currentUser);
-            if (!empty($visibilityClause['clause'])) {
-                $query .= ' AND ' . $visibilityClause['clause'];
-            }
 
             $query .= " ORDER BY e.event_date ASC, e.event_time ASC LIMIT :limit";
 
             $conn = $this->connect();
             $stmt = $conn->prepare($query);
-
-            if (!empty($visibilityClause['params'])) {
-                foreach ($visibilityClause['params'] as $param => $value) {
-                    $stmt->bindValue(':' . $param, $value, PDO::PARAM_STR);
-                }
-            }
 
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();
