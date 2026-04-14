@@ -368,6 +368,25 @@ class Message {
             if (empty($contactId) || empty($contactType)) {
                 continue;
             }
+
+            // Do not show deactivated publisher/sponsor accounts in chatbox.
+            if ($contactType === 'publisher') {
+                $publisherState = $this->getRow(
+                    "SELECT COALESCE(is_deleted, 0) AS is_deleted FROM publishers WHERE id = :id LIMIT 1",
+                    ['id' => (int)$contactId]
+                );
+                if (!$publisherState || (int)($publisherState->is_deleted ?? 0) === 1) {
+                    continue;
+                }
+            } elseif ($contactType === 'sponsor') {
+                $sponsorState = $this->getRow(
+                    "SELECT COALESCE(is_deleted, 0) AS is_deleted FROM sponsors WHERE id = :id LIMIT 1",
+                    ['id' => (int)$contactId]
+                );
+                if (!$sponsorState || (int)($sponsorState->is_deleted ?? 0) === 1) {
+                    continue;
+                }
+            }
             
             // Get contact details
             $contactQuery = "SELECT 

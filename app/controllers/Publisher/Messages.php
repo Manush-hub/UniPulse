@@ -26,7 +26,7 @@ class PublisherMessages extends Controller {
             
             // Get available sponsors
             $sponsorModel = new Sponsor();
-            $availableSponsors = $sponsorModel->getAllSponsors();
+            $availableSponsors = $sponsorModel->getActiveSponsors();
             
             // Get moderators for publisher's university
             $moderatorModel = new Moderator();

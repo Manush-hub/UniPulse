@@ -1238,6 +1238,110 @@ body {
     color: #1E3A8A;
 }
 
+/* Reports Center */
+.reports-center {
+    padding: 2rem 0 1rem;
+    background: #fff;
+}
+
+.reports-header {
+    margin-bottom: 1rem;
+}
+
+.report-type-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.report-type-chip {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.report-type-chip.active {
+    background: #1e3a8a;
+    border-color: #1e3a8a;
+    color: #fff;
+}
+
+.report-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.report-summary-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.report-summary-card .summary-label {
+    font-size: 0.78rem;
+    color: #64748b;
+}
+
+.report-summary-card .summary-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.report-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: auto;
+    background: #fff;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+}
+
+.report-table thead {
+    background: #f8fafc;
+}
+
+.report-table th,
+.report-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #edf2f7;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.publisher-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.publisher-cell small {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.report-loading,
+.report-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 1rem;
+}
+
 /* Publisher Approval Section Styles */
 .publisher-approval-section {
     padding: 2rem 0;
@@ -1480,6 +1584,10 @@ body {
     .publishers-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+    }
+
+    .report-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     
     .publisher-card {

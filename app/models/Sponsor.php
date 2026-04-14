@@ -146,6 +146,36 @@ class Sponsor
         return $this->query($query);
     }
 
+    /**
+     * Get sponsors excluding deactivated accounts.
+     */
+    public function getActiveSponsors()
+    {
+        $query = "SELECT 
+            s.id,
+            s.company_name,
+            s.email,
+            s.phone,
+            s.country_code,
+            s.created_at,
+            u.last_login,
+            sp.logo_url,
+            sp.cover_photo_url,
+            CASE 
+                WHEN u.last_login IS NULL THEN 'Never'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 'Active'
+                WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 'Recently Active'
+                ELSE 'Inactive'
+            END as activity_status
+        FROM sponsors s
+        LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'
+        LEFT JOIN sponsor_profiles sp ON s.id = sp.sponsor_id
+        WHERE COALESCE(s.is_deleted, 0) = 0
+        ORDER BY s.created_at DESC";
+
+        return $this->query($query);
+    }
+
     public function getSponsorById($id)
     {
         $query = "SELECT 
@@ -172,6 +202,22 @@ class Sponsor
             COUNT(CASE WHEN s.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_sponsors
         FROM sponsors s
         LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'";
+
+        return $this->getRow($query);
+    }
+
+    /**
+     * Get sponsor stats excluding deactivated accounts.
+     */
+    public function getActiveSponsorStats()
+    {
+        $query = "SELECT 
+            COUNT(*) as total_sponsors,
+            COUNT(CASE WHEN u.last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as active_sponsors,
+            COUNT(CASE WHEN s.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_sponsors
+        FROM sponsors s
+        LEFT JOIN users u ON s.id = u.user_id AND u.user_type = 'sponsor'
+        WHERE COALESCE(s.is_deleted, 0) = 0";
 
         return $this->getRow($query);
     }
