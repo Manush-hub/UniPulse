@@ -1,7 +1,22 @@
 const moderatorMessagesConfig = window.moderatorMessagesConfig || {};
 let currentContactId = Number(moderatorMessagesConfig.currentContactId || 0);
 let currentContactType = moderatorMessagesConfig.currentContactType || '';
+let currentContactPhoto = moderatorMessagesConfig.currentContactPhoto || '';
 let messagePollingInterval;
+
+function renderAvatar(avatarEl, contactName, photoUrl) {
+    if (!avatarEl) return;
+
+    const safeName = (contactName || '').trim();
+    const initials = safeName ? safeName.substring(0, 2).toUpperCase() : '??';
+    const safePhoto = (photoUrl || '').trim();
+
+    if (safePhoto) {
+        avatarEl.innerHTML = `<img src="${escapeHtml(safePhoto)}" alt="${escapeHtml(safeName)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    } else {
+        avatarEl.textContent = initials;
+    }
+}
 
 async function loadConversation(contactId, contactType) {
     try {
@@ -93,6 +108,8 @@ function selectConversation(element) {
     currentContactId = element.dataset.contactId;
     currentContactType = element.dataset.contactType;
     const contactName = element.dataset.contactName;
+    const contactPhoto = element.dataset.contactPhoto || '';
+    currentContactPhoto = contactPhoto;
 
     const nameEl = document.getElementById('chatContactName');
     const typeEl = document.getElementById('chatContactType');
@@ -102,16 +119,17 @@ function selectConversation(element) {
 
     if (nameEl) nameEl.textContent = contactName;
     if (typeEl) typeEl.textContent = capitalizeFirst(currentContactType);
-    if (avatarEl) avatarEl.textContent = contactName.substring(0, 2).toUpperCase();
+    renderAvatar(avatarEl, contactName, contactPhoto);
     if (recipientIdEl) recipientIdEl.value = currentContactId;
     if (recipientTypeEl) recipientTypeEl.value = currentContactType;
 
     loadConversation(currentContactId, currentContactType);
 }
 
-function startConversation(contactId, contactType, contactName) {
+function startConversation(contactId, contactType, contactName, contactPhoto = '') {
     currentContactId = contactId;
     currentContactType = contactType;
+    currentContactPhoto = contactPhoto;
 
     const chatPanel = document.querySelector('.chat-panel');
     if (!chatPanel) return;
@@ -123,7 +141,7 @@ function startConversation(contactId, contactType, contactName) {
             <div class="chat-header">
                 <div class="chat-contact-info">
                     <div class="chat-avatar" id="chatAvatar">
-                        ${contactName.substring(0, 2).toUpperCase()}
+                        ${contactPhoto ? `<img src="${escapeHtml(contactPhoto)}" alt="${escapeHtml(contactName)}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` : contactName.substring(0, 2).toUpperCase()}
                     </div>
                     <div class="chat-contact-details">
                         <h3 id="chatContactName">${contactName}</h3>
@@ -187,7 +205,7 @@ function startConversation(contactId, contactType, contactName) {
     } else {
         document.getElementById('chatContactName').textContent = contactName;
         document.getElementById('chatContactType').textContent = capitalizeFirst(contactType);
-        document.getElementById('chatAvatar').textContent = contactName.substring(0, 2).toUpperCase();
+        renderAvatar(document.getElementById('chatAvatar'), contactName, contactPhoto);
         document.getElementById('recipientId').value = contactId;
         document.getElementById('recipientType').value = contactType;
 

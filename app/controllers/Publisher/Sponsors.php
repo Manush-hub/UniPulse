@@ -12,9 +12,9 @@ class PublisherSponsors extends Controller {
         
         $sponsor = new Sponsor();
         
-        // Get all sponsors
-        $sponsors = $sponsor->getAllSponsors();
-        $stats = $sponsor->getSponsorStats();
+        // Get only active sponsors (exclude deactivated accounts)
+        $sponsors = $sponsor->getActiveSponsors();
+        $stats = $sponsor->getActiveSponsorStats();
         
         // Prepare data for view
         $data = [

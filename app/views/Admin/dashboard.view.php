@@ -55,13 +55,9 @@
                             <i class="fas fa-user-shield"></i>
                             Manage Moderators
                         </button>
-                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/admins_list'">
-                            <i class="fas fa-users-cog"></i>
-                            Manage Admins
-                        </button>
-                        <button class="btn btn-outline" onclick="window.location.href='/unipulse/public/admin/settings'">
-                            <i class="fas fa-cog"></i>
-                            System Settings
+                        <button class="btn btn-primary" onclick="window.location.href='/unipulse/public/admin/admin_edit/<?php echo (int)($user['id'] ?? 0); ?>'">
+                            <i class="fas fa-user-cog"></i>
+                            Manage Account
                         </button>
                     </div>
                 </div>
@@ -219,6 +215,93 @@
                             <tbody id="publisherIncomeTableBody">
                                 <tr>
                                     <td colspan="4" class="publisher-income-empty">Loading publisher income...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="monthly-system-overview">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Monthly System Report</h2>
+                </div>
+
+                <div class="monthly-system-controls">
+                    <div class="month-selector">
+                        <label for="adminMonthlySystemMonth">Select Month:</label>
+                        <input type="month" id="adminMonthlySystemMonth" value="<?= date('Y-m') ?>" max="<?= date('Y-m') ?>">
+                    </div>
+                    <div class="monthly-system-action-buttons">
+                        <button type="button" class="btn btn-primary" id="refreshMonthlySystemBtn">
+                            <i class="fas fa-rotate-right"></i>
+                            Refresh Monthly Stats
+                        </button>
+                        <button type="button" class="btn btn-outline" id="downloadMonthlySystemBtn">
+                            <i class="fas fa-download"></i>
+                            Download Monthly PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="monthly-stats-grid">
+                    <div class="monthly-stat-card">
+                        <h3>Total Joins</h3>
+                        <div class="monthly-stat-value" id="monthlyTotalJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card">
+                        <h3>University Joins</h3>
+                        <div class="monthly-stat-value" id="monthlyUniversityJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card">
+                        <h3>Public Joins</h3>
+                        <div class="monthly-stat-value" id="monthlyPublicJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card">
+                        <h3>Publisher Joins</h3>
+                        <div class="monthly-stat-value" id="monthlyPublisherJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card">
+                        <h3>Sponsor Joins</h3>
+                        <div class="monthly-stat-value" id="monthlySponsorJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card">
+                        <h3>Moderator Joins</h3>
+                        <div class="monthly-stat-value" id="monthlyModeratorJoins">0</div>
+                    </div>
+                    <div class="monthly-stat-card status-approved">
+                        <h3>Approved Publishers</h3>
+                        <div class="monthly-stat-value" id="monthlyApprovedPublishers">0</div>
+                    </div>
+                    <div class="monthly-stat-card status-rejected">
+                        <h3>Rejected Publishers</h3>
+                        <div class="monthly-stat-value" id="monthlyRejectedPublishers">0</div>
+                    </div>
+                    <div class="monthly-stat-card status-pending">
+                        <h3>Pending Publishers</h3>
+                        <div class="monthly-stat-value" id="monthlyPendingPublishers">0</div>
+                    </div>
+                    <div class="monthly-stat-card status-deleted">
+                        <h3>Deleted Publishers</h3>
+                        <div class="monthly-stat-value" id="monthlyDeletedPublishers">0</div>
+                    </div>
+                </div>
+
+                <div class="monthly-role-table-wrapper">
+                    <h3>Role-wise Monthly Join Breakdown</h3>
+                    <div class="monthly-role-table-scroll">
+                        <table class="monthly-role-table">
+                            <thead>
+                                <tr>
+                                    <th>Role</th>
+                                    <th>Joined in Month</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyRoleBreakdownBody">
+                                <tr>
+                                    <td colspan="2" class="monthly-role-empty">Loading monthly role breakdown...</td>
                                 </tr>
                             </tbody>
                         </table>

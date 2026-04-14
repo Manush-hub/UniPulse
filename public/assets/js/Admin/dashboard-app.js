@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeDashboard();
     loadAdminData();
     loadAdminRevenueReport();
+    loadAdminMonthlySystemReport();
     loadRecentActivity();
     // loadPendingApprovals(); // Commented out - Pending approvals are now rendered server-side in PHP
     // loadUserTable(); // Commented out - User table is now rendered server-side in PHP
@@ -196,6 +197,106 @@ function downloadAdminRevenueReport() {
     });
 
     window.location.href = `/unipulse/public/admin/dashboard/downloadRevenueReport?${params.toString()}`;
+}
+
+function getAdminMonthlyReportMonth() {
+    const monthEl = document.getElementById('adminMonthlySystemMonth');
+    if (!monthEl) {
+        throw new Error('Monthly report control is not available.');
+    }
+
+    const month = monthEl.value;
+    if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+        throw new Error('Please select a valid month.');
+    }
+
+    return month;
+}
+
+function renderMonthlySystemSummary(summary) {
+    const map = {
+        monthlyTotalJoins: summary.total_joins || 0,
+        monthlyUniversityJoins: summary.university_joins || 0,
+        monthlyPublicJoins: summary.public_joins || 0,
+        monthlyPublisherJoins: summary.publisher_joins || 0,
+        monthlySponsorJoins: summary.sponsor_joins || 0,
+        monthlyModeratorJoins: summary.moderator_joins || 0,
+        monthlyApprovedPublishers: summary.publisher_approved || 0,
+        monthlyRejectedPublishers: summary.publisher_rejected || 0,
+        monthlyPendingPublishers: summary.publisher_pending || 0,
+        monthlyDeletedPublishers: summary.publisher_deleted || 0
+    };
+
+    Object.keys(map).forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = Number(map[id]).toLocaleString();
+        }
+    });
+}
+
+function renderMonthlyRoleBreakdown(rows) {
+    const body = document.getElementById('monthlyRoleBreakdownBody');
+    if (!body) return;
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+        body.innerHTML = '<tr><td colspan="2" class="monthly-role-empty">No monthly role data found.</td></tr>';
+        return;
+    }
+
+    body.innerHTML = rows.map((row) => `
+        <tr>
+            <td>${escapeHtml(row.role || 'Unknown')}</td>
+            <td>${Number(row.joins || 0).toLocaleString()}</td>
+        </tr>
+    `).join('');
+}
+
+function loadAdminMonthlySystemReport() {
+    const body = document.getElementById('monthlyRoleBreakdownBody');
+    if (!body) return;
+
+    let month;
+    try {
+        month = getAdminMonthlyReportMonth();
+    } catch (error) {
+        showToast(error.message, 'warning');
+        body.innerHTML = `<tr><td colspan="2" class="monthly-role-empty">${escapeHtml(error.message)}</td></tr>`;
+        return;
+    }
+
+    body.innerHTML = '<tr><td colspan="2" class="monthly-role-empty">Loading monthly role breakdown...</td></tr>';
+
+    const params = new URLSearchParams({ month });
+    fetch(`/unipulse/public/admin/dashboard/getMonthlySystemReport?${params.toString()}`)
+        .then((response) => response.json())
+        .then((payload) => {
+            if (!payload.success) {
+                throw new Error(payload.error || 'Failed to load monthly system report.');
+            }
+
+            const reportData = payload.data || {};
+            renderMonthlySystemSummary(reportData.summary || {});
+            renderMonthlyRoleBreakdown(reportData.role_breakdown || []);
+        })
+        .catch((error) => {
+            const message = error.message || 'Failed to load monthly system report.';
+            body.innerHTML = `<tr><td colspan="2" class="monthly-role-empty">${escapeHtml(message)}</td></tr>`;
+            showToast(message, 'error');
+        });
+}
+
+function downloadAdminMonthlySystemReport() {
+    let month;
+    try {
+        month = getAdminMonthlyReportMonth();
+    } catch (error) {
+        showToast(error.message, 'warning');
+        return;
+    }
+
+    const params = new URLSearchParams({ month });
+    window.location.href = `/unipulse/public/admin/dashboard/downloadMonthlySystemReport?${params.toString()}`;
 }
 
 // Load recent activity
@@ -446,6 +547,9 @@ function setupEventListeners() {
     const downloadRevenueBtn = document.getElementById('downloadAdminRevenueBtn');
     const revenueFromDate = document.getElementById('adminRevenueFromDate');
     const revenueToDate = document.getElementById('adminRevenueToDate');
+    const monthlySystemMonth = document.getElementById('adminMonthlySystemMonth');
+    const refreshMonthlySystemBtn = document.getElementById('refreshMonthlySystemBtn');
+    const downloadMonthlySystemBtn = document.getElementById('downloadMonthlySystemBtn');
 
     if (refreshRevenueBtn) {
         refreshRevenueBtn.addEventListener('click', loadAdminRevenueReport);
@@ -461,6 +565,18 @@ function setupEventListeners() {
 
     if (revenueToDate) {
         revenueToDate.addEventListener('change', loadAdminRevenueReport);
+    }
+
+    if (monthlySystemMonth) {
+        monthlySystemMonth.addEventListener('change', loadAdminMonthlySystemReport);
+    }
+
+    if (refreshMonthlySystemBtn) {
+        refreshMonthlySystemBtn.addEventListener('click', loadAdminMonthlySystemReport);
+    }
+
+    if (downloadMonthlySystemBtn) {
+        downloadMonthlySystemBtn.addEventListener('click', downloadAdminMonthlySystemReport);
     }
 }
 

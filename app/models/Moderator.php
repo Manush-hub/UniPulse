@@ -410,4 +410,119 @@ class Moderator {
             ];
         }
     }
+
+    /**
+     * Get publisher performance report rows for a moderator university.
+     */
+    public function getPublisherPerformanceReportByUniversity($university)
+    {
+        $university = trim((string)$university);
+        if ($university === '') {
+            return [];
+        }
+
+        try {
+            $rows = $this->query(
+                "SELECT
+                    p.id AS publisher_id,
+                    p.society_name,
+                    p.email,
+                    COUNT(DISTINCT e.id) AS total_events_posted,
+                    COUNT(DISTINCT CASE WHEN c.rating > 0 THEN c.id END) AS total_ratings,
+                    ROUND(AVG(CASE WHEN c.rating > 0 THEN c.rating END), 2) AS average_rating
+                 FROM publishers p
+                 LEFT JOIN events e
+                    ON e.created_by = p.id
+                   AND e.created_by_type = 'publisher'
+                   AND e.is_deleted = 0
+                 LEFT JOIN event_comments c
+                    ON c.event_id = e.id
+                   AND c.is_deleted = 0
+                   AND c.is_hidden = 0
+                 WHERE p.university = :university
+                   AND p.approval_status = 'approved'
+                   AND COALESCE(p.is_deleted, 0) = 0
+                 GROUP BY p.id, p.society_name, p.email
+                 ORDER BY total_events_posted DESC, average_rating DESC, p.society_name ASC",
+                ['university' => $university]
+            ) ?: [];
+
+            $ticketsByPublisher = [];
+
+            if ($this->tableExists('paid_event_registrations')) {
+                $ticketRows = $this->query(
+                    "SELECT
+                        per.publisher_id,
+                        COALESCE(SUM(per.ticket_quantity), 0) AS tickets_sold
+                     FROM paid_event_registrations per
+                     INNER JOIN publishers p ON p.id = per.publisher_id
+                     WHERE p.university = :university
+                       AND COALESCE(p.is_deleted, 0) = 0
+                       AND COALESCE(per.registration_status, 'reserved') != 'cancelled'
+                       AND COALESCE(per.payment_status, 'pending') IN ('paid', 'partially_refunded')
+                     GROUP BY per.publisher_id",
+                    ['university' => $university]
+                ) ?: [];
+
+                foreach ($ticketRows as $ticketRow) {
+                    $ticketsByPublisher[(int)($ticketRow->publisher_id ?? 0)] = (int)($ticketRow->tickets_sold ?? 0);
+                }
+            } elseif ($this->tableExists('event_registrations')) {
+                $ticketRows = $this->query(
+                    "SELECT
+                        e.created_by AS publisher_id,
+                        COUNT(er.id) AS tickets_sold
+                     FROM event_registrations er
+                     INNER JOIN events e
+                        ON e.id = er.event_id
+                       AND e.created_by_type = 'publisher'
+                     INNER JOIN publishers p ON p.id = e.created_by
+                     WHERE p.university = :university
+                       AND COALESCE(p.is_deleted, 0) = 0
+                       AND COALESCE(er.registration_type, 'free') = 'paid'
+                       AND (er.status IS NULL OR er.status != 'cancelled')
+                     GROUP BY e.created_by",
+                    ['university' => $university]
+                ) ?: [];
+
+                foreach ($ticketRows as $ticketRow) {
+                    $ticketsByPublisher[(int)($ticketRow->publisher_id ?? 0)] = (int)($ticketRow->tickets_sold ?? 0);
+                }
+            }
+
+            $reportRows = [];
+            foreach ($rows as $row) {
+                $publisherId = (int)($row->publisher_id ?? 0);
+                $avgRating = ($row->average_rating !== null) ? round((float)$row->average_rating, 2) : null;
+
+                $reportRows[] = (object)[
+                    'publisher_id' => $publisherId,
+                    'society_name' => (string)($row->society_name ?? 'Unknown Publisher'),
+                    'email' => (string)($row->email ?? ''),
+                    'total_events_posted' => (int)($row->total_events_posted ?? 0),
+                    'total_ratings' => (int)($row->total_ratings ?? 0),
+                    'average_rating' => $avgRating,
+                    'tickets_sold' => (int)($ticketsByPublisher[$publisherId] ?? 0),
+                ];
+            }
+
+            return $reportRows;
+        } catch (Exception $e) {
+            error_log('Moderator::getPublisherPerformanceReportByUniversity error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function tableExists($tableName)
+    {
+        $row = $this->getRow(
+            "SELECT COUNT(*) AS total
+             FROM information_schema.tables
+             WHERE table_schema = DATABASE()
+               AND table_name = :table_name",
+            ['table_name' => (string)$tableName]
+        );
+
+        return (int)($row->total ?? 0) > 0;
+    }
 }

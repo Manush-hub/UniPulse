@@ -153,4 +153,24 @@ class Admin {
     public function activate($id) {
         return $this->update($id, ['is_active' => 1]);
     }
+
+    /**
+     * Get the permanent system administrator (earliest admin record).
+     */
+    public function getSystemAdministrator() {
+        $result = $this->query("SELECT * FROM {$this->table} ORDER BY id ASC LIMIT 1");
+        return $result ? $result[0] : false;
+    }
+
+    /**
+     * Check whether a given admin ID is the permanent system administrator.
+     */
+    public function isSystemAdministrator($adminId) {
+        $systemAdmin = $this->getSystemAdministrator();
+        if (!$systemAdmin) {
+            return false;
+        }
+
+        return (int)$systemAdmin->id === (int)$adminId;
+    }
 }

@@ -8,13 +8,21 @@ class Admin_edit extends Controller{
             header('Location: /unipulse/public/signin');
             exit();
         }
-        
-        // Get admin ID from URL
-        $adminId = $a;
+
+        $currentUser = AuthService::getCurrentUser();
+        // Get admin ID from URL; default to current user.
+        $adminId = !empty($a) ? (int)$a : (int)$currentUser['id'];
+        if ((int)$currentUser['id'] !== (int)$adminId) {
+            $_SESSION['error_message'] = 'You can only edit your own account';
+            header('Location: /unipulse/public/admin/dashboard');
+            exit();
+        }
+
+        $adminModel = new Admin();
         
         if (empty($adminId)) {
             $_SESSION['error_message'] = 'Invalid admin ID';
-            header('Location: /unipulse/public/admin/admins_list');
+            header('Location: /unipulse/public/admin/dashboard');
             exit();
         }
         
@@ -25,17 +33,16 @@ class Admin_edit extends Controller{
         }
         
         // Get admin details
-        $adminModel = new Admin();
         $admin = $adminModel->find($adminId);
         
         if (!$admin) {
             $_SESSION['error_message'] = 'Admin not found';
-            header('Location: /unipulse/public/admin/admins_list');
+            header('Location: /unipulse/public/admin/dashboard');
             exit();
         }
         
         $data = [];
-        $data['user'] = AuthService::getCurrentUser();
+        $data['user'] = $currentUser;
         $data['admin'] = $admin;
         
         $this->view('Admin/admin_edit', $data);
@@ -53,7 +60,7 @@ class Admin_edit extends Controller{
         
         if (!$admin) {
             $_SESSION['error_message'] = 'Admin not found';
-            header('Location: /unipulse/public/admin/admins_list');
+            header('Location: /unipulse/public/admin/dashboard');
             exit();
         }
         
@@ -113,9 +120,7 @@ class Admin_edit extends Controller{
         $result = $adminModel->updateAdmin($adminId, $updateData);
         
         if ($result['success']) {
-            // Redirect to admins list with success message
-            $_SESSION['success_message'] = 'Admin updated successfully';
-            header('Location: /unipulse/public/admin/admins_list');
+            header('Location: /unipulse/public/admin/admin_edit/' . (int)$adminId);
             exit();
         } else {
             // Show form with errors

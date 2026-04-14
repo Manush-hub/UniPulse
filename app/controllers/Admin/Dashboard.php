@@ -19,6 +19,7 @@ class AdminDashboard extends Controller {
         
         $activeModerators = $moderatorModel->getActiveModerators();
         $activeAdmins = $adminModel->getActiveAdmins();
+        $data['is_system_admin'] = $adminModel->isSystemAdministrator($data['user']['id']);
         
         $data['stats'] = [
             'total_moderators' => count($activeModerators),
@@ -353,6 +354,7 @@ class AdminDashboard extends Controller {
                     'moderator_created'    => 'Moderator Added',
                     'moderator_edited'     => 'Moderator Updated',
                     'moderator_deleted'    => 'Moderator Deleted',
+                    'moderator_deactivated'=> 'Moderator Deactivated',
                     'moderator_activated'  => 'Moderator Reactivated',
                     'admin_created'        => 'New Admin Added',
                     'user_suspended'       => 'Account Suspended',
@@ -619,6 +621,75 @@ class AdminDashboard extends Controller {
             error_log('Error in AdminDashboard::downloadRevenueReport: ' . $e->getMessage());
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Failed to generate revenue report']);
+            exit;
+        }
+    }
+
+    /**
+     * API endpoint to get monthly system joins and status report.
+     */
+    public function getMonthlySystemReport() {
+        header('Content-Type: application/json');
+
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'Access denied']);
+            return;
+        }
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', (string)$month)) {
+            echo json_encode(['success' => false, 'error' => 'Invalid month format']);
+            return;
+        }
+
+        try {
+            $report = $this->getAdminMonthlySystemReportData($month);
+            echo json_encode([
+                'success' => true,
+                'month' => $month,
+                'data' => $report,
+            ]);
+        } catch (Throwable $e) {
+            error_log('Error in AdminDashboard::getMonthlySystemReport: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to load monthly system report']);
+        }
+    }
+
+    /**
+     * Download monthly system report as PDF.
+     */
+    public function downloadMonthlySystemReport() {
+        if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Access denied']);
+            exit;
+        }
+
+        $month = $_GET['month'] ?? date('Y-m');
+        if (!preg_match('/^\d{4}-\d{2}$/', (string)$month)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Invalid month format']);
+            exit;
+        }
+
+        try {
+            $report = $this->getAdminMonthlySystemReportData($month);
+            $pdf = $this->generateAdminMonthlySystemReportPDF($month, $report);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="admin-system-report-' . $month . '.pdf"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Throwable $e) {
+            error_log('Error in AdminDashboard::downloadMonthlySystemReport: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to generate system report']);
             exit;
         }
     }
@@ -973,6 +1044,237 @@ class AdminDashboard extends Controller {
             ],
             'publisher_income' => $publisherIncome,
         ];
+    }
+
+    /**
+     * Build month-scoped system report data for admin dashboard.
+     */
+    private function getAdminMonthlySystemReportData($month) {
+        $monthStart = date('Y-m-01', strtotime($month . '-01'));
+        $monthEnd = date('Y-m-t', strtotime($month . '-01'));
+
+        $params = [
+            'start_date' => $monthStart,
+            'end_date' => $monthEnd,
+        ];
+
+        $countByDateRange = function ($table) use ($params) {
+            try {
+                $rows = $this->query(
+                    "SELECT COUNT(*) AS cnt FROM {$table} WHERE DATE(created_at) BETWEEN :start_date AND :end_date",
+                    $params
+                );
+                $source = $rows[0] ?? null;
+                if (is_object($source)) {
+                    return (int)($source->cnt ?? 0);
+                }
+                if (is_array($source)) {
+                    return (int)($source['cnt'] ?? 0);
+                }
+                return 0;
+            } catch (Throwable $e) {
+                return 0;
+            }
+        };
+
+        $publicJoins = $countByDateRange('public_users');
+        $universityJoins = $countByDateRange('university_users');
+        $publisherJoins = $countByDateRange('publishers');
+        $sponsorJoins = $countByDateRange('sponsors');
+        $moderatorJoins = $countByDateRange('moderators');
+        $adminJoins = $countByDateRange('admins');
+
+        $publisherApproved = 0;
+        $publisherRejected = 0;
+        $publisherPending = 0;
+        $publisherDeleted = 0;
+
+        try {
+            $statusRows = $this->query(
+                "SELECT
+                    SUM(CASE WHEN approval_status = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+                    SUM(CASE WHEN approval_status = 'rejected' THEN 1 ELSE 0 END) AS rejected_count,
+                    SUM(CASE WHEN approval_status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+                    SUM(CASE WHEN COALESCE(is_deleted, 0) = 1 THEN 1 ELSE 0 END) AS deleted_count
+                 FROM publishers
+                 WHERE DATE(created_at) BETWEEN :start_date AND :end_date",
+                $params
+            );
+            $statusSource = $statusRows[0] ?? null;
+            if (is_object($statusSource)) {
+                $publisherApproved = (int)($statusSource->approved_count ?? 0);
+                $publisherRejected = (int)($statusSource->rejected_count ?? 0);
+                $publisherPending = (int)($statusSource->pending_count ?? 0);
+                $publisherDeleted = (int)($statusSource->deleted_count ?? 0);
+            } elseif (is_array($statusSource)) {
+                $publisherApproved = (int)($statusSource['approved_count'] ?? 0);
+                $publisherRejected = (int)($statusSource['rejected_count'] ?? 0);
+                $publisherPending = (int)($statusSource['pending_count'] ?? 0);
+                $publisherDeleted = (int)($statusSource['deleted_count'] ?? 0);
+            }
+        } catch (Throwable $e) {
+            $publisherApproved = 0;
+            $publisherRejected = 0;
+            $publisherPending = 0;
+            $publisherDeleted = 0;
+        }
+
+        $totalJoins = $publicJoins + $universityJoins + $publisherJoins + $sponsorJoins + $moderatorJoins + $adminJoins;
+
+        return [
+            'summary' => [
+                'month' => $month,
+                'month_start' => $monthStart,
+                'month_end' => $monthEnd,
+                'total_joins' => $totalJoins,
+                'public_joins' => $publicJoins,
+                'university_joins' => $universityJoins,
+                'publisher_joins' => $publisherJoins,
+                'sponsor_joins' => $sponsorJoins,
+                'moderator_joins' => $moderatorJoins,
+                'admin_joins' => $adminJoins,
+                'publisher_approved' => $publisherApproved,
+                'publisher_rejected' => $publisherRejected,
+                'publisher_pending' => $publisherPending,
+                'publisher_deleted' => $publisherDeleted,
+            ],
+            'role_breakdown' => [
+                ['role' => 'Public Users', 'joins' => $publicJoins],
+                ['role' => 'University Users', 'joins' => $universityJoins],
+                ['role' => 'Publishers', 'joins' => $publisherJoins],
+                ['role' => 'Sponsors', 'joins' => $sponsorJoins],
+                ['role' => 'Moderators', 'joins' => $moderatorJoins],
+                ['role' => 'Admins', 'joins' => $adminJoins],
+            ],
+        ];
+    }
+
+    /**
+     * Generate a decorated monthly system PDF report.
+     */
+    private function generateAdminMonthlySystemReportPDF($month, $reportData) {
+        $summary = is_array($reportData['summary'] ?? null) ? $reportData['summary'] : [];
+        $roles = is_array($reportData['role_breakdown'] ?? null) ? $reportData['role_breakdown'] : [];
+
+        $periodLabel = date('F Y', strtotime((string)$month . '-01'));
+
+        $totalJoins = (int)($summary['total_joins'] ?? 0);
+        $publisherJoins = (int)($summary['publisher_joins'] ?? 0);
+        $sponsorJoins = (int)($summary['sponsor_joins'] ?? 0);
+        $publisherApproved = (int)($summary['publisher_approved'] ?? 0);
+        $publisherRejected = (int)($summary['publisher_rejected'] ?? 0);
+        $publisherPending = (int)($summary['publisher_pending'] ?? 0);
+        $publisherDeleted = (int)($summary['publisher_deleted'] ?? 0);
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [30, 58, 138], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Admin System Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Monthly User Join and Publisher Status Overview', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $periodLabel . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [255, 237, 213], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Report Type', 'F1', 8.5, [255, 237, 213]);
+        $content .= $this->pdfText($contentRight - 174, 727, 'Monthly System', 'F2', 11.5, [255, 255, 255]);
+
+        $content .= $this->pdfRect($marginX, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 10, 673, 'Total Joins', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 10, 659, number_format($totalJoins), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 142, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 152, 673, 'Publisher Joins', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 152, 659, number_format($publisherJoins), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 284, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 294, 673, 'Sponsor Joins', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 294, 659, number_format($sponsorJoins), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 426, 652, 144, 34, [236, 253, 245], [167, 243, 208], 0.8);
+        $content .= $this->pdfText($marginX + 436, 673, 'Approved Publishers', 'F1', 8.5, [6, 95, 70]);
+        $content .= $this->pdfText($marginX + 436, 659, number_format($publisherApproved), 'F2', 12.0, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 18;
+        $rowY = 620;
+
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Joins by Role', 'F2', 12, [30, 58, 138]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'ROLE', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 500, $rowY + 6, 'JOINS', 'F2', 8.2, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        if (empty($roles)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No join data found for this month.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            foreach ($roles as $index => $row) {
+                $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+                $roleName = $this->truncatePDFText((string)($row['role'] ?? 'Unknown'), 42);
+                $joinCount = (int)($row['joins'] ?? 0);
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, $roleName, 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 500, $rowY + 6, number_format($joinCount), 'F2', 8.0, [30, 41, 59]);
+                $rowY -= $rowH;
+            }
+        }
+
+        $rowY -= 12;
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Publisher Status (Joined This Month)', 'F2', 11, [30, 58, 138]);
+        $rowY -= 8;
+
+        $summaryRows = [
+            ['label' => 'Approved Publishers', 'value' => number_format($publisherApproved)],
+            ['label' => 'Rejected Publishers', 'value' => number_format($publisherRejected)],
+            ['label' => 'Pending Publishers', 'value' => number_format($publisherPending)],
+            ['label' => 'Deleted Publishers', 'value' => number_format($publisherDeleted)],
+        ];
+
+        foreach ($summaryRows as $index => $row) {
+            $bg = ($index % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, $row['label'], 'F2', 8.4, [30, 41, 59]);
+            $content .= $this->pdfText($tableX + 500, $rowY + 6, $row['value'], 'F2', 8.4, [30, 41, 59]);
+            $rowY -= $rowH;
+        }
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Admin Monthly System Report  |  ' . $periodLabel, 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
     }
 
     private function tableExists($tableName) {

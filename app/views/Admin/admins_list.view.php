@@ -88,13 +88,18 @@
                             <tbody>
                                 <?php if (isset($admins) && !empty($admins)): ?>
                                     <?php foreach ($admins as $admin): ?>
+                                        <?php $isPermanentSystemAdmin = isset($system_admin_id) && ((int)$admin->id === (int)$system_admin_id); ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($admin->full_name); ?></td>
                                             <td><?php echo htmlspecialchars($admin->email); ?></td>
                                             <td><?php echo htmlspecialchars($admin->phone ?? 'N/A'); ?></td>
                                             <td>
                                                 <span class="status-badge <?php echo $admin->is_active ? 'status-active' : 'status-inactive'; ?>">
-                                                    <?php echo $admin->is_active ? 'Active' : 'Inactive'; ?>
+                                                    <?php if ($isPermanentSystemAdmin): ?>
+                                                        System Administrator
+                                                    <?php else: ?>
+                                                        <?php echo $admin->is_active ? 'Active' : 'Inactive'; ?>
+                                                    <?php endif; ?>
                                                 </span>
                                             </td>
                                             <td><?php echo date('M j, Y', strtotime($admin->created_at)); ?></td>
@@ -104,23 +109,18 @@
                                                        class="btn-action btn-edit" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <?php if ($admin->is_active): ?>
+                                                    <?php if (!$isPermanentSystemAdmin && $admin->is_active): ?>
                                                         <a href="/unipulse/public/admin/admins_list/deactivate/<?php echo $admin->id; ?>" 
                                                            class="btn-action btn-delete" title="Deactivate"
                                                            onclick="return confirm('Are you sure you want to deactivate this admin?')">
                                                             <i class="fas fa-ban"></i>
                                                         </a>
-                                                    <?php else: ?>
+                                                    <?php elseif (!$isPermanentSystemAdmin): ?>
                                                         <a href="/unipulse/public/admin/admins_list/activate/<?php echo $admin->id; ?>" 
                                                            class="btn-action btn-activate" title="Activate">
                                                             <i class="fas fa-check"></i>
                                                         </a>
                                                     <?php endif; ?>
-                                                    <a href="/unipulse/public/admin/admins_list/delete/<?php echo $admin->id; ?>" 
-                                                       class="btn-action btn-delete" title="Delete"
-                                                       onclick="return confirm('Are you sure you want to delete this admin? This action cannot be undone.')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -139,5 +139,7 @@
             </div>
         </section>
     </div>
+
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 </body>
 </html>

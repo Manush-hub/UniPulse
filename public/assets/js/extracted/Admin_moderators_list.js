@@ -1,6 +1,6 @@
 let currentDeleteUrl = '';
         
-        async function confirmModeratorDeletion(moderatorId, moderatorName, universityName) {
+    async function confirmModeratorDeactivation(moderatorId, moderatorName, universityName) {
             try {
                 // Check for pending approvals
                 const response = await fetch(`/unipulse/public/admin/moderators/check_pending/${moderatorId}`);
@@ -11,7 +11,7 @@ let currentDeleteUrl = '';
                 const warningBox = document.getElementById('pendingWarning');
                 const confirmBtn = document.getElementById('confirmDeleteBtn');
                 
-                message.innerHTML = `Are you sure you want to delete moderator <strong>${moderatorName}</strong> from <strong>${universityName}</strong>?<br><br>This action cannot be undone.`;
+                message.innerHTML = `Are you sure you want to deactivate moderator <strong>${moderatorName}</strong> from <strong>${universityName}</strong>?<br><br>You can reactivate this account later.`;
                 
                 if (data.hasPending && data.pendingCount > 0) {
                     warningBox.style.display = 'flex';
@@ -21,12 +21,12 @@ let currentDeleteUrl = '';
                             for ${universityName}. These approvals need to be resolved first.
                         </div>`;
                     confirmBtn.disabled = true;
-                    confirmBtn.textContent = 'Cannot Delete';
+                    confirmBtn.textContent = 'Cannot Deactivate';
                     currentDeleteUrl = '';
                 } else {
                     warningBox.style.display = 'none';
                     confirmBtn.disabled = false;
-                    confirmBtn.textContent = 'Delete Moderator';
+                    confirmBtn.textContent = 'Deactivate Moderator';
                     currentDeleteUrl = `/unipulse/public/admin/moderators/deactivate/${moderatorId}`;
                 }
                 
@@ -35,9 +35,8 @@ let currentDeleteUrl = '';
             } catch (error) {
                 console.error('Error checking pending approvals:', error);
                 // Fallback to simple confirmation with server-side check
-                const message = `Are you sure you want to delete moderator ${moderatorName}?\n\n` +
-                              `Note: If this moderator has pending approvals, the deletion will be blocked by the server.\n\n` +
-                              `This action cannot be undone.`;
+                const message = `Are you sure you want to deactivate moderator ${moderatorName}?\n\n` +
+                              `Note: If this moderator has pending approvals, deactivation will be blocked by the server.`;
                 return confirm(message);
             }
         }

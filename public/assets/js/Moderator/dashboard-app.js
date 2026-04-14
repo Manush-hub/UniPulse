@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadModeratorData();
             loadPendingReviews();
             loadRecentActivity();
+            loadPublisherPerformanceReport();
             setupDashboardListeners();
             console.log('Dashboard initialization complete');
         } catch (error) {
@@ -345,6 +346,100 @@ function setupDashboardListeners() {
             handleQuickAction(action);
         });
     });
+
+    const downloadBtn = document.getElementById('downloadPublisherPerformanceBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function () {
+            window.location.href = '/unipulse/public/moderator/dashboard/downloadPublisherPerformanceReport';
+        });
+    }
+}
+
+function loadPublisherPerformanceReport() {
+    const tableBody = document.getElementById('publisherPerformanceBody');
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.innerHTML = '<tr><td colspan="5" class="report-loading">Loading publisher performance report...</td></tr>';
+
+    fetch('/unipulse/public/moderator/dashboard/getPublisherPerformanceReport')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load publisher performance report');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Unable to load report data');
+            }
+
+            renderPublisherPerformanceSummary(data.summary || {});
+            renderPublisherPerformanceRows(Array.isArray(data.rows) ? data.rows : []);
+        })
+        .catch(error => {
+            console.error('Error loading publisher performance report:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" class="report-empty">Failed to load report data.</td></tr>';
+        });
+}
+
+function renderPublisherPerformanceSummary(summary) {
+    const publishersEl = document.getElementById('reportTotalPublishers');
+    const eventsEl = document.getElementById('reportTotalEvents');
+    const ticketsEl = document.getElementById('reportTicketsSold');
+    const ratingEl = document.getElementById('reportAvgRating');
+
+    if (publishersEl) publishersEl.textContent = Number(summary.publisher_count || 0).toLocaleString();
+    if (eventsEl) eventsEl.textContent = Number(summary.total_events || 0).toLocaleString();
+    if (ticketsEl) ticketsEl.textContent = Number(summary.total_tickets_sold || 0).toLocaleString();
+
+    if (ratingEl) {
+        const avg = summary.overall_average_rating;
+        ratingEl.textContent = (avg === null || avg === undefined) ? 'N/A' : Number(avg).toFixed(2);
+    }
+}
+
+function renderPublisherPerformanceRows(rows) {
+    const tableBody = document.getElementById('publisherPerformanceBody');
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.innerHTML = '';
+
+    if (!rows.length) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="report-empty">No publisher data found for your university.</td></tr>';
+        return;
+    }
+
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        const avgRating = row.average_rating === null || row.average_rating === undefined
+            ? 'N/A'
+            : Number(row.average_rating).toFixed(2);
+
+        tr.innerHTML = `
+            <td>
+                <div class="publisher-cell">
+                    <strong>${escapeHtml(row.society_name || 'Unknown Publisher')}</strong>
+                    <small>${escapeHtml(row.email || '')}</small>
+                </div>
+            </td>
+            <td>${Number(row.total_events_posted || 0).toLocaleString()}</td>
+            <td>${Number(row.tickets_sold || 0).toLocaleString()}</td>
+            <td>${Number(row.total_ratings || 0).toLocaleString()}</td>
+            <td>${avgRating}</td>
+        `;
+
+        tableBody.appendChild(tr);
+    });
+}
+
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value || '');
+    return div.innerHTML;
 }
 
 
