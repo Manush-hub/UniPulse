@@ -76,7 +76,7 @@
                     </div>
                     <div class="evolution-btn-content">
                         <h3>View Monthly Evolution Report</h3>
-                        <p>Track your volunteering, donations, and events participation for each month</p>
+                        <p>Track your donations and event participation for each month</p>
                     </div>
                     <div class="evolution-btn-arrow">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
