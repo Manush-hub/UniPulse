@@ -256,10 +256,7 @@ class PublisherCreateevent extends Controller
                 $formData['ticket_types'] = json_decode($_POST['ticket_types'], true);
             }
 
-            // Handle custom fields if provided
-            if (!empty($_POST['custom_fields'])) {
-                $formData['custom_fields'] = json_decode($_POST['custom_fields'], true);
-            }
+
 
             // Handle volunteer sources if volunteers are needed
             if ($formData['needs_volunteers']) {

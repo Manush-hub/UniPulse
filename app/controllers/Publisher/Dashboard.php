@@ -588,6 +588,7 @@ class PublisherDashboard extends Controller
                     'cover_image' => $event->cover_image ?? $event->image_url ?? '',
                     'organizer_name' => $event->organizer_name ?? $event->organizer ?? '',
                     'ticket_type' => $event->ticket_type ?? 'free-all',
+                    'ticket_types' => $event->ticket_types ?? '[]',
                     'ticket_price_free' => 0, // Not stored separately in database
                     'ticket_price_paid' => 0, // Not stored separately in database
                     'current_participants' => $event->current_participants ?? 0,
@@ -1296,7 +1297,10 @@ class PublisherDashboard extends Controller
             ]);
         } catch (Exception $e) {
             error_log("Error getting active boosts: " . $e->getMessage());
-            echo json_encode(['success' => false, 'error' => 'Failed to load active boosts']);
+            echo json_encode([
+                'success' => true,
+                'boosts' => []
+            ]);
         }
     }
 

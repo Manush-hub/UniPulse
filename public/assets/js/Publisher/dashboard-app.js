@@ -592,17 +592,57 @@ function createEventCard(event) {
 
     // Ticket price display
     const getTicketPriceDisplay = (event) => {
-        const ticketType = event.ticket_type;
+        const ticketType = event.ticket_type || event.ticketType || 'free-all';
+        const formatTicketAmount = (value) => {
+            const amount = Number(value);
+            if (Number.isNaN(amount)) {
+                return '0';
+            }
+            if (Number.isInteger(amount)) {
+                return String(amount);
+            }
+            return amount.toFixed(2).replace(/\.00$/, '');
+        };
+
         if (ticketType === 'free-all') {
             return '<div class="event-price free">Free</div>';
-        } else if (ticketType === 'paid-all') {
-            const price = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
-        } else if (ticketType === 'both') {
-            const freePrice = parseFloat(event.ticket_price_free) || 0;
-            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
         }
+
+        // For paid/mixed events, prefer ticket_types list and render min-max range.
+        let tickets = event.ticket_types || [];
+        if (typeof tickets === 'string' && tickets.trim() !== '') {
+            try {
+                tickets = JSON.parse(tickets);
+            } catch (error) {
+                tickets = [];
+            }
+        }
+
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            const prices = tickets
+                .map(ticket => parseFloat(ticket.price))
+                .filter(price => !Number.isNaN(price) && price >= 0);
+
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+
+                if (minPrice === maxPrice) {
+                    return `<div class="event-price paid"><i class="fas fa-ticket-alt"></i> LKR ${formatTicketAmount(minPrice)}</div>`;
+                }
+
+                return `<div class="event-price paid"><i class="fas fa-ticket-alt"></i> LKR ${formatTicketAmount(minPrice)} - ${formatTicketAmount(maxPrice)}</div>`;
+            }
+        }
+
+        if (ticketType === 'paid-all') {
+            return '<div class="event-price paid">Paid</div>';
+        }
+
+        if (ticketType === 'mixed') {
+            return '<div class="event-price paid">Mixed</div>';
+        }
+
         return '<div class="event-price">TBA</div>';
     };
 
@@ -1849,8 +1889,8 @@ async function loadActiveBoosts() {
         if (container) {
             container.innerHTML = `
                 <div class="loading-boosts">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Failed to load active boosts</p>
+                    <i class="fas fa-info-circle"></i>
+                    <p>No active boosts at the moment</p>
                 </div>
             `;
         }

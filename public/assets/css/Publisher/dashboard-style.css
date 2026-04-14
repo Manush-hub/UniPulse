@@ -726,6 +726,7 @@ body {
     border-radius: 12px;
     overflow: hidden;
     background: #fff;
+    padding: 0.5rem;
 }
 
 .registration-event-header {
@@ -1836,6 +1837,14 @@ body {
     .volunteer-applications,
     .volunteer-shifts {
         padding: 0.95rem;
+    }
+
+    .volunteer-applications .no-data,
+    .volunteer-shifts .no-data {
+        margin: 0.75rem;
+        min-height: 72px;
+        padding: 0.9rem 1rem;
+        font-size: 0.96rem;
     }
 }
 
