@@ -522,6 +522,13 @@ function createEventCard(event) {
     categoryDiv.textContent = event.category;
     imageDiv.appendChild(categoryDiv);
 
+    if (event.postponed_count > 0) {
+        const postponedDiv = document.createElement('div');
+        postponedDiv.style.cssText = 'position: absolute; top: 1rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;';
+        postponedDiv.textContent = 'Postponed';
+        imageDiv.appendChild(postponedDiv);
+    }
+
     // Price badge - Use ticket information
     const priceDiv = document.createElement('div');
     priceDiv.className = 'event-price';

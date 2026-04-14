@@ -587,6 +587,7 @@ class PublisherDashboard extends Controller
                     'category' => $event->category,
                     'cover_image' => $event->cover_image ?? $event->image_url ?? '',
                     'organizer_name' => $event->organizer_name ?? $event->organizer ?? '',
+                    'postponed_count' => (int)($event->postponed_count ?? 0),
                     'ticket_type' => $event->ticket_type ?? 'free-all',
                     'ticket_types' => $event->ticket_types ?? '[]',
                     'ticket_price_free' => 0, // Not stored separately in database

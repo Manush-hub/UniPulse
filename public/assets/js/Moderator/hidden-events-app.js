@@ -175,6 +175,7 @@ function createEventCard(event) {
                 </svg>` : ''}
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
             <div class="event-status hidden-badge">Hidden</div>
+        ${event.postponed_count > 0 ? `<div style="position: absolute; top: 3.5rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">POSTPONED</div>` : ''}
         </div>
         <div class="event-content">
             <h3 class="event-title">${event.title}</h3>

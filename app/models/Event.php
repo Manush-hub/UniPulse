@@ -62,7 +62,8 @@ class Event
         'sponsorship_swift_code',
         'sponsorship_instructions',
         'image_url',
-        'cover_image'
+        'cover_image',
+        'postponed_count'
     ];
 
     /**

@@ -109,6 +109,9 @@
                                         </div>
                                     <?php endif; ?>
                                     <div class="event-category"><?= ucfirst(htmlspecialchars($event->category)) ?></div>
+                                    <?php if (isset($event->postponed_count) && $event->postponed_count > 0): ?>
+                                        <div style="position: absolute; top: 1rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Postponed</div>
+                                    <?php endif; ?>
                                 </div>
                                 
                                 <div class="event-content">

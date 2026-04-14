@@ -356,6 +356,7 @@ function createEventCard(event) {
             <div class="event-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
                 <div class="event-category">${capitalizeFirstLetter(event.category || 'Event')}</div>
                 <div class="event-status ${isHiddenEvent ? 'hidden' : eventStatus}">${isHiddenEvent ? 'Hidden' : capitalizeFirstLetter(eventStatus)}</div>
+                ${event.postponed_count > 0 ? `<div style="position: absolute; top: 3.5rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Postponed</div>` : ''}
                 ${event.is_boosted == 1 ? '<div class="boosted-badge">⭐ Boosted</div>' : ''}
             </div>
             <div class="event-content">
@@ -421,6 +422,7 @@ function createEventCard(event) {
         <div class="event-image" style="background-image: url('${imageUrl}'); background-size: cover; background-position: center;">
             <div class="event-category">${capitalizeFirstLetter(event.category || 'Event')}</div>
             <div class="event-status ${eventStatus}">${capitalizeFirstLetter(eventStatus)}</div>
+            ${event.postponed_count > 0 ? `<div style="position: absolute; top: 3.5rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Postponed</div>` : ''}
             ${event.is_boosted == 1 ? '<div class="boosted-badge">⭐ Boosted</div>' : ''}
         </div>
         <div class="event-content">

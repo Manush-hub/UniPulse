@@ -665,6 +665,7 @@ function createEventCard(event) {
         }
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
             <div class="event-status ${event.status}">${event.status}</div>
+            ${event.postponed_count > 0 ? `<div style="position: absolute; top: 3rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">POSTPONED</div>` : ''}
         </div>
         <div class="event-content">
             <h3 class="event-title">${event.title}</h3>
@@ -764,6 +765,14 @@ function createEventCard(event) {
                 <button class="action-btn edit-btn" onclick="event.stopPropagation(); editEvent(${event.id})">
                     <i class="fas fa-edit"></i> Edit Event
                 </button>
+                ${event.postponed_count > 0 ? 
+                    `<button class="action-btn postpone-btn" disabled onclick="event.stopPropagation();">
+                        <i class="fas fa-clock"></i> Postponed
+                    </button>` :
+                    `<button class="action-btn postpone-btn" onclick="event.stopPropagation(); postponeEvent(${event.id})">
+                        <i class="fas fa-clock"></i> Postpone
+                    </button>`
+                }
             </div>
         </div>
     `;
@@ -1283,6 +1292,12 @@ function editEvent(eventId) {
     console.log('Editing event with ID:', eventId);
     // Redirect to edit event page
     window.location.href = `/unipulse/public/publisher/editevent/${eventId}`;
+}
+
+function postponeEvent(eventId) {
+    console.log('Postponing event with ID:', eventId);
+    // Redirect to postpone event page
+    window.location.href = `/unipulse/public/publisher/postponeevent/${eventId}`;
 }
 
 
