@@ -113,15 +113,15 @@ body {
 
 .filter-controls {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: stretch;
 }
 
 .search-box {
     position: relative;
-    flex: 1;
-    min-width: 300px;
+    width: 100%;
+    min-width: 0;
 }
 
 .search-input {
@@ -158,13 +158,15 @@ body {
 }
 
 .filter-group {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) minmax(220px, 1.4fr) minmax(160px, 1fr) auto;
     gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
 }
 
 .filter-group select {
+    width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 8px;
@@ -179,6 +181,8 @@ body {
 }
 
 .filter-btn {
+    width: 100%;
+    min-width: 140px;
     background: #f97316;
     color: white;
     padding: 0.75rem 1rem;
@@ -292,7 +296,7 @@ body {
     color: #6b7280;
 }
 
-.event-status.hidden{
+.event-status.hidden {
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
     color: white;
 }
@@ -499,16 +503,15 @@ body {
     }
 
     .search-box {
-        min-width: auto;
+        min-width: 0;
     }
 
     .filter-group {
-        justify-content: space-between;
+        grid-template-columns: 1fr;
     }
 
     .filter-group select {
-        min-width: auto;
-        flex: 1;
+        min-width: 0;
     }
 
     .events-grid {
