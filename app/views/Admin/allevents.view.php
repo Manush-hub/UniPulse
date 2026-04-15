@@ -66,6 +66,7 @@
                             <option value="upcoming">Upcoming</option>
                             <option value="ongoing">Ongoing</option>
                             <option value="completed">Completed</option>
+                            <option value="hidden">Hidden</option>
                         </select>
                         
                         <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>

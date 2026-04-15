@@ -104,6 +104,17 @@ class AuthService
             }
 
             if ($this->verifyPassword($password, $user->password_hash)) {
+                // Moderators edited as inactive are reactivated on successful sign-in.
+                if ($table === 'moderators' && isset($user->is_active) && (int)$user->is_active === 0) {
+                    $reactivated = $this->reactivateModeratorAccount((int)$user->id);
+                    if ($reactivated) {
+                        $user->is_active = 1;
+                        error_log('Moderator account reactivated on login for user ID: ' . (int)$user->id);
+                    } else {
+                        error_log('Failed to reactivate moderator account on login for user ID: ' . (int)$user->id);
+                    }
+                }
+
                 // Soft-deleted accounts are reactivated on successful sign-in.
                 if (isset($user->is_deleted) && (int)$user->is_deleted === 1) {
                     $this->reactivateSoftDeletedAccount($table, (int)$user->id);
@@ -136,6 +147,23 @@ class AuthService
             return $stmt->execute(['id' => $userId]);
         } catch (Exception $e) {
             error_log('Failed to reactivate soft-deleted account: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Reactivate an inactive moderator account.
+     */
+    private function reactivateModeratorAccount($moderatorId)
+    {
+        $query = "UPDATE moderators SET is_active = 1 WHERE id = :id";
+
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['id' => $moderatorId]);
+        } catch (Exception $e) {
+            error_log('Failed to reactivate moderator account: ' . $e->getMessage());
             return false;
         }
     }
