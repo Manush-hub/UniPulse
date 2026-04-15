@@ -1,0 +1,85 @@
+/* Suspension System Styles */
+.suspension-notice {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+}
+
+.suspension-icon {
+    font-size: 60px;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.suspension-reason {
+    background: #f8f9fa;
+    padding: 20px;
+    border-left: 4px solid #dc3545;
+    margin: 20px 0;
+    text-align: left;
+}
+
+.suspension-reason strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 16px;
+}
+
+.suspension-reason p {
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.appeal-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #e9ecef;
+}
+
+.appeal-section h3 {
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.appeal-section p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+/* Action buttons in dashboard */
+.btn-icon.btn-suspend {
+    color: #dc3545;
+}
+
+.btn-icon.btn-suspend:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-icon.btn-activate {
+    color: #28a745;
+}
+
+.btn-icon.btn-activate:hover {
+    background: #28a745;
+    color: white;
+}
+
+/* Modal styles */
+#suspensionModal .modal-content {
+    max-width: 500px;
+}
+
+#suspensionModal textarea {
+    font-family: inherit;
+    resize: vertical;
+}
+
+#suspensionModal h3 {
+    color: #dc3545;
+    margin-bottom: 20px;
+}

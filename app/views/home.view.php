@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/home-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -17,10 +19,7 @@
                 </div>
             </div>
                 <div class="unp-nav-group">
-                    <a href="#features" class="unp-nav-link">Features</a>
-                    <a href="#users" class="unp-nav-link">Users</a>
-                    <a href="#events" class="unp-nav-link">Events</a>
-                    <a href="/unipulse/public/signin" class="unp-nav-link">LogIn</a>
+                    <button onclick="location.href='/unipulse/public/signin'" class="login-btn">LogIn</button>
                     <button onclick="location.href='/unipulse/public/signup'" class="get-started-btn">Register</button>
                 </div>
             <div class="hamburger">
@@ -31,21 +30,48 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <h1>Unforgettable Events Start Here</h1>
-            <p>Discover, connect and participate in university events across Sri Lanka through our centralized platform.</p>
-            <div class="hero-buttons">
-                <button class="btn btn-primary">
-                    <i class="fas fa-search"></i>
-                    Find Events
-                </button>
-                <button class="btn btn-secondary">
-                    <i class="fas fa-calendar-plus"></i>
-                    Publish Event
-                </button>
+    <!-- Hero Section with Boosted Events Carousel -->
+    <section class="hero-section">
+        <!-- Promotional Banner (Always Visible) -->
+        <div class="boost-promo-banner" id="boostPromoBanner">
+            <div class="banner-content">
+                <div class="banner-icon">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                    </svg>
+                </div>
+                <h2>Boost Your Events for Maximum Visibility!</h2>
+                <p>Stand out and reach more participants by boosting your events on UniPulse</p>
+                <button onclick="location.href='/unipulse/public/signin'" class="banner-cta-btn">Get Started</button>
             </div>
+        </div>
+        
+        <div class="hero-carousel" id="heroCarousel">
+            <!-- Hero slides will be dynamically loaded here -->
+        </div>
+        
+        <!-- Hero Controls -->
+        <div class="hero-controls">
+            <button class="hero-nav-btn prev-btn" onclick="previousSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+            </button>
+            <button class="hero-nav-btn next-btn" onclick="nextSlide()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Hero Indicators -->
+        <div class="hero-indicators" id="heroIndicators">
+            <!-- Indicators will be dynamically created -->
+        </div>
+        
+        <!-- Hero Progress Bar -->
+        <div class="hero-progress">
+            <div class="progress-bar" id="progressBar"></div>
         </div>
     </section>
 
@@ -55,50 +81,45 @@
             <h2>Upcoming Events</h2>
             <p class="section-subtitle">Discover the most spectacular events happening at top universities.</p>
             <div class="events-grid">
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=300&h=200&fit=crop" alt="Tech Innovation Summit">
+                <?php if (!empty($upcoming_events)): ?>
+                    <?php foreach ($upcoming_events as $event): ?>
+                        <?php
+                            $eventImage = $event->cover_image ?: $event->image_url;
+                            if ($eventImage && (strpos($eventImage, '/uploads/') === 0 || strpos($eventImage, 'uploads/') === 0)) {
+                                $eventImage = '/unipulse/public' . (strpos($eventImage, '/') === 0 ? $eventImage : '/' . $eventImage);
+                            }
+                            if (empty($eventImage)) {
+                                $eventImage = 'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=300&h=200&fit=crop';
+                            }
+                        ?>
+                        <div class="event-card">
+                            <div class="event-image">
+                                <img src="<?= htmlspecialchars($eventImage) ?>" alt="<?= htmlspecialchars($event->title) ?>">
+                            </div>
+                            <div class="event-info">
+                                <h3><?= htmlspecialchars($event->title) ?></h3>
+                                <p class="event-date">
+                                    <i class="fas fa-calendar"></i>
+                                    <?= date('M d, Y', strtotime($event->event_date)) ?> - <?= date('h:i A', strtotime($event->event_time)) ?>
+                                </p>
+                                <p class="event-location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <?= htmlspecialchars($event->location ?: $event->university_name) ?>
+                                </p>
+                                <button class="btn btn-outline" onclick="location.href='/unipulse/public/signin'">View Details</button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="event-card">
+                        <div class="event-info">
+                            <h3>No upcoming public events right now</h3>
+                            <p class="event-date"><i class="fas fa-calendar"></i> Check back soon for new events.</p>
+                            <p class="event-location"><i class="fas fa-map-marker-alt"></i> UniPulse</p>
+                            <button class="btn btn-outline" onclick="location.href='/unipulse/public/signin'">Sign In</button>
+                        </div>
                     </div>
-                    <div class="event-info">
-                        <h3>Tech Innovation Summit</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Dec 15, 2024 - 09:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Colombo</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300&h=200&fit=crop" alt="Cultural Festival">
-                    </div>
-                    <div class="event-info">
-                        <h3>Cultural Festival</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Dec 20, 2024 - 06:00 PM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Peradeniya</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop" alt="Sports Championship">
-                    </div>
-                    <div class="event-info">
-                        <h3>Sports Championship</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Jan 5, 2025 - 08:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Moratuwa</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-image">
-                        <img src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=300&h=200&fit=crop" alt="Academic Conference">
-                    </div>
-                    <div class="event-info">
-                        <h3>Academic Conference</h3>
-                        <p class="event-date"><i class="fas fa-calendar"></i> Jan 10, 2025 - 10:00 AM</p>
-                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> University of Kelaniya</p>
-                        <button class="btn btn-outline">View Details</button>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
             <div class="pagination">
                 <span class="dot active"></span>
@@ -243,20 +264,12 @@
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <h3 class="stat-number">2500+</h3>
+                    <h3 class="stat-number"><?= number_format((int)($stats['total_events'] ?? 0)) ?></h3>
                     <p>Total Events</p>
                 </div>
                 <div class="stat-item">
-                    <h3 class="stat-number">20+</h3>
-                    <p>Universities</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="stat-number">1000+</h3>
-                    <p>Active Users</p>
-                </div>
-                <div class="stat-item">
-                    <h3 class="stat-number">500+</h3>
-                    <p>Success Stories</p>
+                    <h3 class="stat-number"><?= number_format((int)($stats['total_users'] ?? 0)) ?></h3>
+                    <p>Total Users</p>
                 </div>
             </div>
         </div>
@@ -268,72 +281,40 @@
             <h2>Ready to Transform Your University Event Experience?</h2>
             <p>Join thousands of students, organizers, and sponsors who are already using UniPulse to discover and create amazing university events.</p>
             <div class="cta-buttons">
-                <button class="btn btn-cta">
+                <a href="/unipulse/public/usersignup" class="btn btn-cta">
                     <i class="fas fa-user-graduate"></i>
                     <div>
-                        <span class="btn-title">Students</span>
+                        <span class="btn-title">Users</span>
                         <span class="btn-subtitle">Discover Events</span>
                     </div>
-                </button>
-                <button class="btn btn-cta">
+                </a>
+                <a href="/unipulse/public/publisherreg" class="btn btn-cta">
                     <i class="fas fa-users-cog"></i>
                     <div>
                         <span class="btn-title">Event Organizers</span>
                         <span class="btn-subtitle">Create Events</span>
                     </div>
-                </button>
-                <button class="btn btn-cta">
+                </a>
+                <a href="/unipulse/public/sponsorreg" class="btn btn-cta">
                     <i class="fas fa-building"></i>
                     <div>
                         <span class="btn-title">Sponsors</span>
                         <span class="btn-subtitle">Partner with Us</span>
                     </div>
-                </button>
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <div class="logo">
-                       <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </div>
-                    <p>Powering the future university events across Sri Lanka. Connecting students, organizers and sponsors.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Quick Links</h4>
-                    <ul>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#events">Find Events</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#help">Help Center</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#privacy">Privacy Policy</a></li>
-                        <li><a href="#terms">Terms of Service</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contact Info</h4>
-                    <p><i class="fas fa-envelope"></i> info@unipulse.lk</p>
-                    <p><i class="fas fa-phone"></i> +94 11 234 5678</p>
-                    <p><i class="fas fa-map-marker-alt"></i> Colombo, Sri Lanka</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 UniPulse. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/components/footer.php'; ?>
 
-    <script src="/unipulse/public/assets/js/app.js"></script>
+    <!-- Pass PHP data to JavaScript -->
+    <script>
+        // Convert PHP boosted events data to JavaScript
+        const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+    </script>
+    <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
+
 </html>

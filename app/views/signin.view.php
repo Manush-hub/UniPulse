@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,17 +8,10 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/signin-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="index.php">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="unp-logo">
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php include 'header.php'; ?>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -35,95 +29,118 @@
 
             <!-- Sign In Form -->
             <div class="signin-form-container">
-                <form class="signin-form" id="signinForm">
-                    <div class="form-header">
-                        <h2>Sign In</h2>
-                        <p>Enter your credentials to access your account</p>
-                    </div>
-
-                    <!-- Email Field -->
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <div class="input-container">
-                            <i class="fas fa-envelope"></i>
-                            <input 
-                                type="email" 
-                                id="email" 
-                                name="email" 
-                                placeholder="Enter your email address"
-                                required
-                            >
+                <?php if (isset($suspended) && $suspended): ?>
+                    <!-- Suspension Notice -->
+                    <div class="suspension-notice">
+                        <div class="suspension-icon">
+                            <i class="fas fa-ban"></i>
                         </div>
-                        <span class="error-message" id="emailError"></span>
-                    </div>
+                        <h2>Account Suspended</h2>
+                        <div class="suspension-reason">
+                            <strong>Reason:</strong>
+                            <p><?= htmlspecialchars($suspension_reason) ?></p>
+                        </div>
 
-                    <!-- Password Field -->
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-container">
-                            <i class="fas fa-lock"></i>
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                placeholder="Enter your password"
-                                required
-                            >
-                            <button type="button" class="password-toggle" id="passwordToggle">
-                                <i class="fas fa-eye"></i>
+                        <div class="appeal-section">
+                            <h3>Submit an Appeal</h3>
+                            <p>If you believe this suspension is unjust, you can submit an appeal to the administrators.</p>
+                            <textarea id="appealMessage" rows="5" placeholder="Explain why you believe this suspension should be lifted..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0;"></textarea>
+                            <button type="button" onclick="submitAppeal()" class="submit-button" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                                Submit Appeal
                             </button>
+                            <a href="/unipulse/public/signin" style="display: block; text-align: center; margin-top: 15px; color: #666;">Back to Sign In</a>
                         </div>
-                        <span class="error-message" id="passwordError"></span>
+
+                        <div id="appealResult" style="margin-top: 15px; display: none;"></div>
                     </div>
 
-                    <!-- Forgot Password Link -->
-                    <div class="forgot-password">
-                        <a href="#forgot-password">Forgot password?</a>
+                    <script>
+                        window.signinAppealConfig = {
+                            submitUrl: '/unipulse/public/signin/submitAppeal',
+                            redirectUrl: '/unipulse/public/signin',
+                            userId: <?= $user_id ?>,
+                            userType: '<?= str_replace('_users', '', $user_type) ?>'
+                        };
+                    </script>
+                <?php elseif (isset($error)): ?>
+                    <div class="error-message-box">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <?= htmlspecialchars($error) ?>
                     </div>
+                <?php endif; ?>
 
-                    <!-- Sign In Button -->
-                    <button type="submit" class="signin-btn" id="signinBtn">
-                        <span class="btn-text">Sign In</span>
-                        <div class="loading-spinner" id="loadingSpinner">
-                            <i class="fas fa-spinner fa-spin"></i>
+                <?php if (isset($success)): ?>
+                    <div class="success-message-box">
+                        <i class="fas fa-check-circle"></i>
+                        <?= htmlspecialchars($success) ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!isset($suspended) || !$suspended): ?>
+                    <form class="signin-form" method="POST" action="/unipulse/public/signin">
+                        <div class="form-header">
+                            <h2>Sign In</h2>
+                            <p>Enter your credentials to access your account</p>
                         </div>
-                    </button>
 
-                    <!-- Create Account Link -->
-                    <div class="create-account">
-                        <span>Don't have an account? </span>
-                        <a href="/unipulse/public/signup">Create Account</a>
-                    </div>
-                </form>
+                        <!-- Email Field -->
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <div class="input-container">
+                                <i class="fas fa-envelope"></i>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    placeholder="Enter your email address"
+                                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+                                    required>
+                            </div>
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-container">
+                                <i class="fas fa-lock"></i>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    placeholder="Enter your password"
+                                    required>
+                                <button type="button" class="password-toggle" id="passwordToggle">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Forgot Password Link -->
+                        <!-- <div class="forgot-password">
+                        <a href="/unipulse/public/forgotpassword">Forgot password?</a>
+                    </div> -->
+
+                        <!-- Sign In Button -->
+                        <button type="submit" class="signin-btn">
+                            <span class="btn-text">Sign In</span>
+                        </button>
+
+                        <!-- Create Account Link -->
+                        <div class="create-account">
+                            <span>Don't have an account? </span>
+                            <a href="/unipulse/public/signup">Create Account</a>
+                        </div>
+                    </form>
+                <?php endif; ?>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#terms">Terms of Service</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact Support</a>
-            </div>
-            <div class="footer-copyright">
-                <span>&copy; 2025 UniPulse. All rights reserved.</span>
-            </div>
-        </div>
-    </footer>
+    <?php include 'footer.php'; ?>
 
-    <!-- Success/Error Messages -->
-    <div class="toast" id="toast">
-        <div class="toast-content">
-            <i class="toast-icon"></i>
-            <span class="toast-message"></span>
-        </div>
-        <button class="toast-close" id="toastClose">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-
-    <script src="/unipulse/public/assets/js/signin-app.js"></script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/signin.js"></script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/signin_suspension.js"></script>
 </body>
+
 </html>

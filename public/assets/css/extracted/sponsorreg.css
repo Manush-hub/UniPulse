@@ -1,0 +1,21 @@
+.required {
+            color: #dc3545;
+            margin-left: 3px;
+            font-weight: bold;
+        }
+        
+        /* Dropdown with scroll - show 4 items */
+        select#country-code {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select#country-code option {
+            padding: 10px;
+        }
+        
+        /* Set size attribute to show visible items when opened */
+        select#country-code[size] {
+            height: auto;
+        }

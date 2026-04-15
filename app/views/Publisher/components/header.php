@@ -1,0 +1,126 @@
+<?php
+$pageConfig = isset($pageConfig) ? $pageConfig : [];
+$activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
+
+// Get current user data from session
+$currentUser = AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null;
+
+// Get publisher name from session
+$publisherName = 'Publisher';
+$publisherRole = 'Publisher';
+
+if ($currentUser) {
+    // Try to get organization name first, fallback to user name
+    if (isset($currentUser['organization_name']) && !empty($currentUser['organization_name'])) {
+        $publisherName = $currentUser['organization_name'];
+    } elseif (isset($currentUser['name']) && !empty($currentUser['name'])) {
+        $publisherName = $currentUser['name'];
+    }
+
+    // Set role
+    if (isset($currentUser['role'])) {
+        $publisherRole = ucfirst($currentUser['role']);
+    }
+}
+
+// Check session for organization name (might be stored separately)
+if (isset($_SESSION['organization_name']) && !empty($_SESSION['organization_name'])) {
+    $publisherName = $_SESSION['organization_name'];
+}
+if (isset($_SESSION['user_name']) && !empty($_SESSION['user_name']) && $publisherName === 'Publisher') {
+    $publisherName = $_SESSION['user_name'];
+}
+
+// Get profile photo from session or use default
+$profilePhoto = '/unipulse/public/assets/images/organizer.jpg';
+
+// First check if we have profile logo_url (when on profile page)
+if (isset($profile->logo_url) && !empty($profile->logo_url)) {
+    $profilePhoto = $profile->logo_url;
+} elseif (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_photo'])) {
+    $profilePhoto = $_SESSION['user_profile_photo'];
+} elseif (isset($_SESSION['profile_photo']) && !empty($_SESSION['profile_photo'])) {
+    $profilePhoto = $_SESSION['profile_photo'];
+}
+?>
+
+<link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
+
+<?php if (isset($_SESSION['account_reactivated_success'])): ?>
+    <div class="reactivation-toast" role="status" aria-live="polite">
+        <div class="reactivation-toast__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+        </div>
+        <div class="reactivation-toast__content">
+            <div class="reactivation-toast__title">Account Reactivated</div>
+            <p class="reactivation-toast__message"><?= htmlspecialchars($_SESSION['account_reactivated_success']) ?></p>
+        </div>
+        <button class="reactivation-toast__close" type="button" aria-label="Dismiss notification" onclick="this.closest('.reactivation-toast').remove()">×</button>
+    </div>
+    <?php unset($_SESSION['account_reactivated_success'], $_SESSION['account_reactivated_email']); ?>
+<?php endif; ?>
+
+<header class="header">
+    <div class="header-container">
+        <div class="logo">
+            <a href="/unipulse/public/publisher/landing">
+                <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
+            </a>
+        </div>
+        <nav class="nav">
+            <a href="/unipulse/public/publisher/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
+            <a href="/unipulse/public/publisher/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
+            <!-- <a href="/unipulse/public/publisher/sponsors" class="<?= $activeNav === 'sponsors' ? 'active' : '' ?>">Browse Sponsors</a> -->
+            <a href="/unipulse/public/publisher/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">Sponsorships</a>
+            <a href="/unipulse/public/publisher/donations" class="<?= $activeNav === 'donations' ? 'active' : '' ?>">Donations</a>
+            <a href="/unipulse/public/publisher/messages" class="<?= $activeNav === 'messages' ? 'active' : '' ?>">Messages</a>
+            <a href="/unipulse/public/publisher/dashboard" class="<?= $activeNav === 'dashboard' ? 'active' : '' ?>">Dashboard</a>
+        </nav>
+        <div class="header-actions">
+            <div class="notifications">
+                <button class="notification-btn" onclick="toggleNotifications()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span class="notification-badge hidden" id="notificationBadge"></span>
+                </button>
+                <div class="notification-dropdown" id="notificationDropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <button onclick="markAllAsRead()">Mark all as read</button>
+                    </div>
+                    <div class="notification-list" id="notificationList">
+                        <!-- Notifications will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            <div class="user-menu">
+                <img src="<?php echo htmlspecialchars($profilePhoto); ?>" alt="Publisher Avatar" class="avatar" id="headerAvatar">
+                <div class="user-info">
+                    <span class="username" id="username"><?php echo htmlspecialchars($publisherName); ?></span>
+                    <span class="user-role" id="userRole"><?php echo htmlspecialchars($publisherRole); ?></span>
+                </div>
+                <button class="user-dropdown-btn" onclick="toggleUserMenu()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                </button>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="/unipulse/public/publisher/profile">Profile Settings</a>
+                    <a href="#" id="openRegisteredEventsCalendar">Calendar</a>
+                    <!-- <a href="preferences.html">Preferences</a>
+                        <a href="help.html">Help & Support</a>
+                        <hr> -->
+                    <a href="/unipulse/public/logout" class="logout">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
+<script src="/unipulse/public/assets/js/Publisher/header-app.js"></script>
