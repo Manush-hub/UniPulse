@@ -119,7 +119,8 @@ if (typeof upcoming24hEventsFromDB !== 'undefined' && upcoming24hEventsFromDB.le
             time: event.event_time,
             location: event.location || event.university_name,
             price: priceText,
-            image: imageUrl
+            image: imageUrl,
+            postponed_count: Number(event.postponed_count || 0)
         };
     });
 } else {
@@ -173,7 +174,8 @@ if (typeof moreEventsFromDB !== 'undefined' && moreEventsFromDB.length > 0) {
             time: event.event_time || '',
             location: event.university_name || 'Unknown Location',
             price: priceDisplay,
-            image: imageUrl
+            image: imageUrl,
+            postponed_count: Number(event.postponed_count || 0)
         };
     });
     console.log('Transformed more events:', moreEvents);
@@ -524,13 +526,6 @@ function createEventCard(event) {
     categoryDiv.className = 'event-category';
     categoryDiv.textContent = event.category;
     imageDiv.appendChild(categoryDiv);
-
-    if (event.postponed_count > 0) {
-        const postponedDiv = document.createElement('div');
-        postponedDiv.style.cssText = 'position: absolute; top: 1rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;';
-        postponedDiv.textContent = 'Postponed';
-        imageDiv.appendChild(postponedDiv);
-    }
 
     // Price badge - Use ticket information
     const priceDiv = document.createElement('div');
