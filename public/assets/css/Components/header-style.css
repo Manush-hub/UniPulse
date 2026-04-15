@@ -91,6 +91,33 @@ textarea {
     transition: all 0.3s ease !important;
 }
 
+.nav .nav-link-with-badge {
+    position: relative !important;
+}
+
+.nav-notification-badge {
+    position: absolute !important;
+    top: -8px !important;
+    right: -16px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    border-radius: 999px !important;
+    background: #facc15 !important;
+    color: #1f2937 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 4px !important;
+    box-shadow: 0 0 0 2px #ffffff !important;
+}
+
+.nav-notification-badge.hidden {
+    display: none !important;
+}
+
 .nav a:hover,
 .nav a.active {
     color: #1E3A8A !important;
