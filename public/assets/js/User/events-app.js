@@ -73,7 +73,11 @@ function updateCategoryCounts(events) {
         'sports': 0,
         'cultural': 0,
         'academic': 0,
-        'social': 0
+        'social': 0,
+        'workshop': 0,
+        'business': 0,
+        'music': 0,
+        'other': 0
     };
 
     // Count events by category for upcoming and ongoing events only

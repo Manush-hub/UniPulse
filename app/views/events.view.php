@@ -132,6 +132,9 @@ $cssVersion = file_exists($cssFilePath) ? filemtime($cssFilePath) : time();
                             <option value="technology">Technology</option>
                             <option value="social">Social</option>
                             <option value="workshop">Workshop</option>
+                            <option value="business">Business</option>
+                            <option value="music">Music</option>
+                            <option value="other">Other</option>
                         </select>
 
                         <select id="universityFilter" onchange="filterEvents()">
