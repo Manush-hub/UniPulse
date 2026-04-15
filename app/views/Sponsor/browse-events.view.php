@@ -53,17 +53,33 @@
                             <option value="workshop" <?= ($filters['category'] ?? '') === 'workshop' ? 'selected' : '' ?>>Workshop</option>
                             <option value="business" <?= ($filters['category'] ?? '') === 'business' ? 'selected' : '' ?>>Business</option>
                             <option value="music" <?= ($filters['category'] ?? '') === 'music' ? 'selected' : '' ?>>Music</option>
+                            <option value="other" <?= ($filters['category'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
                         <select id="universityFilter">
                             <option value="">All Universities</option>
-                            <option value="university-of-moratuwa" <?= ($filters['university'] ?? '') === 'university-of-moratuwa' ? 'selected' : '' ?>>University of Moratuwa</option>
-                            <option value="university-of-peradeniya" <?= ($filters['university'] ?? '') === 'university-of-peradeniya' ? 'selected' : '' ?>>University of Peradeniya</option>
                             <option value="university-of-colombo" <?= ($filters['university'] ?? '') === 'university-of-colombo' ? 'selected' : '' ?>>University of Colombo</option>
+                            <option value="university-of-peradeniya" <?= ($filters['university'] ?? '') === 'university-of-peradeniya' ? 'selected' : '' ?>>University of Peradeniya</option>
+                            <option value="university-of-sri-jayewardenepura" <?= ($filters['university'] ?? '') === 'university-of-sri-jayewardenepura' ? 'selected' : '' ?>>University of Sri Jayewardenepura</option>
                             <option value="university-of-kelaniya" <?= ($filters['university'] ?? '') === 'university-of-kelaniya' ? 'selected' : '' ?>>University of Kelaniya</option>
-                            <option value="sabaragamuwa-university" <?= ($filters['university'] ?? '') === 'sabaragamuwa-university' ? 'selected' : '' ?>>Sabaragamuwa University</option>
+                            <option value="university-of-moratuwa" <?= ($filters['university'] ?? '') === 'university-of-moratuwa' ? 'selected' : '' ?>>University of Moratuwa</option>
+                            <option value="university-of-jaffna" <?= ($filters['university'] ?? '') === 'university-of-jaffna' ? 'selected' : '' ?>>University of Jaffna</option>
+                            <option value="university-of-ruhuna" <?= ($filters['university'] ?? '') === 'university-of-ruhuna' ? 'selected' : '' ?>>University of Ruhuna</option>
+                            <option value="eastern-university-sri-lanka" <?= ($filters['university'] ?? '') === 'eastern-university-sri-lanka' ? 'selected' : '' ?>>Eastern University, Sri Lanka</option>
+                            <option value="south-eastern-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'south-eastern-university-of-sri-lanka' ? 'selected' : '' ?>>South Eastern University of Sri Lanka</option>
+                            <option value="rajarata-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'rajarata-university-of-sri-lanka' ? 'selected' : '' ?>>Rajarata University of Sri Lanka</option>
+                            <option value="sabaragamuwa-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'sabaragamuwa-university-of-sri-lanka' ? 'selected' : '' ?>>Sabaragamuwa University of Sri Lanka</option>
+                            <option value="wayamba-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'wayamba-university-of-sri-lanka' ? 'selected' : '' ?>>Wayamba University of Sri Lanka</option>
+                            <option value="uva-wellassa-university" <?= ($filters['university'] ?? '') === 'uva-wellassa-university' ? 'selected' : '' ?>>Uva Wellassa University</option>
+                            <option value="open-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'open-university-of-sri-lanka' ? 'selected' : '' ?>>Open University of Sri Lanka</option>
+                            <option value="buddhist-and-pali-university-of-sri-lanka" <?= ($filters['university'] ?? '') === 'buddhist-and-pali-university-of-sri-lanka' ? 'selected' : '' ?>>Buddhist and Pali University of Sri Lanka</option>
+                            <option value="sri-lanka-institute-of-information-technology-sliit" <?= ($filters['university'] ?? '') === 'sri-lanka-institute-of-information-technology-sliit' ? 'selected' : '' ?>>Sri Lanka Institute of Information Technology (SLIIT)</option>
+                            <option value="nsbm-green-university" <?= ($filters['university'] ?? '') === 'nsbm-green-university' ? 'selected' : '' ?>>NSBM Green University</option>
+                            <option value="cinec-campus" <?= ($filters['university'] ?? '') === 'cinec-campus' ? 'selected' : '' ?>>CINEC Campus</option>
+                            <option value="asia-pacific-institute-of-information-technology-apiit" <?= ($filters['university'] ?? '') === 'asia-pacific-institute-of-information-technology-apiit' ? 'selected' : '' ?>>Asia Pacific Institute of Information Technology (APIIT)</option>
+                            <option value="kiu-kaatsu-international-university" <?= ($filters['university'] ?? '') === 'kiu-kaatsu-international-university' ? 'selected' : '' ?>>KIU (Kaatsu International University)</option>
                         </select>
                     </div>
                     
