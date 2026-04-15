@@ -10,14 +10,14 @@ if (!isset($_SERVER['SERVER_NAME'])) {
 
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
     // MAMP Configuration (macOS/Windows)
-    define('DBNAME', 'unipulse_db2');
+    define('DBNAME', 'unipulse_db2-3');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
 
     // Check if running on MAMP (macOS) or WAMP (Windows)
     if (PHP_OS_FAMILY === 'Windows' || strpos(__DIR__, 'wamp') !== false) {
         // WAMP Configuration (Windows)
-        define('DBPASS', '');  // WAMP default is empty password
+        define('DBPASS', 'hash@123');  // WAMP default is empty password
         define('DBPORT', '3306'); // WAMP default port
     } else {
         // MAMP Configuration (macOS)
