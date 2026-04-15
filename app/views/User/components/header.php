@@ -22,6 +22,22 @@ if (isset($_SESSION['user_profile_photo']) && !empty($_SESSION['user_profile_pho
 
 <link rel="stylesheet" href="/unipulse/public/assets/css/Components/header-style.css">
 
+<?php if (isset($_SESSION['account_reactivated_success'])): ?>
+    <div class="reactivation-toast" role="status" aria-live="polite">
+        <div class="reactivation-toast__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+        </div>
+        <div class="reactivation-toast__content">
+            <div class="reactivation-toast__title">Account Reactivated</div>
+            <p class="reactivation-toast__message"><?= htmlspecialchars($_SESSION['account_reactivated_success']) ?></p>
+        </div>
+        <button class="reactivation-toast__close" type="button" aria-label="Dismiss notification" onclick="this.closest('.reactivation-toast').remove()">×</button>
+    </div>
+    <?php unset($_SESSION['account_reactivated_success'], $_SESSION['account_reactivated_email']); ?>
+<?php endif; ?>
+
 <header class="header">
     <div class="header-container">
         <div class="logo">
