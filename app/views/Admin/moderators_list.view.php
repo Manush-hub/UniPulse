@@ -108,19 +108,14 @@
                                                     </a>
                                                     <?php if ($moderator->is_active): ?>
                                                         <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
-                                                           class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirmModeratorDeletion(<?php echo $moderator->id; ?>, '<?php echo htmlspecialchars($moderator->full_name, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($moderator->university_name, ENT_QUOTES); ?>')">
-                                                            <i class="fas fa-trash"></i>
+                                                           class="btn-action btn-delete" title="Deactivate"
+                                                           onclick="return confirmModeratorDeactivation(<?php echo $moderator->id; ?>, '<?php echo htmlspecialchars($moderator->full_name, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($moderator->university_name, ENT_QUOTES); ?>')">
+                                                            <i class="fas fa-user-slash"></i>
                                                         </a>
                                                     <?php else: ?>
                                                         <a href="/unipulse/public/admin/moderators/activate/<?php echo $moderator->id; ?>" 
                                                            class="btn-action btn-activate" title="Activate">
                                                             <i class="fas fa-check"></i>
-                                                        </a>
-                                                        <a href="/unipulse/public/admin/moderators/deactivate/<?php echo $moderator->id; ?>" 
-                                                           class="btn-action btn-delete" title="Delete"
-                                                           onclick="return confirmModeratorDeletion(<?php echo $moderator->id; ?>, '<?php echo htmlspecialchars($moderator->full_name, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($moderator->university_name, ENT_QUOTES); ?>')">
-                                                            <i class="fas fa-trash"></i>
                                                         </a>
                                                     <?php endif; ?>
                                                 </div>
@@ -142,12 +137,14 @@
         </section>
     </div>
 
-    <!-- Custom Modal for Delete Confirmation -->
+    <?php include __DIR__ . '/../components/footer.php'; ?>
+
+    <!-- Custom Modal for Deactivate Confirmation -->
     <div id="deleteModal" class="delete-modal" style="display: none;">
         <div class="modal-overlay" onclick="closeDeleteModal()"></div>
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Moderator Deletion</h3>
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirm Moderator Deactivation</h3>
                 <button onclick="closeDeleteModal()" class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
@@ -159,7 +156,7 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
-                <button id="confirmDeleteBtn" onclick="proceedWithDeletion()" class="btn-confirm-delete">Delete Moderator</button>
+                <button id="confirmDeleteBtn" onclick="proceedWithDeletion()" class="btn-confirm-delete">Deactivate Moderator</button>
             </div>
         </div>
     </div>

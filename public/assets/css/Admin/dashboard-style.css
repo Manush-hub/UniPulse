@@ -953,6 +953,128 @@ body {
     padding: 1rem;
 }
 
+/* Monthly System Report */
+.monthly-system-overview {
+    padding: 2rem 0;
+}
+
+.monthly-system-controls {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+}
+
+.monthly-system-action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.monthly-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.monthly-stat-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1rem 1.1rem;
+    border: 1px solid #eef2f7;
+}
+
+.monthly-stat-card h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.35rem;
+}
+
+.monthly-stat-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.monthly-stat-card.status-approved {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+}
+
+.monthly-stat-card.status-rejected {
+    border-color: #fecaca;
+    background: #fff1f2;
+}
+
+.monthly-stat-card.status-pending {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+.monthly-stat-card.status-deleted {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+}
+
+.monthly-role-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+}
+
+.monthly-role-table-wrapper h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.85rem;
+}
+
+.monthly-role-table-scroll {
+    overflow-x: auto;
+}
+
+.monthly-role-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 420px;
+}
+
+.monthly-role-table th,
+.monthly-role-table td {
+    padding: 0.8rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+}
+
+.monthly-role-table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+    background: #f8fafc;
+}
+
+.monthly-role-table td {
+    font-size: 0.9rem;
+    color: #1f2937;
+}
+
+.monthly-role-empty {
+    text-align: center;
+    color: #6b7280;
+    padding: 1rem;
+}
+
 .user-table {
     background: white;
     border-radius: 12px;
@@ -1241,6 +1363,15 @@ body {
     }
 
     .revenue-action-buttons .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .monthly-system-action-buttons {
+        width: 100%;
+    }
+
+    .monthly-system-action-buttons .btn {
         flex: 1;
         justify-content: center;
     }

@@ -280,27 +280,6 @@ function displayEventDetails(event) {
     }
 
     const eventStatus = getEventStatus(event.event_date || event.date, event.event_time || event.time, event.event_end_time);
-    if (eventStatus !== 'upcoming') {
-        const volunteerCard = document.getElementById('volunteerCard');
-        const volunteerInvolvementCard = document.getElementById('volunteerInvolvementCard');
-        if (volunteerCard) {
-            volunteerCard.style.display = 'none';
-        }
-        if (volunteerInvolvementCard) {
-            volunteerInvolvementCard.style.display = 'none';
-        }
-    } else {
-
-        // Volunteer information - hide card if not accepting volunteers
-        const volunteerCard = document.getElementById('volunteerCard');
-        if (volunteerCard) {
-            if (event.needs_volunteers && event.needs_volunteers == 1) {
-                displayVolunteerInfo(event);
-            } else {
-                volunteerCard.style.display = 'none';
-            }
-        }
-    }
 
     // Donation information - hide card if not accepting donations
     const donationCard = document.getElementById('donationCard');
@@ -312,13 +291,12 @@ function displayEventDetails(event) {
         }
     }
 
-    // Show volunteer/donation section wrapper if either card is available
+    // Sponsors only see donations in this section.
     const volunteerDonationHeader = document.getElementById('volunteerDonationHeader');
     const volunteerDonationGrid = document.getElementById('volunteerDonationGrid');
-    const hasVolunteer = eventStatus === 'upcoming' && event.needs_volunteers && event.needs_volunteers == 1;
     const hasDonation = eventStatus === 'upcoming' && event.accepts_donations && event.accepts_donations == 1;
 
-    if (hasVolunteer || hasDonation) {
+    if (hasDonation) {
         if (volunteerDonationHeader) volunteerDonationHeader.style.display = 'block';
         if (volunteerDonationGrid) volunteerDonationGrid.style.display = 'grid';
     } else {
@@ -1084,53 +1062,6 @@ function displayCustomFields(customFields) {
     customFieldsElement.innerHTML = fieldsHTML;
 }
 
-function displayVolunteerInfo(event) {
-    const volunteerCard = document.getElementById('volunteerCard');
-    const volunteerInfo = document.getElementById('volunteerInfo');
-
-    if (!volunteerCard || !volunteerInfo) {
-        return;
-    }
-
-    let volunteerHTML = '<div class="volunteer-detail-item">';
-
-    if (event.volunteers_needed) {
-        volunteerHTML += `<div><strong>Volunteers Needed:</strong> ${event.volunteers_needed}</div>`;
-    }
-
-    if (event.volunteer_sources && Array.isArray(event.volunteer_sources)) {
-        volunteerHTML += '<div><strong>Recruiting From:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-sources-list">';
-        event.volunteer_sources.forEach(source => {
-            const sourceMap = {
-                'faculty': 'Faculty Members',
-                'university': 'University Students',
-                'public': 'Public Users'
-            };
-            volunteerHTML += `<li>${sourceMap[source] || source}</li>`;
-        });
-        volunteerHTML += '</ul>';
-    }
-
-    if (event.volunteer_positions && Array.isArray(event.volunteer_positions)) {
-        volunteerHTML += '<div><strong>Available Positions:</strong></div>';
-        volunteerHTML += '<ul class="volunteer-positions-list">';
-        event.volunteer_positions.forEach(position => {
-            volunteerHTML += `<li>${position}</li>`;
-        });
-        volunteerHTML += '</ul>';
-    }
-
-    volunteerHTML += '<div style="margin-top: 15px;">';
-    volunteerHTML += '<button class="btn btn-primary" onclick="applyAsVolunteer()">Apply as Volunteer</button>';
-    volunteerHTML += '</div>';
-
-    volunteerHTML += '</div>';
-
-    volunteerCard.style.display = 'block';
-    volunteerInfo.innerHTML = volunteerHTML;
-}
-
 // Modal functions
 function openDonationModal() {
     document.getElementById('donationModal').style.display = 'flex';
@@ -1154,11 +1085,6 @@ function processDonation() {
     // Here you would integrate with payment gateway
     alert(`Thank you for your donation of LKR ${amount}! Payment integration would be implemented here.`);
     closeDonationModal();
-}
-
-function applyAsVolunteer() {
-    // Volunteer registration feature is currently unavailable
-    alert('Volunteer registration feature is not yet available. Please contact the event organizer directly.');
 }
 
 // Event listeners for donation amounts

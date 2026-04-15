@@ -45,7 +45,7 @@ if (typeof boostedEventsFromDB !== 'undefined' && boostedEventsFromDB.length > 0
 
         // Get image URL - handle both absolute and relative paths
         let imageUrl = event.cover_image || event.image_url;
-        
+
         if (imageUrl) {
             // If it's a relative path (uploaded image), add the full path
             if (imageUrl.startsWith('/uploads/') || imageUrl.startsWith('uploads/')) {
@@ -131,6 +131,9 @@ let moreEvents = [];
 if (typeof moreEventsFromDB !== 'undefined' && moreEventsFromDB.length > 0) {
     console.log('More events from DB:', moreEventsFromDB);
     moreEvents = moreEventsFromDB.map(event => {
+        const ticketType = String(event.ticket_type || '').toLowerCase();
+        const isPaidType = ticketType === 'paid' || ticketType === 'paid-all' || ticketType === 'mixed';
+
         // Parse ticket_types JSON if it's a string
         let ticketTypes = [];
         if (typeof event.ticket_types === 'string') {
@@ -143,25 +146,25 @@ if (typeof moreEventsFromDB !== 'undefined' && moreEventsFromDB.length > 0) {
         } else if (Array.isArray(event.ticket_types)) {
             ticketTypes = event.ticket_types;
         }
-        
+
         // Determine price display
         let priceDisplay = 'Free Entry';
-        if (event.ticket_type === 'paid' && ticketTypes.length > 0) {
+        if (isPaidType && ticketTypes.length > 0) {
             const prices = ticketTypes.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
             if (prices.length > 0) {
                 const minPrice = Math.min(...prices);
                 priceDisplay = `From LKR ${minPrice.toFixed(2)}`;
             }
         }
-        
+
         // Handle multiple possible image field names and ensure valid path
         let imageUrl = event.featured_image || event.cover_image || event.image_url || '';
-    
-            // If image URL is relative, ensure it has proper path
+
+        // If image URL is relative, ensure it has proper path
         if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
             imageUrl = '/unipulse/public/' + imageUrl;
         }
-        
+
         return {
             id: event.id,
             title: event.title || 'Untitled Event',
@@ -186,7 +189,7 @@ let progressInterval;
 const slideDuration = 6000; // 6 seconds per slide
 
 // Initialize the page
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     createHeroCarousel();
     loadUpcomingEvents();
     loadMoreEvents();
@@ -202,12 +205,12 @@ function createHeroCarousel() {
     const indicators = document.getElementById('heroIndicators');
     const controls = document.querySelector('.hero-controls');
     const progressBar = document.querySelector('.hero-progress');
-    
+
     carousel.innerHTML = '';
     indicators.innerHTML = '';
-    
+
     const promoBanner = document.getElementById('boostPromoBanner');
-    
+
     // Check if there are no boosted events
     if (boostedEvents.length === 0) {
         // Show promotional banner and hide carousel elements
@@ -218,21 +221,21 @@ function createHeroCarousel() {
         if (progressBar) progressBar.style.display = 'none';
         return;
     }
-    
+
     // Hide promotional banner when boosted events exist
     if (promoBanner) promoBanner.style.display = 'none';
     carousel.style.display = 'block';
-    
+
     // Show controls, indicators, and progress bar when events exist
     if (controls) controls.style.display = 'flex';
     if (indicators) indicators.style.display = 'flex';
     if (progressBar) progressBar.style.display = 'block';
-    
+
     boostedEvents.forEach((event, index) => {
         // Create slide
         const slide = createHeroSlide(event, index === 0);
         carousel.appendChild(slide);
-        
+
         // Create indicator
         const indicator = createIndicator(index, index === 0);
         indicators.appendChild(indicator);
@@ -243,7 +246,7 @@ function createHeroCarousel() {
 function createHeroSlide(event, isActive) {
     const slide = document.createElement('div');
     slide.className = `hero-slide ${isActive ? 'active' : ''}`;
-    
+
     // Set background image with proper handling
     if (event.image) {
         slide.style.backgroundImage = `url('${event.image}')`;
@@ -253,7 +256,7 @@ function createHeroSlide(event, isActive) {
     } else {
         slide.style.background = 'linear-gradient(135deg, #1E3A8A, #F97316)';
     }
-    
+
     slide.innerHTML = `
         <div class="hero-content">
             <h1 class="hero-event-title">${event.title}</h1>
@@ -308,7 +311,7 @@ function createHeroSlide(event, isActive) {
             </div>
         </div>
     `;
-    
+
     return slide;
 }
 
@@ -323,7 +326,7 @@ function createIndicator(index, isActive) {
 // Start auto slide
 function startAutoSlide() {
     startProgressBar();
-    
+
     slideInterval = setInterval(() => {
         nextSlide();
     }, slideDuration);
@@ -343,15 +346,15 @@ function stopAutoSlide() {
 function startProgressBar() {
     const progressBar = document.getElementById('progressBar');
     let progress = 0;
-    
+
     if (progressInterval) {
         clearInterval(progressInterval);
     }
-    
+
     progressInterval = setInterval(() => {
         progress += (100 / (slideDuration / 100));
         progressBar.style.width = `${progress}%`;
-        
+
         if (progress >= 100) {
             progress = 0;
             progressBar.style.width = '0%';
@@ -363,51 +366,51 @@ function startProgressBar() {
 function nextSlide() {
     const slides = document.querySelectorAll('.hero-slide');
     const indicators = document.querySelectorAll('.hero-indicator');
-    
+
     slides[currentSlide].classList.remove('active');
     indicators[currentSlide].classList.remove('active');
-    
+
     currentSlide = (currentSlide + 1) % slides.length;
-    
+
     slides[currentSlide].classList.add('active');
     indicators[currentSlide].classList.add('active');
-    
+
     startProgressBar();
 }
 
 // Previous slide
 function previousSlide() {
     stopAutoSlide();
-    
+
     const slides = document.querySelectorAll('.hero-slide');
     const indicators = document.querySelectorAll('.hero-indicator');
-    
+
     slides[currentSlide].classList.remove('active');
     indicators[currentSlide].classList.remove('active');
-    
+
     currentSlide = currentSlide === 0 ? slides.length - 1 : currentSlide - 1;
-    
+
     slides[currentSlide].classList.add('active');
     indicators[currentSlide].classList.add('active');
-    
+
     startAutoSlide();
 }
 
 // Go to specific slide
 function goToSlide(index) {
     stopAutoSlide();
-    
+
     const slides = document.querySelectorAll('.hero-slide');
     const indicators = document.querySelectorAll('.hero-indicator');
-    
+
     slides[currentSlide].classList.remove('active');
     indicators[currentSlide].classList.remove('active');
-    
+
     currentSlide = index;
-    
+
     slides[currentSlide].classList.add('active');
     indicators[currentSlide].classList.add('active');
-    
+
     startAutoSlide();
 }
 
@@ -416,7 +419,7 @@ function setupEventListeners() {
     // Search functionality - only if search section exists
     const searchInput = document.querySelector('.search-input');
     if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
+        searchInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 searchEvents();
             }
@@ -428,7 +431,7 @@ function setupEventListeners() {
     heroSection.addEventListener('mouseenter', () => {
         stopAutoSlide();
     });
-    
+
     heroSection.addEventListener('mouseleave', () => {
         if (boostedEvents.length > 0) {
             startAutoSlide();
@@ -438,20 +441,20 @@ function setupEventListeners() {
     // Touch/swipe support for mobile
     let touchStartX = 0;
     let touchEndX = 0;
-    
+
     heroSection.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
     });
-    
+
     heroSection.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     });
-    
+
     function handleSwipe() {
         const swipeThreshold = 50;
         const diff = touchStartX - touchEndX;
-        
+
         if (Math.abs(diff) > swipeThreshold) {
             if (diff > 0) {
                 nextSlide();
@@ -478,7 +481,7 @@ function setupEventListeners() {
 function loadUpcomingEvents() {
     const grid = document.getElementById('upcomingEventsGrid');
     grid.innerHTML = '';
-    
+
     upcomingEvents.forEach(event => {
         const eventCard = createEventCard(event);
         grid.appendChild(eventCard);
@@ -489,7 +492,7 @@ function loadUpcomingEvents() {
 function loadMoreEvents() {
     const grid = document.getElementById('moreEventsGrid');
     grid.innerHTML = '';
-    
+
     moreEvents.forEach(event => {
         const eventCard = createEventCard(event);
         grid.appendChild(eventCard);
@@ -558,7 +561,7 @@ function createEventCard(event) {
     // Location - build based on location type
     const locationType = event.location_type || 'inside-university';
     let locationText = '';
-    
+
     if (locationType === 'outside-university') {
         // Outside university: show "Venue, City"
         const venueName = event.venue_name || event.venueName;
@@ -576,7 +579,7 @@ function createEventCard(event) {
         // Inside university: show exact location
         locationText = event.location || 'Location TBA';
     }
-    
+
     const locationDiv = document.createElement('div');
     locationDiv.className = 'event-location';
     locationDiv.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> <span>${locationText}</span>`;
@@ -596,25 +599,25 @@ function createEventCard(event) {
 // Get ticket price badge for event card
 function getTicketPriceBadge(event) {
     const ticketType = event.ticket_type || event.ticketType || 'free-all';
-    
+
     if (ticketType === 'free-all') {
         return 'Free';
     }
-    
+
     // For paid or mixed events, show ticket prices
     const ticketTypes = event.ticket_types || [];
-    
+
     if (ticketTypes && ticketTypes.length > 0) {
         // Parse if it's a JSON string
         const tickets = typeof ticketTypes === 'string' ? JSON.parse(ticketTypes) : ticketTypes;
-        
+
         if (Array.isArray(tickets) && tickets.length > 0) {
             // Get price range
             const prices = tickets.map(t => parseFloat(t.price)).filter(p => !isNaN(p));
             if (prices.length > 0) {
                 const minPrice = Math.min(...prices);
                 const maxPrice = Math.max(...prices);
-                
+
                 if (minPrice === maxPrice) {
                     return `LKR ${minPrice}`;
                 } else {
@@ -623,14 +626,14 @@ function getTicketPriceBadge(event) {
             }
         }
     }
-    
+
     // Fallback for paid events
     if (ticketType === 'paid-all') {
         return 'Paid';
     } else if (ticketType === 'mixed') {
         return 'Mixed';
     }
-    
+
     return event.price || 'Free';
 }
 
@@ -653,9 +656,9 @@ function getOrganizerProfileUrl(event) {
 function searchEvents() {
     const searchInput = document.querySelector('.search-input');
     const locationSelect = document.querySelector('.location-select');
-    
+
     if (!searchInput || !locationSelect) return;
-    
+
     const query = searchInput.value.toLowerCase();
     const location = locationSelect.value;
 

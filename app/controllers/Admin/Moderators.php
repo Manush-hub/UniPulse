@@ -133,7 +133,7 @@ class Moderators extends Controller{
         if ($moderatorModel->hasPendingApprovals($id)) {
             $pendingCount = $moderatorModel->getPendingApprovalsCount($id);
             $moderator = $moderatorModel->find($id);
-            $message = "Cannot delete moderator {$moderator->full_name}. ";
+            $message = "Cannot deactivate moderator {$moderator->full_name}. ";
             $message .= "This moderator has {$pendingCount} pending publisher approval(s) ";
             $message .= "for {$moderator->university_name}. ";
             $message .= "Please reassign or resolve these approvals first.";
@@ -142,26 +142,26 @@ class Moderators extends Controller{
             exit();
         }
         
-        // Fetch moderator info before deletion for activity log
-        $modToDelete = $moderatorModel->find($id);
-        // If no pending approvals, proceed with deletion
-        if ($moderatorModel->deleteModerator($id)) {
-            if ($modToDelete) {
+        // Fetch moderator info before deactivation for activity log
+        $modToDeactivate = $moderatorModel->find($id);
+        // If no pending approvals, proceed with deactivation
+        if ($moderatorModel->deactivate($id)) {
+            if ($modToDeactivate) {
                 $adminUser = AuthService::getCurrentUser();
                 AdminActivity::log(
                     $adminUser['id'],
                     $adminUser['name'],
-                    'moderator_deleted',
+                    'moderator_deactivated',
                     'moderator',
                     (int)$id,
-                    $modToDelete->full_name,
-                    'Deleted moderator ' . $modToDelete->full_name,
-                    'user-xmark'
+                    $modToDeactivate->full_name,
+                    'Deactivated moderator ' . $modToDeactivate->full_name,
+                    'user-slash'
                 );
             }
-            header('Location: /unipulse/public/admin/moderators?success=Moderator deleted successfully');
+            header('Location: /unipulse/public/admin/moderators?success=Moderator deactivated successfully');
         } else {
-            header('Location: /unipulse/public/admin/moderators?error=Failed to delete moderator');
+            header('Location: /unipulse/public/admin/moderators?error=Failed to deactivate moderator');
         }
         exit();
     }

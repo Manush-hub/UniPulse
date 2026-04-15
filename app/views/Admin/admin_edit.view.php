@@ -44,9 +44,9 @@
     <div class="main-container">
         <section class="edit-admin">
             <div class="container">
-                <a href="/unipulse/public/admin/admins_list" class="back-link">
+                <a href="/unipulse/public/admin/dashboard" class="back-link">
                     <i class="fas fa-arrow-left"></i>
-                    Back to Admins
+                    Back to Dashboard
                 </a>
                 
                 <div class="form-container">
@@ -132,7 +132,7 @@
                         </div>
 
                         <div class="form-actions">
-                            <a href="/unipulse/public/admin/admins_list" class="btn btn-secondary">
+                            <a href="/unipulse/public/admin/dashboard" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">
@@ -144,5 +144,7 @@
             </div>
         </section>
     </div>
+
+    <?php include __DIR__ . '/../components/footer.php'; ?>
 </body>
 </html>

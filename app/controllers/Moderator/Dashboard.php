@@ -377,6 +377,347 @@ class ModeratorDashboard extends Controller {
         }
     }
 
+    /**
+     * API endpoint for publisher performance report under moderator scope.
+     */
+    public function getPublisherPerformanceReport()
+    {
+        header('Content-Type: application/json');
+
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'moderator') {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Unauthorized',
+                'rows' => []
+            ]);
+            return;
+        }
+
+        try {
+            $moderatorUniversity = $this->resolveModeratorUniversity((int)($currentUser['id'] ?? 0), (string)($currentUser['university'] ?? ''));
+            if ($moderatorUniversity === '') {
+                echo json_encode([
+                    'success' => true,
+                    'rows' => [],
+                    'summary' => [
+                        'publisher_count' => 0,
+                        'total_events' => 0,
+                        'total_tickets_sold' => 0,
+                        'overall_average_rating' => null,
+                    ]
+                ]);
+                return;
+            }
+
+            $moderatorModel = new Moderator();
+            $rows = $moderatorModel->getPublisherPerformanceReportByUniversity($moderatorUniversity);
+
+            $summary = $this->calculatePublisherPerformanceSummary($rows);
+
+            echo json_encode([
+                'success' => true,
+                'rows' => $rows,
+                'summary' => $summary
+            ]);
+        } catch (Exception $e) {
+            error_log('Error in ModeratorDashboard::getPublisherPerformanceReport: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Failed to load publisher performance report',
+                'rows' => []
+            ]);
+        }
+    }
+
+    /**
+     * Download publisher performance report as styled PDF.
+     */
+    public function downloadPublisherPerformanceReport()
+    {
+        $currentUser = AuthService::getCurrentUser();
+        if (!$currentUser || ($currentUser['type'] ?? '') !== 'moderator') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $moderatorUniversity = $this->resolveModeratorUniversity((int)($currentUser['id'] ?? 0), (string)($currentUser['university'] ?? ''));
+            $moderatorModel = new Moderator();
+            $rows = $moderatorUniversity !== ''
+                ? $moderatorModel->getPublisherPerformanceReportByUniversity($moderatorUniversity)
+                : [];
+
+            $summary = $this->calculatePublisherPerformanceSummary($rows);
+            $pdf = $this->generateModeratorPublisherReportPDF($moderatorUniversity, $summary, $rows);
+
+            if (ob_get_length()) {
+                ob_clean();
+            }
+
+            $filename = 'moderator-publisher-performance-' . date('Y-m-d') . '.pdf';
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename="' . $filename . '"');
+            header('Content-Length: ' . strlen($pdf));
+            echo $pdf;
+            exit;
+        } catch (Exception $e) {
+            error_log('Error in ModeratorDashboard::downloadPublisherPerformanceReport: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Failed to generate report']);
+        }
+    }
+
+    private function resolveModeratorUniversity($moderatorId, $sessionUniversity = '')
+    {
+        $moderatorUniversity = trim((string)$sessionUniversity);
+        if ($moderatorUniversity !== '') {
+            return $moderatorUniversity;
+        }
+
+        if ($moderatorId <= 0) {
+            return '';
+        }
+
+        $moderatorModel = new Moderator();
+        $moderatorRow = $moderatorModel->findById($moderatorId);
+        return trim((string)($moderatorRow->university ?? ''));
+    }
+
+    private function calculatePublisherPerformanceSummary($rows)
+    {
+        $publisherCount = is_array($rows) ? count($rows) : 0;
+        $totalEvents = 0;
+        $totalTicketsSold = 0;
+        $ratingWeightedTotal = 0.0;
+        $ratingSampleCount = 0;
+
+        foreach ($rows ?: [] as $row) {
+            $totalEvents += (int)($row->total_events_posted ?? 0);
+            $totalTicketsSold += (int)($row->tickets_sold ?? 0);
+
+            $ratingCount = (int)($row->total_ratings ?? 0);
+            $avgRating = $row->average_rating !== null ? (float)$row->average_rating : null;
+            if ($avgRating !== null && $ratingCount > 0) {
+                $ratingWeightedTotal += ($avgRating * $ratingCount);
+                $ratingSampleCount += $ratingCount;
+            }
+        }
+
+        return [
+            'publisher_count' => $publisherCount,
+            'total_events' => $totalEvents,
+            'total_tickets_sold' => $totalTicketsSold,
+            'overall_average_rating' => $ratingSampleCount > 0
+                ? round($ratingWeightedTotal / $ratingSampleCount, 2)
+                : null,
+        ];
+    }
+
+    private function generateModeratorPublisherReportPDF($university, $summary, $rows)
+    {
+        $periodLabel = 'University Scope: ' . ucwords(str_replace('-', ' ', (string)$university));
+
+        $publisherCount = (int)($summary['publisher_count'] ?? 0);
+        $totalEvents = (int)($summary['total_events'] ?? 0);
+        $totalTickets = (int)($summary['total_tickets_sold'] ?? 0);
+        $overallRating = $summary['overall_average_rating'] !== null
+            ? number_format((float)$summary['overall_average_rating'], 2)
+            : 'N/A';
+
+        $content = '';
+        $pageWidth = 612;
+        $pageHeight = 792;
+        $marginX = 42;
+        $contentRight = $pageWidth - $marginX;
+
+        $content .= $this->pdfRect(0, 0, $pageWidth, $pageHeight, [248, 250, 252]);
+        $content .= $this->pdfLinearGradientRect(0, 694, $pageWidth, 98, [30, 58, 138], [249, 115, 22], 50);
+        $content .= $this->pdfText($marginX, 754, 'UniPulse Moderator Report', 'F2', 20, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 734, 'Publisher Performance Overview', 'F2', 12, [255, 255, 255]);
+        $content .= $this->pdfText($marginX, 718, $periodLabel . '  |  Generated ' . date('M d, Y'), 'F1', 9, [219, 234, 254]);
+
+        $content .= $this->pdfRect($contentRight - 184, 718, 172, 44, null, [255, 237, 213], 0.8);
+        $content .= $this->pdfText($contentRight - 174, 744, 'Report Type', 'F1', 8.5, [255, 237, 213]);
+        $content .= $this->pdfText($contentRight - 174, 727, 'Publisher Performance', 'F2', 11.0, [255, 255, 255]);
+
+        $content .= $this->pdfRect($marginX, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 10, 673, 'Publishers', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 10, 659, number_format($publisherCount), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 142, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 152, 673, 'Events Posted', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 152, 659, number_format($totalEvents), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 284, 652, 132, 34, [255, 255, 255], [226, 232, 240], 0.8);
+        $content .= $this->pdfText($marginX + 294, 673, 'Tickets Sold', 'F1', 8.5, [100, 116, 139]);
+        $content .= $this->pdfText($marginX + 294, 659, number_format($totalTickets), 'F2', 11.5, [30, 41, 59]);
+
+        $content .= $this->pdfRect($marginX + 426, 652, 144, 34, [236, 253, 245], [167, 243, 208], 0.8);
+        $content .= $this->pdfText($marginX + 436, 673, 'Overall Avg Rating', 'F1', 8.5, [6, 95, 70]);
+        $content .= $this->pdfText($marginX + 436, 659, $overallRating, 'F2', 12.0, [6, 95, 70]);
+
+        $tableX = $marginX;
+        $tableW = $contentRight - $tableX;
+        $rowH = 18;
+        $rowY = 620;
+
+        $content .= $this->pdfText($tableX, $rowY + 16, 'Publisher Breakdown', 'F2', 12, [30, 58, 138]);
+        $rowY -= 8;
+
+        $content .= $this->pdfLinearGradientRect($tableX, $rowY, $tableW, $rowH, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($tableX + 10, $rowY + 6, 'PUBLISHER', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 278, $rowY + 6, 'EVENTS', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 348, $rowY + 6, 'TICKETS SOLD', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 444, $rowY + 6, 'RATINGS', 'F2', 8.2, [255, 255, 255]);
+        $content .= $this->pdfText($tableX + 510, $rowY + 6, 'AVG', 'F2', 8.2, [255, 255, 255]);
+        $rowY -= $rowH;
+
+        if (empty($rows)) {
+            $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 255, 255], [226, 232, 240], 0.6);
+            $content .= $this->pdfText($tableX + 10, $rowY + 6, 'No publisher data found for this moderator scope.', 'F1', 8.4, [100, 116, 139]);
+            $rowY -= $rowH;
+        } else {
+            $maxRows = min(count($rows), 18);
+            for ($i = 0; $i < $maxRows; $i++) {
+                $row = $rows[$i];
+                $bg = ($i % 2 === 0) ? [255, 255, 255] : [248, 250, 252];
+
+                $publisherName = $this->truncatePDFText((string)($row->society_name ?? 'Unknown Publisher'), 34);
+                $eventsPosted = (int)($row->total_events_posted ?? 0);
+                $ticketsSold = (int)($row->tickets_sold ?? 0);
+                $ratings = (int)($row->total_ratings ?? 0);
+                $avg = $row->average_rating !== null ? number_format((float)$row->average_rating, 2) : 'N/A';
+
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, $bg, [226, 232, 240], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, $publisherName, 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 278, $rowY + 6, number_format($eventsPosted), 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 348, $rowY + 6, number_format($ticketsSold), 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 444, $rowY + 6, number_format($ratings), 'F2', 8.0, [30, 41, 59]);
+                $content .= $this->pdfText($tableX + 510, $rowY + 6, $avg, 'F2', 8.0, [6, 95, 70]);
+                $rowY -= $rowH;
+            }
+
+            if (count($rows) > $maxRows) {
+                $content .= $this->pdfRect($tableX, $rowY, $tableW, $rowH, [255, 251, 235], [253, 230, 138], 0.6);
+                $content .= $this->pdfText($tableX + 10, $rowY + 6, 'Showing first ' . $maxRows . ' publishers in this PDF export.', 'F1', 7.8, [120, 53, 15]);
+                $rowY -= $rowH;
+            }
+        }
+
+        $content .= $this->pdfLinearGradientRect(0, 0, $pageWidth, 26, [30, 58, 138], [249, 115, 22], 30);
+        $content .= $this->pdfText($marginX, 8, 'UniPulse  |  Moderator Publisher Performance Report  |  ' . date('M d, Y'), 'F1', 8.2, [219, 234, 254]);
+
+        $objects = [];
+        $objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+        $objects[2] = "<< /Type /Pages /Kids [3 0 R] /Count 1 >>";
+        $objects[3] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>";
+        $objects[4] = "<< /Length " . strlen($content) . " >>\nstream\n" . $content . "\nendstream";
+        $objects[5] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+        $objects[6] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>";
+
+        $pdf = "%PDF-1.4\n";
+        $offsets = [0 => 0];
+
+        foreach ($objects as $index => $objectBody) {
+            $offsets[$index] = strlen($pdf);
+            $pdf .= $index . " 0 obj\n" . $objectBody . "\nendobj\n";
+        }
+
+        $xrefOffset = strlen($pdf);
+        $pdf .= "xref\n0 " . (count($objects) + 1) . "\n";
+        $pdf .= "0000000000 65535 f \n";
+        foreach ($objects as $index => $_) {
+            $pdf .= sprintf('%010d 00000 n ', $offsets[$index]) . "\n";
+        }
+        $pdf .= "trailer\n<< /Size " . (count($objects) + 1) . " /Root 1 0 R >>\n";
+        $pdf .= "startxref\n" . $xrefOffset . "\n%%EOF";
+
+        return $pdf;
+    }
+
+    private function escapePdfText($text)
+    {
+        return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], (string)$text);
+    }
+
+    private function pdfRect($x, $y, $width, $height, $fillColor = null, $strokeColor = null, $lineWidth = 1)
+    {
+        $cmd = '';
+        if ($fillColor !== null) {
+            $cmd .= $this->pdfColor($fillColor, false);
+        }
+        if ($strokeColor !== null) {
+            $cmd .= $this->pdfColor($strokeColor, true);
+            $cmd .= number_format($lineWidth, 2, '.', '') . " w\n";
+        }
+
+        $op = 'n';
+        if ($fillColor !== null && $strokeColor !== null) {
+            $op = 'B';
+        } elseif ($fillColor !== null) {
+            $op = 'f';
+        } elseif ($strokeColor !== null) {
+            $op = 'S';
+        }
+
+        return $cmd
+            . number_format($x, 2, '.', '') . ' '
+            . number_format($y, 2, '.', '') . ' '
+            . number_format($width, 2, '.', '') . ' '
+            . number_format($height, 2, '.', '') . " re $op\n";
+    }
+
+    private function pdfLinearGradientRect($x, $y, $width, $height, $startColor, $endColor, $steps = 32)
+    {
+        $steps = max(1, (int)$steps);
+        $segmentW = $width / $steps;
+        $cmd = '';
+
+        for ($i = 0; $i < $steps; $i++) {
+            $ratio = $steps === 1 ? 0 : ($i / ($steps - 1));
+            $color = [
+                (int)round($startColor[0] + (($endColor[0] - $startColor[0]) * $ratio)),
+                (int)round($startColor[1] + (($endColor[1] - $startColor[1]) * $ratio)),
+                (int)round($startColor[2] + (($endColor[2] - $startColor[2]) * $ratio)),
+            ];
+
+            $cmd .= $this->pdfRect($x + ($segmentW * $i), $y, $segmentW + 0.2, $height, $color);
+        }
+
+        return $cmd;
+    }
+
+    private function pdfText($x, $y, $text, $font = 'F1', $fontSize = 10, $color = [0, 0, 0])
+    {
+        return "BT\n"
+            . $this->pdfColor($color, false)
+            . "/{$font} " . number_format($fontSize, 2, '.', '') . " Tf\n"
+            . number_format($x, 2, '.', '') . ' ' . number_format($y, 2, '.', '') . " Td\n"
+            . '(' . $this->escapePdfText($text) . ") Tj\n"
+            . "ET\n";
+    }
+
+    private function pdfColor($rgb, $isStroke)
+    {
+        $r = number_format(((int)($rgb[0] ?? 0)) / 255, 3, '.', '');
+        $g = number_format(((int)($rgb[1] ?? 0)) / 255, 3, '.', '');
+        $b = number_format(((int)($rgb[2] ?? 0)) / 255, 3, '.', '');
+
+        return $r . ' ' . $g . ' ' . $b . ($isStroke ? " RG\n" : " rg\n");
+    }
+
+    private function truncatePDFText($text, $maxChars)
+    {
+        $safeText = (string)$text;
+        if (strlen($safeText) <= $maxChars) {
+            return $safeText;
+        }
+
+        return rtrim(substr($safeText, 0, max(1, $maxChars - 1))) . '...';
+    }
+
     private function formatRelativeTime($dateTime)
     {
         $timestamp = strtotime((string)$dateTime);

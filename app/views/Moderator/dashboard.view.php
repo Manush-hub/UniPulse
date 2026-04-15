@@ -288,6 +288,57 @@
             </div>
         </section>
 
+        <!-- Reports Center -->
+        <section class="reports-center">
+            <div class="container">
+                <div class="section-header reports-header">
+                    <h2><i class="fas fa-file-alt"></i> Reports Center</h2>
+                    <button class="btn btn-primary" id="downloadPublisherPerformanceBtn" type="button">
+                        <i class="fas fa-download"></i>
+                        Download Publisher Performance Report
+                    </button>
+                </div>
+
+                <div class="report-summary-grid">
+                    <div class="report-summary-card">
+                        <span class="summary-label">Publishers</span>
+                        <span class="summary-value" id="reportTotalPublishers">0</span>
+                    </div>
+                    <div class="report-summary-card">
+                        <span class="summary-label">Events Posted</span>
+                        <span class="summary-value" id="reportTotalEvents">0</span>
+                    </div>
+                    <div class="report-summary-card">
+                        <span class="summary-label">Tickets Sold</span>
+                        <span class="summary-value" id="reportTicketsSold">0</span>
+                    </div>
+                    <div class="report-summary-card">
+                        <span class="summary-label">Overall Avg Rating</span>
+                        <span class="summary-value" id="reportAvgRating">N/A</span>
+                    </div>
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Publisher</th>
+                                <th>Events Posted</th>
+                                <th>Tickets Sold</th>
+                                <th>Ratings Count</th>
+                                <th>Average Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="publisherPerformanceBody">
+                            <tr>
+                                <td colspan="5" class="report-loading">Loading publisher performance report...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
 <!-- Moderation Stats and Guidelines Section -->
         <section class="moderation-overview">
             <div class="container">

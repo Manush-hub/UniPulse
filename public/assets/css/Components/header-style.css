@@ -233,6 +233,91 @@ textarea {
     color: #999 !important;
 }
 
+/* One-time reactivation toast */
+.reactivation-toast {
+    position: fixed !important;
+    top: 88px !important;
+    right: 18px !important;
+    width: min(380px, calc(100vw - 36px)) !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 18px 45px rgba(16, 185, 129, 0.28) !important;
+    z-index: 5000 !important;
+    animation: reactivationToastIn 260ms ease-out !important;
+}
+
+.reactivation-toast__icon {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin-top: 1px !important;
+}
+
+.reactivation-toast__icon svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+}
+
+.reactivation-toast__content {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.reactivation-toast__title {
+    margin: 0 0 4px !important;
+    font-size: 0.98rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: #ffffff !important;
+}
+
+.reactivation-toast__message {
+    margin: 0 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.reactivation-toast__close {
+    color: #ffffff !important;
+    opacity: 0.85 !important;
+    cursor: pointer !important;
+    font-size: 1.1rem !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    margin-left: 4px !important;
+    background: transparent !important;
+    border: none !important;
+    flex-shrink: 0 !important;
+}
+
+.reactivation-toast__close:hover {
+    opacity: 1 !important;
+}
+
+@keyframes reactivationToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* User Menu */
 .user-menu {
     position: relative !important;

@@ -104,6 +104,13 @@ class AuthService
             }
 
             if ($this->verifyPassword($password, $user->password_hash)) {
+                // Soft-deleted accounts are reactivated on successful sign-in.
+                if (isset($user->is_deleted) && (int)$user->is_deleted === 1) {
+                    $this->reactivateSoftDeletedAccount($table, (int)$user->id);
+                    $user->is_deleted = 0;
+                    $this->queueAccountReactivatedMessage($user->email ?? '', $table);
+                }
+
                 error_log("Password verification successful for $table");
                 return $user;
             } else {
@@ -114,6 +121,44 @@ class AuthService
         }
 
         return false;
+    }
+
+    /**
+     * Reactivate a soft-deleted account.
+     */
+    private function reactivateSoftDeletedAccount($table, $userId)
+    {
+        $query = "UPDATE {$table} SET is_deleted = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id";
+
+        try {
+            $conn = $this->connect();
+            $stmt = $conn->prepare($query);
+            return $stmt->execute(['id' => $userId]);
+        } catch (Exception $e) {
+            error_log('Failed to reactivate soft-deleted account: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Store a one-time message for the next dashboard load after reactivation.
+     */
+    private function queueAccountReactivatedMessage($email, $table)
+    {
+        if (session_status() == PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $labels = [
+            'public_users' => 'account',
+            'university_users' => 'account',
+            'publishers' => 'organization account',
+            'sponsors' => 'sponsor account'
+        ];
+
+        $label = $labels[$table] ?? 'account';
+        $_SESSION['account_reactivated_success'] = 'Your ' . $label . ' has been reactivated successfully.';
+        $_SESSION['account_reactivated_email'] = $email;
     }
 
     /**

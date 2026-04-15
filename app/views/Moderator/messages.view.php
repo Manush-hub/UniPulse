@@ -57,9 +57,14 @@
                                         data-contact-id="<?= $conv->contact_id ?>"
                                         data-contact-type="<?= $conv->contact_type ?>"
                                         data-contact-name="<?= htmlspecialchars($conv->contact_name) ?>"
+                                        data-contact-photo="<?= htmlspecialchars($conv->contact_photo ?? '') ?>"
                                         onclick="selectConversation(this)">
                                         <div class="conversation-avatar">
-                                            <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
+                                            <?php if (!empty($conv->contact_photo)): ?>
+                                                <img src="<?= htmlspecialchars($conv->contact_photo) ?>" alt="<?= htmlspecialchars($conv->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                            <?php else: ?>
+                                                <?= strtoupper(substr($conv->contact_name, 0, 2)) ?>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="conversation-info">
                                             <h4 class="conversation-name"><?= htmlspecialchars($conv->contact_name) ?></h4>
@@ -131,9 +136,13 @@
                                 <h4 class="contacts-section-title"><i class="fas fa-building"></i> Publishers</h4>
                                 <div class="contacts-list">
                                     <?php foreach ($available_publishers as $publisher): ?>
-                                        <div class="contact-item" onclick="startConversation(<?= $publisher->id ?>, 'publisher', '<?= htmlspecialchars($publisher->society_name) ?>')">
+                                        <div class="contact-item" onclick="startConversation(<?= (int)$publisher->id ?>, <?= htmlspecialchars(json_encode('publisher'), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode((string)($publisher->society_name ?? '')), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode((string)($publisher->logo_url ?? '')), ENT_QUOTES, 'UTF-8') ?>)">
                                             <div class="contact-avatar">
-                                                <?= strtoupper(substr($publisher->society_name, 0, 2)) ?>
+                                                <?php if (!empty($publisher->logo_url)): ?>
+                                                    <img src="<?= htmlspecialchars($publisher->logo_url) ?>" alt="<?= htmlspecialchars($publisher->society_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                                <?php else: ?>
+                                                    <?= strtoupper(substr($publisher->society_name, 0, 2)) ?>
+                                                <?php endif; ?>
                                             </div>
                                             <div class="contact-info">
                                                 <h5 class="contact-name"><?= htmlspecialchars($publisher->society_name) ?></h5>
@@ -153,7 +162,11 @@
                             <div class="chat-header">
                                 <div class="chat-contact-info">
                                     <div class="chat-avatar" id="chatAvatar">
-                                        <?= strtoupper(substr($conversations[0]->contact_name, 0, 2)) ?>
+                                        <?php if (!empty($conversations[0]->contact_photo)): ?>
+                                            <img src="<?= htmlspecialchars($conversations[0]->contact_photo) ?>" alt="<?= htmlspecialchars($conversations[0]->contact_name) ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($conversations[0]->contact_name, 0, 2)) ?>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="chat-contact-details">
                                         <h3 id="chatContactName"><?= htmlspecialchars($conversations[0]->contact_name) ?></h3>
@@ -216,7 +229,8 @@
     <script>
         window.moderatorMessagesConfig = {
             currentContactId: <?= !empty($conversations) ? $conversations[0]->contact_id : 0 ?>,
-            currentContactType: '<?= !empty($conversations) ? $conversations[0]->contact_type : '' ?>'
+            currentContactType: '<?= !empty($conversations) ? $conversations[0]->contact_type : '' ?>',
+            currentContactPhoto: '<?= !empty($conversations) ? htmlspecialchars($conversations[0]->contact_photo ?? '', ENT_QUOTES, 'UTF-8') : '' ?>'
         };
     </script>
     <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_messages.js"></script>

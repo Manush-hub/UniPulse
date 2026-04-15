@@ -3,21 +3,21 @@ require_once __DIR__ . '/../app/Core/config.php';
 
 try {
     // Connect to MySQL server (without selecting database first)
-    $dsn = "mysql:host=".DBHOST.";port=".DBPORT.";charset=utf8mb4";
+    $dsn = "mysql:host=" . DBHOST . ";port=" . DBPORT . ";charset=utf8mb4";
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ];
     $pdo = new PDO($dsn, DBUSER, DBPASS, $options);
-    
+
     // Create database if it doesn't exist
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS ".DBNAME." CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    echo "Database '".DBNAME."' created successfully or already exists.\n";
-    
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    echo "Database '" . DBNAME . "' created successfully or already exists.\n";
+
     // Select the database
-    $pdo->exec("USE ".DBNAME);
-    
+    $pdo->exec("USE " . DBNAME);
+
     // Create university_users table
     $universityUsersTable = "
         CREATE TABLE IF NOT EXISTS university_users (
@@ -36,6 +36,7 @@ try {
             interests JSON NULL,
             user_role ENUM('student', 'staff') DEFAULT 'student',
             is_verified BOOLEAN DEFAULT FALSE,
+            is_deleted TINYINT(1) NOT NULL DEFAULT 0,
             email_verified_at TIMESTAMP NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -45,10 +46,10 @@ try {
             INDEX idx_student_staff_id (student_staff_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($universityUsersTable);
     echo "Table 'university_users' created successfully.\n";
-    
+
     // Create public_users table
     $publicUsersTable = "
         CREATE TABLE IF NOT EXISTS public_users (
@@ -62,6 +63,7 @@ try {
             gender ENUM('male', 'female', 'other', 'prefer-not-to-say') NULL,
             interests JSON NULL,
             is_verified BOOLEAN DEFAULT FALSE,
+            is_deleted TINYINT(1) NOT NULL DEFAULT 0,
             email_verified_at TIMESTAMP NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -69,10 +71,10 @@ try {
             INDEX idx_nic (nic)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($publicUsersTable);
     echo "Table 'public_users' created successfully.\n";
-    
+
     // Create a general users table for login (optional - combines both user types)
     $usersTable = "
         CREATE TABLE IF NOT EXISTS users (
@@ -90,10 +92,10 @@ try {
             INDEX idx_user_id (user_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($usersTable);
     echo "Table 'users' created successfully.\n";
-    
+
     // Create admins table
     $adminsTable = "
         CREATE TABLE IF NOT EXISTS admins (
@@ -109,10 +111,10 @@ try {
             INDEX idx_email (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($adminsTable);
     echo "Table 'admins' created successfully.\n";
-    
+
     // Create moderators table
     $moderatorsTable = "
         CREATE TABLE IF NOT EXISTS moderators (
@@ -135,10 +137,10 @@ try {
             FOREIGN KEY (assigned_by) REFERENCES admins(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($moderatorsTable);
     echo "Table 'moderators' created successfully.\n";
-    
+
     // Create events table
     $eventsTable = "
         CREATE TABLE IF NOT EXISTS events (
@@ -167,10 +169,10 @@ try {
             INDEX idx_event_date (event_date)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
-    
+
     $pdo->exec($eventsTable);
     echo "Table 'events' created successfully.\n";
-    
+
     // Insert sample events data
     $sampleEvents = [
         [
@@ -364,27 +366,25 @@ try {
     ";
 
     $stmt = $pdo->prepare($insertEventQuery);
-    
+
     foreach ($sampleEvents as $event) {
         $stmt->execute($event);
     }
-    
+
     echo "Sample events data inserted successfully.\n";
-    
+
     // Insert default admin user
     $defaultAdminPassword = password_hash('admin123', PASSWORD_DEFAULT);
     $insertAdmin = "
         INSERT IGNORE INTO admins (full_name, email, password_hash, phone) 
         VALUES ('System Administrator', 'admin@unipulse.com', :password, '+94712345678')
     ";
-    
+
     $stmt = $pdo->prepare($insertAdmin);
     $stmt->execute(['password' => $defaultAdminPassword]);
     echo "Default admin user created (email: admin@unipulse.com, password: admin123)\n";
-    
+
     echo "\nDatabase setup completed successfully!\n";
-    
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     echo "Database setup failed: " . $e->getMessage() . "\n";
 }
-?>

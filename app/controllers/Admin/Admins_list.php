@@ -8,6 +8,10 @@ class Admins_list extends Controller{
             header('Location: /unipulse/public/signin');
             exit();
         }
+
+        $_SESSION['error_message'] = 'Admin management page has been removed';
+        header('Location: /unipulse/public/admin/dashboard');
+        exit();
         
         // Handle status change actions
         if ($a === 'deactivate' && !empty($b)) {
@@ -26,7 +30,7 @@ class Admins_list extends Controller{
         }
         
         $data = [];
-        $data['user'] = AuthService::getCurrentUser();
+        $data['user'] = $currentUser;
         
         // Get success message if any
         if (isset($_SESSION['success_message'])) {
@@ -42,9 +46,10 @@ class Admins_list extends Controller{
             unset($_SESSION['error_message']);
         }
         
-        // Get all admins
-        $adminModel = new Admin();
         $data['admins'] = $adminModel->findAll();
+        $systemAdmin = $adminModel->getSystemAdministrator();
+        $data['system_admin_id'] = $systemAdmin ? (int)$systemAdmin->id : null;
+        $data['is_system_admin'] = true;
         
         $this->view('Admin/admins_list', $data);
     }
@@ -59,6 +64,12 @@ class Admins_list extends Controller{
         }
         
         $adminModel = new Admin();
+        if ($adminModel->isSystemAdministrator($id)) {
+            $_SESSION['error_message'] = 'System Administrator account cannot be deactivated';
+            header('Location: /unipulse/public/admin/admins_list');
+            exit();
+        }
+
         if ($adminModel->deactivate($id)) {
             $_SESSION['success_message'] = 'Admin deactivated successfully';
         } else {
@@ -90,8 +101,14 @@ class Admins_list extends Controller{
             exit();
         }
         
-        // Check if this is the last active admin
         $adminModel = new Admin();
+        if ($adminModel->isSystemAdministrator($id)) {
+            $_SESSION['error_message'] = 'System Administrator account cannot be deleted';
+            header('Location: /unipulse/public/admin/admins_list');
+            exit();
+        }
+
+        // Check if this is the last active admin
         $activeAdmins = $adminModel->getActiveAdmins();
         if (count($activeAdmins) <= 1) {
             $_SESSION['error_message'] = 'Cannot delete the last active admin';

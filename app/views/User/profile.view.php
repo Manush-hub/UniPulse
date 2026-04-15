@@ -29,7 +29,7 @@
                         Change Cover Photo
                     </div>
                 </div>
-                
+
                 <!-- Profile Avatar positioned to overlap -->
                 <div class="profile-avatar profile-avatar-overlap">
                     <img id="profilePhoto" src="https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=150&h=150&fit=crop" alt="Profile Photo" style="width: 100%; height: 100%; object-fit: cover; display: block;">
@@ -41,7 +41,7 @@
                 <input type="file" id="profileInput" accept="image/*" style="display:none" onchange="changeProfileImage(event)">
                 <input type="file" id="coverInput" accept="image/*" style="display:none" onchange="changeCoverImage(event)">
             </div>
-            
+
             <!-- Profile Info Below Cover -->
             <div class="profile-info-section">
                 <div class="profile-name-email">
@@ -167,9 +167,9 @@
                     </div>
                     <form id="security-form" class="form">
                         <div class="form-group">
-                            <label for="username"><i class="fas fa-user"></i> Username</label>
-                            <input type="text" id="username" placeholder="Enter your username">
-                            <small>This is how others will find you on UniPulse</small>
+                            <label for="loginEmail"><i class="fas fa-user-shield"></i> Login Email</label>
+                            <input type="email" id="loginEmail" value="<?= htmlspecialchars($currentUser['email'] ?? '') ?>" readonly style="background-color: #f5f5f5;">
+                            <small>This email is used to sign in and recover your account</small>
                         </div>
                         <div class="form-group">
                             <label for="currentPassword"><i class="fas fa-lock"></i> Current Password</label>
@@ -200,10 +200,10 @@
                     <div class="danger-actions">
                         <div class="danger-item">
                             <div>
-                                <h4>Delete Account</h4>
-                                <p>Permanently delete your account and all data</p>
+                                <h4>Deactivate Account</h4>
+                                <p>Your account will be marked inactive and can be reactivated by signing in again</p>
                             </div>
-                            <button class="btn btn-danger" onclick="deleteAccount()">Delete</button>
+                            <button class="btn btn-danger" onclick="deleteAccount()">Deactivate</button>
                         </div>
                     </div>
                 </div>

@@ -952,15 +952,34 @@ class Publisher
         return $stmt->execute(['password_hash' => $passwordHash, 'id' => $publisherId]);
     }
 
+    public function softDeleteAccount($publisherId)
+    {
+        $query = "UPDATE publishers SET is_deleted = 1, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$publisherId]);
+    }
+
+    public function reactivateAccount($publisherId)
+    {
+        $query = "UPDATE publishers SET is_deleted = 0, updated_at = NOW() WHERE id = :id";
+        $conn = $this->connect();
+        $stmt = $conn->prepare($query);
+        return $stmt->execute(['id' => (int)$publisherId]);
+    }
+
     /**
      * Get all approved publishers by university
      */
     public function getApprovedByUniversity($university)
     {
-        $query = "SELECT * FROM publishers 
-                  WHERE university = :university 
-                  AND approval_status = 'approved' 
-                  ORDER BY society_name ASC";
+        $query = "SELECT p.*, pp.logo_url
+                  FROM publishers p
+                  LEFT JOIN publisher_profiles pp ON pp.publisher_id = p.id
+                  WHERE p.university = :university
+                  AND p.approval_status = 'approved'
+                  AND COALESCE(p.is_deleted, 0) = 0
+                  ORDER BY p.society_name ASC";
 
         return $this->query($query, ['university' => $university]);
     }

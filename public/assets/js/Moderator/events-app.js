@@ -41,11 +41,11 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('apiEndpoint:', apiEndpoint);
     loadEvents();
     setupFilterListeners();
-    
+
     // Add event listener for Load More button
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function(e) {
+        loadMoreBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
             loadMoreEvents();
@@ -67,12 +67,12 @@ function setupFilterListeners() {
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterEvents);
     }
-    
+
     const universityFilter = document.getElementById('universityFilter');
     if (universityFilter) {
         universityFilter.addEventListener('change', filterEvents);
     }
-    
+
     const statusFilter = document.getElementById('statusFilter');
     if (statusFilter) {
         statusFilter.addEventListener('change', filterEvents);
@@ -96,7 +96,7 @@ function debounce(func, wait) {
 function loadEvents(useAjax = false, append = false) {
     console.log('loadEvents called, useAjax:', useAjax, 'append:', append);
     console.log('filteredEvents.length:', filteredEvents.length);
-    
+
     const eventsGrid = document.getElementById('eventsGrid');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
@@ -122,7 +122,7 @@ function loadEvents(useAjax = false, append = false) {
         params.append('limit', eventsPerPage);
 
         console.log('Fetching events from:', `${apiEndpoint}?${params.toString()}`);
-        
+
         fetch(`${apiEndpoint}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
@@ -167,13 +167,14 @@ function loadEvents(useAjax = false, append = false) {
 
 function displayEvents(events, append = false) {
     const eventsGrid = document.getElementById('eventsGrid');
+    const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     if (!eventsGrid) {
         console.error('eventsGrid element not found!');
         return;
     }
-    
+
     console.log('displayEvents called with', events.length, 'events, append:', append);
 
     // Clear existing events only if not appending
@@ -181,12 +182,21 @@ function displayEvents(events, append = false) {
         eventsGrid.innerHTML = '';
     }
 
+    if (!append && (!events || events.length === 0)) {
+        displayNoEvents();
+        return;
+    }
+
+    if (noEvents) {
+        noEvents.style.display = 'none';
+    }
+
     // Add events to the grid
     events.forEach(event => {
         const card = createEventCard(event);
         eventsGrid.appendChild(card);
     });
-    
+
     console.log('Successfully added', events.length, 'cards to grid. Total cards now:', eventsGrid.children.length);
 
     // Show/hide load more button
@@ -201,15 +211,19 @@ function displayEvents(events, append = false) {
 
 function displayNoEvents() {
     const noEvents = document.getElementById('noEvents');
+    const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
 
+    if (eventsGrid) {
+        eventsGrid.innerHTML = '';
+    }
     noEvents.style.display = 'block';
     loadMoreSection.style.display = 'none';
 }
 
 function updatePagination(pagination = null) {
     const loadMoreSection = document.getElementById('loadMoreSection');
-    
+
     if (!loadMoreSection) {
         console.warn('loadMoreSection element not found');
         return;
@@ -226,7 +240,7 @@ function updatePagination(pagination = null) {
     } else {
         // Use local pagination logic with totalPages
         console.log('Updating pagination locally - currentPage:', currentPage, 'totalPages:', totalPages);
-        
+
         // Check if there are more pages to load
         if (currentPage >= totalPages) {
             console.log('Hiding load more - all pages displayed');
@@ -476,18 +490,18 @@ function clearFilters() {
 // Load more events
 function loadMoreEvents() {
     console.log('loadMoreEvents called, currentPage:', currentPage);
-    
+
     // Disable button and show loading state
     const loadMoreBtn = document.querySelector('#loadMoreSection button');
     if (loadMoreBtn) {
         loadMoreBtn.disabled = true;
         loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
     }
-    
+
     currentPage++;
     console.log('Fetching page:', currentPage);
     loadEvents(true, true); // useAjax=true, append=true
-    
+
     // Re-enable button after loading
     setTimeout(() => {
         if (loadMoreBtn && !loadMoreBtn.disabled) return; // Already re-enabled
@@ -554,7 +568,7 @@ function showHideEventModal(eventId, eventTitle) {
     modal.id = 'hideEventModal';
     modal.className = 'modal';
     modal.style.cssText = 'display: flex; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;';
-    
+
     modal.innerHTML = `
         <div class="modal-content" style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -577,11 +591,11 @@ function showHideEventModal(eventId, eventTitle) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Close modal on background click
-    modal.addEventListener('click', function(e) {
+    modal.addEventListener('click', function (e) {
         if (e.target === modal) {
             closeHideEventModal();
         }
@@ -601,20 +615,20 @@ function closeHideEventModal(event) {
 async function confirmHideEvent(eventId) {
     const reasonInput = document.getElementById('hideReason');
     const reason = reasonInput?.value.trim() || '';
-    
+
     // Validate reason
     if (!reason) {
         alert('Please provide a reason for hiding this event.');
         reasonInput?.focus();
         return;
     }
-    
+
     if (reason.length < 10) {
         alert('Reason must be at least 10 characters long.');
         reasonInput?.focus();
         return;
     }
-    
+
     try {
         const response = await fetch('/unipulse/public/moderator/events/hideEvent', {
             method: 'POST',
@@ -626,9 +640,9 @@ async function confirmHideEvent(eventId) {
                 reason: reason
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showMessage('Event hidden successfully. Publisher has been notified.', 'success');
             closeHideEventModal();
@@ -663,9 +677,9 @@ function showMessage(message, type = 'info') {
         max-width: 400px;
     `;
     messageDiv.textContent = message;
-    
+
     document.body.appendChild(messageDiv);
-    
+
     // Remove after 5 seconds
     setTimeout(() => {
         messageDiv.style.animation = 'slideOutRight 0.3s ease-out';
