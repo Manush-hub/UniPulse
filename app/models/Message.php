@@ -194,7 +194,7 @@ class Message {
                   FROM messages 
                   WHERE to_user_id = :user_id 
                   AND to_user_type = :user_type 
-                  AND is_read = FALSE";
+                  AND COALESCE(is_read, 0) = 0";
         
         $result = $this->getRow($query, [
             'user_id' => $userId,
@@ -438,7 +438,7 @@ class Message {
                             (SELECT COUNT(*) FROM messages 
                              WHERE to_user_id = ? AND to_user_type = ?
                              AND from_user_id = ? AND from_user_type = ?
-                             AND is_read = FALSE) as unread_count,
+                         AND COALESCE(is_read, 0) = 0) as unread_count,
                             (SELECT COUNT(*) FROM messages 
                              WHERE ((from_user_id = ? AND from_user_type = ? 
                                      AND to_user_id = ? AND to_user_type = ?)

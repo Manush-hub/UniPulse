@@ -3,6 +3,8 @@
 class AdminDashboard extends Controller {
     use Database;
 
+    private $notificationReadScope = 'admin_header_notifications';
+
     public function index($a = '', $b = '' , $c = ''){
         // Check if user is admin
         if (!AuthService::isLoggedIn() || AuthService::getCurrentUser()['type'] !== 'admin') {
@@ -2138,6 +2140,15 @@ class AdminDashboard extends Controller {
                 exit;
             }
 
+            $adminId = (int)($currentUser['id'] ?? 0);
+            $notificationReadStateModel = new NotificationReadState();
+            $lastReadAt = $notificationReadStateModel->getLastReadAt(
+                $adminId,
+                'admin',
+                $this->notificationReadScope
+            );
+            $readItemsMap = $notificationReadStateModel->getReadItemsMap($adminId, 'admin');
+
             // Pending publisher approvals become notifications
             $publisher = new Publisher();
             $pending   = $publisher->getAllPending();
@@ -2146,29 +2157,39 @@ class AdminDashboard extends Controller {
 
             if (is_array($pending)) {
                 foreach (array_slice($pending, 0, 10) as $p) {
+                    $createdAt = (string)($p->created_at ?? date('Y-m-d H:i:s'));
+                    $notificationKey = 'publisher_pending|' . (int)$p->id . '|' . $createdAt;
+                    $isMarkedByTime = strtotime($createdAt) <= strtotime($lastReadAt);
+                    $isMarkedIndividually = isset($readItemsMap[$notificationKey]);
+                    $isUnread = !($isMarkedByTime || $isMarkedIndividually);
+
                     $notifications[] = [
                         'id'      => 'publisher:' . (int)$p->id,
                         'type'    => 'publisher_pending',
                         'title'   => 'Publisher Approval Pending',
                         'message' => ($p->society_name ?? 'A publisher') . ' is awaiting approval',
-                        'time'    => isset($p->created_at) ? $this->timeAgo($p->created_at) : '',
-                        'unread'  => true,
+                        'time'    => $this->timeAgo($createdAt),
+                        'unread'  => $isUnread,
                         'link'    => '/unipulse/public/admin/dashboard',
-                        'raw_time' => isset($p->created_at) ? strtotime($p->created_at) : time(),
+                        'notification_key' => $notificationKey,
+                        'raw_time' => strtotime($createdAt),
                     ];
                 }
             }
 
-            $supportNotifications = $supportMessageModel->getUnreadNotificationsForAdmin(10);
+            // Keep old support notifications visible; only "new" ones are unread.
+            $supportNotifications = $supportMessageModel->getRecentForAdmin(10);
             if (is_array($supportNotifications)) {
                 foreach ($supportNotifications as $s) {
+                    $isUnread = ((string)($s->status ?? 'new')) === 'new';
+
                     $notifications[] = [
                         'id'       => 'support:' . (int)$s->id,
                         'type'     => 'support_message',
                         'title'    => 'New Contact Us Reach',
                         'message'  => (string)($s->subject ?? 'New support message') . ' - from ' . (string)($s->full_name ?? 'Unknown user'),
                         'time'     => isset($s->created_at) ? $this->timeAgo($s->created_at) : '',
-                        'unread'   => true,
+                        'unread'   => $isUnread,
                         'link'     => '/unipulse/public/admin/messages',
                         'raw_time' => isset($s->created_at) ? strtotime($s->created_at) : time(),
                     ];
@@ -2213,9 +2234,10 @@ class AdminDashboard extends Controller {
 
             $payload = json_decode(file_get_contents('php://input'), true);
             $notificationId = trim((string)($payload['notificationId'] ?? ''));
+            $notificationKey = trim((string)($payload['notification_key'] ?? ''));
 
-            if ($notificationId === '') {
-                echo json_encode(['success' => false, 'error' => 'Notification ID is required']);
+            if ($notificationId === '' && $notificationKey === '') {
+                echo json_encode(['success' => false, 'error' => 'Notification identifier is required']);
                 exit;
             }
 
@@ -2227,8 +2249,18 @@ class AdminDashboard extends Controller {
                 exit;
             }
 
-            // Non-support notifications are not persisted as read yet.
-            echo json_encode(['success' => true]);
+            if ($notificationKey === '') {
+                $notificationKey = $notificationId;
+            }
+
+            $notificationReadStateModel = new NotificationReadState();
+            $ok = $notificationReadStateModel->markRead(
+                (int)$currentUser['id'],
+                'admin',
+                $notificationKey
+            );
+
+            echo json_encode(['success' => (bool)$ok]);
         } catch (Exception $e) {
             error_log('Admin markNotificationRead error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Server error']);
@@ -2256,8 +2288,16 @@ class AdminDashboard extends Controller {
             }
 
             $supportMessageModel = new SupportMessage();
-            $ok = $supportMessageModel->markAllNotificationsAsRead();
-            echo json_encode(['success' => (bool)$ok]);
+            $supportOk = $supportMessageModel->markAllNotificationsAsRead();
+
+            $notificationReadStateModel = new NotificationReadState();
+            $dynamicOk = $notificationReadStateModel->markAllRead(
+                (int)$currentUser['id'],
+                'admin',
+                $this->notificationReadScope
+            );
+
+            echo json_encode(['success' => (bool)$supportOk || (bool)$dynamicOk]);
         } catch (Exception $e) {
             error_log('Admin markAllNotificationsRead error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Server error']);

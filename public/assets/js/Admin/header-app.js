@@ -110,14 +110,12 @@ function createNotificationItem(notification) {
 function handleNotificationClick(notification) {
     if (!notification) return;
 
-    if (notification.type === 'support_message') {
-        markNotificationAsRead(notification.id, notification.link || '/unipulse/public/admin/messages');
-        return;
-    }
+    const redirectLink = notification.link || null;
+    const notificationId = notification.id || '';
+    const notificationKey = notification.notification_key || '';
 
-    if (notification.link) {
-        window.location.href = notification.link;
-    }
+    // Always persist read state on click before redirecting.
+    markNotificationAsRead(notificationId, redirectLink, notificationKey);
 }
 
 // Setup event listeners
@@ -153,13 +151,16 @@ function toggleUserMenu() {
 }
 
 // Mark notification as read
-function markNotificationAsRead(notificationId, redirectLink = null) {
+function markNotificationAsRead(notificationId, redirectLink = null, notificationKey = '') {
     fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ notificationId: notificationId })
+        body: JSON.stringify({
+            notificationId: notificationId,
+            notification_key: notificationKey
+        })
     })
     .then(response => response.json())
     .then(data => {
@@ -189,6 +190,15 @@ function markAllAsRead() {
     .then(data => {
         if (data.success) {
             loadNotifications();
+
+            // Hide badge immediately; keep notifications visible as read.
+            const notificationBadge = document.getElementById('notificationBadge');
+            if (notificationBadge) {
+                notificationBadge.textContent = '';
+                notificationBadge.style.display = 'none';
+                notificationBadge.classList.add('hidden');
+            }
+
             showToast('All notifications marked as read', 'success');
         }
     })
