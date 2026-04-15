@@ -459,9 +459,48 @@ let eventsSliderPage = 0;
 const EVENTS_PER_PAGE = 3;
 let eventsSliderData = [];
 
+function getEventTimestampForSort(event) {
+    const datePart = String(event?.event_date || '').trim();
+    const timePart = String(event?.event_time || '').trim() || '23:59:59';
+    const timestamp = new Date(`${datePart}T${timePart}`).getTime();
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function sortDashboardEvents(events) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTs = today.getTime();
+
+    return [...events].sort((a, b) => {
+        const aTs = getEventTimestampForSort(a);
+        const bTs = getEventTimestampForSort(b);
+
+        if (currentEventFilter === 'upcoming') {
+            return aTs - bTs;
+        }
+
+        if (currentEventFilter === 'past') {
+            return bTs - aTs;
+        }
+
+        const aIsUpcomingOrToday = aTs >= todayTs;
+        const bIsUpcomingOrToday = bTs >= todayTs;
+
+        if (aIsUpcomingOrToday !== bIsUpcomingOrToday) {
+            return aIsUpcomingOrToday ? -1 : 1;
+        }
+
+        if (aIsUpcomingOrToday) {
+            return aTs - bTs;
+        }
+
+        return bTs - aTs;
+    });
+}
+
 function displayEvents(events) {
     const eventsList = document.querySelector('#eventsManagementList');
-    eventsSliderData = events;
+    eventsSliderData = sortDashboardEvents(events);
     if (events.length === 0) {
         const filterText = currentEventFilter === 'upcoming' ? 'upcoming ' : currentEventFilter === 'past' ? 'past ' : '';
         eventsList.innerHTML = `

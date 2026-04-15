@@ -1508,6 +1508,7 @@ class Event
                     e.event_date,
                     e.event_time,
                     e.event_end_time,
+                    e.postponed_count,
                     e.location,
                     e.location_type,
                     e.university_name,
@@ -1576,6 +1577,7 @@ class Event
                     e.event_date,
                     e.event_time,
                     e.event_end_time,
+                    e.postponed_count,
                     e.location,
                     e.location_type,
                     e.university_name,
@@ -1593,14 +1595,23 @@ class Event
                 LEFT JOIN publishers p ON e.created_by = p.id AND e.created_by_type = 'publisher'
                 WHERE e.is_deleted = 0
                     AND TIMESTAMP(e.event_date, e.event_time) > NOW()
-                    AND e.visibility = 'public'
-                    AND e.ticket_type IN ('free-all', 'free-limited', 'free')
             ";
+
+            $visibilityClause = $this->buildVisibilityFilter($currentUser);
+            if (!empty($visibilityClause['clause'])) {
+                $query .= ' AND ' . $visibilityClause['clause'];
+            }
 
             $query .= " ORDER BY e.event_date ASC, e.event_time ASC LIMIT :limit";
 
             $conn = $this->connect();
             $stmt = $conn->prepare($query);
+
+            if (!empty($visibilityClause['params'])) {
+                foreach ($visibilityClause['params'] as $param => $value) {
+                    $stmt->bindValue(':' . $param, $value, PDO::PARAM_STR);
+                }
+            }
 
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->execute();

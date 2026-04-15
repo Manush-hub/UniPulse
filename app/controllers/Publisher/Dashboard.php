@@ -518,6 +518,20 @@ class PublisherDashboard extends Controller
                 $whereClause .= " AND e.event_date < CURDATE()";
             }
 
+            // Upcoming should show nearest event first.
+            // Past/completed should keep latest finished first.
+            $orderByClause = "ORDER BY 
+                CASE WHEN e.event_date >= CURDATE() THEN 0 ELSE 1 END ASC,
+                CASE WHEN e.event_date >= CURDATE() THEN e.event_date END ASC,
+                CASE WHEN e.event_date >= CURDATE() THEN COALESCE(e.event_time, '23:59:59') END ASC,
+                CASE WHEN e.event_date < CURDATE() THEN e.event_date END DESC,
+                CASE WHEN e.event_date < CURDATE() THEN COALESCE(e.event_time, '23:59:59') END DESC";
+            if ($filter === 'upcoming') {
+                $orderByClause = "ORDER BY e.event_date ASC, e.event_time ASC";
+            } elseif ($filter === 'past') {
+                $orderByClause = "ORDER BY e.event_date DESC, e.event_time DESC";
+            }
+
             $query = "
                 SELECT 
                     e.*,
@@ -539,7 +553,7 @@ class PublisherDashboard extends Controller
                 LEFT JOIN event_sponsorship_packages esp ON e.id = esp.event_id
                 $whereClause
                 GROUP BY e.id
-                ORDER BY e.event_date DESC
+                $orderByClause
                 LIMIT 50
             ";
 
