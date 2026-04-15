@@ -5,6 +5,30 @@ class Donations extends Controller
     use Database;
 
     /**
+     * AJAX endpoint for publisher nav donation badge.
+     */
+    public function pendingCount($a = '', $b = '', $c = '')
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || ($currentUser['type'] ?? '') !== 'publisher') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized', 'count' => 0]);
+                exit();
+            }
+
+            $count = $this->getPendingDonationCount((int)$currentUser['id']);
+            echo json_encode(['success' => true, 'count' => $count]);
+        } catch (Throwable $e) {
+            error_log('Donations::pendingCount error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to load donation count', 'count' => 0]);
+        }
+
+        exit();
+    }
+
+    /**
      * Show publisher's donation management page
      */
     public function index()
@@ -281,5 +305,35 @@ class Donations extends Controller
             error_log('Donations::getDonationStatusEnumValues warning: ' . $e->getMessage());
             return [];
         }
+    }
+
+    private function getPendingDonationCount($publisherId)
+    {
+        if ($publisherId <= 0) {
+            return 0;
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM donations d
+                INNER JOIN events e ON d.event_id = e.id
+                WHERE e.created_by = ?
+                  AND e.created_by_type = 'publisher'
+                  AND d.status = 'pending'";
+
+        $result = $this->query($sql, [$publisherId]);
+        if (empty($result)) {
+            return 0;
+        }
+
+        $row = $result[0];
+        if (is_object($row)) {
+            return (int)($row->total ?? 0);
+        }
+
+        if (is_array($row)) {
+            return (int)($row['total'] ?? 0);
+        }
+
+        return 0;
     }
 }

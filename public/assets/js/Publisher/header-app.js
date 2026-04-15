@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadNotifications();
+    loadPendingDonationsBadge();
     setupEventListeners();
     if (typeof initializeRegisteredEventsCalendar === 'function') {
         initializeRegisteredEventsCalendar({
@@ -12,10 +13,53 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
     startNotificationPolling();
+
+    document.addEventListener('publisher:donationsChanged', function () {
+        loadPendingDonationsBadge();
+    });
 });
 
 let notifications = [];
 let unreadNotificationsCount = 0;
+
+async function loadPendingDonationsBadge() {
+    const badge = document.getElementById('donationsNavBadge');
+    if (!badge) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/unipulse/public/publisher/donations/pendingCount?t=${Date.now()}`, {
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch pending donation count');
+        }
+
+        const data = await response.json();
+        const count = data.success && Number.isInteger(data.count) ? data.count : 0;
+        renderPendingDonationsBadge(count);
+    } catch (error) {
+        console.error('Error loading pending donation count:', error);
+        renderPendingDonationsBadge(0);
+    }
+}
+
+function renderPendingDonationsBadge(count) {
+    const badge = document.getElementById('donationsNavBadge');
+    if (!badge) {
+        return;
+    }
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.remove('hidden');
+    } else {
+        badge.textContent = '';
+        badge.classList.add('hidden');
+    }
+}
 
 async function loadNotifications() {
     const notificationList = document.getElementById('notificationList');
@@ -226,6 +270,7 @@ async function markAllAsRead() {
 function startNotificationPolling() {
     setInterval(() => {
         loadNotifications();
+        loadPendingDonationsBadge();
     }, 60000);
 }
 

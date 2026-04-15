@@ -40,6 +40,7 @@ function acceptDonation(donationId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                document.dispatchEvent(new CustomEvent('publisher:donationsChanged'));
                 alert('Donation moved to Accepted.');
                 location.reload();
             } else {
@@ -67,6 +68,7 @@ function rejectDonation(donationId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                document.dispatchEvent(new CustomEvent('publisher:donationsChanged'));
                 alert('Donation moved to Rejected.');
                 location.reload();
             } else {
