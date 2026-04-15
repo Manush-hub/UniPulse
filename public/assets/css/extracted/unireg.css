@@ -1,0 +1,33 @@
+.required {
+            color: #dc3545;
+            margin-left: 3px;
+            font-weight: bold;
+        }
+
+        /* Dropdown with scroll - show 5 items */
+        select#university,
+        select#faculty,
+        select#gender,
+        select#academic-year,
+        select#country-code {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select#university option,
+        select#faculty option,
+        select#gender option,
+        select#academic-year option,
+        select#country-code option {
+            padding: 10px;
+        }
+
+        /* Set size attribute to show 5 visible items when opened */
+        select#university[size],
+        select#faculty[size],
+        select#gender[size],
+        select#academic-year[size],
+        select#country-code[size] {
+            height: auto;
+        }

@@ -349,38 +349,63 @@ body {
     gap: 2rem;
 }
 
+.welcome-text {
+    flex: 1;
+}
+
 .welcome-text h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .welcome-text p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     opacity: 0.9;
-    margin-bottom: 2rem;
 }
 
 .quick-stats {
     display: flex;
-    gap: 2rem;
+    gap: 1.5rem;
+    flex-shrink: 0;
 }
 
 .stat-item {
+    text-align: center;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    min-height: 100px;
+    height: auto;
+    width: 140px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
 }
 
 .stat-number {
-    font-size: 2rem;
+    display: block;
+    font-size: 1.5rem;
     font-weight: 700;
     color: white;
+    margin-bottom: 0.25rem;
+    width: 100%;
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#totalInvestment {
+    font-size: 1.15rem;
 }
 
 .stat-label {
-    font-size: 0.9rem;
-    opacity: 0.8;
+    display: block;
+    font-size: 0.875rem;
+    opacity: 0.9;
+    color: white;
 }
 
 .welcome-actions {
@@ -475,6 +500,128 @@ body {
 
 .view-all:hover {
     background: #f0f9ff;
+}
+
+/* Recent Messages Section */
+.recent-messages {
+    padding: 3rem 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+}
+
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.message-card:hover {
+    border-color: #1E3A8A;
+    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+    transform: translateY(-2px);
+}
+
+.message-card.unread {
+    border-left: 4px solid #1E3A8A;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.sender-info h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.message-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.unread-indicator {
+    width: 10px;
+    height: 10px;
+    background: #1E3A8A;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.message-preview h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.message-preview p {
+    font-size: 0.9rem;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.message-type {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.no-messages {
+    text-align: center;
+    padding: 3rem 0;
+    color: #6b7280;
+}
+
+.no-messages-icon {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-messages h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.no-messages p {
+    font-size: 0.9rem;
+}
+
+/* Notification Badge */
+.notification-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    margin-left: 0.5rem;
+    display: inline-block;
+    line-height: 1;
 }
 
 /* Sponsorship Requests */
@@ -675,9 +822,88 @@ body {
     font-size: 0.9rem;
 }
 
+/* Monthly Evolution Button Section on Dashboard */
+.monthly-evolution-btn-section {
+    padding: 2rem 0 4rem;
+    background: #f8fafc;
+}
+
+.evolution-btn {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #1E3A8A 0%, #F97316 100%);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.2);
+    color: white;
+}
+
+.evolution-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+}
+
+.evolution-btn-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.evolution-btn-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.evolution-btn-content {
+    flex: 1;
+}
+
+.evolution-btn-content h3 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+}
+
+.evolution-btn-content p {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    color: #ffffff;
+}
+
+.evolution-btn-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: transform 0.3s ease;
+}
+
+.evolution-btn:hover .evolution-btn-arrow {
+    transform: translateX(4px);
+}
+
 /* Status colors */
 .status-active {
     color: #059669;
+}
+
+.status-ongoing {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.status-upcoming {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
 }
 
 .status-pending {
@@ -788,6 +1014,16 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .evolution-btn {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .evolution-btn-content h3 {
+        font-size: 1.25rem;
+    }
+
     .footer-container {
         flex-direction: column;
         text-align: center;
@@ -795,6 +1031,18 @@ body {
 
     .footer-links {
         justify-content: center;
+    }
+
+    .message-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .unread-indicator {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
     }
 }
 
@@ -809,8 +1057,13 @@ body {
 
     .sponsorship-requests,
     .active-sponsorships,
-    .performance-overview {
+    .performance-overview,
+    .recent-messages {
         padding: 2rem 0;
+    }
+
+    .message-card {
+        padding: 1rem;
     }
 
     .user-info {

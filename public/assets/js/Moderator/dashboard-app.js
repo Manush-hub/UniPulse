@@ -1,180 +1,37 @@
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
-    initializeDashboard();
-    loadModeratorData();
-    loadPendingReviews();
-    loadRecentActivity();
-    loadUserReports();
-    loadNotifications();
-    setupEventListeners();
+    console.log('Dashboard DOMContentLoaded - Starting initialization...');
+    
+    // Add a small delay to ensure DOM is fully ready
+    setTimeout(() => {
+        console.log('Running delayed initialization...');
+        try {
+            initializeDashboard();
+            loadModeratorData();
+            loadPendingReviews();
+            loadRecentActivity();
+            loadPublisherPerformanceReport();
+            setupDashboardListeners();
+            console.log('Dashboard initialization complete');
+        } catch (error) {
+            console.error('Error during dashboard initialization:', error);
+        }
+    }, 100);
 });
-
-// Sample data for moderator dashboard
-const moderatorData = {
-    username: 'Lisa Chen',
-    displayName: 'Lisa',
-    role: 'Moderator',
-    pendingReviews: 12,
-    eventsReviewed: 84,
-    reportsHandled: 23,
-    approvalRate: 92,
-    approvedEvents: 64,
-    rejectedEvents: 8,
-    editedEvents: 12,
-    verifiedOrganizers: 15
-};
-
-const pendingReviews = [
-    {
-        id: 1,
-        title: 'Tech Workshop 2025',
-        organizer: 'UCSC IEEE Student Branch',
-        submitted: '2 hours ago',
-        category: 'Technology'
-    },
-    {
-        id: 2,
-        title: 'Annual Cultural Festival',
-        organizer: 'Cultural Society',
-        submitted: '5 hours ago',
-        category: 'Cultural'
-    },
-    {
-        id: 3,
-        title: 'AI Research Symposium',
-        organizer: 'Computer Science Department',
-        submitted: '1 day ago',
-        category: 'Academic'
-    },
-    {
-        id: 4,
-        title: 'Startup Pitch Competition',
-        organizer: 'Entrepreneurship Club',
-        submitted: '1 day ago',
-        category: 'Business'
-    }
-];
-
-const recentActivity = [
-    {
-        id: 1,
-        type: 'approval',
-        title: 'Event Approved',
-        description: 'Tech Conference 2025 approved',
-        time: '10 minutes ago',
-        icon: 'check-circle'
-    },
-    {
-        id: 2,
-        type: 'rejection',
-        title: 'Event Rejected',
-        description: 'Inappropriate content in "Summer Party"',
-        time: '45 minutes ago',
-        icon: 'times-circle'
-    },
-    {
-        id: 3,
-        type: 'edit',
-        title: 'Event Edited',
-        description: 'Fixed date in "Career Fair" event',
-        time: '1 hour ago',
-        icon: 'edit'
-    },
-    {
-        id: 4,
-        type: 'verification',
-        title: 'Organizer Verified',
-        description: 'Verified credentials for Music Society',
-        time: '2 hours ago',
-        icon: 'user-check'
-    },
-    {
-        id: 5,
-        type: 'report',
-        title: 'Report Handled',
-        description: 'Resolved user report on event comments',
-        time: '5 hours ago',
-        icon: 'flag'
-    }
-];
-
-const userReports = [
-    {
-        id: 1,
-        content: 'Tech Workshop 2025',
-        type: 'inappropriate',
-        submitted: '2 hours ago',
-        status: 'pending'
-    },
-    {
-        id: 2,
-        content: 'User comment on Cultural Festival',
-        type: 'spam',
-        submitted: '5 hours ago',
-        status: 'in-progress'
-    },
-    {
-        id: 3,
-        content: 'AI Symposium description',
-        type: 'misinformation',
-        submitted: '1 day ago',
-        status: 'resolved'
-    },
-    {
-        id: 4,
-        content: 'Startup Competition registration',
-        type: 'inappropriate',
-        submitted: '1 day ago',
-        status: 'pending'
-    }
-];
-
-const notifications = [
-    {
-        id: 1,
-        title: 'New Event Submission',
-        message: '3 new events waiting for review',
-        time: '30 min ago',
-        read: false
-    },
-    {
-        id: 2,
-        title: 'User Report',
-        message: 'New user report submitted',
-        time: '1 hour ago',
-        read: false
-    },
-    {
-        id: 3,
-        title: 'Guidelines Updated',
-        message: 'Moderation guidelines have been updated',
-        time: '2 hours ago',
-        read: true
-    },
-    {
-        id: 4,
-        title: 'Weekly Summary',
-        message: 'Your weekly moderation summary is ready',
-        time: 'Yesterday',
-        read: true
-    }
-];
 
 // Dashboard initialization
 function initializeDashboard() {
-    console.log('Moderator Dashboard initialized');
-    updateModeratorProfile();
-    setupDropdowns();
     setupModals();
 }
 
 // Load moderator data
 function loadModeratorData() {
+    console.log('Loading moderator data...');
     // Update welcome section
-    const welcomeUsername = document.getElementById('welcomeUsername');
-    if (welcomeUsername) {
-        welcomeUsername.textContent = moderatorData.displayName;
-    }
+    // const welcomeUsername = document.getElementById('welcomeUsername');
+    // if (welcomeUsername) {
+    //     welcomeUsername.textContent = moderatorData.displayName;
+    // }
     
     // Update quick stats
     const statElements = {
@@ -187,26 +44,64 @@ function loadModeratorData() {
     if (statElements.pendingReviews) statElements.pendingReviews.textContent = moderatorData.pendingReviews;
     if (statElements.eventsReviewed) statElements.eventsReviewed.textContent = moderatorData.eventsReviewed;
     if (statElements.reportsHandled) statElements.reportsHandled.textContent = moderatorData.reportsHandled;
-    if (statElements.approvalRate) statElements.approvalRate.textContent = `${moderatorData.approvalRate}%`;
+    if (statElements.approvalRate) statElements.approvalRate.textContent = moderatorData.approvalRate;
     
     // Update moderation stats
     const statCards = document.querySelectorAll('.stat-card .stat-number');
     if (statCards.length >= 4) {
-        statCards[0].textContent = moderatorData.approvedEvents;
-        statCards[1].textContent = moderatorData.rejectedEvents;
-        statCards[2].textContent = moderatorData.editedEvents;
-        statCards[3].textContent = moderatorData.verifiedOrganizers;
+        statCards[0].textContent = moderatorData.hiddenEvents;
+        statCards[1].textContent = moderatorData.approvedPublishers;
+        statCards[2].textContent = moderatorData.rejectedPublishers;
+        statCards[3].textContent = moderatorData.totalActions;
     }
+    
+    console.log('Moderator data loaded successfully');
 }
 
-// Load pending reviews
+// Load pending reviews from backend
 function loadPendingReviews() {
+    console.log('Loading pending reviews...');
+    const reviewsList = document.getElementById('reviewsList');
+    if (!reviewsList) {
+        console.log('Reviews list element not found - this is expected on dashboard page');
+        return;
+    }
+    
+    reviewsList.innerHTML = '<div class="loading">Loading reviews...</div>';
+    
+    fetch('/unipulse/public/moderator/dashboard/getPendingReviews')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch pending reviews');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.reviews) {
+                displayPendingReviews(data.reviews);
+            } else {
+                reviewsList.innerHTML = '<div class="no-data">No pending reviews</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading pending reviews:', error);
+            reviewsList.innerHTML = '<div class="no-data">Failed to load reviews</div>';
+        });
+}
+
+// Display pending reviews
+function displayPendingReviews(reviews) {
     const reviewsList = document.getElementById('reviewsList');
     if (!reviewsList) return;
     
     reviewsList.innerHTML = '';
     
-    pendingReviews.forEach(review => {
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<div class="no-data">No pending reviews</div>';
+        return;
+    }
+    
+    reviews.forEach(review => {
         const reviewItem = document.createElement('div');
         reviewItem.className = 'review-item';
         reviewItem.innerHTML = `
@@ -244,72 +139,173 @@ function loadPendingReviews() {
         `;
         reviewsList.appendChild(reviewItem);
     });
+    
+    console.log('Pending reviews loaded successfully');
 }
 
-// Load recent activity
+// Load recent activity from backend
 function loadRecentActivity() {
+    try {
+        console.log('Loading recent activity...');
+        const activityList = document.getElementById('activityList');
+        if (!activityList) {
+            console.error('Activity list element not found!');
+            return;
+        }
+
+        // Activity table is already server-rendered — skip the AJAX fetch
+        const existingRows = activityList.querySelectorAll('tr');
+        if (existingRows.length > 0) {
+            console.log('Activity table already populated by server — skipping fetch.');
+            return;
+        }
+
+        activityList.innerHTML = '<tr><td colspan="7" class="loading">Loading activities...</td></tr>';
+
+        fetch('/unipulse/public/moderator/dashboard/getActivities')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recent activity');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.activities) {
+                    displayRecentActivity(data.activities);
+                } else {
+                    activityList.innerHTML = '<tr><td colspan="5" class="no-data">No recent activities</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading recent activity:', error);
+                activityList.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load activities</td></tr>';
+            });
+    } catch (error) {
+        console.error('Error in loadRecentActivity:', error);
+    }
+}
+
+// Display recent activity
+function displayRecentActivity(activities) {
     const activityList = document.getElementById('activityList');
     if (!activityList) return;
     
     activityList.innerHTML = '';
     
-    recentActivity.forEach(activity => {
-        const activityItem = document.createElement('div');
-        activityItem.className = 'activity-item';
-        activityItem.innerHTML = `
-            <div class="activity-icon">
+    if (activities.length === 0) {
+        activityList.innerHTML = '<tr><td colspan="5" class="no-data">No recent activities</td></tr>';
+        return;
+    }
+    
+    // Show first 2 activities initially
+    for (let i = 0; i < activities.length; i++) {
+        const activity = activities[i];
+        const activityRow = document.createElement('tr');
+        
+        // Hide rows after the first 2
+        if (i >= 2) {
+            activityRow.classList.add('hidden-row');
+            activityRow.style.display = 'none';
+        }
+        
+        // Determine type and status
+        let typeClass = 'type-' + activity.type;
+        let statusClass = 'status-completed';
+        let statusText = 'Completed';
+        
+        if (activity.type === 'report') {
+            statusClass = 'status-resolved';
+            statusText = 'Resolved';
+        }
+        
+        activityRow.innerHTML = `
+            <td class="activity-title">
                 <i class="fas fa-${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <h4>${activity.title}</h4>
-                <p>${activity.description}</p>
-                <span class="activity-time">${activity.time}</span>
-            </div>
+                ${activity.title}
+            </td>
+            <td><span class="activity-type ${typeClass}">${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}</span></td>
+            <td>${activity.description}</td>
+            <td>${activity.time}</td>
+            <td><span class="activity-status ${statusClass}">${statusText}</span></td>
         `;
-        activityList.appendChild(activityItem);
-    });
+        activityList.appendChild(activityRow);
+    }
+    
+    console.log('Recent activity loaded successfully. Added', activities.length, 'activity rows');
 }
 
-// Load user reports
+// Load user reports from backend
 function loadUserReports() {
+    try {
+        console.log('Loading user reports...');
+        const reportsTableBody = document.getElementById('reportsTableBody');
+        if (!reportsTableBody) {
+            console.error('Reports table body element not found!');
+            return;
+        }
+
+        // Reports table is already server-rendered — skip the AJAX fetch
+        const existingRows = reportsTableBody.querySelectorAll('tr');
+        if (existingRows.length > 0) {
+            console.log('Reports table already populated by server — skipping fetch.');
+            return;
+        }
+
+        reportsTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading reports...</td></tr>';
+
+        fetch('/unipulse/public/moderator/dashboard/getUserReports')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user reports');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.reports) {
+                    displayUserReports(data.reports);
+                } else {
+                    reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No reports found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading user reports:', error);
+                reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load reports</td></tr>';
+            });
+    } catch (error) {
+        console.error('Error in loadUserReports:', error);
+    }
+}
+
+// Display user reports
+function displayUserReports(reports) {
     const reportsTableBody = document.getElementById('reportsTableBody');
     if (!reportsTableBody) return;
     
     reportsTableBody.innerHTML = '';
     
-    userReports.forEach(report => {
+    if (reports.length === 0) {
+        reportsTableBody.innerHTML = '<tr><td colspan="5" class="no-data">No reports found</td></tr>';
+        return;
+    }
+    
+    // Show first 2 reports initially
+    for (let i = 0; i < reports.length; i++) {
+        const report = reports[i];
         const reportRow = document.createElement('tr');
         
-        // Determine type and status classes
-        let typeClass = '';
-        let statusClass = '';
-        let statusText = '';
-        
-        switch(report.type) {
-            case 'inappropriate':
-                typeClass = 'type-inappropriate';
-                break;
-            case 'spam':
-                typeClass = 'type-spam';
-                break;
-            case 'misinformation':
-                typeClass = 'type-misinformation';
-                break;
+        // Hide rows after the first 2
+        if (i >= 2) {
+            reportRow.classList.add('hidden-row');
+            reportRow.style.display = 'none';
         }
         
-        switch(report.status) {
-            case 'pending':
-                statusClass = 'status-pending';
-                statusText = 'Pending';
-                break;
-            case 'in-progress':
-                statusClass = 'status-in-progress';
-                statusText = 'In Progress';
-                break;
-            case 'resolved':
-                statusClass = 'status-resolved';
-                statusText = 'Resolved';
-                break;
+        // Determine type and status classes
+        let typeClass = 'type-' + report.type;
+        let statusClass = 'status-' + report.status;
+        let statusText = report.status.charAt(0).toUpperCase() + report.status.slice(1);
+        
+        if (report.status === 'in-progress') {
+            statusText = 'In Progress';
         }
         
         reportRow.innerHTML = `
@@ -333,72 +329,15 @@ function loadUserReports() {
         `;
         
         reportsTableBody.appendChild(reportRow);
-    });
-}
-
-// Load notifications
-function loadNotifications() {
-    const notificationList = document.getElementById('notificationList');
-    if (!notificationList) return;
-    
-    notificationList.innerHTML = '';
-    
-    const unreadCount = notifications.filter(n => !n.read).length;
-    const notificationBadge = document.getElementById('notificationBadge');
-    if (notificationBadge) {
-        notificationBadge.textContent = unreadCount;
-        notificationBadge.style.display = unreadCount > 0 ? 'flex' : 'none';
     }
     
-    notifications.forEach(notification => {
-        const notificationItem = document.createElement('div');
-        notificationItem.className = `notification-item ${notification.read ? '' : 'unread'}`;
-        notificationItem.innerHTML = `
-            <div class="notification-content">
-                <h4>${notification.title}</h4>
-                <p>${notification.message}</p>
-                <span class="notification-time">${notification.time}</span>
-            </div>
-        `;
-        notificationList.appendChild(notificationItem);
-    });
+    console.log('User reports loaded successfully. Added', reports.length, 'report rows');
 }
+
+
 
 // Setup event listeners
-function setupEventListeners() {
-    // Notification dropdown toggle
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationDropdown.classList.toggle('show');
-        });
-    }
-    
-    // User dropdown toggle
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('show');
-        });
-    }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
-        
-        if (userDropdown && !userDropdown.contains(e.target) && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-    });
-    
+function setupDashboardListeners() {
     // Quick action cards
     const actionCards = document.querySelectorAll('.action-card');
     actionCards.forEach(card => {
@@ -407,41 +346,103 @@ function setupEventListeners() {
             handleQuickAction(action);
         });
     });
+
+    const downloadBtn = document.getElementById('downloadPublisherPerformanceBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function () {
+            window.location.href = '/unipulse/public/moderator/dashboard/downloadPublisherPerformanceReport';
+        });
+    }
 }
 
-// Setup dropdowns
-function setupDropdowns() {
-    // User dropdown
-    const userMenu = document.querySelector('.user-menu');
-    const userDropdown = document.getElementById('userDropdown');
-    
-    if (userMenu && userDropdown) {
-        userMenu.addEventListener('click', function() {
-            userDropdown.classList.toggle('show');
-        });
+function loadPublisherPerformanceReport() {
+    const tableBody = document.getElementById('publisherPerformanceBody');
+    if (!tableBody) {
+        return;
     }
-    
-    // Notification dropdown
-    const notificationBtn = document.querySelector('.notification-btn');
-    const notificationDropdown = document.getElementById('notificationDropdown');
-    
-    if (notificationBtn && notificationDropdown) {
-        notificationBtn.addEventListener('click', function() {
-            notificationDropdown.classList.toggle('show');
+
+    tableBody.innerHTML = '<tr><td colspan="5" class="report-loading">Loading publisher performance report...</td></tr>';
+
+    fetch('/unipulse/public/moderator/dashboard/getPublisherPerformanceReport')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to load publisher performance report');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Unable to load report data');
+            }
+
+            renderPublisherPerformanceSummary(data.summary || {});
+            renderPublisherPerformanceRows(Array.isArray(data.rows) ? data.rows : []);
+        })
+        .catch(error => {
+            console.error('Error loading publisher performance report:', error);
+            tableBody.innerHTML = '<tr><td colspan="5" class="report-empty">Failed to load report data.</td></tr>';
         });
+}
+
+function renderPublisherPerformanceSummary(summary) {
+    const publishersEl = document.getElementById('reportTotalPublishers');
+    const eventsEl = document.getElementById('reportTotalEvents');
+    const ticketsEl = document.getElementById('reportTicketsSold');
+    const ratingEl = document.getElementById('reportAvgRating');
+
+    if (publishersEl) publishersEl.textContent = Number(summary.publisher_count || 0).toLocaleString();
+    if (eventsEl) eventsEl.textContent = Number(summary.total_events || 0).toLocaleString();
+    if (ticketsEl) ticketsEl.textContent = Number(summary.total_tickets_sold || 0).toLocaleString();
+
+    if (ratingEl) {
+        const avg = summary.overall_average_rating;
+        ratingEl.textContent = (avg === null || avg === undefined) ? 'N/A' : Number(avg).toFixed(2);
     }
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
-        if (userDropdown && !userDropdown.contains(e.target) && userMenu && !userMenu.contains(e.target)) {
-            userDropdown.classList.remove('show');
-        }
-        
-        if (notificationDropdown && !notificationDropdown.contains(e.target) && notificationBtn && !notificationBtn.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-        }
+}
+
+function renderPublisherPerformanceRows(rows) {
+    const tableBody = document.getElementById('publisherPerformanceBody');
+    if (!tableBody) {
+        return;
+    }
+
+    tableBody.innerHTML = '';
+
+    if (!rows.length) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="report-empty">No publisher data found for your university.</td></tr>';
+        return;
+    }
+
+    rows.forEach(row => {
+        const tr = document.createElement('tr');
+        const avgRating = row.average_rating === null || row.average_rating === undefined
+            ? 'N/A'
+            : Number(row.average_rating).toFixed(2);
+
+        tr.innerHTML = `
+            <td>
+                <div class="publisher-cell">
+                    <strong>${escapeHtml(row.society_name || 'Unknown Publisher')}</strong>
+                    <small>${escapeHtml(row.email || '')}</small>
+                </div>
+            </td>
+            <td>${Number(row.total_events_posted || 0).toLocaleString()}</td>
+            <td>${Number(row.tickets_sold || 0).toLocaleString()}</td>
+            <td>${Number(row.total_ratings || 0).toLocaleString()}</td>
+            <td>${avgRating}</td>
+        `;
+
+        tableBody.appendChild(tr);
     });
 }
+
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value || '');
+    return div.innerHTML;
+}
+
+
 
 // Setup modals
 function setupModals() {
@@ -453,45 +454,8 @@ function setupModals() {
     });
 }
 
-// Update moderator profile in the header
-function updateModeratorProfile() {
-    const usernameElement = document.getElementById('username');
-    const userRoleElement = document.getElementById('userRole');
-    
-    if (usernameElement) {
-        usernameElement.textContent = moderatorData.username;
-    }
-    
-    if (userRoleElement) {
-        userRoleElement.textContent = moderatorData.role;
-    }
-}
 
-// Toggle notifications dropdown
-function toggleNotifications() {
-    const dropdown = document.getElementById('notificationDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
-    }
-}
 
-// Toggle user menu dropdown
-function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
-    if (dropdown) {
-        dropdown.classList.toggle('show');
-    }
-}
-
-// Mark all notifications as read
-function markAllAsRead() {
-    notifications.forEach(notification => {
-        notification.read = true;
-    });
-    
-    loadNotifications();
-    showToast('All notifications marked as read', 'success');
-}
 
 // Handle quick actions
 function handleQuickAction(action) {
@@ -660,88 +624,13 @@ function closeModal(modalId) {
     }
 }
 
-// Show toast notification
-function showToast(message, type = 'info') {
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    
-    // Add styles if not already added
-    if (!document.querySelector('#toast-styles')) {
-        const styles = document.createElement('style');
-        styles.id = 'toast-styles';
-        styles.textContent = `
-            .toast {
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                border-radius: 8px;
-                color: white;
-                z-index: 3000;
-                opacity: 0;
-                transform: translateY(20px);
-                transition: opacity 0.3s, transform 0.3s;
-            }
-            .toast.show {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            .toast-success {
-                background: #10b981;
-            }
-            .toast-error {
-                background: #ef4444;
-            }
-            .toast-info {
-                background: #3b82f6;
-            }
-            .toast-warning {
-                background: #f59e0b;
-            }
-        `;
-        document.head.appendChild(styles);
-    }
-    
-    document.body.appendChild(toast);
-    
-    // Trigger reflow
-    void toast.offsetWidth;
-    
-    // Show toast
-    toast.classList.add('show');
-    
-    // Hide after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 300);
-    }, 3000);
-}
-
-// Logout function
-function logout() {
-    console.log('Logging out...');
-    showToast('Logging out...', 'info');
-    
-    // Simulate logout process
-    setTimeout(() => {
-        window.location.href = '/unipulse/index.html';
-    }, 1000);
-}
 
 // Export functions for use in other modules
 window.ModeratorDashboard = {
-    logout,
     approveEvent,
     rejectEvent,
     requestChanges,
     viewReport,
     resolveReport,
     deleteReport,
-    markAllAsRead,
-    toggleNotifications,
-    toggleUserMenu
 };

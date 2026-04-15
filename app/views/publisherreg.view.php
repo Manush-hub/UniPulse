@@ -7,6 +7,7 @@
     <title>UniPulse - Society/Club Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/publisherreg-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/publisherreg.css">
 </head>
 
 <body>
@@ -64,19 +65,19 @@
                 <h3 class="section-header">Society/Club Information</h3>
 
                 <div class="form-group">
-                    <label for="society-name">Society/Club Name</label>
+                    <label for="society-name">Society/Club Name <span class="required">*</span></label>
                     <input type="text" id="society-name" name="society-name" placeholder="Enter your society/club name" value="<?= getValue('society-name', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email Address</label>
+                    <label for="email">Email Address <span class="required">*</span></label>
                     <input type="email" id="email" name="email" placeholder="Enter your email address" value="<?= getValue('email', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone-number">Phone Number</label>
+                    <label for="phone-number">Phone Number <span class="required">*</span></label>
                     <div class="field">
-                        <select id="country-code" name="country-code" required>
+                        <select id="country-code" name="country-code" size="1" required>
                             <option value="+94" <?= getValue('country-code', $formData) === '+94' ? 'selected' : '' ?>>LK +94</option>
                             <option value="+91" <?= getValue('country-code', $formData) === '+91' ? 'selected' : '' ?>>IN +91</option>
                             <option value="+44" <?= getValue('country-code', $formData) === '+44' ? 'selected' : '' ?>>UK +44</option>
@@ -87,19 +88,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Password <span class="required">*</span></label>
                     <input type="password" id="password" name="password" placeholder="Create your password" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
+                    <label for="confirm-password">Confirm Password <span class="required">*</span></label>
                     <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
                 </div>
 
                 <!-- Updated Confirmation Section -->
                 <div class="form-group file-upload-group">
                     <label for="confirmation">
-                        Confirmation 
+                        Confirmation <span class="required">*</span>
                         <span class="help-icon" onclick="toggleHelp()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
@@ -132,41 +133,61 @@
                 <h3 class="section-header">University Information</h3>
 
                 <div class="form-group">
-                    <label for="university">University</label>
-                    <select id="university" name="university" required>
+                    <label for="university">University <span class="required">*</span></label>
+                    <select id="university" name="university" size="1" required>
                         <option value="">Select your university</option>
+                        <!-- State Universities (15) -->
                         <option value="university-of-colombo" <?= getValue('university', $formData) === 'university-of-colombo' ? 'selected' : '' ?>>University of Colombo</option>
                         <option value="university-of-peradeniya" <?= getValue('university', $formData) === 'university-of-peradeniya' ? 'selected' : '' ?>>University of Peradeniya</option>
+                        <option value="university-of-sri-jayewardenepura" <?= getValue('university', $formData) === 'university-of-sri-jayewardenepura' ? 'selected' : '' ?>>University of Sri Jayewardenepura</option>
                         <option value="university-of-kelaniya" <?= getValue('university', $formData) === 'university-of-kelaniya' ? 'selected' : '' ?>>University of Kelaniya</option>
                         <option value="university-of-moratuwa" <?= getValue('university', $formData) === 'university-of-moratuwa' ? 'selected' : '' ?>>University of Moratuwa</option>
-                        <option value="university-of-sri-jayewardenepura" <?= getValue('university', $formData) === 'university-of-sri-jayewardenepura' ? 'selected' : '' ?>>University of Sri Jayewardenepura</option>
-                        <option value="university-of-ruhuna" <?= getValue('university', $formData) === 'university-of-ruhuna' ? 'selected' : '' ?>>University of Ruhuna</option>
-                        <option value="eastern-university" <?= getValue('university', $formData) === 'eastern-university' ? 'selected' : '' ?>>Eastern University</option>
                         <option value="university-of-jaffna" <?= getValue('university', $formData) === 'university-of-jaffna' ? 'selected' : '' ?>>University of Jaffna</option>
-                        <option value="sabaragamuwa-university" <?= getValue('university', $formData) === 'sabaragamuwa-university' ? 'selected' : '' ?>>Sabaragamuwa University</option>
-                        <option value="wayamba-university" <?= getValue('university', $formData) === 'wayamba-university' ? 'selected' : '' ?>>Wayamba University</option>
+                        <option value="university-of-ruhuna" <?= getValue('university', $formData) === 'university-of-ruhuna' ? 'selected' : '' ?>>University of Ruhuna</option>
+                        <option value="eastern-university" <?= getValue('university', $formData) === 'eastern-university' ? 'selected' : '' ?>>Eastern University, Sri Lanka</option>
+                        <option value="south-eastern-university" <?= getValue('university', $formData) === 'south-eastern-university' ? 'selected' : '' ?>>South Eastern University of Sri Lanka</option>
+                        <option value="rajarata-university" <?= getValue('university', $formData) === 'rajarata-university' ? 'selected' : '' ?>>Rajarata University of Sri Lanka</option>
+                        <option value="sabaragamuwa-university" <?= getValue('university', $formData) === 'sabaragamuwa-university' ? 'selected' : '' ?>>Sabaragamuwa University of Sri Lanka</option>
+                        <option value="wayamba-university" <?= getValue('university', $formData) === 'wayamba-university' ? 'selected' : '' ?>>Wayamba University of Sri Lanka</option>
+                        <option value="uva-wellassa-university" <?= getValue('university', $formData) === 'uva-wellassa-university' ? 'selected' : '' ?>>Uva Wellassa University</option>
+                        <option value="open-university" <?= getValue('university', $formData) === 'open-university' ? 'selected' : '' ?>>Open University of Sri Lanka</option>
+                        <option value="buddhist-and-pali-university" <?= getValue('university', $formData) === 'buddhist-and-pali-university' ? 'selected' : '' ?>>Buddhist and Pali University of Sri Lanka</option>
+                        <!-- Private Universities (5 Main) -->
+                        <option value="sliit" <?= getValue('university', $formData) === 'sliit' ? 'selected' : '' ?>>Sri Lanka Institute of Information Technology (SLIIT)</option>
+                        <option value="nsbm" <?= getValue('university', $formData) === 'nsbm' ? 'selected' : '' ?>>NSBM Green University</option>
+                        <option value="cinec" <?= getValue('university', $formData) === 'cinec' ? 'selected' : '' ?>>CINEC Campus</option>
+                        <option value="apiit" <?= getValue('university', $formData) === 'apiit' ? 'selected' : '' ?>>Asia Pacific Institute of Information Technology (APIIT)</option>
+                        <option value="metropolitan-campus" <?= getValue('university', $formData) === 'metropolitan-campus' ? 'selected' : '' ?>>KIU (Kaatsu International University)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="faculty">Faculty/Department</label>
-                    <select id="faculty" name="faculty" required>
+                    <label for="faculty">Faculty/Department <span class="required">*</span></label>
+                    <select id="faculty" name="faculty" size="1" required>
                         <option value="">Select your faculty/department</option>
-                        <option value="faculty-of-arts" <?= getValue('faculty', $formData) === 'faculty-of-arts' ? 'selected' : '' ?>>Faculty of Arts</option>
-                        <option value="faculty-of-science" <?= getValue('faculty', $formData) === 'faculty-of-science' ? 'selected' : '' ?>>Faculty of Science</option>
+                        <!-- Most Famous Faculties -->
+                        <option value="ucsc" <?= getValue('faculty', $formData) === 'ucsc' ? 'selected' : '' ?>>University of Colombo School of Computing (UCSC)</option>
                         <option value="faculty-of-engineering" <?= getValue('faculty', $formData) === 'faculty-of-engineering' ? 'selected' : '' ?>>Faculty of Engineering</option>
                         <option value="faculty-of-medicine" <?= getValue('faculty', $formData) === 'faculty-of-medicine' ? 'selected' : '' ?>>Faculty of Medicine</option>
+                        <option value="faculty-of-science" <?= getValue('faculty', $formData) === 'faculty-of-science' ? 'selected' : '' ?>>Faculty of Science</option>
+                        <option value="faculty-of-management" <?= getValue('faculty', $formData) === 'faculty-of-management' ? 'selected' : '' ?>>Faculty of Management and Finance</option>
+                        <option value="faculty-of-arts" <?= getValue('faculty', $formData) === 'faculty-of-arts' ? 'selected' : '' ?>>Faculty of Arts</option>
                         <option value="faculty-of-law" <?= getValue('faculty', $formData) === 'faculty-of-law' ? 'selected' : '' ?>>Faculty of Law</option>
-                        <option value="faculty-of-management" <?= getValue('faculty', $formData) === 'faculty-of-management' ? 'selected' : '' ?>>Faculty of Management</option>
-                        <option value="faculty-of-education" <?= getValue('faculty', $formData) === 'faculty-of-education' ? 'selected' : '' ?>>Faculty of Education</option>
-                        <option value="faculty-of-agriculture" <?= getValue('faculty', $formData) === 'faculty-of-agriculture' ? 'selected' : '' ?>>Faculty of Agriculture</option>
+                        <option value="faculty-of-information-technology" <?= getValue('faculty', $formData) === 'faculty-of-information-technology' ? 'selected' : '' ?>>Faculty of Information Technology</option>
                         <option value="faculty-of-applied-sciences" <?= getValue('faculty', $formData) === 'faculty-of-applied-sciences' ? 'selected' : '' ?>>Faculty of Applied Sciences</option>
+                        <option value="faculty-of-agriculture" <?= getValue('faculty', $formData) === 'faculty-of-agriculture' ? 'selected' : '' ?>>Faculty of Agriculture</option>
+                        <option value="faculty-of-architecture" <?= getValue('faculty', $formData) === 'faculty-of-architecture' ? 'selected' : '' ?>>Faculty of Architecture</option>
+                        <option value="faculty-of-education" <?= getValue('faculty', $formData) === 'faculty-of-education' ? 'selected' : '' ?>>Faculty of Education</option>
+                        <option value="faculty-of-social-sciences" <?= getValue('faculty', $formData) === 'faculty-of-social-sciences' ? 'selected' : '' ?>>Faculty of Social Sciences</option>
+                        <option value="faculty-of-allied-health-sciences" <?= getValue('faculty', $formData) === 'faculty-of-allied-health-sciences' ? 'selected' : '' ?>>Faculty of Allied Health Sciences</option>
+                        <option value="faculty-of-dental-sciences" <?= getValue('faculty', $formData) === 'faculty-of-dental-sciences' ? 'selected' : '' ?>>Faculty of Dental Sciences</option>
+                        <option value="other" <?= getValue('faculty', $formData) === 'other' ? 'selected' : '' ?>>Other</option>
                     </select>
                 </div>
 
                 <div class="form-group terms">
                     <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I agree to the <a href="/unipulse/public/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a> and <a href="/unipulse/public/privacy_policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></label>
                 </div>
 
                 <button type="submit" class="button">Create Account</button>
@@ -179,128 +200,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script>
-        // Help tooltip functionality
-        function toggleHelp() {
-            const tooltip = document.getElementById('helpTooltip');
-            tooltip.classList.toggle('active');
-        }
-
-        // Close tooltip when clicking outside
-        document.addEventListener('click', function(e) {
-            const helpIcon = document.querySelector('.help-icon');
-            const tooltip = document.getElementById('helpTooltip');
-            
-            if (!helpIcon.contains(e.target) && !tooltip.contains(e.target)) {
-                tooltip.classList.remove('active');
-            }
-        });
-
-        // Single file upload functionality
-        document.getElementById('confirmation-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const fileInput = document.querySelector('.file-upload-input');
-            
-            if (file) {
-                fileInput.value = file.name;
-                fileInput.classList.add('has-files');
-            } else {
-                fileInput.value = 'Upload club verification document';
-                fileInput.classList.remove('has-files');
-            }
-        });
-
-        // File validation for single file
-        document.getElementById('confirmation-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
-            
-            // Check file size
-            if (file.size > maxSize) {
-                alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
-                e.target.value = '';
-                document.querySelector('.file-upload-input').value = 'Upload club verification document';
-                document.querySelector('.file-upload-input').classList.remove('has-files');
-                return;
-            }
-            
-            // Check file type
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            if (!allowedTypes.includes(fileExtension)) {
-                alert(`File "${file.name}" has an unsupported format. Please use: PDF, JPG, PNG, DOC, or DOCX.`);
-                e.target.value = '';
-                document.querySelector('.file-upload-input').value = 'Upload club verification document';
-                document.querySelector('.file-upload-input').classList.remove('has-files');
-                return;
-            }
-        });
-
-        // Faculty options change based on university selection
-        document.getElementById('university').addEventListener('change', function() {
-            const facultySelect = document.getElementById('faculty');
-            // Reset faculty options
-            facultySelect.innerHTML = '<option value="">Select your faculty/department</option>';
-            
-            // Add faculty options based on selected university
-            const commonFaculties = [
-                { value: 'faculty-of-arts', text: 'Faculty of Arts' },
-                { value: 'faculty-of-science', text: 'Faculty of Science' },
-                { value: 'faculty-of-engineering', text: 'Faculty of Engineering' },
-                { value: 'faculty-of-medicine', text: 'Faculty of Medicine' },
-                { value: 'faculty-of-law', text: 'Faculty of Law' },
-                { value: 'faculty-of-management', text: 'Faculty of Management' },
-                { value: 'faculty-of-education', text: 'Faculty of Education' },
-                { value: 'faculty-of-agriculture', text: 'Faculty of Agriculture' },
-                { value: 'faculty-of-applied-sciences', text: 'Faculty of Applied Sciences' }
-            ];
-
-            commonFaculties.forEach(faculty => {
-                const option = document.createElement('option');
-                option.value = faculty.value;
-                option.textContent = faculty.text;
-                facultySelect.appendChild(option);
-            });
-        });
-
-        // Terms validation with improved feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const termsCheckbox = document.getElementById('terms');
-            
-            // Add event listener to form submission
-            form.addEventListener('submit', function(e) {
-                if (!termsCheckbox.checked) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Add visual feedback
-                    termsCheckbox.style.border = '2px solid #dc3545';
-                    
-                    // Show alert
-                    alert('Please agree to the Terms & Conditions and Privacy Policy to continue.');
-                    
-                    // Focus on checkbox
-                    termsCheckbox.focus();
-                    
-                    // Remove visual feedback after 3 seconds
-                    setTimeout(() => {
-                        termsCheckbox.style.border = '2px solid #ccc';
-                    }, 3000);
-                    
-                    return false;
-                }
-            });
-            
-            // Remove error styling when checkbox is checked
-            termsCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    this.style.border = '2px solid #ccc';
-                }
-            });
-        });
-    </script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/publisherreg.js"></script>
 </body>
 </html>

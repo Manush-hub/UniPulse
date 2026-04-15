@@ -36,15 +36,19 @@ class Publisherreg extends Controller{
                             $publisherId
                         );
                         
+                        // Notify moderators of the same university
+                        $this->notifyModerators($userData['university'], $publisherId);
+                        
                         $success = true;
-                        $data['success_message'] = "Registration successful! Your publisher account has been created and is pending verification.";
-                        // Clear form data on success
-                        $_POST = [];
-                        $_FILES = [];
+                        $_SESSION['registration_success'] = "Registration successful! Your publisher account has been created and is pending verification by university moderators.";
+                        header("Location: /unipulse/public/signin");
+                        exit();
                     } else {
                         $errors[] = "Registration failed. Please try again.";
                     }
                 } catch (Exception $e) {
+                    error_log("Publisher registration error: " . $e->getMessage());
+                    error_log("Stack trace: " . $e->getTraceAsString());
                     $errors[] = "An error occurred during registration: " . $e->getMessage();
                 }
             }
@@ -55,6 +59,35 @@ class Publisherreg extends Controller{
         $data['form_data'] = $_POST;
         
         $this->view('publisherreg', $data);
+    }
+    
+    /**
+     * Notify moderators of new publisher registration
+     */
+    private function notifyModerators($university, $publisherId) {
+        // Validate parameters
+        if (empty($university) || empty($publisherId)) {
+            error_log("Invalid parameters for notifyModerators: university=$university, publisherId=$publisherId");
+            return false;
+        }
+        
+        $moderatorModel = new Moderator();
+        $moderators = $moderatorModel->getByUniversity($university);
+        
+        if (!empty($moderators)) {
+            $publisherModel = new Publisher();
+            foreach ($moderators as $moderator) {
+                // Create notification for each moderator
+                $publisherModel->createApprovalNotification(
+                    $publisherId, 
+                    $moderator->id, 
+                    'pending_approval',
+                    'New publisher registration requires approval'
+                );
+            }
+        }
+        
+        return true;
     }
 
 }

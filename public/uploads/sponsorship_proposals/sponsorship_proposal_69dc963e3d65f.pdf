@@ -1,0 +1,101 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 818 >>
+stream
+BT
+/F2 16.00 Tf
+40.00 760.00 Td
+(UniPulse Admin Revenue Report) Tj
+ET
+BT
+/F1 10.00 Tf
+40.00 742.00 Td
+(Period: Apr 11, 2025 to Apr 11, 2026) Tj
+ET
+BT
+/F1 9.00 Tf
+40.00 726.00 Td
+(Generated on: Apr 11, 2026) Tj
+ET
+BT
+/F2 11.00 Tf
+40.00 696.00 Td
+(Revenue Summary) Tj
+ET
+BT
+/F1 10.00 Tf
+40.00 680.00 Td
+(Total Commission: LKR 0.00) Tj
+ET
+BT
+/F1 10.00 Tf
+40.00 664.00 Td
+(Total Boosting Income: LKR 0.00) Tj
+ET
+BT
+/F2 10.00 Tf
+40.00 648.00 Td
+(Total Platform Revenue: LKR 0.00) Tj
+ET
+BT
+/F2 11.00 Tf
+40.00 616.00 Td
+(Income by Publisher) Tj
+ET
+BT
+/F2 9.00 Tf
+40.00 600.00 Td
+(Publisher) Tj
+ET
+BT
+/F2 9.00 Tf
+300.00 600.00 Td
+(Commission) Tj
+ET
+BT
+/F2 9.00 Tf
+390.00 600.00 Td
+(Boosting) Tj
+ET
+BT
+/F2 9.00 Tf
+490.00 600.00 Td
+(Total) Tj
+ET
+BT
+/F1 9.00 Tf
+40.00 584.00 Td
+(No publisher income found for this period.) Tj
+ET
+
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001120 00000 n 
+0000001190 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1265
+%%EOF

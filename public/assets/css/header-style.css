@@ -1,3 +1,19 @@
+/* Remove default form element styles */
+input,
+select,
+button,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    background: none;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    color: black;
+}
+
 .header {
     position: fixed;
     top: 0;
@@ -37,6 +53,47 @@
     object-fit: contain;
 }
 
+.public-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.public-login-btn,
+.public-register-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 999px;
+    transition: all 0.25s ease;
+}
+
+.public-login-btn {
+    border: 2px solid #E87C2B;
+    color: #E87C2B;
+    background: #ffffff;
+    padding: 0.5rem 1.2rem;
+}
+
+.public-login-btn:hover {
+    background: #fff5ee;
+}
+
+.public-register-btn {
+    background: linear-gradient(135deg, #E87C2B 0%, #D66B1A 100%);
+    color: #ffffff;
+    border: 2px solid transparent;
+    padding: 0.5rem 1.4rem;
+    box-shadow: 0 4px 12px rgba(232, 124, 43, 0.25);
+}
+
+.public-register-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(232, 124, 43, 0.35);
+}
+
 @media (max-width: 900px) {
     .header-container {
         padding: 0 1rem;
@@ -46,6 +103,14 @@
 @media (max-width: 600px) {
     .header {
         height: 60px;
+    }
+    .public-header-actions {
+        gap: 0.5rem;
+    }
+    .public-login-btn,
+    .public-register-btn {
+        padding: 0.4rem 0.85rem;
+        font-size: 0.85rem;
     }
     .unp-logo {
         max-width: 50px;

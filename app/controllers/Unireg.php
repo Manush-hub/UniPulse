@@ -26,7 +26,7 @@ class Unireg extends Controller{
                     // Insert user data
                     $universityUserId = $universityUser->create($userData);
                     
-                    if ($universityUserId) {
+                    if (!$universityUserId) {
                         // Also create entry in main users table
                         $user = new User();
                         $user->createFromRegistration(
@@ -38,6 +38,8 @@ class Unireg extends Controller{
                         
                         $success = true;
                         $data['success_message'] = "Registration successful! Your university account has been created.";
+                        header("Location: signin");
+                        exit();
                         // Clear form data on success
                         $_POST = [];
                     } else {

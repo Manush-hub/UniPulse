@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Sponsor Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/sponsorreg-style.css">
+    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/sponsorreg.css">
 </head>
 
 <body>
@@ -65,19 +66,19 @@
                 $formData = isset($form_data) ? $form_data : null;
             ?>
                 <div class="form-group">
-                    <label for="name">Company/Individual Name</label>
+                    <label for="name">Company/Individual Name <span class="required">*</span></label>
                     <input type="text" id="name" name="name" placeholder="Enter your name" value="<?= getValue('name', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email Address</label>
+                    <label for="email">Email Address <span class="required">*</span></label>
                     <input type="email" id="email" name="email" placeholder="Enter your email address" value="<?= getValue('email', $formData) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone-number">Phone Number</label>
+                    <label for="phone-number">Phone Number <span class="required">*</span></label>
                     <div class="field">
-                        <select id="country-code" name="country-code" required>
+                        <select id="country-code" name="country-code" size="1" required>
                             <option value="+94" <?= getValue('country-code', $formData) === '+94' ? 'selected' : '' ?>>LK +94</option>
                             <option value="+91" <?= getValue('country-code', $formData) === '+91' ? 'selected' : '' ?>>IN +91</option>
                             <option value="+44" <?= getValue('country-code', $formData) === '+44' ? 'selected' : '' ?>>UK +44</option>
@@ -88,18 +89,18 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Password <span class="required">*</span></label>
                     <input type="password" id="password" name="password" placeholder="Create your password" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
+                    <label for="confirm-password">Confirm Password <span class="required">*</span></label>
                     <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
                 </div>
 
                 <div class="form-group terms">
                     <input type="checkbox" id="terms" name="terms" required>
-                    <label for="terms">I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I agree to the <a href="/unipulse/public/terms" target="_blank" rel="noopener noreferrer">Terms & Conditions</a> and <a href="/unipulse/public/privacy_policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></label>
                 </div>
 
                 <button type="submit" class="button">Create Account</button>
@@ -112,44 +113,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script>
-        // Terms validation with improved feedback
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
-            const termsCheckbox = document.getElementById('terms');
-            const submitButton = document.querySelector('.button');
-            
-            // Add event listener to form submission
-            form.addEventListener('submit', function(e) {
-                if (!termsCheckbox.checked) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    // Add visual feedback
-                    termsCheckbox.style.border = '2px solid #dc3545';
-                    
-                    // Show alert
-                    alert('Please agree to the Terms & Conditions and Privacy Policy to continue.');
-                    
-                    // Focus on checkbox
-                    termsCheckbox.focus();
-                    
-                    // Remove visual feedback after 3 seconds
-                    setTimeout(() => {
-                        termsCheckbox.style.border = '2px solid #ccc';
-                    }, 3000);
-                    
-                    return false;
-                }
-            });
-            
-            // Remove error styling when checkbox is checked
-            termsCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    this.style.border = '2px solid #ccc';
-                }
-            });
-        });
-    </script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/sponsorreg.js"></script>
 </body>
 </html>

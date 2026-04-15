@@ -26,7 +26,7 @@ class Publicreg extends Controller{
                     // Insert user data
                     $publicUserId = $publicUser->create($userData);
                     
-                    if ($publicUserId) {
+                    if (!$publicUserId) {
                         // Also create entry in main users table
                         $user = new User();
                         $user->createFromRegistration(
@@ -38,6 +38,8 @@ class Publicreg extends Controller{
                         
                         $success = true;
                         $data['success_message'] = "Registration successful! Your public account has been created.";
+                        header("Location: signin");
+                        exit();
                         // Clear form data on success
                         $_POST = [];
                     } else {
