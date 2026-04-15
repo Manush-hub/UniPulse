@@ -353,6 +353,17 @@
                                         <span class="label">Submitted:</span>
                                         <span class="value"><?= date('M d, Y', strtotime($approval->created_at)) ?></span>
                                     </div>
+                                    <div class="info-group">
+                                        <span class="label">Verification Document:</span>
+                                        <?php if (!empty($approval->confirmation_document)): ?>
+                                            <a class="value verification-document-link" href="/unipulse/public/<?= htmlspecialchars($approval->confirmation_document) ?>" target="_blank" rel="noopener noreferrer">
+                                                <i class="fas fa-file-alt"></i>
+                                                <span>Open Document</span>
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="value verification-document-missing">Not uploaded</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                                 <div class="approval-actions">
                                     <button onclick="approvePublisher(<?= $approval->id ?>)" class="btn-approve">

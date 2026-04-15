@@ -703,6 +703,24 @@ body {
     font-weight: 600;
 }
 
+.approval-item .verification-document-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #1d4ed8;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.approval-item .verification-document-link:hover {
+    text-decoration: underline;
+}
+
+.approval-item .verification-document-missing {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
 .approval-actions {
     display: flex;
     gap: 0.5rem;

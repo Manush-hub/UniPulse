@@ -25,14 +25,14 @@
             <input type="hidden" name="ajax" value="1" id="ajax-flag">
 
             <!-- Hidden fields for read-only data that needs to be submitted -->
-            <input type="hidden" name="event_category" value="<?= htmlspecialchars($data['event']->category) ?>">
-            <input type="hidden" name="event_date" value="<?= htmlspecialchars($data['event']->event_date) ?>">
-            <input type="hidden" name="event_time" value="<?= htmlspecialchars($data['event']->event_time) ?>">
-            <input type="hidden" name="event_location" value="<?= htmlspecialchars($data['event']->location) ?>">
+            <input type="hidden" name="event_category" value="<?= htmlspecialchars((string)($data['event']->category ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="event_date" value="<?= htmlspecialchars((string)($data['event']->event_date ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="event_time" value="<?= htmlspecialchars((string)($data['event']->event_time ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="event_location" value="<?= htmlspecialchars((string)($data['event']->location ?? ''), ENT_QUOTES, 'UTF-8') ?>">
             <input type="hidden" name="location-type" value="<?= htmlspecialchars($data['event']->location_type ?? 'inside-university') ?>">
             <input type="hidden" name="venue_name" value="<?= htmlspecialchars($data['event']->venue_name ?? '') ?>">
-            <input type="hidden" name="max_participants" value="<?= htmlspecialchars($data['event']->max_participants) ?>">
-            <input type="hidden" name="ticketType" value="<?= htmlspecialchars($data['event']->ticket_type) ?>">
+            <input type="hidden" name="max_participants" value="<?= htmlspecialchars((string)($data['event']->max_participants ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="ticketType" value="<?= htmlspecialchars((string)($data['event']->ticket_type ?? ''), ENT_QUOTES, 'UTF-8') ?>">
             <input type="hidden" name="volunteerToggle" value="<?= htmlspecialchars($data['event']->needs_volunteers ?? 0) ?>">
             <input type="hidden" name="volunteers_needed" value="<?= htmlspecialchars($data['event']->volunteers_needed ?? 0) ?>">
             <input type="hidden" name="donationToggle" value="<?= htmlspecialchars($data['event']->accepts_donations ?? 0) ?>">
@@ -146,7 +146,7 @@
                                         <i class="fas fa-image"></i> Current Cover Image
                                     </p>
                                     <div style="text-align: center;">
-                                        <img src="/unipulse/public/<?= htmlspecialchars($data['event']->cover_image) ?>"
+                                        <img src="/unipulse/public/<?= htmlspecialchars((string)($data['event']->cover_image ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                             alt="Current cover"
                                             style="
                                                 max-width: 100%; 
@@ -251,7 +251,7 @@
                                 <label for="event_date" class="form-label">Event Date</label>
                                 <div class="input-group">
                                     <input type="date" class="form-input" disabled
-                                        value="<?= htmlspecialchars($data['event']->event_date) ?>"
+                                        value="<?= htmlspecialchars((string)($data['event']->event_date ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                         style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
@@ -261,7 +261,7 @@
                                 <label for="event_time" class="form-label">Start Time</label>
                                 <div class="input-group">
                                     <input type="time" class="form-input" disabled
-                                        value="<?= htmlspecialchars($data['event']->event_time) ?>"
+                                        value="<?= htmlspecialchars((string)($data['event']->event_time ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                         style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
@@ -292,7 +292,7 @@
                             <label for="event_location" class="form-label">Location</label>
                             <div class="input-group">
                                 <input type="text" class="form-input" disabled
-                                    value="<?= htmlspecialchars($data['event']->location) ?>"
+                                    value="<?= htmlspecialchars((string)($data['event']->location ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                     style="background-color: #f5f5f5; cursor: not-allowed;">
                             </div>
                             <small style="color: #666; font-size: 12px;">Cannot be edited</small>
@@ -320,7 +320,7 @@
                                     <label for="venue_name" class="form-label">Venue Name</label>
                                     <div class="input-group">
                                         <input type="text" class="form-input" disabled
-                                            value="<?= htmlspecialchars($data['event']->venue_name) ?>"
+                                            value="<?= htmlspecialchars((string)($data['event']->venue_name ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                             style="background-color: #f5f5f5; cursor: not-allowed;">
                                     </div>
                                     <small style="color: #666; font-size: 12px;">Cannot be edited</small>
@@ -343,7 +343,7 @@
                                 <label for="max_participants" class="form-label">Maximum Participants</label>
                                 <div class="input-group">
                                     <input type="number" class="form-input" disabled
-                                        value="<?= htmlspecialchars($data['event']->max_participants) ?>"
+                                        value="<?= htmlspecialchars((string)($data['event']->max_participants ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                         style="background-color: #f5f5f5; cursor: not-allowed;">
                                 </div>
                                 <small style="color: #666; font-size: 12px;">Cannot be edited</small>
