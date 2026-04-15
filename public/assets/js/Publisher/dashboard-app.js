@@ -592,17 +592,57 @@ function createEventCard(event) {
 
     // Ticket price display
     const getTicketPriceDisplay = (event) => {
-        const ticketType = event.ticket_type;
+        const ticketType = event.ticket_type || event.ticketType || 'free-all';
+        const formatTicketAmount = (value) => {
+            const amount = Number(value);
+            if (Number.isNaN(amount)) {
+                return '0';
+            }
+            if (Number.isInteger(amount)) {
+                return String(amount);
+            }
+            return amount.toFixed(2).replace(/\.00$/, '');
+        };
+
         if (ticketType === 'free-all') {
             return '<div class="event-price free">Free</div>';
-        } else if (ticketType === 'paid-all') {
-            const price = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${price.toFixed(2)}</div>`;
-        } else if (ticketType === 'both') {
-            const freePrice = parseFloat(event.ticket_price_free) || 0;
-            const paidPrice = parseFloat(event.ticket_price_paid) || 0;
-            return `<div class="event-price paid">Rs. ${freePrice.toFixed(2)} - Rs. ${paidPrice.toFixed(2)}</div>`;
         }
+
+        // For paid/mixed events, prefer ticket_types list and render min-max range.
+        let tickets = event.ticket_types || [];
+        if (typeof tickets === 'string' && tickets.trim() !== '') {
+            try {
+                tickets = JSON.parse(tickets);
+            } catch (error) {
+                tickets = [];
+            }
+        }
+
+        if (Array.isArray(tickets) && tickets.length > 0) {
+            const prices = tickets
+                .map(ticket => parseFloat(ticket.price))
+                .filter(price => !Number.isNaN(price) && price >= 0);
+
+            if (prices.length > 0) {
+                const minPrice = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+
+                if (minPrice === maxPrice) {
+                    return `<div class="event-price paid"><i class="fas fa-ticket-alt"></i> LKR ${formatTicketAmount(minPrice)}</div>`;
+                }
+
+                return `<div class="event-price paid"><i class="fas fa-ticket-alt"></i> LKR ${formatTicketAmount(minPrice)} - ${formatTicketAmount(maxPrice)}</div>`;
+            }
+        }
+
+        if (ticketType === 'paid-all') {
+            return '<div class="event-price paid">Paid</div>';
+        }
+
+        if (ticketType === 'mixed') {
+            return '<div class="event-price paid">Mixed</div>';
+        }
+
         return '<div class="event-price">TBA</div>';
     };
 
@@ -625,6 +665,7 @@ function createEventCard(event) {
         }
             <div class="event-category">${capitalizeFirstLetter(event.category)}</div>
             <div class="event-status ${event.status}">${event.status}</div>
+            ${event.postponed_count > 0 ? `<div style="position: absolute; top: 3rem; right: 1rem; background: rgba(234, 179, 8, 0.95); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); backdrop-filter: blur(4px);">POSTPONED</div>` : ''}
         </div>
         <div class="event-content">
             <h3 class="event-title">${event.title}</h3>
@@ -724,6 +765,14 @@ function createEventCard(event) {
                 <button class="action-btn edit-btn" onclick="event.stopPropagation(); editEvent(${event.id})">
                     <i class="fas fa-edit"></i> Edit Event
                 </button>
+                ${event.postponed_count > 0 ? 
+                    `<button class="action-btn postpone-btn" disabled onclick="event.stopPropagation();">
+                        <i class="fas fa-clock"></i> Postponed
+                    </button>` :
+                    `<button class="action-btn postpone-btn" onclick="event.stopPropagation(); postponeEvent(${event.id})">
+                        <i class="fas fa-clock"></i> Postpone
+                    </button>`
+                }
             </div>
         </div>
     `;
@@ -1243,6 +1292,12 @@ function editEvent(eventId) {
     console.log('Editing event with ID:', eventId);
     // Redirect to edit event page
     window.location.href = `/unipulse/public/publisher/editevent/${eventId}`;
+}
+
+function postponeEvent(eventId) {
+    console.log('Postponing event with ID:', eventId);
+    // Redirect to postpone event page
+    window.location.href = `/unipulse/public/publisher/postponeevent/${eventId}`;
 }
 
 
@@ -1849,8 +1904,8 @@ async function loadActiveBoosts() {
         if (container) {
             container.innerHTML = `
                 <div class="loading-boosts">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>Failed to load active boosts</p>
+                    <i class="fas fa-info-circle"></i>
+                    <p>No active boosts at the moment</p>
                 </div>
             `;
         }

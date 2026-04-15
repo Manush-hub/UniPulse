@@ -111,6 +111,9 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         <div class="event-meta">
                             <span class="event-category" id="eventCategory">Loading...</span>
                             <span class="event-status" id="eventStatus">Loading...</span>
+                            <?php if (isset($serverData['event']) && ((is_object($serverData['event']) && isset($serverData['event']->postponed_count) && $serverData['event']->postponed_count > 0) || (is_array($serverData['event']) && isset($serverData['event']['postponed_count']) && $serverData['event']['postponed_count'] > 0))): ?>
+                                <span class="event-status postponed" style="background: #eab308; color: white;">Postponed</span>
+                            <?php endif; ?>
                         </div>
                         <h1 class="event-title" id="eventTitle">Loading Event Title...</h1>
 

@@ -826,20 +826,6 @@ console.log('=== Create Event Page Script Loading ===');
                 });
                 document.getElementById('schedule_input').value = JSON.stringify(scheduleItems);
 
-                // Collect custom fields
-                const customFields = [];
-                document.querySelectorAll('#customFieldsList .custom-field-item').forEach(field => {
-                    const label = field.querySelector('[data-field-label]')?.textContent || '';
-                    const type = field.querySelector('[data-field-type]')?.textContent || '';
-                    if (label && type) {
-                        customFields.push({
-                            label,
-                            type
-                        });
-                    }
-                });
-                document.getElementById('custom_fields_input').value = JSON.stringify(customFields);
-
                 // Collect volunteer positions
                 const volunteerPositions = [];
                 document.querySelectorAll('#volunteerPositionsList .position-item').forEach(position => {
@@ -853,7 +839,6 @@ console.log('=== Create Event Page Script Loading ===');
                 console.log('Collected data:', {
                     ticketTypes: ticketTypes,
                     schedule: scheduleItems,
-                    customFields: customFields,
                     volunteerPositions: volunteerPositions
                 });
 
@@ -1035,10 +1020,9 @@ console.log('=== Create Event Page Script Loading ===');
                     draft[cb.name || cb.id] = cb.checked;
                 });
 
-                // Save hidden inputs (ticket_types, schedule, custom_fields, etc.)
+                // Save hidden inputs (ticket_types, schedule, volunteer_positions, etc.)
                 draft.ticket_types = document.getElementById('ticket_types_input')?.value || '';
                 draft.schedule = document.getElementById('schedule_input')?.value || '';
-                draft.custom_fields = document.getElementById('custom_fields_input')?.value || '';
                 draft.volunteer_positions = document.getElementById('volunteer_positions_input')?.value || '';
                 draft.sponsorship_packages = document.getElementById('sponsorship_packages_input')?.value || '';
 
