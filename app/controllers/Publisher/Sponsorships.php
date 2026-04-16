@@ -5,6 +5,30 @@ class Sponsorships extends Controller
     use Database;
 
     /**
+     * AJAX endpoint for publisher nav sponsorship badge.
+     */
+    public function pendingCount($a = '', $b = '', $c = '')
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $currentUser = AuthService::getCurrentUser();
+            if (!$currentUser || ($currentUser['type'] ?? '') !== 'publisher') {
+                echo json_encode(['success' => false, 'message' => 'Unauthorized', 'count' => 0]);
+                exit();
+            }
+
+            $count = $this->getPendingSponsorshipCount((int)$currentUser['id']);
+            echo json_encode(['success' => true, 'count' => $count]);
+        } catch (Throwable $e) {
+            error_log('Sponsorships::pendingCount error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Failed to load sponsorship count', 'count' => 0]);
+        }
+
+        exit();
+    }
+
+    /**
      * Show publisher's sponsorship management page
      */
     public function index()
@@ -479,5 +503,35 @@ class Sponsorships extends Controller
             ]);
             exit;
         }
+    }
+
+    private function getPendingSponsorshipCount($publisherId)
+    {
+        if ($publisherId <= 0) {
+            return 0;
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM event_sponsorships es
+                INNER JOIN events e ON es.event_id = e.id
+                WHERE e.created_by = ?
+                  AND e.created_by_type = 'publisher'
+                  AND es.status = 'pending'";
+
+        $result = $this->query($sql, [$publisherId]);
+        if (empty($result)) {
+            return 0;
+        }
+
+        $row = $result[0];
+        if (is_object($row)) {
+            return (int)($row->total ?? 0);
+        }
+
+        if (is_array($row)) {
+            return (int)($row['total'] ?? 0);
+        }
+
+        return 0;
     }
 }

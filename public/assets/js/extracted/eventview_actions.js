@@ -28,9 +28,17 @@ if (eventviewActionConfig.purchaseTicketEnabled) {
 
 if (eventviewActionConfig.visitProfileEnabled) {
     function visitPublisherProfile() {
+        const eventData =
+            window.currentEvent ||
+            window.serverData?.event ||
+            (typeof currentEvent !== 'undefined' ? currentEvent : null);
+
         const publisherId =
-            (window.currentEvent && window.currentEvent.publisher_id) ||
-            (window.currentEvent && window.currentEvent.created_by);
+            eventData?.publisher_id ||
+            eventData?.publisherId ||
+            eventData?.organizer_id ||
+            eventData?.organizerId ||
+            eventData?.created_by;
 
         if (publisherId) {
             window.location.href = `${eventviewActionConfig.publisherProfileBaseUrl}${publisherId}`;

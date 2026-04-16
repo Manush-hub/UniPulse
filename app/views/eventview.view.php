@@ -4,12 +4,12 @@ $roleConfig = [
     'User' => [
         'jsFile' => '/unipulse/public/assets/js/User/eventview-app.js',
         'purchaseTicketFunction' => true,
-        'visitProfileFunction' => false
+        'visitProfileFunction' => true
     ],
     'Publisher' => [
         'jsFile' => '/unipulse/public/assets/js/Publisher/eventview-app.js',
         'purchaseTicketFunction' => false,
-        'visitProfileFunction' => false
+        'visitProfileFunction' => true
     ],
     'Sponsor' => [
         'jsFile' => '/unipulse/public/assets/js/Sponsor/eventview-app.js',
@@ -19,12 +19,12 @@ $roleConfig = [
     'Moderator' => [
         'jsFile' => '/unipulse/public/assets/js/Moderator/eventview-app.js',
         'purchaseTicketFunction' => false,
-        'visitProfileFunction' => false
+        'visitProfileFunction' => true
     ],
     'Admin' => [
         'jsFile' => '/unipulse/public/assets/js/Admin/eventview-app.js',
         'purchaseTicketFunction' => false,
-        'visitProfileFunction' => false
+        'visitProfileFunction' => true
     ]
 ];
 
@@ -814,7 +814,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             publisherProfileBaseUrl: '/unipulse/public/publisher/public?id='
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/eventview_actions.js"></script>
+    <script src="<?php echo ROOT ?>/assets/js/extracted/eventview_actions.js?v=<?= time() ?>"></script>
 
     <script src="<?php echo $config['jsFile']; ?>?v=<?= time() ?>"></script>
 

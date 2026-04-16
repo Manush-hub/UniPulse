@@ -73,7 +73,10 @@ if (isset($profile->logo_url) && !empty($profile->logo_url)) {
             <a href="/unipulse/public/publisher/landing" class="<?= $activeNav === 'home' ? 'active' : '' ?>">Home</a>
             <a href="/unipulse/public/publisher/events" class="<?= $activeNav === 'events' ? 'active' : '' ?>">All Events</a>
             <!-- <a href="/unipulse/public/publisher/sponsors" class="<?= $activeNav === 'sponsors' ? 'active' : '' ?>">Browse Sponsors</a> -->
-            <a href="/unipulse/public/publisher/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?>">Sponsorships</a>
+            <a href="/unipulse/public/publisher/sponsorships" class="<?= $activeNav === 'sponsorships' ? 'active' : '' ?> nav-link-with-badge">
+                Sponsorships
+                <span class="nav-notification-badge hidden" id="sponsorshipsNavBadge" aria-label="Pending sponsorships"></span>
+            </a>
             <a href="/unipulse/public/publisher/donations" class="<?= $activeNav === 'donations' ? 'active' : '' ?> nav-link-with-badge">
                 Donations
                 <span class="nav-notification-badge hidden" id="donationsNavBadge" aria-label="Pending donations"></span>

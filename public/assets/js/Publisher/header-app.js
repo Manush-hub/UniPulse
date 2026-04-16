@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadNotifications();
+    loadPendingSponsorshipsBadge();
     loadPendingDonationsBadge();
     setupEventListeners();
     if (typeof initializeRegisteredEventsCalendar === 'function') {
@@ -17,10 +18,53 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('publisher:donationsChanged', function () {
         loadPendingDonationsBadge();
     });
+
+    document.addEventListener('publisher:sponsorshipsChanged', function () {
+        loadPendingSponsorshipsBadge();
+    });
 });
 
 let notifications = [];
 let unreadNotificationsCount = 0;
+
+async function loadPendingSponsorshipsBadge() {
+    const badge = document.getElementById('sponsorshipsNavBadge');
+    if (!badge) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/unipulse/public/publisher/sponsorships/pendingCount?t=${Date.now()}`, {
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch pending sponsorship count');
+        }
+
+        const data = await response.json();
+        const count = data.success && Number.isInteger(data.count) ? data.count : 0;
+        renderPendingSponsorshipsBadge(count);
+    } catch (error) {
+        console.error('Error loading pending sponsorship count:', error);
+        renderPendingSponsorshipsBadge(0);
+    }
+}
+
+function renderPendingSponsorshipsBadge(count) {
+    const badge = document.getElementById('sponsorshipsNavBadge');
+    if (!badge) {
+        return;
+    }
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.remove('hidden');
+    } else {
+        badge.textContent = '';
+        badge.classList.add('hidden');
+    }
+}
 
 async function loadPendingDonationsBadge() {
     const badge = document.getElementById('donationsNavBadge');
@@ -270,6 +314,7 @@ async function markAllAsRead() {
 function startNotificationPolling() {
     setInterval(() => {
         loadNotifications();
+        loadPendingSponsorshipsBadge();
         loadPendingDonationsBadge();
     }, 60000);
 }

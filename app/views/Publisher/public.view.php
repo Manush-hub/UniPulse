@@ -71,7 +71,22 @@ function safeOutput($value, $default = '') {
     <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_public.css">
 </head>
 <body>
-    <?php include_once(__DIR__ . '/../header.php'); ?>
+    <?php
+    $pageConfig = ['activeNav' => 'events'];
+    if ($currentUser && $userType === 'publisher') {
+        include_once(__DIR__ . '/components/header.php');
+    } elseif ($currentUser && $userType === 'sponsor') {
+        include_once(__DIR__ . '/../Sponsor/components/header.php');
+    } elseif ($currentUser && $userType === 'moderator') {
+        include_once(__DIR__ . '/../Moderator/components/header.php');
+    } elseif ($currentUser && $userType === 'admin') {
+        include_once(__DIR__ . '/../Admin/components/header.php');
+    } elseif ($currentUser && in_array($userType, ['user', 'public', 'university', 'university_user'], true)) {
+        include_once(__DIR__ . '/../User/components/header.php');
+    } else {
+        include_once(__DIR__ . '/../header.php');
+    }
+    ?>
     
     <!-- Back Navigation -->
     <nav class="navigation-bar">

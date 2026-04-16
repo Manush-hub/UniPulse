@@ -563,6 +563,8 @@ function setupSliderButtons() {
 function createEventCard(event) {
     const card = document.createElement('div');
     card.className = 'event-card';
+    const normalizedStatus = String(event.status || '').toLowerCase();
+    const hideActionButtons = normalizedStatus === 'ongoing' || normalizedStatus === 'completed';
 
     // Format date
     const eventDate = new Date(event.event_date);
@@ -800,7 +802,7 @@ function createEventCard(event) {
                     ` : ''}
                 </div>
             </div>
-            <div class="event-actions">
+            ${hideActionButtons ? '' : `<div class="event-actions">
                 <button class="action-btn edit-btn" onclick="event.stopPropagation(); editEvent(${event.id})">
                     <i class="fas fa-edit"></i> Edit Event
                 </button>
@@ -812,7 +814,7 @@ function createEventCard(event) {
                         <i class="fas fa-clock"></i> Postpone
                     </button>`
                 }
-            </div>
+            </div>`}
         </div>
     `;
 

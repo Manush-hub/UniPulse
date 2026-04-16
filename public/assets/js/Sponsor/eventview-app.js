@@ -1148,6 +1148,44 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+function parsePackageList(value) {
+    if (!value) {
+        return [];
+    }
+
+    if (Array.isArray(value)) {
+        return value.map(item => String(item).trim()).filter(Boolean);
+    }
+
+    const raw = String(value).trim();
+    if (!raw) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return parsed.map(item => String(item).trim()).filter(Boolean);
+        }
+    } catch (error) {
+        // Fall through to text parsing.
+    }
+
+    return raw
+        .split(/\r?\n|,|•|\|/)
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+function escapeHtmlText(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Display sponsorship packages for sponsor role
 function displaySponsorshipPackages() {
     const sponsorshipPackages = window.serverData?.sponsorshipPackages || [];
@@ -1181,22 +1219,40 @@ function displaySponsorshipPackages() {
 
         const packageType = capitalizeFirstLetter(pkg.package_type);
         const availableSlots = pkg.available_slots - pkg.filled_slots;
+        const benefits = parsePackageList(pkg.benefits);
+        const termsList = parsePackageList(pkg.terms_conditions || pkg.terms);
+        const hasDetails = benefits.length > 0 || termsList.length > 0;
 
         let benefitsHTML = '';
-        if (pkg.benefits) {
-            try {
-                const benefits = typeof pkg.benefits === 'string' ? JSON.parse(pkg.benefits) : pkg.benefits;
-                if (Array.isArray(benefits) && benefits.length > 0) {
-                    benefitsHTML = '<ul class="benefits-list">';
-                    benefits.forEach(benefit => {
-                        benefitsHTML += `<li><i class="fas fa-check"></i> ${benefit}</li>`;
-                    });
-                    benefitsHTML += '</ul>';
-                }
-            } catch (e) {
-                console.error('Error parsing benefits:', e);
-            }
+        if (benefits.length > 0) {
+            benefitsHTML = '<div class="package-detail-group"><h4><i class="fas fa-gift"></i> Benefits</h4><ul class="benefits-list">';
+            benefits.forEach(benefit => {
+                benefitsHTML += `<li><i class="fas fa-check"></i> ${escapeHtmlText(benefit)}</li>`;
+            });
+            benefitsHTML += '</ul></div>';
         }
+
+        let termsHTML = '';
+        if (termsList.length > 0) {
+            termsHTML = '<div class="package-detail-group"><h4><i class="fas fa-file-contract"></i> Terms & Conditions</h4><ul class="terms-list">';
+            termsList.forEach(term => {
+                termsHTML += `<li><i class="fas fa-angle-right"></i> ${escapeHtmlText(term)}</li>`;
+            });
+            termsHTML += '</ul></div>';
+        }
+
+        const detailsHTML = hasDetails
+            ? `
+                <div class="package-details-toggle" role="button" tabindex="0" aria-expanded="false">
+                    <span><i class="fas fa-info-circle"></i> Click to view benefits & terms</span>
+                    <i class="fas fa-chevron-down package-toggle-icon"></i>
+                </div>
+                <div class="package-details-content" style="display: none;">
+                    ${benefitsHTML}
+                    ${termsHTML}
+                </div>
+            `
+            : '<div class="package-details-empty">No extra package terms provided.</div>';
 
         packageCard.innerHTML = `
             <div class="package-header ${pkg.package_type}">
@@ -1205,11 +1261,11 @@ function displaySponsorshipPackages() {
             </div>
             <div class="package-body">
                 ${pkg.description ? `<p class="package-description">${pkg.description}</p>` : ''}
-                ${benefitsHTML}
                 <div class="package-slots">
                     <i class="fas fa-users"></i>
                     <strong>${availableSlots}</strong> ${availableSlots === 1 ? 'Slot' : 'Slots'} Available
                 </div>
+                ${detailsHTML}
             </div>
             <div class="package-footer">
                 <button class="btn btn-primary btn-sponsor" onclick="requestSponsorship(${pkg.id}, '${packageType}', ${pkg.amount})">
@@ -1217,6 +1273,30 @@ function displaySponsorshipPackages() {
                 </button>
             </div>
         `;
+
+        const toggle = packageCard.querySelector('.package-details-toggle');
+        if (toggle) {
+            const detailsContent = packageCard.querySelector('.package-details-content');
+            const toggleDetails = () => {
+                const isOpen = toggle.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                if (detailsContent) {
+                    detailsContent.style.display = isOpen ? 'block' : 'none';
+                }
+            };
+
+            toggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                toggleDetails();
+            });
+
+            toggle.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggleDetails();
+                }
+            });
+        }
 
         packagesContainer.appendChild(packageCard);
     });
