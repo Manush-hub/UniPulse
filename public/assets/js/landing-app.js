@@ -496,13 +496,13 @@ function loadMoreEvents() {
     grid.innerHTML = '';
 
     moreEvents.forEach(event => {
-        const eventCard = createEventCard(event);
+        const eventCard = createEventCard(event, { hideFreeBadge: true });
         grid.appendChild(eventCard);
     });
 }
 
 // Create event card for upcoming/more events
-function createEventCard(event) {
+function createEventCard(event, options = {}) {
     const card = document.createElement('div');
     card.className = 'event-card';
 
@@ -528,10 +528,14 @@ function createEventCard(event) {
     imageDiv.appendChild(categoryDiv);
 
     // Price badge - Use ticket information
-    const priceDiv = document.createElement('div');
-    priceDiv.className = 'event-price';
-    priceDiv.innerHTML = getTicketPriceBadge(event);
-    imageDiv.appendChild(priceDiv);
+    const priceBadgeText = getTicketPriceBadge(event);
+    const shouldHideFreeBadge = options.hideFreeBadge && String(priceBadgeText).trim().toLowerCase() === 'free';
+    if (!shouldHideFreeBadge) {
+        const priceDiv = document.createElement('div');
+        priceDiv.className = 'event-price';
+        priceDiv.innerHTML = priceBadgeText;
+        imageDiv.appendChild(priceDiv);
+    }
 
     card.appendChild(imageDiv);
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,23 +9,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/payment_success.css">
 </head>
-<body>
-    <!-- Header -->
-    <?php include 'header.php'; ?>
 
+<body>
     <!-- Success Message Container -->
     <div class="success-container">
         <div class="success-card">
             <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            
+
             <h1>Payment Successful!</h1>
-            
+
             <p class="success-message">
                 <?= htmlspecialchars($success_message ?? 'Your payment has been processed successfully.') ?>
             </p>
-            
+
             <div class="success-details">
                 <div class="detail-item">
                     <i class="fas fa-calendar"></i>
@@ -48,12 +47,12 @@
                     </a>
                 <?php endif; ?>
 
-                <?php 
+                <?php
                 $user_type = $_SESSION['user_type'] ?? 'user';
-                
-                if (isset($event_id) && !empty($event_id)): 
+
+                if (isset($event_id) && !empty($event_id)):
                     // Route to the appropriate eventview based on user type
-                    switch($user_type) {
+                    switch ($user_type) {
                         case 'publisher':
                             $eventview_url = ROOT . '/publisher/eventview?id=' . htmlspecialchars($event_id);
                             break;
@@ -71,7 +70,7 @@
                 <?php else: ?>
                     <?php
                     // Route to the appropriate dashboard based on user type
-                    switch($user_type) {
+                    switch ($user_type) {
                         case 'publisher':
                             $landing_url = ROOT . '/publisher/dashboard';
                             break;
@@ -95,4 +94,5 @@
     <?php include 'footer.php'; ?>
 
 </body>
+
 </html>
