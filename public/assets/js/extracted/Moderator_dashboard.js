@@ -63,10 +63,14 @@ let currentPublisherId = null;
             currentPublisherId = publisherId;
             currentAction = 'reject';
             
-            const reason = prompt('Please provide a reason for rejection (optional):');
+            const reason = prompt('Please provide a reason for rejection:');
             if (reason === null) return; // User cancelled
+            if (!reason.trim()) {
+                alert('Reason required to reject publisher.');
+                return;
+            }
             
-            performApprovalAction(reason);
+            performApprovalAction(reason.trim());
         }
         
         function performApprovalAction(reason = '') {

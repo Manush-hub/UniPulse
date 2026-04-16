@@ -454,22 +454,8 @@ function filterEvents() {
 
     currentPage = 1;
 
-    // If status filter is applied, filter events locally first
-    if (activeFilters.status) {
-        const selectedStatus = activeFilters.status.toLowerCase();
-        const filtered = allEvents.filter(event => {
-            const calculatedStatus = getEventStatus(event.event_date || event.date, event.event_time || event.time, event.event_end_time);
-            return calculatedStatus === selectedStatus;
-        });
-        filteredEvents = filtered;
-
-        // Display filtered events without AJAX call for status filtering
-        displayEvents(filtered);
-        updatePagination();
-    } else {
-        // Use AJAX for other filters
-        loadEvents(true);
-    }
+    // Always use backend filtering so category/university/status combinations work together.
+    loadEvents(true);
 }
 
 // Clear all filters

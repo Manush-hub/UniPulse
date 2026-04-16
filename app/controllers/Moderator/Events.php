@@ -523,9 +523,9 @@ class ModeratorEvents extends Controller{
             $totalHiddenEvents = $this->eventModel->getHiddenEvents([], $currentUser);
             $totalPages = ceil(count($totalHiddenEvents) / $limit);
             
-            // Format events data
+            // Format events data for frontend
             $formattedEvents = array_map(function($event) {
-                return $this->formatEventData($event);
+                return $this->formatEventForResponse($event);
             }, $hiddenEvents);
             
             echo json_encode([
@@ -538,7 +538,7 @@ class ModeratorEvents extends Controller{
                 ]
             ]);
             
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             error_log("Error fetching hidden events: " . $e->getMessage());
             echo json_encode([
                 'success' => false,

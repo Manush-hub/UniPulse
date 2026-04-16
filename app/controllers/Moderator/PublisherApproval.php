@@ -81,7 +81,16 @@ class PublisherApproval extends Controller {
 
         try {
             $moderatorData = AuthService::getCurrentUser();
-            $reason = $_POST['reason'] ?? 'No reason provided';
+            $reason = trim($_POST['reason'] ?? '');
+
+            if ($reason === '') {
+                http_response_code(400);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Reason required to reject publisher'
+                ]);
+                exit();
+            }
             
             $publisherModel = new Publisher();
 

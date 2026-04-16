@@ -91,8 +91,8 @@ class Event
 
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'e.category = :category';
-            $params['category'] = $filters['category'];
+            $whereClause[] = 'LOWER(TRIM(e.category)) = :category';
+            $params['category'] = strtolower(trim((string)$filters['category']));
         }
 
         if (!empty($filters['university'])) {
@@ -260,13 +260,14 @@ class Event
 
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'e.category = :category';
-            $params['category'] = $filters['category'];
+            $whereClause[] = 'LOWER(TRIM(e.category)) = :category';
+            $params['category'] = strtolower(trim((string)$filters['category']));
         }
 
         if (!empty($filters['university'])) {
-            $whereClause[] = 'e.university = :university';
-            $params['university'] = $filters['university'];
+            // Match slug values from dropdown (e.g. university-of-colombo) against DB text values.
+            $whereClause[] = "LOWER(REPLACE(COALESCE(p.university, e.university), ' ', '-')) = :organizer_university";
+            $params['organizer_university'] = strtolower(trim((string)$filters['university']));
         }
 
         if (!empty($filters['search'])) {
@@ -388,8 +389,8 @@ class Event
                 if (!empty($value) && $key !== 'status_exclude') {
                     switch ($key) {
                         case 'category':
-                            $whereClause[] = 'e.category = :category';
-                            $params['category'] = $value;
+                            $whereClause[] = 'LOWER(TRIM(e.category)) = :category';
+                            $params['category'] = strtolower(trim((string)$value));
                             break;
                         case 'university':
                             $whereClause[] = "LOWER(REPLACE(p.university, ' ', '-')) = :organizer_university";
@@ -1209,8 +1210,8 @@ class Event
 
         // Apply filters
         if (!empty($filters['category'])) {
-            $whereClause[] = 'e.category = :category';
-            $params['category'] = $filters['category'];
+            $whereClause[] = 'LOWER(TRIM(e.category)) = :category';
+            $params['category'] = strtolower(trim((string)$filters['category']));
         }
 
         if (!empty($filters['university'])) {

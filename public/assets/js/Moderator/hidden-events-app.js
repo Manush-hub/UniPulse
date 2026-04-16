@@ -6,6 +6,7 @@ let totalPages = window.serverData?.totalPages || 1;
 let activeFilters = window.serverData?.filters || {};
 const eventsPerPage = 6;
 const apiEndpoint = window.serverData?.apiEndpoint || '/unipulse/public/moderator/events/getHiddenEvents';
+let currentRequestId = 0;
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,6 +43,7 @@ function loadEvents(useAjax = false) {
     const loadingSpinner = document.getElementById('loadingSpinner');
     const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
+    const requestId = ++currentRequestId;
     
     // Show loading spinner
     loadingSpinner.style.display = 'flex';
@@ -62,10 +64,19 @@ function loadEvents(useAjax = false) {
         fetch(`${apiEndpoint}?${params.toString()}`)
             .then(response => response.json())
             .then(data => {
+                if (requestId !== currentRequestId) {
+                    return;
+                }
+
                 if (data.success) {
                     filteredEvents = data.events;
-                    displayEvents(data.events);
-                    updatePagination(data.pagination);
+
+                    if (Array.isArray(data.events) && data.events.length > 0) {
+                        displayEvents(data.events);
+                        updatePagination(data.pagination);
+                    } else {
+                        displayNoEvents();
+                    }
                 } else {
                     console.error('Failed to fetch events:', data.error);
                     displayNoEvents();
@@ -73,29 +84,34 @@ function loadEvents(useAjax = false) {
                 loadingSpinner.style.display = 'none';
             })
             .catch(error => {
+                if (requestId !== currentRequestId) {
+                    return;
+                }
+
                 console.error('Error fetching events:', error);
                 displayNoEvents();
                 loadingSpinner.style.display = 'none';
             });
     } else {
         // Use initial server data
-        setTimeout(() => {
-            loadingSpinner.style.display = 'none';
-            
-            if (filteredEvents.length === 0) {
-                displayNoEvents();
-                return;
-            }
-            
-            displayEvents(filteredEvents);
-            updatePagination();
-        }, 500);
+        loadingSpinner.style.display = 'none';
+
+        if (!Array.isArray(filteredEvents) || filteredEvents.length === 0) {
+            displayNoEvents();
+            return;
+        }
+
+        displayEvents(filteredEvents);
+        updatePagination();
     }
 }
 
 function displayEvents(events) {
     const eventsGrid = document.getElementById('eventsGrid');
+    const noEvents = document.getElementById('noEvents');
     const loadMoreSection = document.getElementById('loadMoreSection');
+
+    noEvents.style.display = 'none';
     
     // Clear existing events if it's a new search/filter
     if (currentPage === 1) {
@@ -117,7 +133,12 @@ function displayEvents(events) {
 
 function displayNoEvents() {
     const noEvents = document.getElementById('noEvents');
+    const eventsGrid = document.getElementById('eventsGrid');
     const loadMoreSection = document.getElementById('loadMoreSection');
+
+    if (eventsGrid) {
+        eventsGrid.innerHTML = '';
+    }
     
     noEvents.style.display = 'block';
     loadMoreSection.style.display = 'none';
