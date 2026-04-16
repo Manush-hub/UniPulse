@@ -243,6 +243,12 @@ textarea {
     background: #f0f9ff !important;
 }
 
+.notification-item.unread.support-unread {
+    background: #e2e8f0 !important;
+    border-left: 4px solid #334155 !important;
+    padding-left: calc(1rem - 4px) !important;
+}
+
 .notification-content h4 {
     font-size: 0.9rem !important;
     font-weight: 600 !important;

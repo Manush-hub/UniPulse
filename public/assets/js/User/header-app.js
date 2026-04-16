@@ -100,12 +100,16 @@ function createNotificationItem(notification) {
             item.classList.remove('unread');
             markNotificationAsRead(notification);
         }
-        const eventId = Number(notification.id || 0);
-        if (eventId > 0) {
-            window.location.href = `/unipulse/public/user/eventview?id=${eventId}`;
-        } else {
-            window.location.href = '/unipulse/public/user/events';
+        const redirectUrl = typeof notification.redirect_url === 'string' ? notification.redirect_url.trim() : '';
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+            return;
         }
+
+        const eventId = Number(notification.id || 0);
+        window.location.href = eventId > 0
+            ? `/unipulse/public/user/eventview?id=${eventId}`
+            : '/unipulse/public/user/events';
     };
 
     item.innerHTML = `
@@ -225,8 +229,10 @@ function markNotificationAsRead(notification) {
         },
         body: JSON.stringify({
             event_id: Number(notification.id || 0),
+            notification_id: Number(notification.notification_id || 0),
             created_at: notification.created_at || '',
-            source: notification.source || 'activity'
+            source: notification.source || 'activity',
+            notification_key: notification.notification_key || ''
         }),
         keepalive: true
     }).catch(error => {

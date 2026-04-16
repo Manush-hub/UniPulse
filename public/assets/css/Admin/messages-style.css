@@ -147,6 +147,34 @@ body {
     padding: 0.25rem 0.7rem;
 }
 
+.contact-reaches-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.mark-all-contact-read-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mark-all-contact-read-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.mark-all-contact-read-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 .contact-reaches-list {
     max-height: none;
     overflow-y: visible;
@@ -160,6 +188,18 @@ body {
 .contact-reach-item {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.contact-reach-item:hover {
+    background: #f8fafc;
+}
+
+.contact-reach-item.unread {
+    background: #e2e8f0;
+    border-left: 4px solid #334155;
+    padding-left: calc(1.25rem - 4px);
 }
 
 .contact-reach-item:last-child {
@@ -171,6 +211,26 @@ body {
     justify-content: space-between;
     gap: 1rem;
     align-items: flex-start;
+}
+
+.contact-reach-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+}
+
+.reach-new-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #334155;
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .contact-reach-top h4 {

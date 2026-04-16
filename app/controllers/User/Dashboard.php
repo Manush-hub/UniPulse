@@ -94,6 +94,7 @@ class UserDashboard extends Controller
         try {
             $activityModel = new Activity();
             $eventModel = new Event();
+            $notificationModel = new Notification();
             $notificationReadStateModel = new NotificationReadState();
 
             $userId = (int)($currentUser['id'] ?? 0);
@@ -113,6 +114,7 @@ class UserDashboard extends Controller
             }));
 
             $notifications = [];
+            $unreadCount = 0;
 
             // 1) Personal activity notifications
             foreach ($activities as $activity) {
@@ -185,7 +187,8 @@ class UserDashboard extends Controller
                     'read' => false,
                     'created_at' => $notificationTime,
                     'notification_key' => 'activity|' . $notificationKey,
-                    'source' => 'activity'
+                    'source' => 'activity',
+                    'redirect_url' => '/unipulse/public/user/eventview?id=' . $eventId
                 ];
             }
 
@@ -219,7 +222,39 @@ class UserDashboard extends Controller
                     'read' => false,
                     'created_at' => $notificationTime,
                     'notification_key' => $notificationKey,
-                    'source' => 'publish'
+                    'source' => 'publish',
+                    'redirect_url' => '/unipulse/public/user/eventview?id=' . $eventId
+                ];
+            }
+
+            // 3) Stored notifications (includes moderator actions such as hidden comments).
+            $storedNotifications = $notificationModel->getUserNotifications($userId, (string)$currentUser['type'], 50);
+            foreach ($storedNotifications ?: [] as $notification) {
+                $createdAt = (string)($notification->created_at ?? date('Y-m-d H:i:s'));
+                $notificationType = strtolower((string)($notification->type ?? 'notification'));
+                $relatedType = strtolower((string)($notification->related_type ?? ''));
+                $relatedId = (int)($notification->related_id ?? 0);
+
+                $redirectUrl = '/unipulse/public/user/events';
+                if ($notificationType === 'comment_hidden' || $notificationType === 'comment_unhidden' || $relatedType === 'comment') {
+                    $redirectUrl = '/unipulse/public/user/dashboard';
+                } elseif ($relatedType === 'event' && $relatedId > 0) {
+                    $redirectUrl = '/unipulse/public/user/eventview?id=' . $relatedId;
+                }
+
+                $isRead = (bool)($notification->is_read ?? 0);
+
+                $notifications[] = [
+                    'id' => $relatedId,
+                    'notification_id' => (int)($notification->id ?? 0),
+                    'title' => (string)($notification->title ?? 'Notification'),
+                    'message' => (string)($notification->message ?? ''),
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'read' => $isRead,
+                    'created_at' => $createdAt,
+                    'notification_key' => 'db|' . (int)($notification->id ?? 0),
+                    'source' => 'stored',
+                    'redirect_url' => $redirectUrl
                 ];
             }
 
@@ -239,8 +274,14 @@ class UserDashboard extends Controller
                 return $bTime <=> $aTime;
             });
 
-            $unreadCount = 0;
             foreach ($notifications as &$notification) {
+                if (($notification['source'] ?? '') === 'stored') {
+                    if (empty($notification['read'])) {
+                        $unreadCount++;
+                    }
+                    continue;
+                }
+
                 $notificationTime = $notification['created_at'] ?? '1970-01-01 00:00:00';
                 $notificationKey = $notification['notification_key'] ?? '';
 
@@ -289,8 +330,20 @@ class UserDashboard extends Controller
         }
 
         $payload = json_decode(file_get_contents('php://input'), true) ?? [];
+        $notificationId = (int)($payload['notification_id'] ?? 0);
         $eventId = (int)($payload['event_id'] ?? 0);
         $createdAt = trim((string)($payload['created_at'] ?? ''));
+
+        if ($notificationId > 0) {
+            $notificationModel = new Notification();
+            $result = $notificationModel->markAsRead($notificationId, (int)$currentUser['id'], (string)$currentUser['type']);
+
+            echo json_encode([
+                'success' => (bool)$result,
+                'message' => $result ? 'Notification marked as read' : 'Failed to mark notification as read'
+            ]);
+            return;
+        }
 
         if ($eventId <= 0 || $createdAt === '') {
             echo json_encode(['success' => false, 'error' => 'Invalid notification payload']);
@@ -303,6 +356,10 @@ class UserDashboard extends Controller
         }
 
         $notificationKey = $source . '|' . $eventId . '|' . $createdAt;
+        if (!empty($payload['notification_key'])) {
+            $notificationKey = trim((string)$payload['notification_key']);
+        }
+
         $notificationReadStateModel = new NotificationReadState();
         $result = $notificationReadStateModel->markRead((int)$currentUser['id'], (string)$currentUser['type'], $notificationKey);
 
@@ -336,6 +393,9 @@ class UserDashboard extends Controller
             (string)$currentUser['type'],
             $this->notificationReadScope
         );
+
+        $notificationModel = new Notification();
+        $notificationModel->markAllAsRead((int)$currentUser['id'], (string)$currentUser['type']);
 
         echo json_encode([
             'success' => (bool)$result,

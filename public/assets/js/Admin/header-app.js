@@ -93,8 +93,10 @@ function displayNotifications(notifications) {
 // Create notification item
 function createNotificationItem(notification) {
     const item = document.createElement('div');
-    item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
-    item.onclick = () => handleNotificationClick(notification);
+    const isUnread = !!notification.unread;
+    const isSupportNotification = (notification.type || '') === 'support_message';
+    item.className = `notification-item ${isUnread ? 'unread' : ''} ${isUnread && isSupportNotification ? 'support-unread' : ''}`;
+    item.onclick = () => handleNotificationClick(notification, item);
     
     item.innerHTML = `
         <div class="notification-content">
@@ -107,15 +109,46 @@ function createNotificationItem(notification) {
     return item;
 }
 
-function handleNotificationClick(notification) {
+function handleNotificationClick(notification, item = null) {
     if (!notification) return;
 
     const redirectLink = notification.link || null;
     const notificationId = notification.id || '';
     const notificationKey = notification.notification_key || '';
+    const wasUnread = !!notification.unread;
 
-    // Always persist read state on click before redirecting.
-    markNotificationAsRead(notificationId, redirectLink, notificationKey);
+    // Update UI immediately for better feedback.
+    if (wasUnread && item) {
+        notification.unread = false;
+        item.classList.remove('unread');
+        item.classList.remove('support-unread');
+        updateUnreadBadgeFromDom();
+    }
+
+    // Persist read state in background; keepalive helps when redirecting quickly.
+    markNotificationAsRead(notificationId, notificationKey);
+
+    if (redirectLink) {
+        window.location.href = redirectLink;
+    }
+}
+
+function updateUnreadBadgeFromDom() {
+    const notificationBadge = document.getElementById('notificationBadge');
+    const notificationList = document.getElementById('notificationList');
+
+    if (!notificationBadge || !notificationList) return;
+
+    const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+    if (unreadCount > 0) {
+        notificationBadge.textContent = unreadCount;
+        notificationBadge.style.display = 'flex';
+        notificationBadge.classList.remove('hidden');
+    } else {
+        notificationBadge.textContent = '';
+        notificationBadge.style.display = 'none';
+        notificationBadge.classList.add('hidden');
+    }
 }
 
 // Setup event listeners
@@ -151,8 +184,8 @@ function toggleUserMenu() {
 }
 
 // Mark notification as read
-function markNotificationAsRead(notificationId, redirectLink = null, notificationKey = '') {
-    fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
+function markNotificationAsRead(notificationId, notificationKey = '') {
+    return fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -160,21 +193,18 @@ function markNotificationAsRead(notificationId, redirectLink = null, notificatio
         body: JSON.stringify({
             notificationId: notificationId,
             notification_key: notificationKey
-        })
+        }),
+        keepalive: true
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
+        if (!data.success) {
             loadNotifications();
-            if (redirectLink) {
-                setTimeout(() => {
-                    window.location.href = redirectLink;
-                }, 150);
-            }
         }
     })
     .catch(error => {
         console.error('Error marking notification as read:', error);
+        loadNotifications();
     });
 }
 

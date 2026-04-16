@@ -48,13 +48,22 @@
                 <div class="contact-reaches-card">
                     <div class="contact-reaches-header">
                         <h3><i class="fas fa-life-ring"></i> Contact Us Reaches</h3>
-                        <span class="contact-reaches-count"><?= count($contact_reaches ?? []) ?> recent</span>
+                        <div class="contact-reaches-actions">
+                            <?php if (!empty($contact_reaches)): ?>
+                                <button type="button" class="mark-all-contact-read-btn" onclick="markAllContactReachesRead(this)">Mark all as read</button>
+                            <?php endif; ?>
+                            <span class="contact-reaches-count"><?= count($contact_reaches ?? []) ?> recent</span>
+                        </div>
                     </div>
 
                     <?php if (!empty($contact_reaches)): ?>
                         <div class="contact-reaches-list <?= count($contact_reaches) > 2 ? 'has-scroll' : '' ?>">
                             <?php foreach ($contact_reaches as $reach): ?>
-                                <article class="contact-reach-item">
+                                <?php $isReachUnread = (($reach->status ?? 'new') === 'new'); ?>
+                                <article
+                                    class="contact-reach-item <?= $isReachUnread ? 'unread' : '' ?>"
+                                    data-support-id="<?= (int)($reach->id ?? 0) ?>"
+                                    onclick="markContactReachRead(this)">
                                     <div class="contact-reach-top">
                                         <div>
                                             <h4><?= htmlspecialchars($reach->subject ?? 'No Subject') ?></h4>
@@ -63,9 +72,14 @@
                                                 (<?= htmlspecialchars($reach->email ?? 'No Email') ?>)
                                             </p>
                                         </div>
-                                        <span class="contact-reach-time">
-                                            <?= !empty($reach->created_at) ? date('M j, Y g:i A', strtotime($reach->created_at)) : '-' ?>
-                                        </span>
+                                        <div class="contact-reach-right">
+                                            <?php if ($isReachUnread): ?>
+                                                <span class="reach-new-badge">New</span>
+                                            <?php endif; ?>
+                                            <span class="contact-reach-time">
+                                                <?= !empty($reach->created_at) ? date('M j, Y g:i A', strtotime($reach->created_at)) : '-' ?>
+                                            </span>
+                                        </div>
                                     </div>
                                     <p class="contact-reach-message">
                                         <?= nl2br(htmlspecialchars($reach->message ?? '')) ?>

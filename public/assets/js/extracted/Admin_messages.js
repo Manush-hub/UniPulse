@@ -276,6 +276,105 @@ function attachInputListeners() {
     });
 }
 
+async function refreshAdminMessageBadge() {
+    const badge = document.getElementById('adminMsgBadge');
+    if (!badge) return;
+
+    try {
+        const [chatRes, notifRes] = await Promise.all([
+            fetch('/unipulse/public/admin/messages/unreadCount').then(r => r.json()).catch(() => ({ success: false, count: 0 })),
+            fetch('/unipulse/public/admin/dashboard/getNotifications').then(r => r.json()).catch(() => ({ success: false, notifications: [] }))
+        ]);
+
+        const chatUnread = (chatRes && chatRes.success) ? (parseInt(chatRes.count, 10) || 0) : 0;
+        const supportUnread = (notifRes && notifRes.success && Array.isArray(notifRes.notifications))
+            ? notifRes.notifications.filter(n => n && n.type === 'support_message' && n.unread).length
+            : 0;
+
+        const totalUnread = chatUnread + supportUnread;
+        if (totalUnread > 0) {
+            badge.textContent = String(totalUnread);
+            badge.style.display = 'inline-block';
+        } else {
+            badge.textContent = '';
+            badge.style.display = 'none';
+        }
+    } catch (_) {
+        // No-op. Badge will be refreshed by polling script eventually.
+    }
+}
+
+function markContactReachRead(el) {
+    if (!el) return;
+
+    const supportId = Number(el.dataset.supportId || 0);
+    if (supportId <= 0) return;
+
+    if (!el.classList.contains('unread')) {
+        return;
+    }
+
+    el.classList.remove('unread');
+    const newBadge = el.querySelector('.reach-new-badge');
+    if (newBadge) {
+        newBadge.remove();
+    }
+
+    fetch('/unipulse/public/admin/dashboard/markNotificationRead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notificationId: `support:${supportId}` }),
+        keepalive: true
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                el.classList.add('unread');
+            }
+            refreshAdminMessageBadge();
+        })
+        .catch(() => {
+            el.classList.add('unread');
+            refreshAdminMessageBadge();
+        });
+}
+
+function markAllContactReachesRead(btn) {
+    const button = btn || null;
+    if (button) {
+        button.disabled = true;
+    }
+
+    fetch('/unipulse/public/admin/dashboard/markAllNotificationsRead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelectorAll('.contact-reach-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                    const newBadge = item.querySelector('.reach-new-badge');
+                    if (newBadge) {
+                        newBadge.remove();
+                    }
+                });
+                refreshAdminMessageBadge();
+                showToast('All contact reaches marked as read', 'success');
+            } else {
+                showToast('Failed to mark all contact reaches as read', 'error');
+            }
+        })
+        .catch(() => {
+            showToast('Failed to mark all contact reaches as read', 'error');
+        })
+        .finally(() => {
+            if (button) {
+                button.disabled = false;
+            }
+        });
+}
+
 attachInputListeners();
 
 if (currentContactId && currentContactType) {
