@@ -2285,8 +2285,12 @@ async function checkUserCommentStatus() {
         console.log('User not logged in - showing login prompt');
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
+        const commentEligibilityPrompt = document.getElementById('commentEligibilityPrompt');
+        const addCommentSection = document.getElementById('addCommentSection');
         if (addCommentTrigger) addCommentTrigger.style.display = 'none';
         if (loginPrompt) loginPrompt.style.display = 'block';
+        if (commentEligibilityPrompt) commentEligibilityPrompt.style.display = 'none';
+        if (addCommentSection) addCommentSection.style.display = 'none';
         return;
     }
 
@@ -2302,45 +2306,53 @@ async function checkUserCommentStatus() {
 
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
+        const commentEligibilityPrompt = document.getElementById('commentEligibilityPrompt');
+        const commentEligibilityMessage = document.getElementById('commentEligibilityMessage');
+        const addCommentSection = document.getElementById('addCommentSection');
 
         console.log('Elements found:', {
             addCommentTrigger: !!addCommentTrigger,
-            loginPrompt: !!loginPrompt
+            loginPrompt: !!loginPrompt,
+            commentEligibilityPrompt: !!commentEligibilityPrompt
         });
-
-        // If API says not logged in but page shows logged in, force show comment button
-        if (!data.can_comment && data.debug === 'not_logged_in' && isLoggedInByPage) {
-            console.log('API session issue detected - forcing comment button based on page auth');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-            return;
-        }
 
         if (data.can_comment) {
             // User can comment (including users who have already commented)
             console.log('User can comment - showing add button');
             if (addCommentTrigger) addCommentTrigger.style.display = 'block';
             if (loginPrompt) loginPrompt.style.display = 'none';
+            if (commentEligibilityPrompt) commentEligibilityPrompt.style.display = 'none';
         } else {
-            // User not logged in or can't comment
-            console.log('User cannot comment - showing login prompt');
+            // User is logged in but cannot comment on this event
+            console.log('User cannot comment - showing eligibility prompt');
             if (addCommentTrigger) addCommentTrigger.style.display = 'none';
             if (loginPrompt) loginPrompt.style.display = 'block';
+            if (addCommentSection) addCommentSection.style.display = 'none';
+
+            if (data.debug === 'not_logged_in' || data.debug === 'auth_failed') {
+                if (loginPrompt) loginPrompt.style.display = 'block';
+                if (commentEligibilityPrompt) commentEligibilityPrompt.style.display = 'none';
+            } else {
+                if (loginPrompt) loginPrompt.style.display = 'none';
+                if (commentEligibilityPrompt) commentEligibilityPrompt.style.display = 'block';
+                if (commentEligibilityMessage) {
+                    commentEligibilityMessage.textContent = data.message || 'Comments are open only for users who registered and participated in this completed event.';
+                }
+            }
         }
 
     } catch (error) {
         console.error('Error checking user comment status:', error);
-        // Fallback: if logged in by page, show comment button
         const addCommentTrigger = document.getElementById('addCommentTrigger');
         const loginPrompt = document.getElementById('loginPrompt');
+        const commentEligibilityPrompt = document.getElementById('commentEligibilityPrompt');
+        const commentEligibilityMessage = document.getElementById('commentEligibilityMessage');
 
-        if (isLoggedInByPage) {
-            console.log('API error but user is logged in - showing comment button');
-            if (addCommentTrigger) addCommentTrigger.style.display = 'block';
-            if (loginPrompt) loginPrompt.style.display = 'none';
-        } else {
-            if (addCommentTrigger) addCommentTrigger.style.display = 'none';
-            if (loginPrompt) loginPrompt.style.display = 'block';
+        if (addCommentTrigger) addCommentTrigger.style.display = 'none';
+        if (loginPrompt) loginPrompt.style.display = 'none';
+        if (commentEligibilityPrompt) commentEligibilityPrompt.style.display = 'block';
+        if (commentEligibilityMessage) {
+            commentEligibilityMessage.textContent = 'Unable to verify comment eligibility right now. Please refresh and try again.';
         }
     }
 }
