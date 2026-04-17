@@ -117,11 +117,16 @@ Trait Model{
 
         $data[$id_column] = $id;
 
-        $conn = $this->connect();
-        $stm = $conn->prepare($query);
-        $result = $stm->execute($data);
-        
-        return $result;
+        try {
+            $conn = $this->connect();
+            $stm = $conn->prepare($query);
+            $result = $stm->execute($data);
+            
+            return $result;
+        } catch (\PDOException $e) {
+            error_log("Database Update Error: " . $e->getMessage() . " Query: " . $query);
+            return false;
+        }
     }
 
     public function delete($id,$id_column = 'id'){

@@ -35,17 +35,17 @@
                 </div>
             </div>
 
-            <p class="info-message">
+            <!-- <p class="info-message">
                 <i class="fas fa-envelope"></i>
                 A confirmation email has been sent to your registered email address.
-            </p>
+            </p> -->
 
             <div class="action-buttons">
-                <?php if (isset($order_number) && !empty($order_number)): ?>
+                <!-- <?php if (isset($order_number) && !empty($order_number)): ?>
                     <a href="<?= ROOT ?>/ticket/download?order=<?= htmlspecialchars($order_number) ?>" target="_blank" class="btn btn-secondary" style="border: 2px solid #3b82f6; color: #3b82f6; background: white;">
                         <i class="fas fa-ticket-alt"></i> Download Ticket
                     </a>
-                <?php endif; ?>
+                <?php endif; ?> -->
 
                 <?php
                 $user_type = $_SESSION['user_type'] ?? 'user';
