@@ -13,11 +13,13 @@ class EventPostponement
         'previous_event_end_time',
         'previous_registration_end_date',
         'previous_registration_end_time',
+        'previous_cover_photo',
         'new_event_date',
         'new_event_time',
         'new_event_end_time',
         'new_registration_end_date',
         'new_registration_end_time',
+        'new_cover_photo',
         'created_at'
     ];
 }
