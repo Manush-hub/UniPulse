@@ -108,18 +108,9 @@ class Payment extends Controller
         $data['payment_time'] = $_SESSION['payment_time'] ?? date('g:i A');
         $data['event_id'] = $_SESSION['payment_completed_event_id'] ?? null;
         $data['order_number'] = $_SESSION['payment_order_number'] ?? null;
-
-        $currentUserType = $_SESSION['user_type'] ?? null;
-        if (!empty($data['event_id']) && in_array($currentUserType, ['public', 'university'], true)) {
-            $this->ensurePaidEventRegistrationFromPayment(
-                (int)$_SESSION['user_id'],
-                $currentUserType,
-                (int)$data['event_id'],
-                null,
-                null,
-                'Auto-registered after successful payment redirect'
-            );
-        }
+        // Important: do not mutate ticket inventory or registrations in success().
+        // Those side effects are already handled in processPayment/payherereturn/payherenotify.
+        // Running them again here causes duplicate ticket deduction.
 
         unset($_SESSION['payment_success']);
         unset($_SESSION['payment_date']);
