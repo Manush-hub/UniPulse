@@ -111,11 +111,17 @@ class SponsorDashboard extends Controller
             $rows = $notificationModel->getUserNotifications((int)$currentUser['id'], 'sponsor', 30);
 
             $notifications = [];
+            $hiddenEventAlreadyNotified = [];
             foreach ($rows ?: [] as $row) {
                 $createdAt = $row->created_at ?? date('Y-m-d H:i:s');
                 $relatedId = (int)($row->related_id ?? 0);
                 $relatedType = (string)($row->related_type ?? '');
                 $notificationType = (string)($row->type ?? '');
+
+                if (strtolower(trim($notificationType)) === 'event_hidden' && strtolower(trim($relatedType)) === 'event' && $relatedId > 0) {
+                    $hiddenEventAlreadyNotified[$relatedId] = true;
+                }
+
                 $notifications[] = [
                     'id' => (int)($row->id ?? 0),
                     'title' => (string)($row->title ?? 'Notification'),
@@ -130,9 +136,72 @@ class SponsorDashboard extends Controller
                 ];
             }
 
+            // Fallback: if DB notifications were not inserted for hidden sponsored events,
+            // generate view notifications directly from sponsorship + event hidden metadata.
+            $fallbackRows = $this->query(
+                "SELECT
+                    e.id AS event_id,
+                    e.title AS event_title,
+                    e.deleted_at,
+                    e.deletion_reason,
+                    p.society_name AS publisher_name
+                 FROM event_sponsorships es
+                 INNER JOIN events e ON e.id = es.event_id
+                 LEFT JOIN publishers p ON p.id = e.created_by AND e.created_by_type = 'publisher'
+                 WHERE es.sponsor_id = :sponsor_id
+                   AND LOWER(COALESCE(es.sponsor_type, 'sponsor')) = 'sponsor'
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')
+                 ORDER BY COALESCE(e.deleted_at, e.updated_at, e.created_at) DESC
+                 LIMIT 50",
+                ['sponsor_id' => (int)$currentUser['id']]
+            );
+
+            foreach ($fallbackRows ?: [] as $row) {
+                $eventId = (int)($row->event_id ?? 0);
+                if ($eventId <= 0 || isset($hiddenEventAlreadyNotified[$eventId])) {
+                    continue;
+                }
+
+                $eventTitle = trim((string)($row->event_title ?? 'Untitled Event'));
+                if ($eventTitle === '') {
+                    $eventTitle = 'Untitled Event';
+                }
+
+                $reason = trim((string)($row->deletion_reason ?? ''));
+                if ($reason === '') {
+                    $reason = 'No reason was provided by the moderator/admin.';
+                }
+
+                $publisherName = trim((string)($row->publisher_name ?? 'the publisher'));
+                if ($publisherName === '') {
+                    $publisherName = 'the publisher';
+                }
+
+                $createdAt = $row->deleted_at ?? date('Y-m-d H:i:s');
+
+                $notifications[] = [
+                    'id' => 0,
+                    'title' => 'Event Hidden Notice',
+                    'message' => "The event '{$eventTitle}' that you sponsored has been hidden. Reason: {$reason}. Please contact {$publisherName} for further details.",
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'created_at' => $createdAt,
+                    'unread' => false,
+                    'type' => 'event_hidden',
+                    'related_id' => $eventId,
+                    'related_type' => 'event',
+                    'redirect_url' => '/unipulse/public/sponsor/dashboard',
+                ];
+            }
+
+            usort($notifications, function ($a, $b) {
+                $aTime = strtotime((string)($a['created_at'] ?? '1970-01-01 00:00:00')) ?: 0;
+                $bTime = strtotime((string)($b['created_at'] ?? '1970-01-01 00:00:00')) ?: 0;
+                return $bTime <=> $aTime;
+            });
+
             echo json_encode([
                 'success' => true,
-                'notifications' => $notifications
+                'notifications' => array_slice($notifications, 0, 30)
             ]);
         } catch (Exception $e) {
             error_log("Error in getNotifications: " . $e->getMessage());

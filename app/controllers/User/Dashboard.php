@@ -2,6 +2,7 @@
 
 class UserDashboard extends Controller
 {
+    use Database;
 
     private $notificationReadScope = 'user_dashboard';
 
@@ -228,12 +229,17 @@ class UserDashboard extends Controller
             }
 
             // 3) Stored notifications (includes moderator actions such as hidden comments).
+            $hiddenEventAlreadyNotified = [];
             $storedNotifications = $notificationModel->getUserNotifications($userId, (string)$currentUser['type'], 50);
             foreach ($storedNotifications ?: [] as $notification) {
                 $createdAt = (string)($notification->created_at ?? date('Y-m-d H:i:s'));
                 $notificationType = strtolower((string)($notification->type ?? 'notification'));
                 $relatedType = strtolower((string)($notification->related_type ?? ''));
                 $relatedId = (int)($notification->related_id ?? 0);
+
+                if ($notificationType === 'event_hidden' && $relatedType === 'event' && $relatedId > 0) {
+                    $hiddenEventAlreadyNotified[$relatedId] = true;
+                }
 
                 $redirectUrl = '/unipulse/public/user/events';
                 if ($notificationType === 'comment_hidden' || $notificationType === 'comment_unhidden' || $relatedType === 'comment') {
@@ -243,12 +249,16 @@ class UserDashboard extends Controller
                 }
 
                 $isRead = (bool)($notification->is_read ?? 0);
+                $message = (string)($notification->message ?? '');
+                if ($notificationType === 'event_hidden' && $relatedType === 'event' && $relatedId > 0) {
+                    $message = $this->buildHiddenEventMessageWithReason($relatedId, $message);
+                }
 
                 $notifications[] = [
                     'id' => $relatedId,
                     'notification_id' => (int)($notification->id ?? 0),
                     'title' => (string)($notification->title ?? 'Notification'),
-                    'message' => (string)($notification->message ?? ''),
+                    'message' => $message,
                     'time' => $this->formatRelativeTime($createdAt),
                     'read' => $isRead,
                     'created_at' => $createdAt,
@@ -256,6 +266,26 @@ class UserDashboard extends Controller
                     'source' => 'stored',
                     'redirect_url' => $redirectUrl
                 ];
+            }
+
+            // 4) Fallback hidden-event notifications for users with prior engagement.
+            $hiddenFallback = $this->buildHiddenEventFallbackNotifications(
+                $userId,
+                (string)$currentUser['type'],
+                $hiddenEventAlreadyNotified
+            );
+            if (!empty($hiddenFallback)) {
+                $notifications = array_merge($notifications, $hiddenFallback);
+            }
+
+            // 5) Guaranteed fallback from EventRegistration model dataset (same source as dashboard tickets).
+            $hiddenModelFallback = $this->buildHiddenEventFallbackFromRegistrationModel(
+                $userId,
+                (string)$currentUser['type'],
+                $hiddenEventAlreadyNotified
+            );
+            if (!empty($hiddenModelFallback)) {
+                $notifications = array_merge($notifications, $hiddenModelFallback);
             }
 
             if (empty($notifications)) {
@@ -441,6 +471,9 @@ class UserDashboard extends Controller
             $upcomingEvents = [];
             if ($registeredEvents) {
                 foreach ($registeredEvents as $event) {
+                    $eventStatus = strtolower((string)($event->status ?? ''));
+                    $isHidden = ((int)($event->is_deleted ?? 0) === 1) || $eventStatus === 'hidden';
+
                     $mappedEvent = [
                         'id' => $event->id,
                         'title' => $event->title,
@@ -453,12 +486,21 @@ class UserDashboard extends Controller
                         'image_url' => $event->image_url,
                         'organizer' => $event->organizer,
                         'order_number' => $event->order_number ?? null,
+                        'is_hidden_event' => $isHidden,
                         'max_participants' => $event->max_participants,
                         'current_participants' => $event->current_participants ?? 0
                     ];
 
                     $eventDateTime = trim((string)$event->event_date . ' ' . ((string)$event->event_time !== '' ? (string)$event->event_time : '23:59:59'));
                     $eventTimestamp = strtotime($eventDateTime);
+                    if ($isHidden) {
+                        // Keep hidden event tickets visible in "My Tickets" if user bought one.
+                        if (!empty($mappedEvent['order_number'])) {
+                            $upcomingEvents[] = $mappedEvent;
+                        }
+                        continue;
+                    }
+
                     if ($eventTimestamp !== false && $eventTimestamp >= time()) {
                         $upcomingEvents[] = $mappedEvent;
                     }
@@ -1594,6 +1636,321 @@ class UserDashboard extends Controller
             $status = strtolower((string)($volunteer->volunteer_status ?? $volunteer->status ?? ''));
             return $status === 'accepted';
         }));
+    }
+
+    /**
+     * Build fallback hidden-event notifications for users who engaged with an event
+     * (registration, ticket purchase, donation, volunteering) before it was hidden.
+     */
+    private function buildHiddenEventFallbackNotifications($userId, $userType, array $alreadyNotifiedEventIds = [])
+    {
+        $userId = (int)$userId;
+        $userType = strtolower(trim((string)$userType));
+
+        if ($userId <= 0 || !in_array($userType, ['public', 'university'], true)) {
+            return [];
+        }
+
+        $notifications = [];
+        $seenEvents = [];
+
+        foreach ($alreadyNotifiedEventIds as $eventId => $_) {
+            $seenEvents[(int)$eventId] = true;
+        }
+
+        $typeVariants = $this->getUserTypeVariants($userType);
+        $typeParams = [
+            'user_type0' => $typeVariants[0],
+            'user_type1' => $typeVariants[1],
+            'user_type2' => $typeVariants[2],
+            'user_type3' => $typeVariants[3],
+            'user_type4' => $typeVariants[4]
+        ];
+
+        $queries = [];
+
+        if ($this->tableExists('event_registrations')) {
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM event_registrations er
+                 INNER JOIN events e ON e.id = er.event_id
+                 WHERE er.user_id = :user_id
+                                     AND LOWER(COALESCE(er.user_type, 'public')) IN (:user_type0, :user_type1, :user_type2, :user_type3, :user_type4)
+                   AND LOWER(COALESCE(er.status, 'registered')) <> 'cancelled'
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                array_merge(['user_id' => $userId], $typeParams)
+            ];
+        }
+
+        if ($this->tableExists('free_event_registrations')) {
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM free_event_registrations fr
+                 INNER JOIN events e ON e.id = fr.event_id
+                 WHERE fr.registered_user_id = :user_id
+                                     AND LOWER(COALESCE(fr.registered_user_type, 'public')) IN (:user_type0, :user_type1, :user_type2, :user_type3, :user_type4)
+                   AND LOWER(COALESCE(fr.status, 'registered')) IN ('registered', 'waitlisted', 'checked_in', 'no_show')
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                array_merge(['user_id' => $userId], $typeParams)
+            ];
+        }
+
+        if ($this->tableExists('paid_event_registrations')) {
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM paid_event_registrations pr
+                 INNER JOIN events e ON e.id = pr.event_id
+                 WHERE pr.registered_user_id = :user_id
+                                     AND LOWER(COALESCE(pr.registered_user_type, 'public')) IN (:user_type0, :user_type1, :user_type2, :user_type3, :user_type4)
+                   AND LOWER(COALESCE(pr.registration_status, 'reserved')) IN ('reserved', 'confirmed', 'checked_in', 'no_show')
+                   AND LOWER(COALESCE(pr.payment_status, 'pending')) IN ('pending', 'paid', 'partially_refunded', 'refunded', 'completed')
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                array_merge(['user_id' => $userId], $typeParams)
+            ];
+
+            // Ownership fallback: include paid registrations by user id even when user_type is legacy/mismatched.
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM paid_event_registrations pr
+                 INNER JOIN events e ON e.id = pr.event_id
+                 WHERE pr.registered_user_id = :user_id
+                   AND LOWER(COALESCE(pr.registration_status, 'reserved')) IN ('reserved', 'confirmed', 'checked_in', 'no_show')
+                   AND LOWER(COALESCE(pr.payment_status, 'pending')) IN ('pending', 'paid', 'partially_refunded', 'refunded', 'completed')
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                ['user_id' => $userId]
+            ];
+        }
+
+        if ($this->tableExists('donations')) {
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM donations d
+                 INNER JOIN events e ON e.id = d.event_id
+                 WHERE d.user_id = :user_id
+                                     AND LOWER(COALESCE(d.user_type, 'public')) IN (:user_type0, :user_type1, :user_type2, :user_type3, :user_type4)
+                   AND LOWER(COALESCE(d.status, 'pending')) IN ('pending', 'accepted', 'completed')
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                array_merge(['user_id' => $userId], $typeParams)
+            ];
+        }
+
+        if ($this->tableExists('volunteer_registrations')) {
+            $queries[] = [
+                "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                 FROM volunteer_registrations vr
+                 INNER JOIN events e ON e.id = vr.event_id
+                 WHERE vr.user_id = :user_id
+                                     AND LOWER(COALESCE(vr.user_type, 'public')) IN (:user_type0, :user_type1, :user_type2, :user_type3, :user_type4)
+                   AND LOWER(COALESCE(vr.status, 'pending')) <> 'withdrawn'
+                   AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')",
+                array_merge(['user_id' => $userId], $typeParams)
+            ];
+        }
+
+        if ($this->tableExists('payments')) {
+            $paymentQuery = "SELECT e.id AS event_id, e.title AS event_title, e.deleted_at, e.deletion_reason
+                             FROM payments p
+                             INNER JOIN events e ON e.id = p.event_id
+                             WHERE p.user_id = :user_id";
+            $paymentParams = ['user_id' => $userId];
+
+            if ($this->tableHasColumn('payments', 'payment_type')) {
+                $paymentQuery .= " AND LOWER(COALESCE(p.payment_type, 'ticket')) = 'ticket'";
+            }
+
+            if ($this->tableHasColumn('payments', 'status')) {
+                $paymentQuery .= " AND LOWER(COALESCE(p.status, 'completed')) IN ('completed', 'paid', 'success', 'successful')";
+            }
+
+            // If quantity/order columns exist, ensure we only look at real ticket purchases.
+            if ($this->tableHasColumn('payments', 'quantity')) {
+                $paymentQuery .= " AND COALESCE(p.quantity, 1) >= 1";
+            }
+
+            $paymentQuery .= " AND (e.is_deleted = 1 OR LOWER(COALESCE(e.status, '')) = 'hidden')";
+            $queries[] = [$paymentQuery, $paymentParams];
+        }
+
+        foreach ($queries as $queryItem) {
+            try {
+                $rows = $this->query($queryItem[0], $queryItem[1]) ?: [];
+            } catch (Exception $e) {
+                error_log('buildHiddenEventFallbackNotifications query warning: ' . $e->getMessage());
+                $rows = [];
+            }
+
+            foreach ($rows as $row) {
+                $eventId = (int)($row->event_id ?? 0);
+                if ($eventId <= 0 || isset($seenEvents[$eventId])) {
+                    continue;
+                }
+
+                $seenEvents[$eventId] = true;
+
+                $eventTitle = trim((string)($row->event_title ?? 'Untitled Event'));
+                if ($eventTitle === '') {
+                    $eventTitle = 'Untitled Event';
+                }
+
+                $reason = trim((string)($row->deletion_reason ?? ''));
+                if ($reason === '') {
+                    $reason = 'No reason was provided by the moderator/admin.';
+                }
+
+                $createdAt = (string)($row->deleted_at ?? date('Y-m-d H:i:s'));
+
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => 'Event Hidden Notice',
+                    'message' => "The event '{$eventTitle}' has been hidden. Reason: {$reason}. Please contact the publisher for further details.",
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'read' => false,
+                    'created_at' => $createdAt,
+                    'notification_key' => 'hidden|' . $eventId . '|' . $createdAt,
+                    'source' => 'hidden_fallback',
+                    'redirect_url' => '/unipulse/public/user/events'
+                ];
+            }
+        }
+
+        return $notifications;
+    }
+
+    private function tableExists($tableName)
+    {
+        try {
+            $row = $this->query('SHOW TABLES LIKE :table_name', ['table_name' => $tableName]);
+            return !empty($row);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    private function tableHasColumn($tableName, $columnName)
+    {
+        try {
+            $row = $this->query(
+                "SHOW COLUMNS FROM {$tableName} LIKE :column_name",
+                ['column_name' => $columnName]
+            );
+            return !empty($row);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    private function getUserTypeVariants($userType)
+    {
+        // Use broad aliases to cover legacy values across tables.
+        return ['public', 'university', 'user', 'public_user', 'university_user'];
+    }
+
+    private function buildHiddenEventMessageWithReason($eventId, $existingMessage = '')
+    {
+        $existingMessage = trim((string)$existingMessage);
+
+        try {
+            $rows = $this->query(
+                "SELECT e.title, e.deletion_reason, p.society_name AS publisher_name
+                 FROM events e
+                 LEFT JOIN publishers p ON p.id = e.created_by AND e.created_by_type = 'publisher'
+                 WHERE e.id = :event_id
+                 LIMIT 1",
+                ['event_id' => (int)$eventId]
+            );
+
+            if (empty($rows)) {
+                return $existingMessage;
+            }
+
+            $row = $rows[0];
+            $eventTitle = trim((string)($row->title ?? 'Untitled Event'));
+            if ($eventTitle === '') {
+                $eventTitle = 'Untitled Event';
+            }
+
+            $reason = trim((string)($row->deletion_reason ?? ''));
+            if ($reason === '') {
+                $reason = 'No reason was provided by the moderator/admin.';
+            }
+
+            $publisherName = trim((string)($row->publisher_name ?? 'the publisher'));
+            if ($publisherName === '') {
+                $publisherName = 'the publisher';
+            }
+
+            $canonical = "The event '{$eventTitle}' has been hidden. Reason: {$reason}. Please contact {$publisherName} for further details.";
+
+            if ($existingMessage === '') {
+                return $canonical;
+            }
+
+            if (stripos($existingMessage, 'reason:') !== false && stripos($existingMessage, 'contact') !== false) {
+                return $existingMessage;
+            }
+
+            return $canonical;
+        } catch (Exception $e) {
+            return $existingMessage;
+        }
+    }
+
+    /**
+     * Model-driven fallback for hidden-event notifications.
+     * Uses EventRegistration::getUserRegisteredEvents to avoid schema mismatch issues.
+     */
+    private function buildHiddenEventFallbackFromRegistrationModel($userId, $userType, array $alreadyNotifiedEventIds = [])
+    {
+        $userId = (int)$userId;
+        $userType = strtolower(trim((string)$userType));
+
+        if ($userId <= 0 || !in_array($userType, ['public', 'university'], true)) {
+            return [];
+        }
+
+        try {
+            $eventRegistration = new EventRegistration();
+            $rows = $eventRegistration->getUserRegisteredEvents($userId, $userType, 'registered') ?: [];
+
+            $seen = [];
+            foreach ($alreadyNotifiedEventIds as $eventId => $_) {
+                $seen[(int)$eventId] = true;
+            }
+
+            $notifications = [];
+            foreach ($rows as $row) {
+                $eventId = (int)($row->id ?? 0);
+                if ($eventId <= 0 || isset($seen[$eventId])) {
+                    continue;
+                }
+
+                $eventStatus = strtolower((string)($row->status ?? ''));
+                $isHidden = ((int)($row->is_deleted ?? 0) === 1) || $eventStatus === 'hidden';
+                if (!$isHidden) {
+                    continue;
+                }
+
+                $seen[$eventId] = true;
+
+                $createdAt = (string)($row->deleted_at ?? $row->updated_at ?? date('Y-m-d H:i:s'));
+                $notifications[] = [
+                    'id' => $eventId,
+                    'title' => 'Event Hidden Notice',
+                    'message' => $this->buildHiddenEventMessageWithReason($eventId, ''),
+                    'time' => $this->formatRelativeTime($createdAt),
+                    'read' => false,
+                    'created_at' => $createdAt,
+                    'notification_key' => 'hidden_model|' . $eventId . '|' . $createdAt,
+                    'source' => 'hidden_model_fallback',
+                    'redirect_url' => '/unipulse/public/user/events'
+                ];
+            }
+
+            return $notifications;
+        } catch (Exception $e) {
+            error_log('buildHiddenEventFallbackFromRegistrationModel warning: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
