@@ -15,6 +15,33 @@ function isUniversityUser() {
     return currentUserType === 'university' || currentUserType === 'student' || currentUserType === 'university_user';
 }
 
+function shouldApplyTicketDiscount(event, ticket) {
+    const originalPrice = Number(ticket?.price) || 0;
+    const discountedPrice = Number(ticket?.discounted_price) || 0;
+
+    if (!(discountedPrice > 0 && discountedPrice < originalPrice)) {
+        return false;
+    }
+
+    const ticketType = String(event?.ticket_type || '').toLowerCase();
+    if (ticketType === 'paid-all' && !isUniversityUser()) {
+        return false;
+    }
+
+    const rawDiscountAudience = ticket?.discount_audience || ticket?.discount_for || ticket?.discount_target || '';
+    const discountAudience = String(rawDiscountAudience).toLowerCase().trim();
+
+    if (discountAudience.includes('university')) {
+        return isUniversityUser();
+    }
+
+    if (discountAudience.includes('public')) {
+        return !isUniversityUser();
+    }
+
+    return true;
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function () {
     console.log('User Eventview Page Loaded');
@@ -473,49 +500,50 @@ function displayEventDetails(event) {
 
 // Display registration period
 function displayRegistrationPeriod(event) {
-    const registrationPeriodCard = document.getElementById('registrationPeriodCard');
-    const registrationPeriodContainer = document.getElementById('registrationPeriod');
+    const registrationPeriodCard = document.getElementById('registrationTicketPeriodCard');
+    const freePeriod = document.getElementById('freeRegistrationPeriod');
+    const ticketPeriod = document.getElementById('ticketBuyingPeriod');
+    const periodDivider = document.getElementById('periodDivider');
+    const freePeriodDates = document.getElementById('freeRegPeriodDates');
+    const freePeriodStatus = document.getElementById('freeRegPeriodStatus');
+    const ticketPeriodDates = document.getElementById('ticketPeriodDates');
+    const ticketPeriodStatus = document.getElementById('ticketPeriodStatus');
 
-    // Check if elements exist
-    if (!registrationPeriodCard || !registrationPeriodContainer) return;
-
-    // Check if registration dates are available
-    if (event.registration_start_date && event.registration_end_date) {
-        let registrationHTML = '<div class="registration-period-item">';
-
-        // Registration Start
-        registrationHTML += '<div style="margin-bottom: 15px;">';
-        registrationHTML += '<div><strong>Registration Opens:</strong></div>';
-        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
-        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_start_date)}`;
-        if (event.registration_start_time) {
-            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_start_time}`;
-        }
-        registrationHTML += '</div></div>';
-
-        // Registration End
-        registrationHTML += '<div style="margin-bottom: 15px;">';
-        registrationHTML += '<div><strong>Registration Closes:</strong></div>';
-        registrationHTML += `<div style="color: #666; margin-top: 5px;">`;
-        registrationHTML += `<i class="fas fa-calendar"></i> ${formatDate(event.registration_end_date)}`;
-        if (event.registration_end_time) {
-            registrationHTML += ` <i class="fas fa-clock" style="margin-left: 15px;"></i> ${event.registration_end_time}`;
-        }
-        registrationHTML += '</div></div>';
-
-        // Registration limit if available
-        if (event.registration_limit) {
-            registrationHTML += '<div>';
-            registrationHTML += '<div><strong>Registration Limit:</strong></div>';
-            registrationHTML += `<div style="color: #666; margin-top: 5px;"><i class="fas fa-users"></i> ${event.registration_limit} participants</div>`;
-            registrationHTML += '</div>';
-        }
-
-        registrationHTML += '</div>';
-
-        registrationPeriodContainer.innerHTML = registrationHTML;
-        registrationPeriodCard.style.display = 'block';
+    if (!registrationPeriodCard || !freePeriod || !ticketPeriod || !periodDivider || !freePeriodDates || !freePeriodStatus || !ticketPeriodDates || !ticketPeriodStatus) {
+        return;
     }
+
+    const registrationState = getRegistrationWindowState(event);
+    const ticketType = String(event?.ticket_type || 'free-all').toLowerCase();
+
+    if (!registrationState.hasWindow) {
+        registrationPeriodCard.style.display = 'none';
+        freePeriod.style.display = 'none';
+        ticketPeriod.style.display = 'none';
+        periodDivider.style.display = 'none';
+        return;
+    }
+
+    const startLabel = formatRegistrationDateTime(event.registration_start_date, event.registration_start_time);
+    const endLabel = formatRegistrationDateTime(event.registration_end_date, event.registration_end_time);
+    const statusMarkup = getRegistrationStatusMarkup(registrationState);
+
+    freePeriodDates.innerHTML = `<i class="fas fa-calendar"></i> ${startLabel}<br><i class="fas fa-calendar"></i> ${endLabel}`;
+    freePeriodStatus.innerHTML = statusMarkup;
+    ticketPeriodDates.innerHTML = `<i class="fas fa-calendar"></i> ${startLabel}<br><i class="fas fa-calendar"></i> ${endLabel}`;
+    ticketPeriodStatus.innerHTML = statusMarkup;
+
+    if (ticketType === 'free-all') {
+        freePeriod.style.display = 'block';
+        ticketPeriod.style.display = 'none';
+        periodDivider.style.display = 'none';
+    } else {
+        freePeriod.style.display = 'none';
+        ticketPeriod.style.display = 'block';
+        periodDivider.style.display = 'none';
+    }
+
+    registrationPeriodCard.style.display = 'block';
 }
 
 // Display event schedule
@@ -862,6 +890,14 @@ function confirmJoinEvent() {
 function registerForEvent() {
     if (!currentEvent) {
         alert('Event data not available');
+        return;
+    }
+
+    const registrationState = getRegistrationWindowState(currentEvent);
+    if (!registrationState.isOpen) {
+        alert(registrationState.isBeforeStart
+            ? 'Registration has not opened yet for this event.'
+            : 'Registration period has ended for this event.');
         return;
     }
 
@@ -1229,6 +1265,75 @@ function getTicketTypes(event) {
     return Array.isArray(ticketTypes) ? ticketTypes : [];
 }
 
+function parseRegistrationDateTime(dateValue, timeValue) {
+    if (!dateValue) {
+        return null;
+    }
+
+    const normalizedTime = timeValue ? String(timeValue).trim() : '00:00';
+    if (/Z$|[+-]\d{2}:?\d{2}$/.test(normalizedTime)) {
+        const parsedWithZone = new Date(`${dateValue}T${normalizedTime}`);
+        return Number.isNaN(parsedWithZone.getTime()) ? null : parsedWithZone;
+    }
+
+    const dateParts = String(dateValue).split('-').map(part => parseInt(part, 10));
+    if (dateParts.length !== 3 || dateParts.some(Number.isNaN)) {
+        return null;
+    }
+
+    const timeParts = normalizedTime.split(':').map(part => parseInt(part, 10));
+    const hours = Number.isFinite(timeParts[0]) ? timeParts[0] : 0;
+    const minutes = Number.isFinite(timeParts[1]) ? timeParts[1] : 0;
+    const seconds = Number.isFinite(timeParts[2]) ? timeParts[2] : 0;
+
+    const parsedDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], hours, minutes, seconds, 0);
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+}
+
+function getRegistrationWindowState(event) {
+    const start = parseRegistrationDateTime(event?.registration_start_date, event?.registration_start_time);
+    const end = parseRegistrationDateTime(event?.registration_end_date, event?.registration_end_time);
+    const now = new Date();
+    const hasWindow = Boolean(start || end);
+    const isBeforeStart = Boolean(start && now < start);
+    const isAfterEnd = Boolean(end && now > end);
+    const isOpen = !hasWindow || (!isBeforeStart && !isAfterEnd);
+
+    return {
+        hasWindow,
+        start,
+        end,
+        isBeforeStart,
+        isAfterEnd,
+        isOpen,
+    };
+}
+
+function formatRegistrationDateTime(dateValue, timeValue) {
+    if (!dateValue) {
+        return 'Not set';
+    }
+
+    const dateLabel = formatDate(dateValue);
+    return timeValue ? `${dateLabel} at ${timeValue}` : dateLabel;
+}
+
+function getRegistrationStatusMarkup(registrationState) {
+    if (!registrationState?.hasWindow) {
+        return '';
+    }
+
+    if (registrationState.isBeforeStart) {
+        return '<span style="display:inline-flex; align-items:center; gap:0.45rem; padding:0.55rem 0.9rem; border-radius:999px; background:#fef3c7; color:#92400e; font-weight:700;"><i class="fas fa-clock"></i> Registration not open yet</span>';
+    }
+
+    if (registrationState.isAfterEnd) {
+        return '<span style="display:inline-flex; align-items:center; gap:0.45rem; padding:0.55rem 0.9rem; border-radius:999px; background:#fef2f2; color:#b91c1c; font-weight:700;"><i class="fas fa-calendar-times"></i> Registration closed</span>';
+    }
+
+    return '<span style="display:inline-flex; align-items:center; gap:0.45rem; padding:0.55rem 0.9rem; border-radius:999px; background:#ecfdf5; color:#166534; font-weight:700;"><i class="fas fa-circle-check"></i> Registration open</span>';
+}
+
 function renderTicketAvailabilitySummary(event) {
     const summaryElement = document.getElementById('ticketAvailabilitySummary');
     if (!summaryElement) {
@@ -1239,16 +1344,20 @@ function renderTicketAvailabilitySummary(event) {
     const capacityLimit = getRegistrationCapacityLimit(event);
     const availableSpots = getAvailableRegistrationSpots(event);
     const ticketTypes = getTicketTypes(event);
+    const registrationState = getRegistrationWindowState(event);
 
     let summaryHTML = '';
+    const registrationStatusHTML = registrationState.hasWindow
+        ? `<div style="margin-bottom:0.75rem;">${getRegistrationStatusMarkup(registrationState)}</div>`
+        : '';
 
     if (ticketType === 'free-all') {
         if (availableSpots === null) {
-            summaryHTML = '<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#ecfdf5; color:#166534; font-weight:600;">Unlimited registrations available</div>';
+            summaryHTML = `${registrationStatusHTML}<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#ecfdf5; color:#166534; font-weight:600;">Unlimited registrations available</div>`;
         } else if (availableSpots <= 0) {
-            summaryHTML = '<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#fef2f2; color:#b91c1c; font-weight:600;">Registration full</div>';
+            summaryHTML = `${registrationStatusHTML}<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#fef2f2; color:#b91c1c; font-weight:600;">Registration full</div>`;
         } else {
-            summaryHTML = `<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:600;">${availableSpots} registration spot${availableSpots === 1 ? '' : 's'} left</div>`;
+            summaryHTML = `${registrationStatusHTML}<div style="display:inline-flex; align-items:center; gap:0.5rem; padding:0.55rem 0.9rem; border-radius:999px; background:#eff6ff; color:#1d4ed8; font-weight:600;">${availableSpots} registration spot${availableSpots === 1 ? '' : 's'} left</div>`;
         }
     } else if (ticketTypes.length > 0) {
         const availabilityRows = ticketTypes.map(ticket => {
@@ -1264,7 +1373,7 @@ function renderTicketAvailabilitySummary(event) {
             </div>`;
         }).join('');
 
-        summaryHTML = `<div style="border:1px solid rgba(148,163,184,0.2); background:#f8fafc; border-radius:16px; padding:1rem 1.15rem; margin-top:0.85rem;">
+        summaryHTML = `${registrationStatusHTML}<div style="border:1px solid rgba(148,163,184,0.2); background:#f8fafc; border-radius:16px; padding:1rem 1.15rem; margin-top:0.85rem;">
             <div style="display:flex; justify-content:space-between; gap:1rem; align-items:center; margin-bottom:0.65rem;">
                 <strong style="color:#0f172a;">Ticket Availability</strong>
                 ${capacityLimit !== null ? `<span style="color:#64748b; font-size:0.85rem;">${Math.max(0, capacityLimit - Number(event?.current_participants || 0))} total seats remaining</span>` : ''}
@@ -1304,8 +1413,33 @@ function updateTicketActionButtonState(sectionElement, hasAvailableTickets) {
     }
 }
 
+function updateRegistrationSectionLockState(event) {
+    const registrationSectionHeader = document.getElementById('registrationSectionHeader');
+    const ticketingSectionWrapper = document.getElementById('ticketingSectionWrapper');
+
+    if (!registrationSectionHeader || !ticketingSectionWrapper) {
+        return;
+    }
+
+    const registrationState = getRegistrationWindowState(event);
+
+    if (!registrationState.hasWindow || registrationState.isOpen) {
+        registrationSectionHeader.style.opacity = '';
+        ticketingSectionWrapper.style.opacity = '';
+        ticketingSectionWrapper.style.pointerEvents = '';
+        ticketingSectionWrapper.setAttribute('aria-disabled', 'false');
+        return;
+    }
+
+    registrationSectionHeader.style.opacity = '0.72';
+    ticketingSectionWrapper.style.opacity = '0.72';
+    ticketingSectionWrapper.style.pointerEvents = 'none';
+    ticketingSectionWrapper.setAttribute('aria-disabled', 'true');
+}
+
 function displayTicketDetails(event) {
     renderTicketAvailabilitySummary(event);
+    updateRegistrationSectionLockState(event);
 
     const ticketType = event.ticket_type || 'free-all';
 
@@ -1346,6 +1480,8 @@ function renderFreeRegistration(event) {
         return;
     }
 
+    updateRegistrationSectionLockState(event);
+
     const freeSection = document.getElementById('freeRegistrationSection');
     if (!freeSection) {
         console.error('freeRegistrationSection element not found');
@@ -1355,6 +1491,7 @@ function renderFreeRegistration(event) {
     console.log('Rendering free registration for event:', event.title);
 
     const availableSpots = getAvailableRegistrationSpots(event);
+    const registrationState = getRegistrationWindowState(event);
     const freeSubtitle = document.getElementById('freeEntrySubtitle');
     const freeButton = freeSection.querySelector('.btn-register-modern');
 
@@ -1362,7 +1499,24 @@ function renderFreeRegistration(event) {
         freeButton.dataset.defaultHtml = freeButton.innerHTML;
     }
 
-    if (availableSpots !== null && availableSpots <= 0) {
+    if (!registrationState.isOpen) {
+        if (freeSubtitle) {
+            freeSubtitle.textContent = registrationState.isBeforeStart
+                ? 'Registration has not opened yet.'
+                : 'Registration period has ended.';
+        }
+        if (freeButton) {
+            freeButton.disabled = true;
+            freeButton.innerHTML = registrationState.isBeforeStart
+                ? '<i class="fas fa-clock"></i> Registration Opens Soon'
+                : '<i class="fas fa-calendar-times"></i> Registration Closed';
+            freeButton.style.opacity = '0.6';
+            freeButton.style.cursor = 'not-allowed';
+            freeButton.title = registrationState.isBeforeStart
+                ? 'Registration has not opened yet'
+                : 'Registration period has ended';
+        }
+    } else if (availableSpots !== null && availableSpots <= 0) {
         if (freeSubtitle) {
             freeSubtitle.textContent = 'Registration limit reached for this event.';
         }
@@ -1371,6 +1525,7 @@ function renderFreeRegistration(event) {
             freeButton.innerHTML = '<i class="fas fa-users"></i> Registration Full';
             freeButton.style.opacity = '0.6';
             freeButton.style.cursor = 'not-allowed';
+            freeButton.title = 'Registration limit reached';
         }
     } else {
         if (freeSubtitle) {
@@ -1383,6 +1538,7 @@ function renderFreeRegistration(event) {
             freeButton.innerHTML = freeButton.dataset.defaultHtml || '<i class="fas fa-user-plus"></i> Register for Free';
             freeButton.style.opacity = '';
             freeButton.style.cursor = '';
+            freeButton.title = '';
         }
     }
 
@@ -1403,8 +1559,10 @@ function renderPaidTickets(event) {
         return;
     }
 
+    const registrationState = getRegistrationWindowState(event);
+    const registrationLocked = !registrationState.isOpen;
     const hasAvailableTickets = ticketTypes.some(t => Number(t.quantity) > 0);
-    updateTicketActionButtonState(paidSection, hasAvailableTickets);
+    updateTicketActionButtonState(paidSection, hasAvailableTickets && !registrationLocked);
 
     // Render ticket options
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
@@ -1414,7 +1572,7 @@ function renderPaidTickets(event) {
         const isSoldOut = availablequantity <= 0;
         const originalPrice = Number(ticket.price) || 0;
         const discountedPrice = Number(ticket.discounted_price) || 0;
-        const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+        const hasDiscount = shouldApplyTicketDiscount(event, ticket);
         const payablePrice = hasDiscount ? discountedPrice : originalPrice;
         const discountPercent = Number(ticket.discount_percent) || 0;
         const priceHTML = hasDiscount
@@ -1455,7 +1613,7 @@ function renderPaidTickets(event) {
                            max="${availablequantity}" 
                            value="0" 
                            class="quantity-input"
-                           ${isSoldOut ? 'disabled' : ''}
+                           ${isSoldOut || registrationLocked ? 'disabled' : ''}
                            style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
                 </div>
             </div>
@@ -1469,6 +1627,18 @@ function renderPaidTickets(event) {
     paidSection.style.display = 'block';
 
     setupTicketQuantityListeners();
+
+    if (registrationLocked) {
+        const actionButton = paidSection.querySelector('.btn-buy-tickets-modern');
+        if (actionButton) {
+            actionButton.disabled = true;
+            actionButton.innerHTML = registrationState.isBeforeStart
+                ? '<i class="fas fa-clock"></i> Registration Opens Soon'
+                : '<i class="fas fa-calendar-times"></i> Registration Closed';
+            actionButton.style.opacity = '0.6';
+            actionButton.style.cursor = 'not-allowed';
+        }
+    }
 }
 
 function renderMixedTickets(event) {
@@ -1489,8 +1659,10 @@ function renderMixedTickets(event) {
         return;
     }
 
+    const registrationState = getRegistrationWindowState(event);
+    const registrationLocked = !registrationState.isOpen;
     const hasAvailableTickets = ticketTypes.some(t => Number(t.quantity) > 0);
-    updateTicketActionButtonState(mixedSection, hasAvailableTickets);
+    updateTicketActionButtonState(mixedSection, hasAvailableTickets && !registrationLocked);
 
     let ticketsHTML = '<div class="tickets-list" style="display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0;">';
 
@@ -1499,7 +1671,7 @@ function renderMixedTickets(event) {
         const isSoldOut = availablequantity <= 0;
         const originalPrice = Number(ticket.price) || 0;
         const discountedPrice = Number(ticket.discounted_price) || 0;
-        const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+        const hasDiscount = shouldApplyTicketDiscount(event, ticket);
         const payablePrice = hasDiscount ? discountedPrice : originalPrice;
         const discountPercent = Number(ticket.discount_percent) || 0;
         const priceHTML = hasDiscount
@@ -1540,7 +1712,7 @@ function renderMixedTickets(event) {
                            max="${availablequantity}" 
                            value="0" 
                            class="quantity-input"
-                           ${isSoldOut ? 'disabled' : ''}
+                           ${isSoldOut || registrationLocked ? 'disabled' : ''}
                            style="width: 80px; padding: 0.5rem; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 1rem; text-align: center;">
                 </div>
             </div>
@@ -1562,6 +1734,18 @@ function renderMixedTickets(event) {
     }
 
     setupTicketQuantityListeners();
+
+    if (registrationLocked) {
+        const actionButton = mixedSection.querySelector('.btn-buy-tickets-modern');
+        if (actionButton) {
+            actionButton.disabled = true;
+            actionButton.innerHTML = registrationState.isBeforeStart
+                ? '<i class="fas fa-clock"></i> Registration Opens Soon'
+                : '<i class="fas fa-calendar-times"></i> Registration Closed';
+            actionButton.style.opacity = '0.6';
+            actionButton.style.cursor = 'not-allowed';
+        }
+    }
 }
 
 function renderMixedAsFreeForUniversityUser(event) {
@@ -1580,11 +1764,23 @@ function renderMixedAsFreeForUniversityUser(event) {
     if (freeHeader) {
         freeHeader.textContent = 'Free for University Students';
     }
+    const registrationState = getRegistrationWindowState(event);
     if (freeSubtitle) {
-        freeSubtitle.textContent = 'You can register for free. Paid tickets are for public users only.';
+        freeSubtitle.textContent = registrationState.isOpen
+            ? 'You can register for free. Paid tickets are for public users only.'
+            : registrationState.isBeforeStart
+                ? 'Registration has not opened yet.'
+                : 'Registration period has ended.';
     }
     if (freeBtn) {
-        freeBtn.innerHTML = '<i class="fas fa-user-plus"></i> Register for Free';
+        freeBtn.disabled = !registrationState.isOpen;
+        freeBtn.innerHTML = registrationState.isOpen
+            ? '<i class="fas fa-user-plus"></i> Register for Free'
+            : registrationState.isBeforeStart
+                ? '<i class="fas fa-clock"></i> Registration Opens Soon'
+                : '<i class="fas fa-calendar-times"></i> Registration Closed';
+        freeBtn.style.opacity = registrationState.isOpen ? '' : '0.6';
+        freeBtn.style.cursor = registrationState.isOpen ? '' : 'not-allowed';
     }
 
     freeSection.style.display = 'block';
@@ -1626,18 +1822,23 @@ function updateTotalPrice() {
     }
 
     // Update button state based on total quantity
-    const buyButton = document.querySelector('.btn-buy-tickets');
+    const registrationState = getRegistrationWindowState(currentEvent);
+    const buyButton = document.querySelector('.btn-buy-tickets-modern') || document.querySelector('.btn-buy-tickets');
     if (buyButton) {
-        if (totalQuantity === 0) {
+        if (!registrationState.isOpen) {
             buyButton.disabled = true;
             buyButton.style.opacity = '0.6';
             buyButton.style.cursor = 'not-allowed';
-            buyButton.title = 'Please select at least one ticket';
+            buyButton.title = registrationState.isBeforeStart
+                ? 'Registration has not opened yet'
+                : 'Registration period has ended';
         } else {
             buyButton.disabled = false;
             buyButton.style.opacity = '1';
             buyButton.style.cursor = 'pointer';
-            buyButton.title = '';
+            buyButton.title = totalQuantity === 0
+                ? 'Select at least one ticket to continue'
+                : '';
         }
     }
 }
@@ -1659,6 +1860,14 @@ function buyTickets() {
     if (allTickets.length === 0) {
         console.error('No ticket options found in the page');
         alert('No tickets available. Please refresh the page.');
+        return;
+    }
+
+    const registrationState = getRegistrationWindowState(currentEvent);
+    if (!registrationState.isOpen) {
+        alert(registrationState.isBeforeStart
+            ? 'Registration has not opened yet for this event.'
+            : 'Registration period has ended for this event.');
         return;
     }
 
