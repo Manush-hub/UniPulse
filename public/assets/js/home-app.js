@@ -682,6 +682,13 @@ document.addEventListener('click', function(e) {
     // Handle event cards
     if (e.target.classList.contains('btn-outline')) {
         e.preventDefault();
+
+        const isLoggedIn = Boolean(window.homePageAuth && window.homePageAuth.isLoggedIn);
+        if (!isLoggedIn) {
+            window.location.href = '/unipulse/public/signin';
+            return;
+        }
+
         const eventCard = e.target.closest('.event-card');
         const eventTitle = eventCard.querySelector('h3').textContent;
         console.log(`View details for: ${eventTitle}`);
@@ -693,6 +700,12 @@ document.addEventListener('click', function(e) {
 
 // Show event details (placeholder function)
 function showEventDetails(eventTitle) {
+    const isLoggedIn = Boolean(window.homePageAuth && window.homePageAuth.isLoggedIn);
+    if (!isLoggedIn) {
+        window.location.href = '/unipulse/public/signin';
+        return;
+    }
+
     // Create a simple modal or redirect to event page
     alert(`Showing details for: ${eventTitle}\n\nThis would normally open a detailed event page or modal.`);
     

@@ -313,6 +313,9 @@
     <script>
         // Convert PHP boosted events data to JavaScript
         const boostedEventsFromDB = <?php echo json_encode($boosted_events ?? []); ?>;
+        window.homePageAuth = {
+            isLoggedIn: <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>
+        };
     </script>
     <script src="/unipulse/public/assets/js/home-app.js"></script>
 </body>
