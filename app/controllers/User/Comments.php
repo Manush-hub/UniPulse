@@ -7,11 +7,17 @@ class UserComments extends Controller
 
     private $commentModel;
     private $eventModel;
+    private $registrationModel;
+    private $freeRegistrationModel;
+    private $paidRegistrationModel;
 
     public function __construct()
     {
         $this->commentModel = new Comment();
         $this->eventModel = new Event();
+        $this->registrationModel = new EventRegistration();
+        $this->freeRegistrationModel = new FreeEventRegistration();
+        $this->paidRegistrationModel = new PaidEventRegistration();
     }
 
     /**
@@ -130,8 +136,32 @@ class UserComments extends Controller
 
         try {
             // Prepare comment data
+            $eventId = $input['event_id'] ?? null;
+            if (!$eventId || !is_numeric($eventId)) {
+                echo json_encode(['success' => false, 'error' => 'Invalid event ID']);
+                return;
+            }
+
+            $event = $this->eventModel->getEventById($eventId);
+            if (!$event || !$this->isCompletedEvent($event)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Comments are allowed only for completed events'
+                ]);
+                return;
+            }
+
+            $restrictionMessage = '';
+            if (!$this->canUserCommentOnCompletedEvent($eventId, $currentUser['id'], $currentUser['type'], $restrictionMessage)) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => $restrictionMessage ?: 'Comments are open only for users who registered for this event.'
+                ]);
+                return;
+            }
+
             $commentData = [
-                'event_id' => $input['event_id'] ?? null,
+                'event_id' => $eventId,
                 'user_id' => $currentUser['id'],
                 'user_type' => $currentUser['type'],
                 'comment_text' => $input['comment_text'] ?? '',
@@ -379,7 +409,19 @@ class UserComments extends Controller
                     'has_commented' => false,
                     'can_comment' => false,
                     'debug' => 'event_not_completed',
+                    'message' => 'Comments are available only after an event is completed.',
                     'event_status' => $event ? $event->status : 'not_found'
+                ]);
+                return;
+            }
+
+            $restrictionMessage = '';
+            if (!$this->canUserCommentOnCompletedEvent($eventId, $currentUser['id'], $currentUser['type'], $restrictionMessage)) {
+                echo json_encode([
+                    'has_commented' => false,
+                    'can_comment' => false,
+                    'debug' => 'registration_required',
+                    'message' => $restrictionMessage ?: 'Comments are open only for users who registered for this event.'
                 ]);
                 return;
             }
@@ -397,6 +439,7 @@ class UserComments extends Controller
                 'has_commented' => $hasCommented,
                 'can_comment' => true,
                 'debug' => 'success',
+                'message' => null,
                 'user_id' => $currentUser['id'],
                 'user_type' => $currentUser['type']
             ]);
@@ -404,6 +447,124 @@ class UserComments extends Controller
             error_log("Error checking user comment: " . $e->getMessage());
             echo json_encode(['has_commented' => false, 'can_comment' => false]);
         }
+    }
+
+    private function canUserCommentOnCompletedEvent($eventId, $userId, $userType, &$restrictionMessage = null)
+    {
+        $normalizedUserType = $this->normalizeUserType($userType);
+
+        if ($this->hasActiveLegacyRegistration($eventId, $userId, $normalizedUserType)) {
+            return true;
+        }
+
+        if ($this->hasActiveFreeRegistration($eventId, $userId, $normalizedUserType)) {
+            return true;
+        }
+
+        if ($this->hasActivePaidRegistration($eventId, $userId, $normalizedUserType)) {
+            return true;
+        }
+
+        $restrictionMessage = 'Comments are open only for users who registered and participated in this completed event.';
+        return false;
+    }
+
+    private function hasActiveLegacyRegistration($eventId, $userId, $userType)
+    {
+        try {
+            $query = "
+                SELECT id
+                FROM event_registrations
+                WHERE event_id = :event_id
+                  AND user_id = :user_id
+                  AND user_type = :user_type
+                  AND (status IS NULL OR status NOT IN ('cancelled', 'waitlisted', 'no_show'))
+                LIMIT 1
+            ";
+
+            $stmt = $this->connect()->prepare($query);
+            $stmt->execute([
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+
+            return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Legacy registration check failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function hasActiveFreeRegistration($eventId, $userId, $userType)
+    {
+        try {
+            $query = "
+                SELECT id
+                FROM free_event_registrations
+                WHERE event_id = :event_id
+                  AND registered_user_id = :user_id
+                  AND registered_user_type = :user_type
+                  AND status IN ('registered', 'checked_in')
+                LIMIT 1
+            ";
+
+            $stmt = $this->connect()->prepare($query);
+            $stmt->execute([
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+
+            return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Free registration check failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function hasActivePaidRegistration($eventId, $userId, $userType)
+    {
+        try {
+            $query = "
+                SELECT id
+                FROM paid_event_registrations
+                WHERE event_id = :event_id
+                  AND registered_user_id = :user_id
+                  AND registered_user_type = :user_type
+                  AND registration_status IN ('reserved', 'confirmed', 'checked_in')
+                  AND payment_status IN ('paid', 'partially_refunded', 'refunded')
+                LIMIT 1
+            ";
+
+            $stmt = $this->connect()->prepare($query);
+            $stmt->execute([
+                'event_id' => $eventId,
+                'user_id' => $userId,
+                'user_type' => $userType
+            ]);
+
+            return (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Paid registration check failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function normalizeUserType($userType)
+    {
+        $normalized = strtolower(trim((string)$userType));
+
+        $map = [
+            'user' => 'public',
+            'public_user' => 'public',
+            'publicuser' => 'public',
+            'student' => 'university',
+            'university_user' => 'university',
+            'universityuser' => 'university'
+        ];
+
+        return $map[$normalized] ?? $normalized;
     }
 
     /**

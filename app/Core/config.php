@@ -33,7 +33,7 @@ if ($_SERVER['SERVER_NAME'] == 'localhost') {
 define('APP_NAME', "My website");
 define('APP_DESC', "MY WEBSITES");
 
-define('DEBUG', true);
+define('DEBUG', false); // Set to true for development, false for production
 
 // SMTP configuration (for password reset emails)
 define('SMTP_HOST', 'smtp.gmail.com');

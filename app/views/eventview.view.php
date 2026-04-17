@@ -398,15 +398,15 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
 
                     <div class="details-grid" id="volunteerDonationGrid" style="display: none;">
                         <?php if ($currentRole === 'User'): ?>
-                        <div class="content-card" id="volunteerCard" style="display: none;">
-                            <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
-                            <div id="volunteerInfo"></div>
-                        </div>
+                            <div class="content-card" id="volunteerCard" style="display: none;">
+                                <h3><i class="fas fa-hands-helping"></i> Volunteer Opportunities</h3>
+                                <div id="volunteerInfo"></div>
+                            </div>
 
-                        <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
-                            <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
-                            <div id="volunteerInvolvementInfo"></div>
-                        </div>
+                            <div class="content-card" id="volunteerInvolvementCard" style="display: none;">
+                                <h3><i class="fas fa-heart"></i> Your Volunteer Involvement</h3>
+                                <div id="volunteerInvolvementInfo"></div>
+                            </div>
                         <?php endif; ?>
 
                         <div class="content-card" id="donationCard" style="display: none;">
@@ -575,6 +575,14 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
                         <h4>Sign in to leave a comment</h4>
                         <p>You need an account to share your feedback on this event.</p>
                         <a href="/unipulse/public/signin" class="btn btn-primary">Sign In</a>
+                    </div>
+                </div>
+
+                <div class="login-prompt" id="commentEligibilityPrompt" style="display: none;">
+                    <div class="prompt-content">
+                        <i class="fas fa-user-check"></i>
+                        <h4>Comments are for registered participants only</h4>
+                        <p id="commentEligibilityMessage">Comments are open only for users who registered and participated in this completed event.</p>
                     </div>
                 </div>
 

@@ -1192,6 +1192,22 @@ function displayTicketDetails(event) {
                 const sold = totalCapacity - available;
                 const soldPercentage = totalCapacity > 0 ? ((sold / totalCapacity) * 100).toFixed(1) : '0.0';
                 const availablePercentage = totalCapacity > 0 ? ((available / totalCapacity) * 100).toFixed(1) : '100.0';
+                const originalPrice = Number(ticket.price) || 0;
+                const discountedPrice = Number(ticket.discounted_price) || 0;
+                const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+                const discountPercent = Number(ticket.discount_percent) || 0;
+                const priceBlock = hasDiscount
+                    ? `
+                        <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-end;">
+                            <div style="display:inline-flex; align-items:center; gap:0.45rem; flex-wrap:wrap; justify-content:flex-end;">
+                                <span style="font-size:15px; color:#94a3b8; text-decoration:line-through; font-weight:600;">LKR ${originalPrice.toFixed(2)}</span>
+                                <span style="padding:3px 10px; background:#dcfce7; color:#166534; font-size:12px; font-weight:700; border-radius:999px;">${discountPercent > 0 ? `${discountPercent}% OFF` : 'DISCOUNT'}</span>
+                            </div>
+                            <span style="font-size:26px; font-weight:800; color:#16a34a; white-space:nowrap; letter-spacing:0.5px;">LKR ${discountedPrice.toFixed(2)}</span>
+                            <span style="font-size:12px; color:#64748b;">Discount price shown for eligible users</span>
+                        </div>
+                    `
+                    : `<span style="font-size:26px; font-weight:800; color:#3b82f6; white-space:nowrap; letter-spacing:0.5px;">LKR ${originalPrice.toFixed(2)}</span>`;
 
                 // Determine progress bar color based on availability
                 let progressColor, progressBg, statusText;
@@ -1241,12 +1257,7 @@ function displayTicketDetails(event) {
                                 </div>
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-                                <span style="font-size: 26px; font-weight: 800; color: #3b82f6; white-space: nowrap; letter-spacing: 0.5px;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
-                                <div class="quantity-selector" style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
-                                    <button type="button" class="quantity-btn" onclick="updateTicketQuantity(${index}, -1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">-</button>
-                                    <input type="number" id="ticket-quantity-${index}" value="0" min="0" max="${ticket.quantity}" style="width: 60px; text-align: center; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; height: 36px; font-weight: 600;" onchange="validateTicketQuantity(${index})" />
-                                    <button type="button" class="quantity-btn" onclick="updateTicketQuantity(${index}, 1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">+</button>
-                                </div>
+                                ${priceBlock}
                             </div>
                         </div>
                     </div>
@@ -1563,6 +1574,22 @@ function displayMixedPublicTickets(event) {
                 const sold = totalCapacity - available;
                 const soldPercentage = totalCapacity > 0 ? ((sold / totalCapacity) * 100).toFixed(1) : '0.0';
                 const availablePercentage = totalCapacity > 0 ? ((available / totalCapacity) * 100).toFixed(1) : '100.0';
+                const originalPrice = Number(ticket.price) || 0;
+                const discountedPrice = Number(ticket.discounted_price) || 0;
+                const hasDiscount = discountedPrice > 0 && discountedPrice < originalPrice;
+                const discountPercent = Number(ticket.discount_percent) || 0;
+                const priceBlock = hasDiscount
+                    ? `
+                        <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-end;">
+                            <div style="display:inline-flex; align-items:center; gap:0.45rem; flex-wrap:wrap; justify-content:flex-end;">
+                                <span style="font-size:15px; color:#94a3b8; text-decoration:line-through; font-weight:600;">LKR ${originalPrice.toFixed(2)}</span>
+                                <span style="padding:3px 10px; background:#dcfce7; color:#166534; font-size:12px; font-weight:700; border-radius:999px;">${discountPercent > 0 ? `${discountPercent}% OFF` : 'DISCOUNT'}</span>
+                            </div>
+                            <span style="font-size:26px; font-weight:800; color:#16a34a; white-space:nowrap; letter-spacing:0.5px;">LKR ${discountedPrice.toFixed(2)}</span>
+                            <span style="font-size:12px; color:#64748b;">Discount price shown for eligible users</span>
+                        </div>
+                    `
+                    : `<span style="font-size:26px; font-weight:800; color:#3b82f6; white-space:nowrap; letter-spacing:0.5px;">LKR ${originalPrice.toFixed(2)}</span>`;
 
                 // Determine progress bar color based on availability
                 let progressColor, progressBg, statusText;
@@ -1612,12 +1639,7 @@ function displayMixedPublicTickets(event) {
                                 </div>
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-                                <span style="font-size: 26px; font-weight: 800; color: #3b82f6; white-space: nowrap; letter-spacing: 0.5px;">LKR ${parseFloat(ticket.price).toFixed(2)}</span>
-                                <div class="quantity-selector" style="display: flex; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
-                                    <button type="button" class="quantity-btn" onclick="updateMixedTicketQuantity(${index}, -1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">-</button>
-                                    <input type="number" id="mixed-ticket-quantity-${index}" value="0" min="0" max="${ticket.quantity}" style="width: 60px; text-align: center; padding: 8px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 16px; height: 36px; font-weight: 600;" onchange="validateMixedTicketQuantity(${index})" />
-                                    <button type="button" class="quantity-btn" onclick="updateMixedTicketQuantity(${index}, 1)" style="width: 36px; height: 36px; border: 2px solid #d1d5db; background: white; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; padding: 0; font-weight: 600;">+</button>
-                                </div>
+                                ${priceBlock}
                             </div>
                         </div>
                     </div>
