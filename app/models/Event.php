@@ -1005,6 +1005,9 @@ class Event
                 'reason' => $reason
             ]);
 
+            // Best effort: notify impacted participants/sponsors with hide reason.
+            $this->notifyStakeholdersOfHiddenEvent($eventId, $reason);
+
             return ['success' => true, 'message' => 'Event hidden successfully'];
         } catch (Exception $e) {
             error_log("Database error in Event::hideEvent: " . $e->getMessage());
@@ -1177,6 +1180,9 @@ class Event
             if ($result) {
                 // Notify publisher about the deletion
                 $this->notifyPublisherOfDeletion($eventId, $moderatorId, $reason);
+
+                // Notify impacted participants/sponsors to contact publisher for details.
+                $this->notifyStakeholdersOfHiddenEvent($eventId, $reason);
                 error_log("softDelete successful for event_id: $eventId");
                 return true;
             }
@@ -1428,6 +1434,285 @@ class Event
             error_log("notifyPublisherOfDeletion error: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Notify affected participants/sponsors when an event is hidden.
+     */
+    private function notifyStakeholdersOfHiddenEvent($eventId, $reason = '')
+    {
+        try {
+            $event = $this->getEventWithPublisher($eventId);
+            if (!$event) {
+                return false;
+            }
+
+            $allowedRecipientTypes = $this->ensureStakeholderNotificationRecipientTypes();
+
+            $eventTitle = trim((string)($event->title ?? 'Untitled Event'));
+            if ($eventTitle === '') {
+                $eventTitle = 'Untitled Event';
+            }
+
+            $cleanReason = trim((string)$reason);
+            if ($cleanReason === '') {
+                $cleanReason = 'No reason was provided by the moderator/admin.';
+            }
+
+            $message = "The event '{$eventTitle}' has been hidden. Reason: {$cleanReason}. Please contact the publisher for further details.";
+            $notificationType = $this->resolveNotificationType('event_hidden');
+            $notificationModel = new Notification();
+
+            $recipientMap = [];
+
+            // Free event registrations (exclude cancelled)
+            $freeRows = $this->safeStakeholderRecipientQuery(
+                'free_event_registrations',
+                "SELECT DISTINCT registered_user_id AS recipient_id, registered_user_type AS recipient_type
+                 FROM free_event_registrations
+                 WHERE event_id = :event_id
+                   AND status IN ('registered', 'waitlisted', 'checked_in', 'no_show')",
+                ['event_id' => $eventId]
+            );
+                        $this->appendHiddenEventRecipients($recipientMap, $freeRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+            // Paid ticket purchases/registrations (exclude cancelled/unpaid/failed)
+            $paidRows = $this->safeStakeholderRecipientQuery(
+                'paid_event_registrations',
+                "SELECT DISTINCT registered_user_id AS recipient_id, registered_user_type AS recipient_type
+                 FROM paid_event_registrations
+                 WHERE event_id = :event_id
+                                     AND LOWER(COALESCE(registration_status, 'reserved')) IN ('reserved', 'confirmed', 'checked_in', 'no_show')
+                                     AND LOWER(COALESCE(payment_status, 'pending')) IN ('pending', 'paid', 'partially_refunded', 'refunded', 'completed')",
+                ['event_id' => $eventId]
+            );
+                        $this->appendHiddenEventRecipients($recipientMap, $paidRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+                        // Ticket-payment fallback for legacy flows where paid registrations were not synced.
+                        $paymentRows = $this->safeStakeholderRecipientQuery(
+                                'payments',
+                                "SELECT DISTINCT user_id AS recipient_id, user_type AS recipient_type
+                                 FROM payments
+                                 WHERE event_id = :event_id
+                                     AND LOWER(COALESCE(payment_type, 'ticket')) = 'ticket'
+                                     AND LOWER(COALESCE(status, 'completed')) IN ('completed', 'paid', 'success', 'successful')",
+                                ['event_id' => $eventId]
+                        );
+                        $this->appendHiddenEventRecipients($recipientMap, $paymentRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+                        // Legacy registrations fallback (older flows may store paid/free attendees here only)
+                        $legacyRegistrationRows = $this->safeStakeholderRecipientQuery(
+                                'event_registrations',
+                                "SELECT DISTINCT user_id AS recipient_id, user_type AS recipient_type
+                                 FROM event_registrations
+                                 WHERE event_id = :event_id
+                                     AND LOWER(COALESCE(status, 'registered')) <> 'cancelled'",
+                                ['event_id' => $eventId]
+                        );
+                        $this->appendHiddenEventRecipients($recipientMap, $legacyRegistrationRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+            // Donations related to this event
+            $donationRows = $this->safeStakeholderRecipientQuery(
+                'donations',
+                "SELECT DISTINCT user_id AS recipient_id, user_type AS recipient_type
+                 FROM donations
+                 WHERE event_id = :event_id
+                   AND status IN ('pending', 'accepted', 'completed')",
+                ['event_id' => $eventId]
+            );
+                        $this->appendHiddenEventRecipients($recipientMap, $donationRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+            // Volunteer applications (exclude withdrawn)
+            $volunteerRows = $this->safeStakeholderRecipientQuery(
+                'volunteer_registrations',
+                "SELECT DISTINCT user_id AS recipient_id, user_type AS recipient_type
+                 FROM volunteer_registrations
+                 WHERE event_id = :event_id
+                   AND status <> 'withdrawn'",
+                ['event_id' => $eventId]
+            );
+                        $this->appendHiddenEventRecipients($recipientMap, $volunteerRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+            // Sponsors who sponsored this event
+            $sponsorRows = $this->safeStakeholderRecipientQuery(
+                'event_sponsorships',
+                "SELECT DISTINCT
+                        es.sponsor_id AS recipient_id,
+                        CASE
+                            WHEN LOWER(COALESCE(es.sponsor_type, '')) IN ('sponsor', 'publisher')
+                                THEN LOWER(es.sponsor_type)
+                            WHEN s.id IS NOT NULL THEN 'sponsor'
+                            WHEN p.id IS NOT NULL THEN 'publisher'
+                            ELSE 'sponsor'
+                        END AS recipient_type
+                 FROM event_sponsorships
+                 es
+                 LEFT JOIN sponsors s ON s.id = es.sponsor_id
+                 LEFT JOIN publishers p ON p.id = es.sponsor_id
+                 WHERE es.event_id = :event_id
+                   AND es.sponsor_id IS NOT NULL
+                   AND es.sponsor_id > 0",
+                ['event_id' => $eventId]
+            );
+                        $this->appendHiddenEventRecipients($recipientMap, $sponsorRows, 'recipient_id', 'recipient_type', $allowedRecipientTypes);
+
+            if (empty($recipientMap)) {
+                return true;
+            }
+
+            $sentCount = 0;
+            foreach ($recipientMap as $recipient) {
+                $sent = $notificationModel->sendNotification([
+                    'recipient_id' => $recipient['id'],
+                    'recipient_type' => $recipient['type'],
+                    'type' => $notificationType,
+                    'title' => 'Event Hidden Notice',
+                    'message' => $message,
+                    'related_id' => (int)$eventId,
+                    'related_type' => 'event',
+                    'is_read' => 0
+                ]);
+
+                if ($sent) {
+                    $sentCount++;
+                } else {
+                    error_log('Hidden-event stakeholder notification failed for event ' . (int)$eventId . ' recipient ' . $recipient['type'] . ':' . $recipient['id']);
+                }
+            }
+
+            error_log('Hidden-event stakeholder notifications sent ' . $sentCount . '/' . count($recipientMap) . ' for event ' . (int)$eventId);
+
+            return true;
+        } catch (Exception $e) {
+            // Notification failures should never stop hide operations.
+            error_log('notifyStakeholdersOfHiddenEvent warning: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Add unique, valid recipients to notification map.
+     */
+    private function appendHiddenEventRecipients(array &$recipientMap, $rows, $idField, $typeField, array $allowedTypes = [])
+    {
+        if (empty($rows) || !is_array($rows)) {
+            return;
+        }
+
+        if (empty($allowedTypes)) {
+            $allowedTypes = ['public', 'university', 'publisher', 'sponsor'];
+        }
+
+        foreach ($rows as $row) {
+            $id = (int)($row->{$idField} ?? 0);
+            $type = $this->normalizeStakeholderRecipientType((string)($row->{$typeField} ?? ''));
+
+            if ($id <= 0 || !in_array($type, $allowedTypes, true)) {
+                continue;
+            }
+
+            $key = $type . ':' . $id;
+            $recipientMap[$key] = [
+                'id' => $id,
+                'type' => $type
+            ];
+        }
+    }
+
+    /**
+     * Normalize recipient types from legacy tables to notifications.recipient_type values.
+     */
+    private function normalizeStakeholderRecipientType($rawType)
+    {
+        $type = strtolower(trim((string)$rawType));
+
+        $map = [
+            'user' => 'public',
+            'public_user' => 'public',
+            'publicuser' => 'public',
+            'university_user' => 'university',
+            'uni' => 'university',
+            'student' => 'university',
+            'org' => 'publisher',
+            'organizer' => 'publisher',
+            'organisation' => 'publisher',
+            'organization' => 'publisher',
+            'company' => 'sponsor'
+        ];
+
+        return $map[$type] ?? $type;
+    }
+
+    /**
+     * Execute stakeholder recipient query without breaking hide flow on optional-schema errors.
+     */
+    private function safeStakeholderRecipientQuery($tableName, $query, array $params = [])
+    {
+        try {
+            $tableCheck = $this->query('SHOW TABLES LIKE :table_name', ['table_name' => $tableName]);
+            if (empty($tableCheck)) {
+                return [];
+            }
+
+            $rows = $this->query($query, $params);
+            return is_array($rows) ? $rows : [];
+        } catch (Exception $e) {
+            error_log('safeStakeholderRecipientQuery warning for ' . $tableName . ': ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Ensure notifications.recipient_type supports stakeholder user roles.
+     * Returns allowed recipient types currently in DB enum.
+     */
+    private function ensureStakeholderNotificationRecipientTypes()
+    {
+        $required = ['public', 'university', 'publisher', 'sponsor'];
+
+        try {
+            $columns = $this->query("SHOW COLUMNS FROM notifications WHERE Field = 'recipient_type'");
+            if (!$columns || !isset($columns[0]->Type)) {
+                return $required;
+            }
+
+            $current = $this->extractEnumValues((string)$columns[0]->Type);
+            if (empty($current)) {
+                return $required;
+            }
+
+            $missing = array_values(array_diff($required, $current));
+            if (!empty($missing)) {
+                $merged = array_values(array_unique(array_merge($current, $missing)));
+                $this->query("ALTER TABLE notifications MODIFY COLUMN recipient_type ENUM('" . implode("','", $merged) . "') NOT NULL");
+
+                // Re-read after migration attempt.
+                $columns = $this->query("SHOW COLUMNS FROM notifications WHERE Field = 'recipient_type'");
+                if ($columns && isset($columns[0]->Type)) {
+                    $current = $this->extractEnumValues((string)$columns[0]->Type);
+                }
+            }
+
+            return !empty($current) ? $current : $required;
+        } catch (Exception $e) {
+            error_log('ensureStakeholderNotificationRecipientTypes warning: ' . $e->getMessage());
+            return $required;
+        }
+    }
+
+    /**
+     * Parse enum SQL type definition into plain values.
+     */
+    private function extractEnumValues($typeDef)
+    {
+        $typeDef = trim((string)$typeDef);
+        if (!preg_match('/^enum\((.*)\)$/i', $typeDef, $matches)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(function ($item) {
+            return trim($item, "' \t\n\r\0\x0B");
+        }, explode(',', (string)$matches[1]))));
     }
 
     /**

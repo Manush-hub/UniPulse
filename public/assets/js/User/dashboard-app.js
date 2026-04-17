@@ -250,39 +250,41 @@ function displayUpcomingEvents(events) {
     const ticketsCarousel = document.getElementById('myTicketsCarousel');
     if (!carousel) return;
 
-    const upcomingEvents = Array.isArray(events)
-        ? events.filter(isFutureEvent)
-        : [];
-
-    if (upcomingEvents.length === 0) {
-        carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
-        if (ticketsCarousel) {
-            ticketsCarousel.innerHTML = '<div class="no-data">You have no tickets yet.</div>';
-        }
-        return;
-    }
+    const allEvents = Array.isArray(events) ? events : [];
+    const upcomingEvents = allEvents
+        .filter(isFutureEvent)
+        .filter(event => !Boolean(event.is_hidden_event));
 
     carousel.innerHTML = '';
     if (ticketsCarousel) ticketsCarousel.innerHTML = '';
 
     let hasTickets = false;
     let seenEventIds = new Set();
+    let seenTicketRefs = new Set();
 
-    events.forEach(event => {
-        // Add to Upcoming Events ONCE per event
+    upcomingEvents.forEach(event => {
         if (!seenEventIds.has(event.id)) {
             const eventCard = createUpcomingEventCard(event);
             carousel.appendChild(eventCard);
             seenEventIds.add(event.id);
         }
-
-        // Add to My Tickets if they have an order_number (bought ticket)
-        if (ticketsCarousel && event.order_number) {
-            const ticketCard = createTicketCard(event);
-            ticketsCarousel.appendChild(ticketCard);
-            hasTickets = true;
-        }
     });
+
+    allEvents.forEach(event => {
+        const orderRef = String(event.order_number || '').trim();
+        if (!ticketsCarousel || !orderRef || seenTicketRefs.has(orderRef)) {
+            return;
+        }
+
+        const ticketCard = createTicketCard(event);
+        ticketsCarousel.appendChild(ticketCard);
+        hasTickets = true;
+        seenTicketRefs.add(orderRef);
+    });
+
+    if (upcomingEvents.length === 0) {
+        carousel.innerHTML = '<div class="no-data">No upcoming events. Register for events to see them here!</div>';
+    }
 
     if (ticketsCarousel && !hasTickets) {
         ticketsCarousel.innerHTML = '<div class="no-data">You have no tickets yet.</div>';
