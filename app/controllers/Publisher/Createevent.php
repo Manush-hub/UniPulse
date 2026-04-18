@@ -836,6 +836,19 @@ class PublisherCreateevent extends Controller
             }
         }
 
+        // Validate Donations
+        if (isset($postData['donationToggle']) && $postData['donationToggle'] == '1') {
+            if (empty($postData['donation_bank_name']) || trim($postData['donation_bank_name']) === '') {
+                $errors['donation_bank_name'] = 'Bank name is required for donations';
+            }
+            if (empty($postData['donation_account_name']) || trim($postData['donation_account_name']) === '') {
+                $errors['donation_account_name'] = 'Account holder name is required for donations';
+            }
+            if (empty($postData['donation_account_number']) || trim($postData['donation_account_number']) === '') {
+                $errors['donation_account_number'] = 'Account number is required for donations';
+            }
+        }
+
         // Validate Sponsorship
         if (isset($postData['sponsorshipToggle']) && $postData['sponsorshipToggle'] == '1') {
             // Bank details are required when sponsorship is enabled

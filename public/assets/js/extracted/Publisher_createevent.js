@@ -141,40 +141,47 @@ console.log('=== Create Event Page Script Loading ===');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.style.cssText = `
-            background: #f44336;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            animation: slideDown 0.3s ease-out;
-        `;
+                background-color: #f8dbdf;
+                color: #8e1f2b;
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 20px;
+                font-size: 16px;
+                position: relative;
+            `;
 
-            let errorContent = `<strong>✗ ${message}</strong>`;
+            let errorContent = '';
 
-            if (errors && typeof errors === 'object') {
-                errorContent += '<ul style="margin: 10px 0 0 20px; text-align: left;">';
-                for (const [field, errorMsg] of Object.entries(errors)) {
-                    errorContent += `<li>${errorMsg}</li>`;
+            if (errors && typeof errors === 'object' && Object.keys(errors).length > 0) {
+                errorContent += '<div style="margin-bottom: 10px; font-weight: bold; padding-left: 20px;">' + message + '</div>';
+                errorContent += '<ul style="margin: 0; padding-left: 40px; list-style-type: disc;">';
+                if (Array.isArray(errors)) {
+                    for (const errorMsg of errors) {
+                        errorContent += `<li style="margin-bottom: 5px;">${errorMsg}</li>`;
+                    }
+                } else {
+                    for (const [field, errorMsg] of Object.entries(errors)) {
+                        errorContent += `<li style="margin-bottom: 5px;">${errorMsg}</li>`;
+                    }
                 }
                 errorContent += '</ul>';
+            } else {
+                errorContent += `<ul style="margin: 0; padding-left: 40px; list-style-type: disc;"><li style="font-weight: bold;">${message}</li></ul>`;
             }
 
             errorContent += `
             <button onclick="this.parentElement.remove()" style="
                 background: none; 
                 border: none; 
-                color: white; 
-                float: right; 
+                color: #8e1f2b; 
                 cursor: pointer; 
-                font-size: 18px;
-                margin-top: -2px;
+                font-size: 20px;
                 position: absolute;
-                right: 15px;
-                top: 15px;
-            ">×</button>
-        `;
+                right: 10px;
+                top: 10px;
+                line-height: 1;
+            ">&times;</button>
+            `;
 
             errorDiv.innerHTML = errorContent;
 
@@ -432,13 +439,30 @@ console.log('=== Create Event Page Script Loading ===');
                     }
                 }
 
+                // Validate Donations
+                const donationToggle = document.getElementById('donationToggle');
+                const allowsDonations = donationToggle ? donationToggle.checked : false;
+                console.log('Donation validation - allowsDonations:', allowsDonations);
+
+                if (allowsDonations) {
+                    const bankName = document.querySelector('select[name="donation_bank_name"]')?.value.trim();
+                    const accName = document.querySelector('input[name="donation_account_name"]')?.value.trim();
+                    const accNumber = document.querySelector('input[name="donation_account_number"]')?.value.trim();
+
+                    if (!bankName) {
+                        errors.push('Bank name is required for donations');
+                    }
+                    if (!accName) {
+                        errors.push('Account holder name is required for donations');
+                    }
+                    if (!accNumber) {
+                        errors.push('Account number is required for donations');
+                    }
+                }
+
                 // Show errors if any
                 if (errors.length > 0) {
-                    const errorObj = {};
-                    errors.forEach((error, index) => {
-                        errorObj[`error${index + 1}`] = error;
-                    });
-                    showErrorMessage('Please fix the following validation errors:', errorObj);
+                    showErrorMessage('Please fix the following validation errors:', errors);
                     return false;
                 }
 
@@ -446,9 +470,7 @@ console.log('=== Create Event Page Script Loading ===');
 
             } catch (error) {
                 console.error('Validation error:', error);
-                showErrorMessage('An error occurred during validation', {
-                    'error': error.message
-                });
+                showErrorMessage('An error occurred during validation', [error.message]);
                 return false;
             }
         }

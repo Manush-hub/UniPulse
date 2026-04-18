@@ -426,7 +426,7 @@ const donationDetails = document.getElementById('donationDetails');
 
 function toggleDonationDetails() {
     if (donationToggle && donationDetails) {
-        const requiredFields = donationDetails.querySelectorAll('input[name="donation_bank_name"], input[name="donation_account_name"], input[name="donation_account_number"]');
+        const requiredFields = donationDetails.querySelectorAll('select[name="donation_bank_name"], input[name="donation_account_name"], input[name="donation_account_number"]');
 
         if (donationToggle.checked) {
             donationDetails.classList.remove('hidden');
@@ -449,7 +449,7 @@ if (donationToggle) {
 
 function toggleSponsorshipDetails() {
     if (sponsorshipToggle && sponsorshipDetails) {
-        const requiredFields = sponsorshipDetails.querySelectorAll('input[name="sponsorship_bank_name"], input[name="sponsorship_account_name"], input[name="sponsorship_account_number"]');
+        const requiredFields = sponsorshipDetails.querySelectorAll('select[name="sponsorship_bank_name"], input[name="sponsorship_account_name"], input[name="sponsorship_account_number"]');
         const proposalField = document.getElementById('sponsorship_proposal');
 
         if (sponsorshipToggle.checked) {

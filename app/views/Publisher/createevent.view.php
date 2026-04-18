@@ -91,7 +91,7 @@ $displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pu
 
         </aside> -->
 
-        <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event">
+        <form action="/unipulse/public/publisher/createevent" method="POST" enctype="multipart/form-data" id="create-event" novalidate>
             <input type="hidden" name="ajax" value="1" id="ajax-flag">
             <input type="hidden" name="ticket_types" id="ticket_types_input" value="">
             <input type="hidden" name="schedule" id="schedule_input" value="">
@@ -802,33 +802,73 @@ $displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pu
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label required">Bank Name</label>
-                                <input type="text" name="donation_bank_name" class="form-input"
-                                    placeholder="e.g., Bank of Ceylon">
-                            </div>
-
-                            <div class="form-group">
                                 <label class="form-label required">Account Holder Name</label>
                                 <input type="text" name="donation_account_name" class="form-input"
                                     placeholder="e.g., University Events Committee">
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label required">Account Number</label>
-                                <input type="text" name="donation_account_number" class="form-input"
-                                    placeholder="e.g., 123456789">
+                                <label class="form-label required">Bank Name</label>
+                                <select name="donation_bank_name" class="form-input">
+                                    <option value="" disabled selected>Select Bank</option>
+                                    <option value="Bank of Ceylon (BOC)">Bank of Ceylon (BOC)</option>
+                                    <option value="Commercial Bank of Ceylon">Commercial Bank of Ceylon</option>
+                                    <option value="Hatton National Bank (HNB)">Hatton National Bank (HNB)</option>
+                                    <option value="Sampath Bank">Sampath Bank</option>
+                                    <option value="Seylan Bank">Seylan Bank</option>
+                                    <option value="People's Bank">People's Bank</option>
+                                    <option value="National Development Bank (NDB)">National Development Bank (NDB)</option>
+                                    <option value="Nations Trust Bank (NTB)">Nations Trust Bank (NTB)</option>
+                                    <option value="Pan Asia Bank">Pan Asia Bank</option>
+                                    <option value="Union Bank of Colombo">Union Bank of Colombo</option>
+                                    <option value="DFCC Bank">DFCC Bank</option>
+                                    <option value="Amana Bank">Amana Bank</option>
+                                    <option value="Cargills Bank">Cargills Bank</option>
+                                    <option value="Sanasa Development Bank (SDB)">Sanasa Development Bank (SDB)</option>
+                                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                                    <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
+                                    <option value="Citibank Sri Lanka">Citibank Sri Lanka</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Branch Name</label>
-                                <input type="text" name="donation_branch" class="form-input"
-                                    placeholder="e.g., Colombo Fort Branch">
+                                <select name="donation_branch" class="form-input">
+                                    <option value="" disabled selected>Select Branch</option>
+                                    <option value="Colombo">Colombo</option>
+                                    <option value="Kandy">Kandy</option>
+                                    <option value="Galle">Galle</option>
+                                    <option value="Ampara">Ampara</option>
+                                    <option value="Anuradhapura">Anuradhapura</option>
+                                    <option value="Badulla">Badulla</option>
+                                    <option value="Batticaloa">Batticaloa</option>
+                                    <option value="Gampaha">Gampaha</option>
+                                    <option value="Hambantota">Hambantota</option>
+                                    <option value="Jaffna">Jaffna</option>
+                                    <option value="Kalutara">Kalutara</option>
+                                    <option value="Kegalle">Kegalle</option>
+                                    <option value="Kilinochchi">Kilinochchi</option>
+                                    <option value="Kurunegala">Kurunegala</option>
+                                    <option value="Mannar">Mannar</option>
+                                    <option value="Matale">Matale</option>
+                                    <option value="Matara">Matara</option>
+                                    <option value="Monaragala">Monaragala</option>
+                                    <option value="Mullaitivu">Mullaitivu</option>
+                                    <option value="Nuwara Eliya">Nuwara Eliya</option>
+                                    <option value="Polonnaruwa">Polonnaruwa</option>
+                                    <option value="Puttalam">Puttalam</option>
+                                    <option value="Ratnapura">Ratnapura</option>
+                                    <option value="Trincomalee">Trincomalee</option>
+                                    <option value="Vavuniya">Vavuniya</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">SWIFT Code (for international transfers)</label>
-                                <input type="text" name="donation_swift_code" class="form-input"
-                                    placeholder="e.g., BCEYLKLX">
+                                <label class="form-label required">Account Number</label>
+                                <input type="text" name="donation_account_number" class="form-input"
+                                    placeholder="e.g., 123456789">
                             </div>
 
                             <div class="form-group">
@@ -871,33 +911,73 @@ $displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pu
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label required">Bank Name</label>
-                                <input type="text" name="sponsorship_bank_name" class="form-input"
-                                    placeholder="e.g., Bank of Ceylon">
-                            </div>
-
-                            <div class="form-group">
                                 <label class="form-label required">Account Holder Name</label>
                                 <input type="text" name="sponsorship_account_name" class="form-input"
                                     placeholder="e.g., University Events Committee">
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label required">Account Number</label>
-                                <input type="text" name="sponsorship_account_number" class="form-input"
-                                    placeholder="e.g., 123456789">
+                                <label class="form-label required">Bank Name</label>
+                                <select name="sponsorship_bank_name" class="form-input">
+                                    <option value="" disabled selected>Select Bank</option>
+                                    <option value="Bank of Ceylon (BOC)">Bank of Ceylon (BOC)</option>
+                                    <option value="Commercial Bank of Ceylon">Commercial Bank of Ceylon</option>
+                                    <option value="Hatton National Bank (HNB)">Hatton National Bank (HNB)</option>
+                                    <option value="Sampath Bank">Sampath Bank</option>
+                                    <option value="Seylan Bank">Seylan Bank</option>
+                                    <option value="People's Bank">People's Bank</option>
+                                    <option value="National Development Bank (NDB)">National Development Bank (NDB)</option>
+                                    <option value="Nations Trust Bank (NTB)">Nations Trust Bank (NTB)</option>
+                                    <option value="Pan Asia Bank">Pan Asia Bank</option>
+                                    <option value="Union Bank of Colombo">Union Bank of Colombo</option>
+                                    <option value="DFCC Bank">DFCC Bank</option>
+                                    <option value="Amana Bank">Amana Bank</option>
+                                    <option value="Cargills Bank">Cargills Bank</option>
+                                    <option value="Sanasa Development Bank (SDB)">Sanasa Development Bank (SDB)</option>
+                                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                                    <option value="HSBC Sri Lanka">HSBC Sri Lanka</option>
+                                    <option value="Citibank Sri Lanka">Citibank Sri Lanka</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
                                 <label class="form-label">Branch Name</label>
-                                <input type="text" name="sponsorship_branch" class="form-input"
-                                    placeholder="e.g., Colombo Fort Branch">
+                                <select name="sponsorship_branch" class="form-input">
+                                    <option value="" disabled selected>Select Branch</option>
+                                    <option value="Colombo">Colombo</option>
+                                    <option value="Kandy">Kandy</option>
+                                    <option value="Galle">Galle</option>
+                                    <option value="Ampara">Ampara</option>
+                                    <option value="Anuradhapura">Anuradhapura</option>
+                                    <option value="Badulla">Badulla</option>
+                                    <option value="Batticaloa">Batticaloa</option>
+                                    <option value="Gampaha">Gampaha</option>
+                                    <option value="Hambantota">Hambantota</option>
+                                    <option value="Jaffna">Jaffna</option>
+                                    <option value="Kalutara">Kalutara</option>
+                                    <option value="Kegalle">Kegalle</option>
+                                    <option value="Kilinochchi">Kilinochchi</option>
+                                    <option value="Kurunegala">Kurunegala</option>
+                                    <option value="Mannar">Mannar</option>
+                                    <option value="Matale">Matale</option>
+                                    <option value="Matara">Matara</option>
+                                    <option value="Monaragala">Monaragala</option>
+                                    <option value="Mullaitivu">Mullaitivu</option>
+                                    <option value="Nuwara Eliya">Nuwara Eliya</option>
+                                    <option value="Polonnaruwa">Polonnaruwa</option>
+                                    <option value="Puttalam">Puttalam</option>
+                                    <option value="Ratnapura">Ratnapura</option>
+                                    <option value="Trincomalee">Trincomalee</option>
+                                    <option value="Vavuniya">Vavuniya</option>
+                                    <option value="Other">Other</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">SWIFT Code (for international transfers)</label>
-                                <input type="text" name="sponsorship_swift_code" class="form-input"
-                                    placeholder="e.g., BCEYLKLX">
+                                <label class="form-label required">Account Number</label>
+                                <input type="text" name="sponsorship_account_number" class="form-input"
+                                    placeholder="e.g., 123456789">
                             </div>
 
                             <div class="form-group">
