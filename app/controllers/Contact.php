@@ -35,12 +35,12 @@ class Contact extends Controller{
                         'moderator' => '/unipulse/public/moderator/dashboard',
                         'publisher' => '/unipulse/public/publisher/dashboard',
                         'sponsor' => '/unipulse/public/sponsor/dashboard',
-                        'public' => '/unipulse/public/home',
-                        'university' => '/unipulse/public/home',
+                        'public' => '/unipulse/public/landing',
+                        'university' => '/unipulse/public/landing',
                     ];
 
                     $userType = strtolower((string)($currentUser['type'] ?? ''));
-                    $redirectPath = $redirectByType[$userType] ?? '/unipulse/public/home';
+                    $redirectPath = $redirectByType[$userType] ?? '/unipulse/public/landing';
 
                     if ($userType === 'admin') {
                         $_SESSION['contact_message_sent'] = 'Message sent';
