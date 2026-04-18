@@ -1241,6 +1241,9 @@ class PublisherDashboard extends Controller
             ";
 
             $events = $this->query($query, ['publisher_id' => $currentUser['id']]);
+            if (!is_array($events)) {
+                $events = [];
+            }
 
             // Debug logging
             error_log("Publisher ID: " . $currentUser['id']);
@@ -1252,7 +1255,7 @@ class PublisherDashboard extends Controller
                 'publisher_id' => $currentUser['id'],
                 'count' => count($events)
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             error_log("Error getting events for boosting: " . $e->getMessage());
             echo json_encode(['success' => false, 'error' => 'Failed to load events', 'message' => $e->getMessage()]);
         }

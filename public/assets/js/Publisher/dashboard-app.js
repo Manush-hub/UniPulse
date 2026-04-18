@@ -1850,7 +1850,7 @@ async function loadEventsForBoosting() {
                 }).join('');
         } else {
             console.log('No events available or failed to load');
-            eventSelect.innerHTML = '<option value="">No events available for boosting</option>';
+            eventSelect.innerHTML = '<option value="">No events to boost</option>';
 
             // Show helpful message
             const messageDiv = document.createElement('div');
@@ -1866,7 +1866,7 @@ async function loadEventsForBoosting() {
             `;
             messageDiv.innerHTML = `
                 <i class="fas fa-info-circle"></i>
-                <strong>No events available for boosting</strong><br>
+                <strong>No events to boost</strong><br>
                 <small>Events with active boosts cannot be boosted again until the current boost expires. You can re-boost events after their boost period ends.</small>
             `;
 
