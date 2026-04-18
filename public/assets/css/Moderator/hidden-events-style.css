@@ -255,7 +255,7 @@
 /* Message Notification Styles */
 .message-notification {
     position: fixed;
-    top: 100px;
+    top: 7rem;
     right: 20px;
     z-index: 10001;
     background: white;

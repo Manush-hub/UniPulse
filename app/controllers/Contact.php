@@ -4,10 +4,13 @@ class Contact extends Controller{
 
     public function index($a = '', $b = '' , $c = ''){
         $currentUser = AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null;
+        $flashSuccess = $_SESSION['contact_form_success'] ?? null;
+        unset($_SESSION['contact_form_success']);
 
         $data = [
             'errors' => [],
             'success_message' => null,
+            'flash_success' => $flashSuccess,
             'form_data' => [],
             'current_user' => $currentUser
         ];
@@ -30,23 +33,8 @@ class Contact extends Controller{
                 $savedId = $supportMessage->createFromContactForm($_POST, $profileData);
 
                 if ($savedId) {
-                    $redirectByType = [
-                        'admin' => '/unipulse/public/admin/landing',
-                        'moderator' => '/unipulse/public/moderator/dashboard',
-                        'publisher' => '/unipulse/public/publisher/dashboard',
-                        'sponsor' => '/unipulse/public/sponsor/dashboard',
-                        'public' => '/unipulse/public/landing',
-                        'university' => '/unipulse/public/landing',
-                    ];
-
-                    $userType = strtolower((string)($currentUser['type'] ?? ''));
-                    $redirectPath = $redirectByType[$userType] ?? '/unipulse/public/landing';
-
-                    if ($userType === 'admin') {
-                        $_SESSION['contact_message_sent'] = 'Message sent';
-                    }
-
-                    header('Location: ' . $redirectPath);
+                    $_SESSION['contact_form_success'] = 'Message was sent to admin.';
+                    header('Location: /unipulse/public/contact#support-form');
                     exit;
                 } else {
                     $errors[] = 'Could not submit your message right now. Please try again.';

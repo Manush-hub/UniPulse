@@ -10,6 +10,7 @@
 <?php
   $errors = $errors ?? [];
   $success_message = $success_message ?? null;
+  $flash_success = $flash_success ?? null;
   $form_data = $form_data ?? [];
   $current_user = $current_user ?? (AuthService::isLoggedIn() ? AuthService::getCurrentUser() : null);
 
@@ -29,19 +30,15 @@
       <div class="contact-alert contact-alert-success"><?= htmlspecialchars($success_message) ?></div>
     <?php endif; ?>
 
-    <?php if (!empty($errors)): ?>
-      <div class="contact-alert contact-alert-error">
-        <ul>
-          <?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
-    <?php endif; ?>
-
     <!-- JavaScript Success Message -->
-    <div class="success-message" id="successMessage">
-      ✓ Thank you for your message! We'll get back to you within 24 hours.
+    <div
+      class="success-message"
+      id="successMessage"
+      data-show="<?= !empty($flash_success) ? '1' : '0' ?>"
+      role="status"
+      aria-live="polite"
+    >
+      ✓ <?= htmlspecialchars((string)($flash_success ?: "Thank you for your message! We'll get back to you within 24 hours."), ENT_QUOTES, 'UTF-8') ?>
     </div>
 
     <section class="contact-grid" aria-label="Support channels">
@@ -73,6 +70,16 @@
     <section class="form-section" id="support-form">
       <h2>Send us a Message</h2>
 
+      <?php if (!empty($errors)): ?>
+        <div class="contact-alert contact-alert-error" role="alert" aria-live="polite">
+          <ul>
+            <?php foreach ($errors as $error): ?>
+              <li><?= htmlspecialchars($error) ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php endif; ?>
+
       <div class="contact-alert" style="background: #f1f5f9; border-left-color: #1e3a8a; color: #334155; margin-bottom: 1rem;">
         <strong>Sender details:</strong>
         <?= htmlspecialchars((string)($current_user['name'] ?? 'Guest User'), ENT_QUOTES, 'UTF-8') ?>
@@ -82,12 +89,14 @@
       <form id="contactForm" method="POST" action="" novalidate>
         <div class="form-group">
           <label for="subject">Subject *</label>
-          <input type="text" id="subject" name="subject" value="<?= contactOldValue('subject', $form_data) ?>" required>
+          <input type="text" id="subject" name="subject" value="<?= contactOldValue('subject', $form_data) ?>" minlength="5" maxlength="255" required>
+          <small>Minimum 5 characters.</small>
         </div>
 
         <div class="form-group">
           <label for="message">Message *</label>
-          <textarea id="message" name="message" required><?= contactOldValue('message', $form_data) ?></textarea>
+          <textarea id="message" name="message" minlength="10" required><?= contactOldValue('message', $form_data) ?></textarea>
+          <small>Minimum 10 characters.</small>
         </div>
 
         <button type="submit" class="submit-btn">Send Message</button>

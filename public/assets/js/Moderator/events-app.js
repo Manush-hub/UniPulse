@@ -651,7 +651,7 @@ function showMessage(message, type = 'info') {
     messageDiv.className = `message-notification ${type}`;
     messageDiv.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 7rem;
         right: 20px;
         padding: 1rem 1.5rem;
         background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};

@@ -1,4 +1,13 @@
 const contactForm = document.getElementById('contactForm');
+const successMessage = document.getElementById('successMessage');
+
+if (successMessage && successMessage.dataset.show === '1') {
+  successMessage.classList.add('show');
+
+  setTimeout(() => {
+    successMessage.classList.remove('show');
+  }, 3500);
+}
 
 if (contactForm) {
   contactForm.addEventListener('submit', function(event) {
