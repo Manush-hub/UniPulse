@@ -25,6 +25,29 @@ class PublicUser
         'nic'
     ];
 
+    private const UNIVERSITY_EMAIL_DOMAINS = [
+        'cmb.ac.lk',
+        'pdn.ac.lk',
+        'sjp.ac.lk',
+        'kln.ac.lk',
+        'uom.lk',
+        'jfn.ac.lk',
+        'ruh.ac.lk',
+        'esn.ac.lk',
+        'seu.ac.lk',
+        'rjt.ac.lk',
+        'sab.ac.lk',
+        'wyb.ac.lk',
+        'uwu.ac.lk',
+        'ou.ac.lk',
+        'bpuls.ac.lk',
+        'sliit.lk',
+        'nsbm.ac.lk',
+        'cinec.edu',
+        'apiit.lk',
+        'kiu.ac.lk'
+    ];
+
     public function create($data)
     {
         $query = "INSERT INTO public_users (
@@ -111,6 +134,10 @@ class PublicUser
             $errors[] = "Please enter a valid email address";
         }
 
+        if (!empty($data['email']) && filter_var($data['email'], FILTER_VALIDATE_EMAIL) && $this->isUniversityEmail($data['email'])) {
+            $errors[] = "You cannot register as a Public User using a university email address. Please sign up as a University User.";
+        }
+
         // Password validation
         if (!empty($data['password'])) {
             if (strlen($data['password']) < 8) {
@@ -163,6 +190,26 @@ class PublicUser
             'gender' => !empty($data['gender']) ? $data['gender'] : null,
             'interests' => !empty($interests) ? json_encode($interests) : null
         ];
+    }
+
+    private function isUniversityEmail($email)
+    {
+        $emailDomain = strtolower(substr(strrchr(trim($email), '@'), 1));
+
+        foreach (self::UNIVERSITY_EMAIL_DOMAINS as $universityDomain) {
+            $expectedDomain = strtolower($universityDomain);
+
+            if ($emailDomain === $expectedDomain) {
+                return true;
+            }
+
+            // Allow matching known subdomains like student.cmb.ac.lk
+            if (str_ends_with($emailDomain, '.' . $expectedDomain)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function softDeleteAccount($userId)
