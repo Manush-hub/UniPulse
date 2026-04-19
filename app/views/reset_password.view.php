@@ -6,7 +6,7 @@
     <title>Reset Password - UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/signin-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/reset_password.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/reset-password-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -134,6 +134,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/reset_password.js"></script>
+    <script src="/unipulse/public/assets/js/reset-password-app.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
     <title>UniPulse - Edit Admin</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_admin_edit.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/admin-edit-style.css">
 </head>
 <body>
     <!-- Header -->

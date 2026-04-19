@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>e-Ticket - <?= htmlspecialchars((string)($ticket->order_number ?? '')) ?></title>
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/User_ticket_pdf.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/ticket-pdf-style.css">
 </head>
 <body>
 
@@ -121,6 +121,6 @@
         </div>
     </div>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/User_ticket_pdf.js"></script>
+    <script src="/unipulse/public/assets/js/User/ticket-pdf-app.js"></script>
 </body>
 </html>

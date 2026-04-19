@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Monthly Evolution Report</title>
     <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/User_monthly-evolution.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/monthly-evolution-style.css">
 </head>
 
 <body>

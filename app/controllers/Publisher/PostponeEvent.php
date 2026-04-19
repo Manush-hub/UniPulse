@@ -75,6 +75,14 @@ class Postponeevent extends Controller
                 return;
             }
 
+            // New postpone date cannot be earlier than the current event date
+            $currentEventDate = date('Y-m-d', strtotime((string)$event->event_date));
+            if ($newDate < $currentEventDate) {
+                $data['error'] = 'New event date cannot be earlier than the current event date.';
+                $this->view('Publisher/postponeevent', $data);
+                return;
+            }
+
             // Combine previous info to not lose description or update location if needed
             // Currently, updating date/time fields and optionally cover photo
             $updateData = [

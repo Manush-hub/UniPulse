@@ -6,7 +6,7 @@
     <title>UniPulse - Create Admin</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_admin_create.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/admin-create-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -143,6 +143,6 @@
     </div>
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_admin_create.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/admin-create-app.js"></script>
 </body>
 </html>

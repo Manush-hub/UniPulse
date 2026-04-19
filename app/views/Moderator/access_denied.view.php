@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Moderator_access_denied.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Moderator/access-denied-style.css">
 </body>
 
 </html>

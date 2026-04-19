@@ -253,6 +253,6 @@
 
   <?php include __DIR__ . '/Components/footer.php'; ?>
 
-  <script src="<?php echo ROOT ?>/assets/js/extracted/find_events.js"></script>
+  <script src="/unipulse/public/assets/js/find-events-app.js"></script>
 </body>
 </html>

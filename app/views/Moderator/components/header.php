@@ -73,5 +73,4 @@ $activeNav = isset($pageConfig['activeNav']) ? $pageConfig['activeNav'] : '';
         </div>
     </header>
 <script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
-<script src="/unipulse/public/assets/js/Moderator/header.js"></script>
-<script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_components_header.js"></script>
+<script src="/unipulse/public/assets/js/Moderator/header-app.js"></script>

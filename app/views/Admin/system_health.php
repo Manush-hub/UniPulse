@@ -7,7 +7,7 @@
     <title>System Health - UniPulse</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_system_health.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/system-health-style.css">
 </head>
 
 <body>
@@ -141,7 +141,7 @@
         </div>
     </footer>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_system_health.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/system-health-app.js"></script>
 </body>
 
 </html>

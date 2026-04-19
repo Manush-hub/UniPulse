@@ -6,7 +6,7 @@
     <title>Payment Cancelled | UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/payment-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/payhere_cancel.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/payhere-cancel-style.css">
 </head>
 <body>
     <?php include 'header.php'; ?>

@@ -480,7 +480,6 @@
         };
     </script>
     <script src="/unipulse/public/assets/js/Moderator/dashboard-app.js"></script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_dashboard.js"></script>
 </body>
 
 </html>

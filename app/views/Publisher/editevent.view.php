@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_editevent.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/editevent-style.css">
 
 </head>
 
@@ -496,7 +496,7 @@
             redirectUrl: '/unipulse/public/publisher/eventview?id=<?= $data['event_id'] ?>'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_editevent.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/editevent-app.js"></script>
 
 </body>
 

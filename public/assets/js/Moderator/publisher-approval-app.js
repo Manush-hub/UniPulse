@@ -1,18 +1,18 @@
 let currentPublisherId = null;
-        let currentAction = null;
+let currentAction = null;
 
-        // Handle approve button clicks
+// Handle approve button clicks
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('btn-approve') || e.target.closest('.btn-approve')) {
                 const btn = e.target.classList.contains('btn-approve') ? e.target : e.target.closest('.btn-approve');
                 currentPublisherId = btn.dataset.publisherId;
                 currentAction = 'approve';
-                
+
                 document.getElementById('confirmationTitle').textContent = 'Approve Publisher';
                 document.getElementById('confirmationMessage').textContent = 'Are you sure you want to approve this publisher registration?';
                 document.getElementById('confirmationButton').innerHTML = '<i class="fas fa-check"></i> Approve';
                 document.getElementById('confirmationButton').className = 'btn btn-success';
-                
+
                 openModal('confirmationModal');
             }
         });
@@ -23,7 +23,7 @@ let currentPublisherId = null;
                 const btn = e.target.classList.contains('btn-reject') ? e.target : e.target.closest('.btn-reject');
                 currentPublisherId = btn.dataset.publisherId;
                 currentAction = 'reject';
-                
+
                 openModal('rejectionModal');
             }
         });
@@ -61,7 +61,7 @@ let currentPublisherId = null;
                 alert('Please provide a reason for rejection.');
                 return;
             }
-            
+
             rejectPublisher(currentPublisherId, reason);
             closeModal('rejectionModal');
         }
@@ -69,7 +69,7 @@ let currentPublisherId = null;
         function approvePublisher(publisherId) {
             const formData = new FormData();
             formData.append('action', 'approve');
-            
+
             fetch(`/unipulse/public/moderator/publisherapproval/approve/${publisherId}`, {
                 method: 'POST',
                 body: formData
@@ -92,7 +92,7 @@ let currentPublisherId = null;
         function rejectPublisher(publisherId, reason) {
             const formData = new FormData();
             formData.append('reason', reason);
-            
+
             fetch(`/unipulse/public/moderator/publisherapproval/reject/${publisherId}`, {
                 method: 'POST',
                 body: formData
@@ -119,7 +119,7 @@ let currentPublisherId = null;
                 card.style.opacity = '0';
                 setTimeout(() => {
                     card.remove();
-                    
+
                     // Check if there are no more publishers
                     const remainingCards = document.querySelectorAll('.publisher-card');
                     if (remainingCards.length === 0) {
@@ -139,10 +139,10 @@ let currentPublisherId = null;
                     <button onclick="this.parentElement.parentElement.remove()">×</button>
                 </div>
             `;
-            
+
             // Add to page
             document.body.appendChild(notification);
-            
+
             // Remove after 5 seconds
             setTimeout(() => {
                 if (notification.parentElement) {
@@ -159,4 +159,8 @@ let currentPublisherId = null;
                     modal.style.display = 'none';
                 }
             });
-        }
+        };
+
+window.closeModal = closeModal;
+window.performAction = performAction;
+window.confirmRejection = confirmRejection;

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_edit-event-standalone.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/edit-event-standalone-style.css">
 </head>
 
 <body>
@@ -219,7 +219,7 @@
         </form>
     </div>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_edit-event-standalone.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/edit-event-standalone-app.js"></script>
 </body>
 
 </html>

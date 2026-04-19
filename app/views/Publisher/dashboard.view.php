@@ -27,20 +27,6 @@
                     <div class="welcome-text">
                         <h1>Welcome back, <span id="welcomeUsername"><?php echo htmlspecialchars($data['user']['name'] ?? 'Organization'); ?></span>! 👋</h1>
                         <p>Manage your events and track performance from your organizer dashboard.</p>
-                        <!-- <div class="quick-stats">
-                            <div class="stat-item">
-                                <span class="stat-number" id="upcomingEvents">7</span>
-                                <span class="stat-label">Upcoming Events</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="ticketsSold">1,280</span>
-                                <span class="stat-label">Tickets Sold</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number" id="totalVolunteers">45</span>
-                                <span class="stat-label">Volunteers</span>
-                            </div>
-                        </div> -->
                     </div>
                     <div class="welcome-actions">
                         <button class="btn btn-primary" onclick="window.location.href='/UniPulse/public/publisher/createevent'">
@@ -65,64 +51,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Quick Actions
-        <section class="quick-actions">
-            <div class="container">
-                <h2>Quick Actions</h2>
-                <div class="actions-grid">
-                    <div class="action-card" onclick="window.location.href='my-events.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
-                        </div>
-                        <h3>Manage Events</h3>
-                        <p>View and edit your events</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='volunteers.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="9" cy="7" r="4"></circle>
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                            </svg>
-                        </div>
-                        <h3>Volunteers</h3>
-                        <p>Manage volunteer applications</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='/unipulse/public/publisher/sponsorships'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
-                                <path d="M12 18V6"></path>
-                            </svg>
-                        </div>
-                        <h3>Sponsorships</h3>
-                        <p>Track donations & sponsors</p>
-                    </div>
-                    <div class="action-card" onclick="window.location.href='analytics.html'">
-                        <div class="action-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M3 3v18h18"></path>
-                                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
-                            </svg>
-                        </div>
-                        <h3>Analytics</h3>
-                        <p>View performance reports</p>
-                    </div>
-                </div>
-            </div>
-        </section> -->
 
         <!-- Event Management -->
         <section class="event-management">
@@ -463,13 +391,6 @@
                                 <span>Bank Transfer</span>
                             </label>
                         </div>
-                        <!-- <div class="payment-method-option" data-method="mobile">
-                            <input type="radio" name="payment_method" id="mobilePayment" value="mobile_payment">
-                            <label for="mobilePayment">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span>Mobile Payment</span>
-                            </label>
-                        </div> -->
                     </div>
                 </div>
 
@@ -508,22 +429,6 @@
                     </div>
                 </div>
 
-                <!-- <div id="mobilePaymentFields" class="payment-fields" style="display: none;">
-                    <div class="form-group">
-                        <label for="mobileNumber">Mobile Number</label>
-                        <input type="text" id="mobileNumber" class="form-control" placeholder="+94 77 123 4567">
-                    </div>
-                    <div class="form-group">
-                        <label for="mobileProvider">Provider</label>
-                        <select id="mobileProvider" class="form-control">
-                            <option value="">Select Provider</option>
-                            <option value="dialog">Dialog</option>
-                            <option value="mobitel">Mobitel</option>
-                            <option value="hutch">Hutch</option>
-                            <option value="airtel">Airtel</option>
-                        </select>
-                    </div>
-                </div> -->
 
                 <div class="modal-buttons">
                     <button type="submit" class="btn btn-primary btn-pay">

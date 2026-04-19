@@ -822,7 +822,7 @@ $config = $roleConfig[$currentRole] ?? $roleConfig['User'];
             publisherProfileBaseUrl: '/unipulse/public/publisher/public?id='
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/eventview_actions.js?v=<?= time() ?>"></script>
+    <script src="/unipulse/public/assets/js/eventview-actions-app.js?v=<?= time() ?>"></script>
 
     <script src="<?php echo $config['jsFile']; ?>?v=<?= time() ?>"></script>
 

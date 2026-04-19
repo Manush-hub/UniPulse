@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - University Student/Staff Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/userreg-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/unireg.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/unireg-style.css">
 </head>
 
 <body>
@@ -233,7 +233,7 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/unireg.js"></script>
+    <script src="/unipulse/public/assets/js/unireg-app.js"></script>
 
     <script src="university-student-registration.js"></script>
 </body>

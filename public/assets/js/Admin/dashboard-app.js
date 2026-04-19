@@ -784,3 +784,406 @@ window.AdminDashboard = {
     viewUser,
     deleteUser
 };
+
+// Compatibility layer migrated from extracted/Admin_dashboard.js
+function escapeHtmlAttribute(value) {
+    return escapeHtml(value).replace(/`/g, '&#96;');
+}
+
+function toggleActivityLog() {
+    const activityList = document.getElementById('activityList');
+    if (!activityList) return;
+    const hiddenItems = activityList.querySelectorAll('.activity-item.hidden-item');
+    const btn = document.getElementById('activityLogBtn');
+    if (!btn) return;
+    const icon = btn.querySelector('.expand-icon');
+    const btnText = btn.querySelector('.btn-text');
+
+    hiddenItems.forEach(item => {
+        const shouldShow = item.style.display === 'none';
+        item.style.display = shouldShow ? 'flex' : 'none';
+        if (icon) icon.style.transform = shouldShow ? 'rotate(180deg)' : 'rotate(0deg)';
+        if (btnText) btnText.textContent = shouldShow ? 'Show Less' : 'View Full Log';
+    });
+}
+
+function togglePendingApprovals() {
+    const approvalList = document.getElementById('approvalList');
+    if (!approvalList) return;
+    const hiddenItems = approvalList.querySelectorAll('.approval-item.hidden-item');
+    const btn = document.getElementById('pendingApprovalsBtn');
+    if (!btn) return;
+    const icon = btn.querySelector('.expand-icon');
+    const btnText = btn.querySelector('.btn-text');
+
+    hiddenItems.forEach(item => {
+        const shouldShow = item.style.display === 'none';
+        item.style.display = shouldShow ? 'flex' : 'none';
+        if (icon) icon.style.transform = shouldShow ? 'rotate(180deg)' : 'rotate(0deg)';
+        if (btnText) btnText.textContent = shouldShow ? 'Show Less' : 'View All Pending';
+    });
+}
+
+function toggleUserManagement() {
+    const modal = document.getElementById('allUsersModal');
+    if (!modal) return;
+
+    modal.style.display = 'flex';
+    document.getElementById('allUsersLoadingMessage').style.display = 'block';
+    document.getElementById('allUsersContent').style.display = 'none';
+
+    fetch('/unipulse/public/Admin/Dashboard/getAllUsers')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load users');
+            }
+            window.allUsersData = data.users;
+            document.getElementById('allUsersLoadingMessage').style.display = 'none';
+            document.getElementById('allUsersContent').style.display = 'block';
+            displayAllUsers(data.users);
+        })
+        .catch(error => {
+            showToast(error.message || 'An error occurred while loading users', 'error');
+            closeAllUsersModal();
+        });
+}
+
+function displayAllUsers(users) {
+    const tbody = document.getElementById('allUsersTableBody');
+    const noUsersMessage = document.getElementById('noUsersMessage');
+    if (!tbody || !noUsersMessage) return;
+
+    if (!users || users.length === 0) {
+        tbody.innerHTML = '';
+        noUsersMessage.style.display = 'block';
+        return;
+    }
+
+    noUsersMessage.style.display = 'none';
+    tbody.innerHTML = users.map(user => `
+        <tr data-name="${user.name.toLowerCase()}" data-email="${user.email.toLowerCase()}" data-type="${user.userType.toLowerCase()}" data-status="${user.status}">
+            <td style="padding: 12px;">
+                <div class="user-info">
+                    <div>
+                        <div class="user-name" style="font-weight: 500;">${user.name}</div>
+                        <div class="user-email" style="font-size: 0.85rem; color: #666;">${user.email}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="padding: 12px;">
+                <span class="role-badge role-${user.userType.toLowerCase()}" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">${user.userType}</span>
+            </td>
+            <td style="padding: 12px;">${user.createdAt}</td>
+            <td style="padding: 12px;">
+                <span class="status-badge ${user.statusClass}" style="padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 500;">${user.status}</span>
+            </td>
+            <td style="padding: 12px; text-align: center;">
+                <div class="action-buttons">
+                    ${user.isSuspended
+                        ? `<button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${user.id}, '${user.userType.toLowerCase()}')"><i class="fas fa-check-circle"></i></button>
+                                ${user.hasPendingAppeal ? `<button class="btn-icon" title="Review Appeal" onclick="openAppealModalFromButton(this)" data-appeal-id="${user.pendingAppealId}" data-user-id="${user.id}" data-user-type="${escapeHtmlAttribute(user.userType.toLowerCase())}" data-user-name="${escapeHtmlAttribute(user.name)}" data-suspension-reason="${escapeHtmlAttribute(user.suspensionReason || 'No reason provided')}" data-appeal-message="${escapeHtmlAttribute(user.pendingAppealMessage || '')}" data-submitted-at="${escapeHtmlAttribute(user.pendingAppealSubmittedAt || '')}"><i class="fas fa-envelope-open-text"></i></button>` : ''}`
+                        : user.status !== 'Rejected'
+                            ? `<button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${user.id}, '${user.userType.toLowerCase()}', '${user.name.replace(/'/g, "\\'")}')"><i class="fas fa-ban"></i></button>`
+                            : ''}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function filterUsers() {
+    if (!window.allUsersData) return;
+
+    const searchTerm = (document.getElementById('userSearchInput')?.value || '').toLowerCase();
+    const typeFilter = (document.getElementById('userTypeFilter')?.value || '').toLowerCase();
+    const statusFilter = document.getElementById('userStatusFilter')?.value || '';
+
+    const filteredUsers = window.allUsersData.filter(user => {
+        const matchesSearch = searchTerm === '' ||
+            user.name.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm) ||
+            user.userType.toLowerCase().includes(searchTerm);
+        const matchesType = typeFilter === '' || user.userType.toLowerCase() === typeFilter;
+        const matchesStatus = statusFilter === '' || user.status === statusFilter;
+        return matchesSearch && matchesType && matchesStatus;
+    });
+
+    displayAllUsers(filteredUsers);
+}
+
+function closeAllUsersModal() {
+    const modal = document.getElementById('allUsersModal');
+    if (modal) modal.style.display = 'none';
+    if (document.getElementById('userSearchInput')) document.getElementById('userSearchInput').value = '';
+    if (document.getElementById('userTypeFilter')) document.getElementById('userTypeFilter').value = '';
+    if (document.getElementById('userStatusFilter')) document.getElementById('userStatusFilter').value = '';
+}
+
+let pendingSuspension = { userId: null, userType: null };
+let pendingAppealReview = { appealId: null, userId: null, userType: null };
+
+function suspendAccount(userId, userType, userName) {
+    pendingSuspension = { userId, userType };
+    document.getElementById('suspendUserName').textContent = userName;
+    document.getElementById('suspensionModal').style.display = 'flex';
+}
+
+function closeSuspensionModal() {
+    document.getElementById('suspensionModal').style.display = 'none';
+    document.getElementById('suspensionReason').value = '';
+    pendingSuspension = { userId: null, userType: null };
+}
+
+function openAppealModalFromButton(button) {
+    pendingAppealReview = {
+        appealId: parseInt(button.dataset.appealId, 10),
+        userId: parseInt(button.dataset.userId, 10),
+        userType: button.dataset.userType || ''
+    };
+
+    document.getElementById('appealUserName').textContent = button.dataset.userName || '-';
+    document.getElementById('appealUserType').textContent = (button.dataset.userType || '-').toUpperCase();
+    document.getElementById('appealSuspensionReason').textContent = button.dataset.suspensionReason || 'No reason provided';
+    document.getElementById('appealMessageBody').textContent = button.dataset.appealMessage || 'No appeal message';
+    document.getElementById('appealSubmittedAt').textContent = button.dataset.submittedAt || '-';
+    document.getElementById('appealAdminResponse').value = '';
+    document.getElementById('appealModal').style.display = 'flex';
+}
+
+function closeAppealModal() {
+    document.getElementById('appealModal').style.display = 'none';
+    document.getElementById('appealAdminResponse').value = '';
+    pendingAppealReview = { appealId: null, userId: null, userType: null };
+}
+
+function submitAppealDecision(decision) {
+    if (!pendingAppealReview.appealId) {
+        showToast('No appeal selected', 'warning');
+        return;
+    }
+
+    const adminResponse = document.getElementById('appealAdminResponse').value.trim();
+    if (decision === 'rejected' && !adminResponse) {
+        showToast('Please provide a response when rejecting an appeal', 'warning');
+        return;
+    }
+
+    fetch('/unipulse/public/admin/dashboard/reviewAppeal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            appeal_id: pendingAppealReview.appealId,
+            decision: decision,
+            admin_response: adminResponse
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to review appeal');
+            }
+
+            showToast(data.message || 'Appeal reviewed successfully', 'success');
+            closeAppealModal();
+
+            if (decision === 'approved' && pendingAppealReview.userId && pendingAppealReview.userType) {
+                updateDashboardRow(pendingAppealReview.userId, pendingAppealReview.userType, false);
+            }
+
+            refreshAllUsersModal();
+        })
+        .catch(error => {
+            showToast(error.message || 'An error occurred while reviewing the appeal', 'error');
+        });
+}
+
+function isAllUsersModalOpen() {
+    const modal = document.getElementById('allUsersModal');
+    return modal && modal.style.display === 'flex';
+}
+
+function refreshAllUsersModal() {
+    document.getElementById('allUsersLoadingMessage').style.display = 'block';
+    document.getElementById('allUsersContent').style.display = 'none';
+
+    fetch('/unipulse/public/Admin/Dashboard/getAllUsers')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) return;
+            window.allUsersData = data.users;
+            document.getElementById('allUsersLoadingMessage').style.display = 'none';
+            document.getElementById('allUsersContent').style.display = 'block';
+            filterUsers();
+        })
+        .catch(() => {});
+}
+
+function updateDashboardRow(userId, userType, isSuspended) {
+    const rowId = `dashboard-user-${userId}-${userType}`;
+    const row = document.getElementById(rowId);
+    if (!row) return;
+
+    const statusBadge = row.querySelector('.status-badge');
+    if (statusBadge) {
+        if (isSuspended) {
+            statusBadge.textContent = 'Suspended';
+            statusBadge.className = 'status-badge status-inactive';
+        } else {
+            statusBadge.textContent = 'Active';
+            statusBadge.className = 'status-badge status-active';
+        }
+    }
+
+    const actionButtons = row.querySelector('.action-buttons');
+    if (!actionButtons) return;
+
+    if (isSuspended) {
+        actionButtons.innerHTML = `
+            <button class="btn-icon btn-activate" title="Reactivate Account" onclick="reactivateAccount(${userId}, '${userType}')">
+                <i class="fas fa-check-circle"></i>
+            </button>`;
+        return;
+    }
+
+    const userName = row.querySelector('.user-name')?.textContent || '';
+    const rowStatus = row.querySelector('.status-badge')?.textContent?.trim() || '';
+    if (rowStatus !== 'Rejected') {
+        actionButtons.innerHTML = `
+            <button class="btn-icon btn-suspend" title="Suspend Account" onclick="suspendAccount(${userId}, '${userType}', '${userName.replace(/'/g, "\\'")}')">
+                <i class="fas fa-ban"></i>
+            </button>`;
+    } else {
+        actionButtons.innerHTML = '';
+    }
+}
+
+function confirmSuspension() {
+    const reason = document.getElementById('suspensionReason').value.trim();
+    if (!reason) {
+        showToast('Please provide a reason for suspension', 'warning');
+        return;
+    }
+
+    const modalIsOpen = isAllUsersModalOpen();
+
+    fetch('/unipulse/public/admin/dashboard/suspendUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: pendingSuspension.userId,
+            user_type: pendingSuspension.userType,
+            reason: reason
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            closeSuspensionModal();
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to suspend account');
+            }
+
+            showToast('Account suspended successfully', 'success');
+            updateDashboardRow(pendingSuspension.userId, pendingSuspension.userType, true);
+            if (modalIsOpen) refreshAllUsersModal();
+        })
+        .catch(error => {
+            showToast(error.message || 'An error occurred while suspending the account', 'error');
+            closeSuspensionModal();
+        });
+}
+
+function reactivateAccount(userId, userType) {
+    if (!confirm('Are you sure you want to reactivate this account?')) {
+        return;
+    }
+
+    const modalIsOpen = isAllUsersModalOpen();
+
+    fetch('/unipulse/public/admin/dashboard/reactivateUser', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            user_id: userId,
+            user_type: userType
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to reactivate account');
+            }
+
+            showToast('Account reactivated successfully', 'success');
+            updateDashboardRow(userId, userType, false);
+            if (modalIsOpen) refreshAllUsersModal();
+        })
+        .catch(error => {
+            showToast(error.message || 'An error occurred while reactivating the account', 'error');
+        });
+}
+
+function approvePublisher(publisherId) {
+    if (!confirm('Are you sure you want to approve this publisher?')) {
+        return;
+    }
+
+    fetch('/unipulse/public/Admin/Dashboard/approvePublisher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ publisher_id: publisherId })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to approve publisher');
+            }
+            showToast('Publisher approved successfully', 'success');
+            location.reload();
+        })
+        .catch(error => showToast(error.message || 'An error occurred while approving the publisher', 'error'));
+}
+
+function rejectPublisher(publisherId) {
+    const reason = prompt('Please provide a reason for rejection:');
+    if (!reason || reason.trim() === '') {
+        showToast('Rejection reason is required', 'warning');
+        return;
+    }
+
+    fetch('/unipulse/public/Admin/Dashboard/rejectPublisher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            publisher_id: publisherId,
+            rejection_reason: reason
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to reject publisher');
+            }
+            showToast('Publisher rejected successfully', 'success');
+            location.reload();
+        })
+        .catch(error => showToast(error.message || 'An error occurred while rejecting the publisher', 'error'));
+}
+
+window.addEventListener('click', function(event) {
+    const suspensionModal = document.getElementById('suspensionModal');
+    const allUsersModal = document.getElementById('allUsersModal');
+    const appealModal = document.getElementById('appealModal');
+
+    if (event.target === suspensionModal) {
+        closeSuspensionModal();
+    }
+
+    if (event.target === appealModal) {
+        closeAppealModal();
+    }
+
+    if (event.target === allUsersModal) {
+        closeAllUsersModal();
+    }
+});

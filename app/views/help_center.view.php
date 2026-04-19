@@ -387,6 +387,6 @@
     <!-- Footer -->
     <?php include __DIR__ . '/Components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/help_center.js"></script>
+    <script src="/unipulse/public/assets/js/help-center-app.js"></script>
 </body>
 </html>

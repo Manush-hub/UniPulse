@@ -6,7 +6,7 @@
     <title>UniPulse - System Settings</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_settings.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/settings-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -501,6 +501,6 @@
         </section>
     </div>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_settings.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/settings-app.js"></script>
 </body>
 </html>

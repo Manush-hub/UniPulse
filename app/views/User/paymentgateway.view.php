@@ -7,7 +7,7 @@
     <title>Payment Gateway - UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/eventview-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/User_paymentgateway.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/paymentgateway-style.css">
 </head>
 
 <body>
@@ -104,7 +104,7 @@
         </div>
     </div>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/User_paymentgateway.js"></script>
+    <script src="/unipulse/public/assets/js/User/paymentgateway-app.js"></script>
 </body>
 
 </html>

@@ -192,7 +192,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="event_date">New Event Date <span style="color: red;">*</span></label>
-                        <input type="date" id="event_date" name="event_date" required min="<?php echo date('Y-m-d'); ?>">
+                        <input type="date" id="event_date" name="event_date" required min="<?php echo htmlspecialchars($event->event_date); ?>">
                     </div>
                     
                     <div class="form-group">

@@ -212,7 +212,7 @@
             processPaymentUrl: '<?= ROOT ?>/user/paymentgateway/processPayment'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/paymentgateway.js"></script>
+    <script src="/unipulse/public/assets/js/paymentgateway-app.js"></script>
     <?php
     // include the global footer (actual file is app/views/footer.php)
     include __DIR__ . '/footer.php';

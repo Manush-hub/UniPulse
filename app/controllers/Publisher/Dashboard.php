@@ -715,6 +715,7 @@ class PublisherDashboard extends Controller
                         SELECT
                             COALESCE(pr.registered_user_name_snapshot, CONCAT('User #', pr.registered_user_id)) AS user_name,
                             'paid' AS ticket_type,
+                            COALESCE(pr.order_number, 'N/A') AS order_number,
                             COALESCE(pr.ticket_quantity, 1) AS ticket_quantity,
                             COALESCE(pr.total_amount, 0.00) AS amount,
                             pr.paid_at AS registered_at
@@ -748,6 +749,7 @@ class PublisherDashboard extends Controller
                     'registrations' => array_map(function ($row) {
                         return [
                             'user_name' => (string)($row['user_name'] ?? 'Unknown User'),
+                            'order_number' => (string)($row['order_number'] ?? 'N/A'),
                             'ticket_type' => (string)($row['ticket_type'] ?? 'free'),
                             'ticket_quantity' => (int)($row['ticket_quantity'] ?? 1),
                             'amount' => (float)($row['amount'] ?? 0),

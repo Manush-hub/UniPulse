@@ -59,7 +59,7 @@ $displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pu
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/create-event-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_createevent.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/createevent-style.css">
 
 </head>
 
@@ -1105,7 +1105,7 @@ $displayFaculty = isset($faculties[$pubFaculty]) ? $faculties[$pubFaculty] : $pu
     <?php include __DIR__ . '/../components/footer.php'; ?>
     <script src="/unipulse/public/assets/js/create-event-app.js"></script>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_createevent.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/createevent-app.js"></script>
 </body>
 
 </html>

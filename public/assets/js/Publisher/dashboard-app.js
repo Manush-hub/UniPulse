@@ -238,13 +238,14 @@ function renderRegistrationTicketing(events) {
                 const userName = escapeHtml(row.user_name || 'Unknown User');
                 const ticketType = escapeHtml((row.ticket_type || 'free').toLowerCase());
                 const ticketQuantity = Number(row.ticket_quantity || 1);
+                const orderNumber = escapeHtml(row.order_number || '');
                 const amount = Number(row.amount || 0);
 
                 return `
                     <tr>
                         <td>${userName}</td>
                         <td>${ticketType}</td>
-                        <td>${ticketQuantity}</td>
+                        <td>${ticketQuantity}(${orderNumber})</td>
                         <td>Rs. ${amount.toFixed(2)}</td>
                     </tr>
                 `;

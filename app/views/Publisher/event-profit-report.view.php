@@ -106,7 +106,7 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_event-profit-report.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/event-profit-report-app.js"></script>
 </body>
 
 </html>

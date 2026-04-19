@@ -88,4 +88,4 @@ if ($sponsorDisplayName !== '' && $sponsorDisplayName === strtolower($sponsorDis
 </header>
 <script src="/unipulse/public/assets/js/Common/registered-events-calendar.js"></script>
 <script src="/unipulse/public/assets/js/Sponsor/header-app.js"></script>
-<script src="<?php echo ROOT ?>/assets/js/extracted/Sponsor_components_header.js"></script>
+<script src="/unipulse/public/assets/js/Sponsor/components-header-app.js"></script>

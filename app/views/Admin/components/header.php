@@ -69,4 +69,3 @@ if (isset($_SESSION['contact_message_sent'])) {
 window.adminContactMessageSentFlash = <?= json_encode($contactMessageSentFlash) ?>;
 </script>
 <script src="/unipulse/public/assets/js/Admin/header-app.js"></script>
-<script src="<?php echo ROOT ?>/assets/js/extracted/Admin_components_header.js"></script>

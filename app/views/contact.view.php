@@ -143,6 +143,6 @@
   <!-- Footer -->
   <?php include __DIR__ . '/Components/footer.php'; ?>
 
-  <script src="<?php echo ROOT ?>/assets/js/extracted/contact.js"></script>
+  <script src="/unipulse/public/assets/js/contact-app.js"></script>
 </body>
 </html>

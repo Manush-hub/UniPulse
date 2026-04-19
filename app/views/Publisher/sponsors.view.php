@@ -114,6 +114,6 @@
     
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_sponsors.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/sponsors-app.js"></script>
 </body>
 </html>

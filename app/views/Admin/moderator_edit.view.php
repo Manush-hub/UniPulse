@@ -6,7 +6,7 @@
     <title>UniPulse - Edit Moderator</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_moderator_edit.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/moderator-edit-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -179,6 +179,6 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_moderator_edit.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/moderator-edit-app.js"></script>
 </body>
 </html>

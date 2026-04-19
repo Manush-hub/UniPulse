@@ -123,7 +123,7 @@
             defaultMonth: '<?= date('Y-m') ?>'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_monthly-evolution.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/monthly-evolution-app.js"></script>
 </body>
 
 </html>

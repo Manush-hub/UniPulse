@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
     <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/sponsorships-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_donations.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/donations-style.css">
 </head>
 
 <body>

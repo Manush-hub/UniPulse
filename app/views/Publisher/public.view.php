@@ -68,7 +68,7 @@ function safeOutput($value, $default = '') {
     <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/public-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="/UniPulse/public/assets/js/publisher/public-profile.js" defer></script>
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Publisher_public.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/public-style.css">
 </head>
 <body>
     <?php

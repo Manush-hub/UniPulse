@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Sponsor Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/sponsorreg-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/sponsorreg.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/sponsorreg-style.css">
 </head>
 
 <body>
@@ -113,6 +113,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/sponsorreg.js"></script>
+    <script src="/unipulse/public/assets/js/sponsorreg-app.js"></script>
 </body>
 </html>

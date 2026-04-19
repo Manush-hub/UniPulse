@@ -7,7 +7,7 @@
     <title>Payment Successful | UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/payment-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/payment_success.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/payment-success-style.css">
 </head>
 
 <body>

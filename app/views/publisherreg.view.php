@@ -7,7 +7,7 @@
     <title>UniPulse - Society/Club Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/publisherreg-style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/publisherreg.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/publisherreg-style.css">
 </head>
 
 <body>
@@ -200,6 +200,6 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/publisherreg.js"></script>
+    <script src="/unipulse/public/assets/js/publisherreg-app.js"></script>
 </body>
 </html>

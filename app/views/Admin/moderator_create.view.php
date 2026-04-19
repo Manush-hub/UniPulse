@@ -6,7 +6,7 @@
     <title>UniPulse - Create Moderator</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Admin_moderator_create.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Admin/moderator-create-style.css">
 </head>
 <body>
     <!-- Header -->
@@ -191,6 +191,6 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_moderator_create.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/moderator-create-app.js"></script>
 </body>
 </html>

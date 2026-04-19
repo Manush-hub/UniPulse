@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniPulse - Public User Registration</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/userreg-style.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/publicreg.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/publicreg-style.css">
 </head>
 
 <body>
@@ -156,7 +156,7 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/publicreg.js"></script>
+    <script src="/unipulse/public/assets/js/publicreg-app.js"></script>
 
     <!-- <script src="public-user-registration.js"></script> -->
 </body>

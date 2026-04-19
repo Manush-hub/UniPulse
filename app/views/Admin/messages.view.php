@@ -268,7 +268,7 @@
             currentContactType: '<?= !empty($conversations) ? $conversations[0]->contact_type : '' ?>'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_messages.js"></script>
+    <script src="/unipulse/public/assets/js/Admin/messages-app.js"></script>
 
 </body>
 

@@ -233,7 +233,7 @@
 
     <?php include __DIR__ . '/../components/footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/User_profile.js"></script>
+    <script src="/unipulse/public/assets/js/User/profile-app.js"></script>
     <script src="/UniPulse/public/assets/js/userprofile-app.js"></script>
 </body>
 

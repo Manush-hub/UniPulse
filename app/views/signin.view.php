@@ -139,8 +139,8 @@
     <!-- Footer -->
     <?php include 'footer.php'; ?>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/signin.js"></script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/signin_suspension.js"></script>
+    <script src="/unipulse/public/assets/js/signin-form-app.js"></script>
+    <script src="/unipulse/public/assets/js/signin-suspension-app.js"></script>
 </body>
 
 </html>

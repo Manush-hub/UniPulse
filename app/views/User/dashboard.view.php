@@ -7,7 +7,7 @@
     <title>UniPulse - Dashboard</title>
     <link rel="stylesheet" href="<?php echo $controller->loadCSS('dashboard-style.css'); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/User_dashboard.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/User/dashboard-style.css">
 </head>
 
 <body>

@@ -645,7 +645,6 @@
     </div>
 
     <script src="/unipulse/public/assets/js/Admin/dashboard-app.js?v=<?= time() ?>"></script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Admin_dashboard.js"></script>
     
     
 </body>

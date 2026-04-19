@@ -173,9 +173,9 @@
         </div>
     </div>
 
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_publisher_approval.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/publisher-approval-app.js"></script>
 
-    <link rel="stylesheet" href="<?php echo ROOT ?>/assets/css/extracted/Moderator_publisher_approval.css">
+    <link rel="stylesheet" href="/unipulse/public/assets/css/Moderator/publisher-approval-style.css">
 </body>
 
 </html>

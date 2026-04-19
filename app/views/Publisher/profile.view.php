@@ -647,7 +647,7 @@
             updatePreferencesUrl: '/unipulse/public/publisher/profile/updatePreferences'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Publisher_profile.js"></script>
+    <script src="/unipulse/public/assets/js/Publisher/profile-app.js"></script>
     <script src="/UniPulse/public/assets/js/publisherprofie-app.js"></script>
 </body>
 

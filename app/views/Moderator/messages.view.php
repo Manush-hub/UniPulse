@@ -233,7 +233,7 @@
             currentContactPhoto: '<?= !empty($conversations) ? htmlspecialchars($conversations[0]->contact_photo ?? '', ENT_QUOTES, 'UTF-8') : '' ?>'
         };
     </script>
-    <script src="<?php echo ROOT ?>/assets/js/extracted/Moderator_messages.js"></script>
+    <script src="/unipulse/public/assets/js/Moderator/messages-chatbox-app.js"></script>
 
 </body>
 
