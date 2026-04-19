@@ -10,34 +10,6 @@
 </head>
 <body>
     <!-- Header -->
-    <!-- <header class="header">
-        <div class="header-container">
-            <div class="logo">
-                <a href="/unipulse/public/admin/dashboard">
-                    <img src="/unipulse/public/assets/images/logo.png" alt="UniPulse Logo" class="logo-image">
-                </a>
-            </div>
-            <nav class="nav">
-                <a href="/unipulse/public/admin/dashboard">Dashboard</a>
-                <a href="/unipulse/public/admin/moderators" class="active">Moderators</a>
-                <a href="/unipulse/public/admin/admins">Admins</a>
-            </nav>
-            <div class="header-actions">
-                <div class="user-menu">
-                    <img src="/unipulse/public/assets/images/admin.png" alt="Admin" class="admin-avatar">
-                    <div class="user-info">
-                        <span class="username"><?php echo htmlspecialchars($user['name']); ?></span>
-                        <span class="user-role">System Administrator</span>
-                    </div>
-                    <div class="user-dropdown">
-                        <a href="/unipulse/public/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header> -->
-
-    <!-- Header -->
     <?php
     $pageConfig = ['activeNav' => 'moderators_list'];
     include __DIR__ . '/components/header.php';
