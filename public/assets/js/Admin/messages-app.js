@@ -1,7 +1,6 @@
 const adminMessagesConfig = window.adminMessagesConfig || {};
 let currentContactId = Number(adminMessagesConfig.currentContactId || 0);
 let currentContactType = adminMessagesConfig.currentContactType || '';
-let pollingInterval;
 
 async function loadConversation(contactId, contactType) {
     try {
@@ -141,7 +140,6 @@ function selectConversation(el) {
 
     updateChatHeader(name, currentContactType);
     updateRecipientFields(currentContactId, currentContactType);
-    resetPolling();
     loadConversation(currentContactId, currentContactType);
 }
 
@@ -168,7 +166,6 @@ function startConversation(contactId, contactType, contactName) {
         }
     }
 
-    resetPolling();
     loadConversation(currentContactId, currentContactType);
 }
 
@@ -226,14 +223,6 @@ function updateRecipientFields(id, type) {
     if (typeEl) typeEl.value = type;
 }
 
-function resetPolling() {
-    if (pollingInterval) clearInterval(pollingInterval);
-    pollingInterval = setInterval(() => {
-        if (currentContactId && currentContactType) {
-            loadConversation(currentContactId, currentContactType);
-        }
-    }, 5000);
-}
 
 function refreshChat() {
     if (currentContactId && currentContactType) {
@@ -379,5 +368,4 @@ attachInputListeners();
 
 if (currentContactId && currentContactType) {
     loadConversation(currentContactId, currentContactType);
-    resetPolling();
 }

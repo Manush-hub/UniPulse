@@ -2,7 +2,6 @@ const moderatorMessagesConfig = window.moderatorMessagesConfig || {};
 let currentContactId = Number(moderatorMessagesConfig.currentContactId || 0);
 let currentContactType = moderatorMessagesConfig.currentContactType || '';
 let currentContactPhoto = moderatorMessagesConfig.currentContactPhoto || '';
-let messagePollingInterval;
 
 function renderAvatar(avatarEl, contactName, photoUrl) {
     if (!avatarEl) return;
@@ -196,12 +195,6 @@ function startConversation(contactId, contactType, contactName, contactPhoto = '
             });
         }
 
-        if (messagePollingInterval) {
-            clearInterval(messagePollingInterval);
-        }
-        messagePollingInterval = setInterval(() => {
-            loadConversation(currentContactId, currentContactType);
-        }, 5000);
     } else {
         document.getElementById('chatContactName').textContent = contactName;
         document.getElementById('chatContactType').textContent = capitalizeFirst(contactType);
@@ -260,7 +253,4 @@ function refreshChat() {
 if (currentContactId && currentContactType) {
     loadConversation(currentContactId, currentContactType);
 
-    messagePollingInterval = setInterval(() => {
-        loadConversation(currentContactId, currentContactType);
-    }, 5000);
 }
