@@ -219,6 +219,13 @@ class AuthService
             case 'public':
             case 'university':
                 $_SESSION['user_name'] = $userData['user']->full_name;
+                // Ensure avatar is available immediately after first login redirect.
+                if (!empty($userData['user']->profile_photo)) {
+                    $_SESSION['user_profile_photo'] = $userData['user']->profile_photo;
+                }
+                if (!empty($userData['user']->cover_photo)) {
+                    $_SESSION['user_cover_photo'] = $userData['user']->cover_photo;
+                }
                 // Store university for university students
                 if ($userData['type'] === 'university' && isset($userData['user']->university)) {
                     $_SESSION['user_university'] = $userData['user']->university;

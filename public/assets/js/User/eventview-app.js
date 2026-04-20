@@ -2582,9 +2582,14 @@ function displayComments(comments) {
 
 // Create HTML for a single comment
 function createCommentHTML(comment) {
-    const userInitials = comment.user_name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const userInitials = String(comment.user_name || 'A')
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase();
     const ratingStars = comment.rating ? '★'.repeat(comment.rating) + '☆'.repeat(5 - comment.rating) : '';
     const editedBadge = comment.is_edited ? '<span class="edited-badge">Edited</span>' : '';
+    const avatarHtml = getCommentAvatarHtml(comment, userInitials);
 
     const actionButtons = comment.can_edit || comment.can_delete ? `
         <div class="comment-actions">
@@ -2607,7 +2612,7 @@ function createCommentHTML(comment) {
         <div class="comment-card" data-comment-id="${comment.id}">
             <div class="comment-header">
                 <div class="comment-user">
-                    <div class="user-avatar">${userInitials}</div>
+                    <div class="user-avatar">${avatarHtml}</div>
                     <div class="user-info">
                         <h4>${escapeHtml(comment.user_name)}</h4>
                         <p>${comment.user_type.charAt(0).toUpperCase() + comment.user_type.slice(1)} User ${editedBadge}</p>
@@ -2632,6 +2637,38 @@ function createCommentHTML(comment) {
             ${actionButtons}
         </div>
     `;
+}
+
+function getCommentAvatarHtml(comment, userInitials) {
+    const safeName = escapeHtml(comment.user_name || 'User');
+    const photoUrl = sanitizeAvatarUrl(comment.profile_photo);
+
+    if (photoUrl) {
+        return `<img src="${escapeHtml(photoUrl)}" alt="${safeName}">`;
+    }
+
+    return escapeHtml(userInitials || 'U');
+}
+
+function sanitizeAvatarUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return null;
+    }
+
+    const trimmed = url.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    if (trimmed.startsWith('data:image/')) {
+        return trimmed;
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
+        return trimmed;
+    }
+
+    return null;
 }
 
 // Display empty comments state

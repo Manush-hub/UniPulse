@@ -49,6 +49,7 @@ class UserComments extends Controller
                 $formattedComments[] = [
                     'id' => $comment->id,
                     'user_name' => $comment->user_name,
+                    'profile_photo' => $comment->profile_photo ?? null,
                     'user_type' => $comment->user_type,
                     'comment_text' => $comment->comment_text,
                     'rating' => $comment->rating,
@@ -181,6 +182,7 @@ class UserComments extends Controller
                     'comment' => [
                         'id' => $newComment->id,
                         'user_name' => $newComment->user_name,
+                        'profile_photo' => $newComment->profile_photo ?? null,
                         'user_type' => $newComment->user_type,
                         'comment_text' => $newComment->comment_text,
                         'rating' => $newComment->rating,
@@ -250,6 +252,7 @@ class UserComments extends Controller
                     'comment' => [
                         'id' => $updatedComment->id,
                         'user_name' => $updatedComment->user_name,
+                        'profile_photo' => $updatedComment->profile_photo ?? null,
                         'user_type' => $updatedComment->user_type,
                         'comment_text' => $updatedComment->comment_text,
                         'rating' => $updatedComment->rating,

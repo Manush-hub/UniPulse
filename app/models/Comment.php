@@ -19,12 +19,20 @@ class Comment
                     WHEN c.user_type = 'public' THEN pu.full_name
                     WHEN c.user_type = 'publisher' THEN p.society_name
                     WHEN c.user_type = 'sponsor' THEN s.company_name
-                END as user_name
+                END as user_name,
+                CASE
+                    WHEN c.user_type = 'university' THEN uu.profile_photo
+                    WHEN c.user_type = 'public' THEN pu.profile_photo
+                    WHEN c.user_type = 'publisher' THEN pp.logo_url
+                    WHEN c.user_type = 'sponsor' THEN sp.logo_url
+                END as profile_photo
             FROM event_comments c
             LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
             LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
             LEFT JOIN publishers p ON c.user_type = 'publisher' AND c.user_id = p.id
             LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
+            LEFT JOIN publisher_profiles pp ON c.user_type = 'publisher' AND c.user_id = pp.publisher_id
+            LEFT JOIN sponsor_profiles sp ON c.user_type = 'sponsor' AND c.user_id = sp.sponsor_id
             WHERE c.id = :comment_id 
             AND c.is_deleted = 0
         ";
@@ -68,12 +76,20 @@ class Comment
                     WHEN c.user_type = 'public' THEN pu.email
                     WHEN c.user_type = 'publisher' THEN p.email
                     WHEN c.user_type = 'sponsor' THEN s.email
-                END as user_email
+                END as user_email,
+                CASE
+                    WHEN c.user_type = 'university' THEN uu.profile_photo
+                    WHEN c.user_type = 'public' THEN pu.profile_photo
+                    WHEN c.user_type = 'publisher' THEN pp.logo_url
+                    WHEN c.user_type = 'sponsor' THEN sp.logo_url
+                END as profile_photo
             FROM event_comments c
             LEFT JOIN university_users uu ON c.user_type = 'university' AND c.user_id = uu.id
             LEFT JOIN public_users pu ON c.user_type = 'public' AND c.user_id = pu.id
             LEFT JOIN publishers p ON c.user_type = 'publisher' AND c.user_id = p.id
             LEFT JOIN sponsors s ON c.user_type = 'sponsor' AND c.user_id = s.id
+            LEFT JOIN publisher_profiles pp ON c.user_type = 'publisher' AND c.user_id = pp.publisher_id
+            LEFT JOIN sponsor_profiles sp ON c.user_type = 'sponsor' AND c.user_id = sp.sponsor_id
             WHERE c.event_id = :event_id 
             AND c.is_deleted = 0
             AND c.is_hidden = 0
