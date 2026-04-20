@@ -422,10 +422,8 @@ class ClubProfile {
             mission: document.getElementById('mission').value
         };
 
-        // Show loading state
+        // Disable button during save
         const saveBtn = document.querySelector('#organization-form .btn-primary');
-        const originalText = saveBtn.textContent;
-        saveBtn.textContent = 'Saving...';
         saveBtn.disabled = true;
 
         // Make AJAX call to update profile
@@ -476,7 +474,6 @@ class ClubProfile {
                 this.showNotification('An error occurred while updating', 'error');
             })
             .finally(() => {
-                saveBtn.textContent = originalText;
                 saveBtn.disabled = false;
             });
     }
@@ -617,11 +614,9 @@ class ClubProfile {
             youtube: document.getElementById('youtube').value
         };
 
-        // Show loading state
+        // Disable button during save
         const saveBtn = document.querySelector('#social-form .btn-primary');
         if (saveBtn) {
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = 'Saving...';
             saveBtn.disabled = true;
 
             // Make AJAX call to update social links
@@ -645,7 +640,6 @@ class ClubProfile {
                     this.showNotification('An error occurred while updating', 'error');
                 })
                 .finally(() => {
-                    saveBtn.textContent = originalText;
                     saveBtn.disabled = false;
                 });
         }
@@ -1017,22 +1011,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 clubProfile.closeModal(modal.id);
             });
         }
-    });
-
-    // Add loading states to buttons
-    document.querySelectorAll('.btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            if (!this.classList.contains('loading')) {
-                this.classList.add('loading');
-                const originalText = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-                setTimeout(() => {
-                    this.classList.remove('loading');
-                    this.innerHTML = originalText;
-                }, 1000);
-            }
-        });
     });
 
     // Add smooth scrolling to internal links

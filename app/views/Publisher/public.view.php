@@ -65,10 +65,9 @@ function safeOutput($value, $default = '') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $orgName; ?> - UniPulse</title>
     <link rel="stylesheet" href="/unipulse/public/assets/css/components/header-style.css">
-    <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/public-style.css">
+    <link rel="stylesheet" href="/UniPulse/public/assets/css/publisher/public-style.css?v=<?= time() ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="/UniPulse/public/assets/js/publisher/public-profile.js" defer></script>
-    <link rel="stylesheet" href="/unipulse/public/assets/css/Publisher/public-style.css">
+    <script src="/UniPulse/public/assets/js/publisher/public-profile.js?v=<?= time() ?>" defer></script>
 </head>
 <body>
     <?php
