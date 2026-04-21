@@ -163,7 +163,7 @@
                     <div class="revenue-range-grid">
                         <div class="month-selector">
                             <label for="adminRevenueFromDate">From Date:</label>
-                            <input type="date" id="adminRevenueFromDate" value="<?= date('Y-m-d', strtotime('-12 months')) ?>" max="<?= date('Y-m-d') ?>">
+                            <input type="date" id="adminRevenueFromDate" value="<?= date('Y-m-d', strtotime('-1 months')) ?>" max="<?= date('Y-m-d') ?>">
                         </div>
                         <div class="month-selector">
                             <label for="adminRevenueToDate">To Date:</label>

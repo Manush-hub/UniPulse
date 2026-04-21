@@ -548,7 +548,7 @@ class AdminDashboard extends Controller {
             return;
         }
 
-        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultFrom = date('Y-m-d', strtotime('-1 months'));
         $defaultTo = date('Y-m-d');
 
         $fromDate = $_GET['from_date'] ?? $defaultFrom;
@@ -588,7 +588,7 @@ class AdminDashboard extends Controller {
             exit;
         }
 
-        $defaultFrom = date('Y-m-d', strtotime('-12 months'));
+        $defaultFrom = date('Y-m-d', strtotime('-1 months'));
         $defaultTo = date('Y-m-d');
 
         $fromDate = $_GET['from_date'] ?? $defaultFrom;
