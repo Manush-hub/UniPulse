@@ -10,7 +10,7 @@ if (!isset($_SERVER['SERVER_NAME'])) {
 
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
     // MAMP Configuration (macOS/Windows)
-    define('DBNAME', 'unipulse_final');
+    define('DBNAME', 'unipulse_prac');
     define('DBHOST', 'localhost');
     define('DBUSER', 'root');
 
