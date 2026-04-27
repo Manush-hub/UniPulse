@@ -9,25 +9,58 @@ if (!isset($_SERVER['SERVER_NAME'])) {
 }
 
 if ($_SERVER['SERVER_NAME'] == 'localhost') {
-    // MAMP Configuration (macOS/Windows)
-    define('DBNAME', 'unipulse_final');
-    define('DBHOST', 'localhost');
-    define('DBUSER', 'root');
+    // Local development defaults (override with env vars when needed)
+    $isWindows = (PHP_OS_FAMILY === 'Windows');
+    $pathHints = implode(' ', [
+        __DIR__,
+        $_SERVER['DOCUMENT_ROOT'] ?? '',
+        $_SERVER['SCRIPT_FILENAME'] ?? ''
+    ]);
 
-    // Check if running on MAMP (macOS) or WAMP (Windows)
-    if (PHP_OS_FAMILY === 'Windows' || strpos(__DIR__, 'wamp') !== false) {
-        // WAMP Configuration (Windows)
-        define('DBPASS', 'hash@123');  // WAMP default is empty password
-        define('DBPORT', '3306'); // WAMP default port
-    } else {
-        // MAMP Configuration (macOS)
-        define('DBPASS', 'root'); // MAMP default password
-        define('DBPORT', '8889'); // MAMP default port
+    $isMamp = (stripos($pathHints, 'mamp') !== false);
+    $isWamp = (stripos($pathHints, 'wamp') !== false);
+    $isXampp = (stripos($pathHints, 'xampp') !== false);
+
+    define('DBNAME', getenv('UNIPULSE_DB_NAME') ?: 'unipulse_final');
+    define('DBHOST', getenv('UNIPULSE_DB_HOST') ?: 'localhost');
+    define('DBUSER', getenv('UNIPULSE_DB_USER') ?: 'root');
+
+    // Default DB credentials by local stack
+    $defaultDbPass = 'root';
+    $defaultDbPort = '8889';
+
+    if ($isWamp || $isXampp || $isWindows) {
+        // WAMP/XAMPP defaults (and generic Windows fallback)
+        $defaultDbPass = '';
+        $defaultDbPort = '3306';
     }
 
-    define('ROOT', 'http://localhost/UniPulse/public');
+    if ($isMamp) {
+        // MAMP defaults
+        $defaultDbPass = 'root';
+        $defaultDbPort = '8889';
+    }
+
+    define('DBPASS', getenv('UNIPULSE_DB_PASS') !== false ? getenv('UNIPULSE_DB_PASS') : $defaultDbPass);
+    define('DBPORT', getenv('UNIPULSE_DB_PORT') ?: $defaultDbPort);
+
+    define('DB_CHARSET', getenv('UNIPULSE_DB_CHARSET') ?: 'utf8mb4');
+    define('DB_COLLATION', getenv('UNIPULSE_DB_COLLATION') ?: 'utf8mb4_general_ci');
+
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    if (!isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SERVER_PORT']) && !in_array((string)$_SERVER['SERVER_PORT'], ['80', '443'], true)) {
+        $host .= ':' . $_SERVER['SERVER_PORT'];
+    }
+
+    $projectFolder = basename(dirname(__DIR__, 2));
+    $defaultRoot = $scheme . '://' . $host . '/' . $projectFolder . '/public';
+    define('ROOT', getenv('UNIPULSE_ROOT_URL') ?: $defaultRoot);
 } else {
     define('ROOT', 'https://www.unipulse.lk');
+
+    define('DB_CHARSET', getenv('UNIPULSE_DB_CHARSET') ?: 'utf8mb4');
+    define('DB_COLLATION', getenv('UNIPULSE_DB_COLLATION') ?: 'utf8mb4_general_ci');
 }
 
 define('APP_NAME', "My website");

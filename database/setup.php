@@ -3,7 +3,7 @@ require_once __DIR__ . '/../app/Core/config.php';
 
 try {
     // Connect to MySQL server (without selecting database first)
-    $dsn = "mysql:host=" . DBHOST . ";port=" . DBPORT . ";charset=utf8mb4";
+    $dsn = "mysql:host=" . DBHOST . ";port=" . DBPORT . ";charset=" . DB_CHARSET;
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -12,8 +12,16 @@ try {
     $pdo = new PDO($dsn, DBUSER, DBPASS, $options);
 
     // Create database if it doesn't exist
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET " . DB_CHARSET . " COLLATE " . DB_COLLATION);
     echo "Database '" . DBNAME . "' created successfully or already exists.\n";
+
+    $normalizeCollation = function ($sql) {
+        return str_replace(
+            'DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+            'DEFAULT CHARSET=' . DB_CHARSET . ' COLLATE=' . DB_COLLATION,
+            $sql
+        );
+    };
 
     // Select the database
     $pdo->exec("USE " . DBNAME);
@@ -47,7 +55,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($universityUsersTable);
+    $pdo->exec($normalizeCollation($universityUsersTable));
     echo "Table 'university_users' created successfully.\n";
 
     // Create public_users table
@@ -72,7 +80,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($publicUsersTable);
+    $pdo->exec($normalizeCollation($publicUsersTable));
     echo "Table 'public_users' created successfully.\n";
 
     // Create a general users table for login (optional - combines both user types)
@@ -93,7 +101,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($usersTable);
+    $pdo->exec($normalizeCollation($usersTable));
     echo "Table 'users' created successfully.\n";
 
     // Create admins table
@@ -112,7 +120,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($adminsTable);
+    $pdo->exec($normalizeCollation($adminsTable));
     echo "Table 'admins' created successfully.\n";
 
     // Create moderators table
@@ -138,7 +146,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($moderatorsTable);
+    $pdo->exec($normalizeCollation($moderatorsTable));
     echo "Table 'moderators' created successfully.\n";
 
     // Create events table
@@ -170,7 +178,7 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ";
 
-    $pdo->exec($eventsTable);
+    $pdo->exec($normalizeCollation($eventsTable));
     echo "Table 'events' created successfully.\n";
 
     // Insert sample events data

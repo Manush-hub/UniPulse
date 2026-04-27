@@ -40,7 +40,7 @@ class DatabaseInitializer
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         // Create database if it doesn't exist
-        $conn->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $conn->exec("CREATE DATABASE IF NOT EXISTS " . DBNAME . " CHARACTER SET " . DB_CHARSET . " COLLATE " . DB_COLLATION);
 
         // Select the database
         $conn->exec("USE " . DBNAME);
@@ -101,6 +101,11 @@ class DatabaseInitializer
         }
 
         if ($sql) {
+            $sql = str_replace(
+                'DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+                'DEFAULT CHARSET=' . DB_CHARSET . ' COLLATE=' . DB_COLLATION,
+                $sql
+            );
             $conn->exec($sql);
             error_log("Created table: $tableName");
         }
